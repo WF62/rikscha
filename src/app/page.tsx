@@ -109,6 +109,8 @@ function BuchungKarte({ b, schmal }: { b: Buchung; schmal?: boolean }) {
 function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () => void; onClose: () => void }) {
   const [saving, setSaving] = useState(false);
   const [gaestInput, setGaestInput] = useState('');
+  const [notiz, setNotiz] = useState(b.notiz ?? '');
+  const [notizGeaendert, setNotizGeaendert] = useState(false);
 
   const patch = async (data: Record<string, unknown>) => {
     setSaving(true);
@@ -121,7 +123,6 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
     onUpdated();
   };
 
-  // Fahrzeugwechsel löscht keine Gäste; Limit gilt nur beim Hinzufügen
   const fahrzeugWaehlen = (fzId: string) => patch({ fahrzeug: fzId });
 
   const gastHinzufuegen = () => {
@@ -133,6 +134,11 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
     setGaestInput('');
   };
   const gastEntfernen = (i: number) => patch({ gaeste: b.gaeste.filter((_, idx) => idx !== i) });
+
+  const notizSpeichern = () => {
+    patch({ notiz: notiz.trim() });
+    setNotizGeaendert(false);
+  };
 
   const fz = fahrzeugById(b.fahrzeug);
   const maxGaeste = fz?.maxGaeste ?? 2;
@@ -191,7 +197,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
       </div>
 
       {/* Gäste */}
-      <div>
+      <div className="mb-3">
         <p className="text-xs font-semibold text-gray-600 mb-1.5">Gäste (max. {maxGaeste}):</p>
         <div className="flex flex-wrap gap-1 mb-1.5">
           {b.gaeste.map((g, i) => (
@@ -202,7 +208,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
             </span>
           ))}
         </div>
-        {b.gaeste.length < maxGaeste && (
+        {b.gaeste.length < maxGaeste ? (
           <div className="flex gap-1.5">
             <input type="text" value={gaestInput} onChange={(e) => setGaestInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && gastHinzufuegen()}
@@ -215,9 +221,28 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
               + Gast
             </button>
           </div>
-        )}
-        {b.gaeste.length >= maxGaeste && (
+        ) : (
           <p className="text-xs text-orange-600 italic">Maximale Gästeanzahl für dieses Fahrzeug erreicht.</p>
+        )}
+      </div>
+
+      {/* Notiz */}
+      <div>
+        <p className="text-xs font-semibold text-gray-600 mb-1.5">Notiz:</p>
+        <textarea
+          value={notiz}
+          onChange={(e) => { setNotiz(e.target.value); setNotizGeaendert(true); }}
+          placeholder="Notiz hinzufügen..."
+          rows={2}
+          className="w-full text-sm px-2 py-1.5 rounded border border-gray-400 bg-white resize-none"
+        />
+        {notizGeaendert && (
+          <button
+            onClick={notizSpeichern}
+            disabled={saving}
+            className="mt-1 text-sm px-3 py-1 rounded bg-indigo-600 text-white font-bold hover:bg-indigo-700 disabled:opacity-50">
+            Notiz speichern
+          </button>
         )}
       </div>
     </div>
@@ -511,11 +536,14 @@ export default function KalenderSeite() {
                     <span className="text-sm text-orange-600 italic">Fahrzeug noch nicht gewählt</span>
                   </div>
                 )}
-                {b.notiz && (
-                  <div className="px-3 py-1.5 bg-white border-t border-gray-100">
-                    <p className="text-xs text-gray-500 italic">{b.notiz}</p>
-                  </div>
-                )}
+                {/* Notiz immer anzeigen */}
+                <div className="px-3 py-2 bg-yellow-50 border-t border-yellow-200 flex items-start gap-2">
+                  <span className="text-yellow-600 text-sm mt-0.5">📝</span>
+                  {b.notiz
+                    ? <p className="text-sm text-gray-700">{b.notiz}</p>
+                    : <p className="text-sm text-gray-400 italic">Keine Notiz — im Ändern-Panel hinzufügen</p>
+                  }
+                </div>
                 {!b.storniert && (
                   <div className="flex gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
                     <button
