@@ -9,7 +9,10 @@ import {
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
 import type { TeamUpEvent } from '@/app/api/teamup/route';
-import { FAHRZEUGE, PILOTEN, PILOTEN_FARBEN, GAST_FARBE, fahrzeugById, pilotFarbe } from '@/lib/constants';
+import {
+  FAHRZEUGE, PILOTEN, PILOTEN_FARBEN_LEGENDE, GAST_FARBE,
+  fahrzeugById, pilotFarbe, pilotFarbeLegende,
+} from '@/lib/constants';
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -54,25 +57,48 @@ function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
 
+/** Buchungskarte mit inline-Farben (Tailwind-Purge-sicher) */
 function BuchungKarte({ b }: { b: Buchung }) {
   const fz = fahrzeugById(b.fahrzeug);
   const pf = pilotFarbe(b.pilot);
   return (
-    <div className={`rounded overflow-hidden border-2 mb-0.5 border-gray-400 shadow-sm ${b.storniert ? 'opacity-50' : ''}`}>
-      <div className={`flex items-center gap-1 px-1.5 py-1 ${pf.bg} ${pf.text}`}>
-        <span className={`flex-shrink-0 w-2 h-2 rounded-full ${pf.dot}`} />
+    <div className={`rounded overflow-hidden border-2 border-gray-400 shadow mb-0.5 ${b.storniert ? 'opacity-50' : ''}`}>
+      {/* Pilot */}
+      <div
+        style={{ backgroundColor: pf.bgHex }}
+        className={`flex items-center gap-1 px-1.5 py-1 ${pf.textClass}`}
+      >
+        <span
+          style={{ backgroundColor: pf.dotHex }}
+          className="flex-shrink-0 w-2 h-2 rounded-full"
+        />
         <span className={`text-[11px] font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
           {b.startzeit.slice(0, 5)} P: {b.pilot}
         </span>
       </div>
+      {/* Gäste */}
       {b.gaeste.map((g, i) => (
-        <div key={i} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/40 ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>
-          <span className={`flex-shrink-0 w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
+        <div
+          key={i}
+          style={{ backgroundColor: GAST_FARBE.bgHex }}
+          className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}
+        >
+          <span
+            style={{ backgroundColor: GAST_FARBE.dotHex }}
+            className="flex-shrink-0 w-2 h-2 rounded-full"
+          />
           <span className="text-[11px] font-semibold truncate">G: {g}</span>
         </div>
       ))}
-      <div className={`flex items-center gap-1 px-1.5 py-1 border-t border-white/40 ${fz?.farbe ?? 'bg-gray-200 text-gray-800'}`}>
-        <span className={`flex-shrink-0 w-2 h-2 rounded-full ${fz?.farbeDot ?? 'bg-gray-500'}`} />
+      {/* Fahrzeug */}
+      <div
+        style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }}
+        className="flex items-center gap-1 px-1.5 py-1 border-t border-white/60 text-gray-900"
+      >
+        <span
+          style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }}
+          className="flex-shrink-0 w-2 h-2 rounded-full"
+        />
         <span className="text-[10px] font-semibold truncate">{fz?.name ?? b.fahrzeug}</span>
       </div>
     </div>
@@ -143,7 +169,6 @@ export default function KalenderSeite() {
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
   const tagTeamUp  = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
 
-  // Schnellbuchung: Datum vorauswählen und direkt zum Formular
   const schnellBuchen = (opts: { pilot?: string; fahrzeug?: string; gaeste?: boolean }) => {
     const datum = ausgewaehlt ? format(ausgewaehlt, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
     const params = new URLSearchParams({ datum });
@@ -153,12 +178,8 @@ export default function KalenderSeite() {
     window.location.href = `/buchen?${params.toString()}`;
   };
 
-  const togglePilot = (name: string) => {
-    setFilterPilot(prev => prev === name ? '' : name);
-  };
-  const toggleFahrzeug = (id: string) => {
-    setFilterFahrzeug(prev => prev === id ? '' : id);
-  };
+  const togglePilot    = (name: string) => setFilterPilot(p => p === name ? '' : name);
+  const toggleFahrzeug = (id: string)   => setFilterFahrzeug(p => p === id ? '' : id);
 
   return (
     <div>
@@ -190,20 +211,21 @@ export default function KalenderSeite() {
         </div>
       </div>
 
-      {/* Legende Fahrzeuge – klickbar als Filter */}
+      {/* Legende Fahrzeuge */}
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
         <span className="text-xs font-semibold text-gray-500 self-center mr-1">Fahrzeug:</span>
         {FAHRZEUGE.map((f) => (
           <button key={f.id}
             onClick={() => toggleFahrzeug(f.id)}
-            title="Klick = Filter / Doppelklick = buchen"
             onDoubleClick={() => schnellBuchen({ fahrzeug: f.id })}
-            className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all ${
+            title="Klick = Filter | Doppelklick = Termin"
+            style={{ backgroundColor: f.bgHex }}
+            className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all font-semibold ${
               filterFahrzeug === f.id
-                ? `${f.farbe} scale-105 shadow-md font-bold ring-2 ring-offset-1 ring-gray-600`
-                : `${f.farbe} opacity-80 hover:opacity-100 hover:scale-105`
-            }`}>
-            <span className={`w-2 h-2 rounded-full ${f.farbeDot}`} />
+                ? 'scale-105 shadow-md ring-2 ring-offset-1 ring-gray-600 border-gray-700'
+                : 'border-gray-400 opacity-90 hover:opacity-100 hover:scale-105'
+            } text-gray-900`}>
+            <span style={{ backgroundColor: f.farbeHex }} className="w-2 h-2 rounded-full" />
             {f.name} &middot; {f.typ}
           </button>
         ))}
@@ -223,42 +245,45 @@ export default function KalenderSeite() {
         </span>
       </div>
 
-      {/* Legende Piloten – klickbar als Filter + Schnellbuchung */}
+      {/* Legende Piloten */}
       <div className="flex flex-wrap gap-2 mb-2 text-xs">
         <span className="text-xs font-semibold text-gray-500 self-center mr-1">Pilot:</span>
         {PILOTEN.map((name) => {
-          const f = PILOTEN_FARBEN[name] ?? { bg: 'bg-gray-200', text: 'text-gray-800', dot: 'bg-gray-500' };
+          const pf  = pilotFarbe(name);
+          const leg = pilotFarbeLegende(name);
           const aktiv = filterPilot === name;
           return (
             <button key={name}
               onClick={() => togglePilot(name)}
               onDoubleClick={() => schnellBuchen({ pilot: name })}
-              title="Klick = Filter | Doppelklick = Termin mit diesem Piloten"
-              className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all ${
+              title="Klick = Filter | Doppelklick = Termin"
+              style={{ backgroundColor: pf.bgHex }}
+              className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all font-semibold ${
                 aktiv
-                  ? `${f.bg} ${f.text} scale-105 shadow-md font-bold ring-2 ring-offset-1 ring-gray-600`
-                  : `${f.bg} ${f.text} opacity-80 hover:opacity-100 hover:scale-105`
-              }`}>
-              <span className={`w-2 h-2 rounded-full ${f.dot}`} />
+                  ? 'scale-105 shadow-md ring-2 ring-offset-1 ring-gray-600 border-gray-700'
+                  : 'border-gray-400 opacity-90 hover:opacity-100 hover:scale-105'
+              } ${leg.text}`}>
+              <span style={{ backgroundColor: pf.dotHex }} className="w-2 h-2 rounded-full" />
               P: {name}
             </button>
           );
         })}
       </div>
 
-      {/* Legende Gäste – mit Abstand + klickbar */}
+      {/* Legende Gäste */}
       <div className="flex flex-wrap gap-2 mb-4 text-xs border-t-2 border-dashed border-gray-300 pt-3 mt-1">
         <span className="text-xs font-semibold text-gray-500 self-center mr-1">Gast:</span>
         <button
           onClick={() => setFilterNurMitGaesten(p => !p)}
           onDoubleClick={() => schnellBuchen({ gaeste: true })}
-          title="Klick = nur Buchungen mit Gästen | Doppelklick = Termin mit Gast"
-          className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all ${
+          title="Klick = nur mit Gästen | Doppelklick = Termin"
+          style={{ backgroundColor: GAST_FARBE.bgHex }}
+          className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all font-semibold ${
             filterNurMitGaesten
-              ? `${GAST_FARBE.bg} ${GAST_FARBE.text} scale-105 shadow-md font-bold ring-2 ring-offset-1 ring-gray-600`
-              : `${GAST_FARBE.bg} ${GAST_FARBE.text} opacity-80 hover:opacity-100 hover:scale-105`
-          }`}>
-          <span className={`w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
+              ? 'scale-105 shadow-md ring-2 ring-offset-1 ring-gray-600 border-gray-700'
+              : 'border-gray-400 opacity-90 hover:opacity-100 hover:scale-105'
+          } ${GAST_FARBE.textClass}`}>
+          <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-2 h-2 rounded-full" />
           G: Gast
         </button>
       </div>
@@ -331,7 +356,7 @@ export default function KalenderSeite() {
                 </div>
                 {tagS.map((s) => (
                   <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">
-                    &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
+                    🔒 {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
                   </div>
                 ))}
                 {tagB.slice(0, 1).map((b) => <BuchungKarte key={b.id} b={b} />)}
@@ -401,25 +426,38 @@ export default function KalenderSeite() {
             const fz = fahrzeugById(b.fahrzeug);
             const pf = pilotFarbe(b.pilot);
             return (
-              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm ${b.storniert ? 'opacity-60' : ''}`}>
+              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm border-gray-400 ${b.storniert ? 'opacity-60' : ''}`}>
                 <div className="px-3 py-1.5 bg-gray-200 border-b-2 border-gray-400 flex items-center justify-between">
                   <span className={`font-bold text-sm ${b.storniert ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                     {b.startzeit.slice(0, 5)}–{b.endzeit.slice(0, 5)} Uhr
                   </span>
                   {b.storniert && <span className="text-xs font-bold text-red-700">STORNIERT</span>}
                 </div>
-                <div className={`flex items-center gap-2 px-3 py-2 ${pf.bg}`}>
-                  <span className={`w-3 h-3 rounded-full flex-shrink-0 ${pf.dot}`} />
-                  <span className={`text-sm font-bold ${pf.text}`}>P: {b.pilot}</span>
+                {/* Pilot */}
+                <div
+                  style={{ backgroundColor: pf.bgHex }}
+                  className={`flex items-center gap-2 px-3 py-2 ${pf.textClass}`}
+                >
+                  <span style={{ backgroundColor: pf.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
+                  <span className="text-sm font-bold">P: {b.pilot}</span>
                 </div>
+                {/* Gäste */}
                 {b.gaeste.map((g, i) => (
-                  <div key={i} className={`flex items-center gap-2 px-3 py-2 ${GAST_FARBE.bg} border-t-2 border-white/60`}>
-                    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${GAST_FARBE.dot}`} />
-                    <span className={`text-sm font-semibold ${GAST_FARBE.text}`}>G: {g}</span>
+                  <div
+                    key={i}
+                    style={{ backgroundColor: GAST_FARBE.bgHex }}
+                    className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${GAST_FARBE.textClass}`}
+                  >
+                    <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
+                    <span className="text-sm font-semibold">G: {g}</span>
                   </div>
                 ))}
-                <div className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${fz?.farbe ?? 'bg-gray-200 text-gray-800'}`}>
-                  <span className={`w-3 h-3 rounded-full flex-shrink-0 ${fz?.farbeDot ?? 'bg-gray-500'}`} />
+                {/* Fahrzeug */}
+                <div
+                  style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }}
+                  className="flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 text-gray-900"
+                >
+                  <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="w-3 h-3 rounded-full flex-shrink-0" />
                   <span className="text-sm font-bold">{fz?.name} · {fz?.typ}</span>
                 </div>
                 {(b.notiz || !b.storniert) && (
