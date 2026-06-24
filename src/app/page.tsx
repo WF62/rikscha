@@ -13,7 +13,6 @@ import { FAHRZEUGE, PILOTEN_FARBEN, GAST_FARBE, fahrzeugById, pilotFarbe } from 
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-// --- Feiertage ---
 function osterSonntag(jahr: number): Date {
   const a = jahr % 19, b = Math.floor(jahr / 100), c = jahr % 100;
   const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
@@ -32,13 +31,11 @@ function feiertageDesJahres(jahr: number): Map<string, string> {
   const d = (base: Date, offset: number) => addDays(base, offset);
   const key = (dt: Date) => format(dt, 'yyyy-MM-dd');
   const map = new Map<string, string>();
-  // Feste Feiertage
   map.set(`${jahr}-01-01`, 'Neujahr');
   map.set(`${jahr}-05-01`, 'Tag der Arbeit');
   map.set(`${jahr}-10-03`, 'Tag der Deutschen Einheit');
   map.set(`${jahr}-12-25`, '1. Weihnachtstag');
   map.set(`${jahr}-12-26`, '2. Weihnachtstag');
-  // Bewegliche Feiertage
   map.set(key(d(ostern, -2)),  'Karfreitag');
   map.set(key(d(ostern,  1)),  'Ostermontag');
   map.set(key(d(ostern, 39)), 'Christi Himmelfahrt');
@@ -61,22 +58,25 @@ function BuchungKarte({ b }: { b: Buchung }) {
   const fz = fahrzeugById(b.fahrzeug);
   const pf = pilotFarbe(b.pilot);
   return (
-    <div className={`rounded overflow-hidden border mb-0.5 border-gray-300 ${b.storniert ? 'opacity-50' : ''}`}>
-      <div className={`flex items-center gap-0.5 px-1 py-0.5 ${pf.bg} ${pf.text}`}>
-        <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${pf.dot}`} />
-        <span className={`text-[11px] font-semibold truncate ${b.storniert ? 'line-through' : ''}`}>
+    <div className={`rounded overflow-hidden border-2 mb-0.5 border-gray-400 shadow-sm ${b.storniert ? 'opacity-50' : ''}`}>
+      {/* Pilot */}
+      <div className={`flex items-center gap-1 px-1.5 py-1 ${pf.bg} ${pf.text}`}>
+        <span className={`flex-shrink-0 w-2 h-2 rounded-full ${pf.dot}`} />
+        <span className={`text-[11px] font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
           {b.startzeit.slice(0, 5)} P: {b.pilot}
         </span>
       </div>
+      {/* Gäste */}
       {b.gaeste.map((g, i) => (
-        <div key={i} className={`flex items-center gap-0.5 px-1 py-0.5 ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>
-          <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${GAST_FARBE.dot}`} />
-          <span className="text-[11px] truncate">G: {g}</span>
+        <div key={i} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/40 ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>
+          <span className={`flex-shrink-0 w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
+          <span className="text-[11px] font-semibold truncate">G: {g}</span>
         </div>
       ))}
-      <div className={`flex items-center gap-0.5 px-1 py-0.5 ${fz?.farbe ?? 'bg-gray-100 text-gray-700'}`}>
-        <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${fz?.farbeDot ?? 'bg-gray-400'}`} />
-        <span className="text-[10px] truncate">{fz?.name ?? b.fahrzeug}</span>
+      {/* Fahrzeug */}
+      <div className={`flex items-center gap-1 px-1.5 py-1 border-t border-white/40 ${fz?.farbe ?? 'bg-gray-200 text-gray-800'}`}>
+        <span className={`flex-shrink-0 w-2 h-2 rounded-full ${fz?.farbeDot ?? 'bg-gray-500'}`} />
+        <span className="text-[10px] font-semibold truncate">{fz?.name ?? b.fahrzeug}</span>
       </div>
     </div>
   );
@@ -98,7 +98,6 @@ export default function KalenderSeite() {
   const gridStart = startOfWeek(startOfMonth(monat), { weekStartsOn: 1 });
   const gridEnd   = endOfWeek(endOfMonth(monat),     { weekStartsOn: 1 });
   const tage      = eachDayOfInterval({ start: gridStart, end: gridEnd });
-
   const feiertage = feiertageDesJahres(monat.getFullYear());
 
   const ladeKalenderDaten = useCallback(async () => {
@@ -185,31 +184,31 @@ export default function KalenderSeite() {
             {f.name} &middot; {f.typ}
           </span>
         ))}
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-100 border-red-400 text-red-800">
-          <span className="w-2 h-2 rounded-full bg-red-500" />Gesperrt
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-200 border-red-600 text-red-900">
+          <span className="w-2 h-2 rounded-full bg-red-600" />Gesperrt
         </span>
         {teamupVerfuegbar && (
-          <span className="flex items-center gap-1 px-2 py-1 rounded border bg-purple-100 border-purple-400 text-purple-800">
-            <span className="w-2 h-2 rounded-full bg-purple-500" />TeamUp
+          <span className="flex items-center gap-1 px-2 py-1 rounded border bg-purple-200 border-purple-600 text-purple-900">
+            <span className="w-2 h-2 rounded-full bg-purple-600" />TeamUp
           </span>
         )}
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-amber-50 border-amber-300 text-amber-800">
-          <span className="w-2 h-2 rounded-full bg-amber-400" />Feiertag
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-amber-200 border-amber-500 text-amber-900">
+          <span className="w-2 h-2 rounded-full bg-amber-500" />Feiertag
         </span>
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-blue-50 border-blue-200 text-blue-700">
-          <span className="w-2 h-2 rounded-full bg-blue-300" />Wochenende
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-blue-200 border-blue-500 text-blue-900">
+          <span className="w-2 h-2 rounded-full bg-blue-500" />Wochenende
         </span>
       </div>
 
       {/* Legende Piloten */}
       <div className="flex flex-wrap gap-2 mb-4 text-xs">
         {Object.entries(PILOTEN_FARBEN).map(([name, f]) => (
-          <span key={name} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.bg} border-current ${f.text}`}>
+          <span key={name} className={`flex items-center gap-1 px-2 py-1 rounded border-2 ${f.bg} border-current ${f.text}`}>
             <span className={`w-2 h-2 rounded-full ${f.dot}`} />
             P: {name}
           </span>
         ))}
-        <span className={`flex items-center gap-1 px-2 py-1 rounded border ${GAST_FARBE.bg} border-current ${GAST_FARBE.text}`}>
+        <span className={`flex items-center gap-1 px-2 py-1 rounded border-2 ${GAST_FARBE.bg} border-current ${GAST_FARBE.text}`}>
           <span className={`w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
           G: Gast
         </span>
@@ -223,7 +222,7 @@ export default function KalenderSeite() {
         <div className="grid grid-cols-7 border-l border-t">
           {tage.map((tag) => {
             const imAktuellenMonat = isSameMonth(tag, monat);
-            const wochentag        = getDay(tag); // 0=So, 6=Sa
+            const wochentag        = getDay(tag);
             const istWochenende    = wochentag === 0 || wochentag === 6;
             const feiertagName     = feiertage.get(format(tag, 'yyyy-MM-dd'));
             const istFeiertag      = !!feiertagName;
@@ -239,41 +238,47 @@ export default function KalenderSeite() {
             const istAusgewaehlt = ausgewaehlt && isSameDay(tag, ausgewaehlt);
             const mehr = Math.max(0, tagB.length - 1) + Math.max(0, tagT.length - 1);
 
-            // Hintergrundfarbe (Priorität: heute > ausgewählt > Feiertag > Wochenende > KW-Wechsel > Fremdmonat)
-            let bgClass = geradeKW ? 'bg-white' : 'bg-slate-50';
-            if (!imAktuellenMonat) bgClass = geradeKW ? 'bg-gray-100' : 'bg-gray-50';
-            if (istWochenende)     bgClass = 'bg-blue-50';
-            if (istFeiertag)       bgClass = 'bg-amber-50';
-            if (istHeute)          bgClass = 'bg-green-50';
+            // Hintergrund: Priorität heute > ausgewählt > Feiertag > Wochenende > KW-Wechsel
+            let bgClass: string;
+            if (!imAktuellenMonat) {
+              bgClass = istWochenende ? 'bg-blue-100' : geradeKW ? 'bg-gray-100' : 'bg-gray-200';
+            } else if (istFeiertag) {
+              bgClass = 'bg-amber-100';
+            } else if (istWochenende) {
+              bgClass = 'bg-blue-100';
+            } else {
+              bgClass = geradeKW ? 'bg-white' : 'bg-slate-100';
+            }
+            if (istHeute) bgClass = 'bg-green-100';
 
             return (
               <div
                 key={tag.toISOString()}
                 onClick={() => setAusgewaehlt(isSameDay(tag, ausgewaehlt!) ? null : tag)}
                 className={[
-                  'border-r border-b min-h-[100px] p-1 cursor-pointer transition-colors',
+                  'border-r border-b min-h-[110px] p-1 cursor-pointer transition-all',
                   bgClass,
-                  istAusgewaehlt ? 'ring-2 ring-inset ring-rikscha-green' : 'hover:brightness-95',
+                  istAusgewaehlt ? 'ring-2 ring-inset ring-rikscha-green brightness-95' : 'hover:brightness-95',
                 ].join(' ')}
               >
                 <div className="flex items-start justify-between mb-0.5">
                   <div className={[
-                    'text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
-                    istHeute ? 'bg-rikscha-green text-white' :
-                    istFeiertag ? 'text-amber-700 font-bold' :
-                    istWochenende ? 'text-blue-600' :
-                    imAktuellenMonat ? 'text-gray-700' : 'text-gray-400',
+                    'text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
+                    istHeute     ? 'bg-rikscha-green text-white' :
+                    istFeiertag  ? 'bg-amber-400 text-amber-950' :
+                    istWochenende ? 'bg-blue-400 text-white' :
+                    imAktuellenMonat ? 'text-gray-800' : 'text-gray-400',
                   ].join(' ')}>
                     {format(tag, 'd')}
                   </div>
                   <div className="flex flex-col items-end gap-0.5">
                     {format(tag, 'd') === '1' && (
-                      <span className="text-[10px] font-semibold text-rikscha-green">
+                      <span className="text-[10px] font-bold text-rikscha-green">
                         {format(tag, 'MMM', { locale: de })}
                       </span>
                     )}
                     {istFeiertag && (
-                      <span className="text-[9px] text-amber-700 font-medium truncate max-w-[60px] text-right leading-tight">
+                      <span className="text-[9px] text-amber-800 font-semibold truncate max-w-[64px] text-right leading-tight">
                         {feiertagName}
                       </span>
                     )}
@@ -281,17 +286,17 @@ export default function KalenderSeite() {
                 </div>
 
                 {tagS.map((s) => (
-                  <div key={s.id} className="text-[10px] bg-red-100 text-red-700 border border-red-300 rounded px-1 mb-0.5 truncate">
+                  <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">
                     &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
                   </div>
                 ))}
                 {tagB.slice(0, 1).map((b) => <BuchungKarte key={b.id} b={b} />)}
                 {tagT.slice(0, 1).map((e) => (
-                  <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-100 border-purple-400 text-purple-800">
+                  <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-200 border-purple-600 text-purple-950 font-semibold">
                     {e.allDay ? '●' : e.start.slice(11, 16)} {e.summary}
                   </div>
                 ))}
-                {mehr > 0 && <div className="text-[10px] text-gray-400 pl-1">+{mehr} mehr</div>}
+                {mehr > 0 && <div className="text-[10px] text-gray-500 font-semibold pl-1">+{mehr} mehr</div>}
               </div>
             );
           })}
@@ -307,7 +312,7 @@ export default function KalenderSeite() {
                 {format(ausgewaehlt, 'EEEE, d. MMMM yyyy', { locale: de })}
               </h3>
               {feiertage.get(format(ausgewaehlt, 'yyyy-MM-dd')) && (
-                <p className="text-xs text-amber-700 font-medium mt-0.5">
+                <p className="text-xs text-amber-800 font-semibold mt-0.5">
                   🎉 {feiertage.get(format(ausgewaehlt, 'yyyy-MM-dd'))}
                 </p>
               )}
@@ -320,11 +325,11 @@ export default function KalenderSeite() {
 
           {tagSperren.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs font-semibold text-red-600 mb-1">Fahrzeugsperren</p>
+              <p className="text-xs font-semibold text-red-700 mb-1">Fahrzeugsperren</p>
               {tagSperren.map((s) => (
-                <div key={s.id} className="text-sm bg-red-50 border border-red-200 rounded p-2 mb-1 flex justify-between">
+                <div key={s.id} className="text-sm bg-red-100 border border-red-400 rounded p-2 mb-1 flex justify-between">
                   <span>&#128274; {fahrzeugById(s.fahrzeug)?.name} &mdash; {s.grund ?? 'Gesperrt'}</span>
-                  <span className="text-xs text-gray-400">{s.von_datum} bis {s.bis_datum}</span>
+                  <span className="text-xs text-gray-500">{s.von_datum} bis {s.bis_datum}</span>
                 </div>
               ))}
             </div>
@@ -332,13 +337,13 @@ export default function KalenderSeite() {
 
           {tagTeamUp.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs font-semibold text-purple-600 mb-1">TeamUp-Termine</p>
+              <p className="text-xs font-semibold text-purple-700 mb-1">TeamUp-Termine</p>
               {tagTeamUp.map((e) => (
-                <div key={e.uid} className="text-sm bg-purple-50 border border-purple-200 rounded p-2 mb-1">
-                  <p className="font-semibold text-purple-800">
+                <div key={e.uid} className="text-sm bg-purple-100 border border-purple-400 rounded p-2 mb-1">
+                  <p className="font-semibold text-purple-900">
                     {e.allDay ? 'Ganztags' : `${e.start.slice(11, 16)}–${e.end.slice(11, 16)}`} &middot; {e.summary}
                   </p>
-                  {e.description && <p className="text-xs text-gray-500 mt-0.5">{e.description}</p>}
+                  {e.description && <p className="text-xs text-gray-600 mt-0.5">{e.description}</p>}
                 </div>
               ))}
             </div>
@@ -352,33 +357,33 @@ export default function KalenderSeite() {
             const fz = fahrzeugById(b.fahrzeug);
             const pf = pilotFarbe(b.pilot);
             return (
-              <div key={b.id} className={`border rounded-lg overflow-hidden mb-3 ${b.storniert ? 'opacity-60' : ''}`}>
-                <div className="px-3 py-1.5 bg-gray-100 border-b flex items-center justify-between">
-                  <span className={`font-semibold text-sm ${b.storniert ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm ${b.storniert ? 'opacity-60' : ''}`}>
+                <div className="px-3 py-1.5 bg-gray-200 border-b-2 border-gray-400 flex items-center justify-between">
+                  <span className={`font-bold text-sm ${b.storniert ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                     {b.startzeit.slice(0, 5)}&ndash;{b.endzeit.slice(0, 5)} Uhr
                   </span>
-                  {b.storniert && <span className="text-xs font-bold text-red-600">STORNIERT</span>}
+                  {b.storniert && <span className="text-xs font-bold text-red-700">STORNIERT</span>}
                 </div>
                 <div className={`flex items-center gap-2 px-3 py-2 ${pf.bg}`}>
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${pf.dot}`} />
-                  <span className={`text-sm font-semibold ${pf.text}`}>P: {b.pilot}</span>
+                  <span className={`w-3 h-3 rounded-full flex-shrink-0 ${pf.dot}`} />
+                  <span className={`text-sm font-bold ${pf.text}`}>P: {b.pilot}</span>
                 </div>
                 {b.gaeste.map((g, i) => (
-                  <div key={i} className={`flex items-center gap-2 px-3 py-1.5 ${GAST_FARBE.bg} border-t border-white/50`}>
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${GAST_FARBE.dot}`} />
-                    <span className={`text-sm ${GAST_FARBE.text}`}>G: {g}</span>
+                  <div key={i} className={`flex items-center gap-2 px-3 py-2 ${GAST_FARBE.bg} border-t-2 border-white/60`}>
+                    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${GAST_FARBE.dot}`} />
+                    <span className={`text-sm font-semibold ${GAST_FARBE.text}`}>G: {g}</span>
                   </div>
                 ))}
-                <div className={`flex items-center gap-2 px-3 py-2 border-t ${fz?.farbe ?? 'bg-gray-100 border-gray-200 text-gray-700'}`}>
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${fz?.farbeDot ?? 'bg-gray-400'}`} />
-                  <span className="text-sm font-medium">{fz?.name} &middot; {fz?.typ}</span>
+                <div className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${fz?.farbe ?? 'bg-gray-200 text-gray-800'}`}>
+                  <span className={`w-3 h-3 rounded-full flex-shrink-0 ${fz?.farbeDot ?? 'bg-gray-500'}`} />
+                  <span className="text-sm font-bold">{fz?.name} &middot; {fz?.typ}</span>
                 </div>
                 {(b.notiz || !b.storniert) && (
-                  <div className="px-3 py-2 bg-white border-t border-gray-100 flex items-center justify-between gap-2">
-                    {b.notiz ? <p className="text-xs text-gray-500 italic flex-1">{b.notiz}</p> : <span />}
+                  <div className="px-3 py-2 bg-white border-t border-gray-200 flex items-center justify-between gap-2">
+                    {b.notiz ? <p className="text-xs text-gray-600 italic flex-1">{b.notiz}</p> : <span />}
                     {!b.storniert && (
                       <button onClick={() => stornieren(b.id)} disabled={storniereId === b.id}
-                        className="text-xs text-red-600 border border-red-300 rounded px-2 py-0.5 hover:bg-red-50 disabled:opacity-50 flex-shrink-0">
+                        className="text-xs text-red-700 border-2 border-red-400 rounded px-2 py-0.5 hover:bg-red-100 disabled:opacity-50 flex-shrink-0 font-semibold">
                         {storniereId === b.id ? '...' : 'Stornieren'}
                       </button>
                     )}
