@@ -3,8 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
-  getDay, addMonths, subMonths, isSameMonth, isToday,
-  isSameDay, parseISO,
+  getDay, addMonths, subMonths, isToday,
+  isSameDay, parseISO, startOfWeek, endOfWeek, isSameMonth,
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
@@ -23,27 +23,23 @@ function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
 
-/** Mini-Karte im Kalendertag: Pilot → Gäste → Fahrzeug */
 function BuchungKarte({ b }: { b: Buchung }) {
   const fz = fahrzeugById(b.fahrzeug);
   const pf = pilotFarbe(b.pilot);
   return (
     <div className={`rounded overflow-hidden border mb-0.5 border-gray-300 ${b.storniert ? 'opacity-50' : ''}`}>
-      {/* Zeile 1: Uhrzeit + Pilot */}
       <div className={`flex items-center gap-0.5 px-1 py-0.5 ${pf.bg} ${pf.text}`}>
         <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${pf.dot}`} />
         <span className={`text-[11px] font-semibold truncate ${b.storniert ? 'line-through' : ''}`}>
           {b.startzeit.slice(0, 5)} P: {b.pilot}
         </span>
       </div>
-      {/* Zeile 2+: Gäste */}
       {b.gaeste.map((g, i) => (
         <div key={i} className={`flex items-center gap-0.5 px-1 py-0.5 ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>
           <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${GAST_FARBE.dot}`} />
           <span className="text-[11px] truncate">G: {g}</span>
         </div>
       ))}
-      {/* Letzte Zeile: Fahrzeug */}
       <div className={`flex items-center gap-0.5 px-1 py-0.5 ${fz?.farbe ?? 'bg-gray-100 text-gray-700'}`}>
         <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${fz?.farbeDot ?? 'bg-gray-400'}`} />
         <span className="text-[10px] truncate">{fz?.name ?? b.fahrzeug}</span>
@@ -65,10 +61,15 @@ export default function KalenderSeite() {
   const [zeigTeamUp, setZeigTeamUp] = useState(true);
   const [storniereId, setStorniereId] = useState<string | null>(null);
 
+  // Vollständiges Gitter: Mo der ersten Woche bis So der letzten Woche
+  const gridStart = startOfWeek(startOfMonth(monat), { weekStartsOn: 1 });
+  const gridEnd   = endOfWeek(endOfMonth(monat),     { weekStartsOn: 1 });
+  const tage      = eachDayOfInterval({ start: gridStart, end: gridEnd });
+
   const ladeKalenderDaten = useCallback(async () => {
     setLoading(true);
-    const von = format(startOfMonth(monat), 'yyyy-MM-dd');
-    const bis = format(endOfMonth(monat), 'yyyy-MM-dd');
+    const von = format(gridStart, 'yyyy-MM-dd');
+    const bis = format(gridEnd,   'yyyy-MM-dd');
     const [bRes, sRes, tRes] = await Promise.all([
       fetch(`/api/buchungen?von=${von}&bis=${bis}`),
       fetch(`/api/sperren?von=${von}&bis=${bis}`),
@@ -83,12 +84,10 @@ export default function KalenderSeite() {
       else setTeamupVerfuegbar(false);
     } else setTeamupVerfuegbar(false);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monat]);
 
   useEffect(() => { ladeKalenderDaten(); }, [ladeKalenderDaten]);
-
-  const tage = eachDayOfInterval({ start: startOfMonth(monat), end: endOfMonth(monat) });
-  const erstWochentag = (getDay(tage[0]) + 6) % 7;
 
   const stornieren = async (id: string) => {
     setStorniereId(id);
@@ -108,7 +107,7 @@ export default function KalenderSeite() {
       )
     : [];
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
-  const tagTeamUp = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
+  const tagTeamUp  = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
 
   const piloten = Array.from(new Set(buchungen.map((b) => b.pilot))).sort();
 
@@ -184,10 +183,8 @@ export default function KalenderSeite() {
           {WOCHENTAGE.map((t) => <div key={t} className="py-2 text-center">{t}</div>)}
         </div>
         <div className="grid grid-cols-7 border-l border-t">
-          {Array.from({ length: erstWochentag }).map((_, i) => (
-            <div key={`leer-${i}`} className="border-r border-b bg-gray-50 min-h-[100px]" />
-          ))}
           {tage.map((tag) => {
+            const imAktuellenMonat = isSameMonth(tag, monat);
             const tagB = getBuchungenFuerTag(buchungen, tag).filter(
               (b) => (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
                      (!filterPilot || b.pilot === filterPilot)
@@ -203,14 +200,27 @@ export default function KalenderSeite() {
                 onClick={() => setAusgewaehlt(isSameDay(tag, ausgewaehlt!) ? null : tag)}
                 className={[
                   'border-r border-b min-h-[100px] p-1 cursor-pointer transition-colors',
-                  !isSameMonth(tag, monat) ? 'bg-gray-50' : 'bg-white',
-                  istHeute ? 'bg-green-50' : '',
+                  !imAktuellenMonat ? 'bg-gray-50' : 'bg-white',
+                  istHeute ? '!bg-green-50' : '',
                   istAusgewaehlt ? 'ring-2 ring-inset ring-rikscha-green' : 'hover:bg-gray-50',
                 ].join(' ')}
               >
-                <div className={['text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full', istHeute ? 'bg-rikscha-green text-white' : 'text-gray-600'].join(' ')}>
-                  {format(tag, 'd')}
+                {/* Tageszahl – mit Monatsname wenn Monatswechsel */}
+                <div className="flex items-center gap-1 mb-1">
+                  <div className={[
+                    'text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
+                    istHeute ? 'bg-rikscha-green text-white' :
+                    imAktuellenMonat ? 'text-gray-700' : 'text-gray-400',
+                  ].join(' ')}>
+                    {format(tag, 'd')}
+                  </div>
+                  {(format(tag, 'd') === '1') && (
+                    <span className="text-[10px] font-semibold text-rikscha-green truncate">
+                      {format(tag, 'MMM', { locale: de })}
+                    </span>
+                  )}
                 </div>
+
                 {tagS.map((s) => (
                   <div key={s.id} className="text-[10px] bg-red-100 text-red-700 border border-red-300 rounded px-1 mb-0.5 truncate">
                     &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
@@ -279,36 +289,29 @@ export default function KalenderSeite() {
             const pf = pilotFarbe(b.pilot);
             return (
               <div key={b.id} className={`border rounded-lg overflow-hidden mb-3 ${b.storniert ? 'opacity-60' : ''}`}>
-                {/* Uhrzeit-Header */}
                 <div className="px-3 py-1.5 bg-gray-100 border-b flex items-center justify-between">
                   <span className={`font-semibold text-sm ${b.storniert ? 'line-through text-gray-400' : 'text-gray-700'}`}>
                     {b.startzeit.slice(0, 5)}&ndash;{b.endzeit.slice(0, 5)} Uhr
                   </span>
                   {b.storniert && <span className="text-xs font-bold text-red-600">STORNIERT</span>}
                 </div>
-                {/* Pilot */}
                 <div className={`flex items-center gap-2 px-3 py-2 ${pf.bg}`}>
                   <span className={`w-2 h-2 rounded-full flex-shrink-0 ${pf.dot}`} />
                   <span className={`text-sm font-semibold ${pf.text}`}>P: {b.pilot}</span>
                 </div>
-                {/* Gäste */}
                 {b.gaeste.map((g, i) => (
                   <div key={i} className={`flex items-center gap-2 px-3 py-1.5 ${GAST_FARBE.bg} border-t border-white/50`}>
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${GAST_FARBE.dot}`} />
                     <span className={`text-sm ${GAST_FARBE.text}`}>G: {g}</span>
                   </div>
                 ))}
-                {/* Fahrzeug */}
                 <div className={`flex items-center gap-2 px-3 py-2 border-t ${fz?.farbe ?? 'bg-gray-100 border-gray-200 text-gray-700'}`}>
                   <span className={`w-2 h-2 rounded-full flex-shrink-0 ${fz?.farbeDot ?? 'bg-gray-400'}`} />
                   <span className="text-sm font-medium">{fz?.name} &middot; {fz?.typ}</span>
                 </div>
-                {/* Notiz + Stornieren */}
                 {(b.notiz || !b.storniert) && (
                   <div className="px-3 py-2 bg-white border-t border-gray-100 flex items-center justify-between gap-2">
-                    {b.notiz
-                      ? <p className="text-xs text-gray-500 italic flex-1">{b.notiz}</p>
-                      : <span />}
+                    {b.notiz ? <p className="text-xs text-gray-500 italic flex-1">{b.notiz}</p> : <span />}
                     {!b.storniert && (
                       <button onClick={() => stornieren(b.id)} disabled={storniereId === b.id}
                         className="text-xs text-red-600 border border-red-300 rounded px-2 py-0.5 hover:bg-red-50 disabled:opacity-50 flex-shrink-0">
