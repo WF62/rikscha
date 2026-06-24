@@ -23,20 +23,17 @@ function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
 
-/** Mini-Karte für eine Buchung im Kalendertag */
-function BuchungKarte({ b, compact = false }: { b: Buchung; compact?: boolean }) {
+function BuchungKarte({ b }: { b: Buchung }) {
   const fz = fahrzeugById(b.fahrzeug);
   const pf = pilotFarbe(b.pilot);
   return (
     <div className={`rounded overflow-hidden border mb-0.5 ${fz?.farbe ?? 'bg-gray-100 border-gray-300 text-gray-800'} ${b.storniert ? 'opacity-50' : ''}`}>
-      {/* Zeile 1: Pilot */}
       <div className={`flex items-center gap-0.5 px-1 py-0.5 ${pf.bg} ${pf.text}`}>
         <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${pf.dot}`} />
         <span className={`text-[11px] font-semibold truncate ${b.storniert ? 'line-through' : ''}`}>
-          {b.startzeit.slice(0, 5)} {b.pilot}
+          {b.startzeit.slice(0, 5)} P: {b.pilot}
         </span>
       </div>
-      {/* Zeile 2: Fahrzeug + Gäste */}
       <div className="flex items-center gap-1 px-1 py-0.5">
         <span className="text-[10px] truncate flex-1">{fz?.name ?? b.fahrzeug}</span>
         {b.gaeste.length > 0 && (
@@ -45,14 +42,6 @@ function BuchungKarte({ b, compact = false }: { b: Buchung; compact?: boolean })
           </span>
         )}
       </div>
-      {/* Zeile 3: Gästenamen (nur wenn nicht compact) */}
-      {!compact && b.gaeste.length > 0 && (
-        <div className={`px-1 pb-0.5 flex flex-wrap gap-0.5`}>
-          {b.gaeste.map((g, i) => (
-            <span key={i} className={`text-[10px] px-1 rounded-full ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>{g}</span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -174,7 +163,7 @@ export default function KalenderSeite() {
         {Object.entries(PILOTEN_FARBEN).map(([name, f]) => (
           <span key={name} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.bg} border-current ${f.text}`}>
             <span className={`w-2 h-2 rounded-full ${f.dot}`}></span>
-            {name}
+            P: {name}
           </span>
         ))}
         <span className={`flex items-center gap-1 px-2 py-1 rounded border ${GAST_FARBE.bg} border-current ${GAST_FARBE.text}`}>
@@ -218,26 +207,19 @@ export default function KalenderSeite() {
                 <div className={['text-xs font-semibold mb-1 w-6 h-6 flex items-center justify-center rounded-full', istHeute ? 'bg-rikscha-green text-white' : 'text-gray-600'].join(' ')}>
                   {format(tag, 'd')}
                 </div>
-
-                {/* Sperren */}
                 {tagS.slice(0, 1).map((s) => (
                   <div key={s.id} className="text-[10px] bg-red-100 text-red-700 border border-red-300 rounded px-1 mb-0.5 truncate">
                     &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
                   </div>
                 ))}
-
-                {/* Buchungen */}
                 {tagB.slice(0, Math.max(0, maxZeig - tagS.length)).map((b) => (
-                  <BuchungKarte key={b.id} b={b} compact />
+                  <BuchungKarte key={b.id} b={b} />
                 ))}
-
-                {/* TeamUp */}
                 {tagT.slice(0, Math.max(0, maxZeig - tagS.length - tagB.length)).map((e) => (
                   <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-100 border-purple-400 text-purple-800">
                     {e.allDay ? '●' : e.start.slice(11, 16)} {e.summary}
                   </div>
                 ))}
-
                 {mehr > 0 && <div className="text-[10px] text-gray-400 pl-1">+{mehr} mehr</div>}
               </div>
             );
@@ -293,7 +275,6 @@ export default function KalenderSeite() {
             const pf = pilotFarbe(b.pilot);
             return (
               <div key={b.id} className={`border rounded-lg overflow-hidden mb-2 ${b.storniert ? 'opacity-60' : ''}`}>
-                {/* Kopfzeile: Fahrzeug */}
                 <div className={`px-3 py-1.5 flex items-center gap-2 ${fz?.farbe ?? 'bg-gray-100 border-gray-300 text-gray-800'}`}>
                   <span className={`w-2 h-2 rounded-full flex-shrink-0 ${fz?.farbeDot}`} />
                   <span className={`font-semibold text-sm ${b.storniert ? 'line-through' : ''}`}>
@@ -302,17 +283,14 @@ export default function KalenderSeite() {
                   <span className="text-sm">{fz?.name} &middot; {fz?.typ}</span>
                   {b.storniert && <span className="ml-auto text-xs font-bold text-red-600">STORNIERT</span>}
                 </div>
-                {/* Inhalt */}
                 <div className="px-3 py-2 bg-white">
-                  {/* Pilot */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-xs text-gray-500 w-12 flex-shrink-0">Pilot</span>
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${pf.bg} ${pf.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${pf.dot}`} />
-                      {b.pilot}
+                      P: {b.pilot}
                     </span>
                   </div>
-                  {/* Gäste */}
                   {b.gaeste.length > 0 && (
                     <div className="flex items-start gap-2">
                       <span className="text-xs text-gray-500 w-12 flex-shrink-0 pt-0.5">Gäste</span>
@@ -326,10 +304,8 @@ export default function KalenderSeite() {
                       </div>
                     </div>
                   )}
-                  {/* Notiz */}
                   {b.notiz && <p className="text-xs text-gray-500 mt-1.5 italic">{b.notiz}</p>}
                 </div>
-                {/* Footer: Stornieren */}
                 {!b.storniert && (
                   <div className="px-3 pb-2 bg-white">
                     <button onClick={() => stornieren(b.id)} disabled={storniereId === b.id}
