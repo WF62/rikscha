@@ -102,9 +102,19 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
     onUpdated();
   };
 
+  const fahrzeugWaehlen = (fzId: string) => {
+    const fz = FAHRZEUGE.find((f) => f.id === fzId);
+    const maxG = fz?.maxGaeste ?? 2;
+    const gaesteBeschr = b.gaeste.slice(0, maxG);
+    // patch vehicle + trimmed guests in one call
+    patch({ fahrzeug: fzId, gaeste: gaesteBeschr });
+  };
+
   const gastHinzufuegen = () => {
     if (!gaestInput.trim()) return;
-    const neu = [...b.gaeste, gaestInput.trim()].slice(0, 2);
+    const fz = fahrzeugById(b.fahrzeug);
+    const maxG = fz?.maxGaeste ?? 2;
+    const neu = [...b.gaeste, gaestInput.trim()].slice(0, maxG);
     patch({ gaeste: neu });
     setGaestInput('');
   };
@@ -112,6 +122,9 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
     const neu = b.gaeste.filter((_, idx) => idx !== i);
     patch({ gaeste: neu });
   };
+
+  const fz = fahrzeugById(b.fahrzeug);
+  const maxGaeste = fz?.maxGaeste ?? 2;
 
   return (
     <div className="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-3 mb-2">
@@ -148,10 +161,10 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
         <div className="flex flex-wrap gap-1">
           {FAHRZEUGE.map((f) => (
             <button key={f.id} disabled={saving}
-              onClick={() => patch({ fahrzeug: f.id })}
+              onClick={() => fahrzeugWaehlen(f.id)}
               style={{ backgroundColor: f.bgHex, outline: b.fahrzeug === f.id ? `3px solid ${f.farbeHex}` : 'none' }}
               className="text-xs px-2 py-1 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 text-gray-900">
-              {f.name}
+              {f.name} (max. {f.maxGaeste} Gast{f.maxGaeste > 1 ? 'e' : ''})
             </button>
           ))}
           {b.fahrzeug && (
@@ -165,7 +178,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
 
       {/* Gäste bearbeiten */}
       <div>
-        <p className="text-xs font-semibold text-gray-600 mb-1">Gäste:</p>
+        <p className="text-xs font-semibold text-gray-600 mb-1">Gäste (max. {maxGaeste}):</p>
         <div className="flex flex-wrap gap-1 mb-1">
           {b.gaeste.map((g, i) => (
             <span key={i} style={{ backgroundColor: GAST_FARBE.bgHex }}
@@ -175,7 +188,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
             </span>
           ))}
         </div>
-        {b.gaeste.length < 2 && (
+        {b.gaeste.length < maxGaeste && (
           <div className="flex gap-1">
             <input type="text" value={gaestInput} onChange={(e) => setGaestInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && gastHinzufuegen()}
