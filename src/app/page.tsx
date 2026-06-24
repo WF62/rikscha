@@ -105,9 +105,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
   const fahrzeugWaehlen = (fzId: string) => {
     const fz = FAHRZEUGE.find((f) => f.id === fzId);
     const maxG = fz?.maxGaeste ?? 2;
-    const gaesteBeschr = b.gaeste.slice(0, maxG);
-    // patch vehicle + trimmed guests in one call
-    patch({ fahrzeug: fzId, gaeste: gaesteBeschr });
+    patch({ fahrzeug: fzId, gaeste: b.gaeste.slice(0, maxG) });
   };
 
   const gastHinzufuegen = () => {
@@ -118,87 +116,90 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
     patch({ gaeste: neu });
     setGaestInput('');
   };
-  const gastEntfernen = (i: number) => {
-    const neu = b.gaeste.filter((_, idx) => idx !== i);
-    patch({ gaeste: neu });
-  };
+  const gastEntfernen = (i: number) => patch({ gaeste: b.gaeste.filter((_, idx) => idx !== i) });
 
   const fz = fahrzeugById(b.fahrzeug);
   const maxGaeste = fz?.maxGaeste ?? 2;
 
   return (
-    <div className="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-3 mb-2">
-      <div className="flex justify-between items-center mb-2">
-        <p className="text-xs font-bold text-indigo-700">✏️ Termin bearbeiten</p>
-        <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700">✕ Schließen</button>
+    <div className="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-3 mb-3">
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-sm font-bold text-indigo-700">✏️ Termin bearbeiten</p>
+        <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-200">✕ Schließen</button>
       </div>
 
-      {/* Pilot ändern */}
-      <div className="mb-2">
-        <p className="text-xs font-semibold text-gray-600 mb-1">Pilot:</p>
-        <div className="flex flex-wrap gap-1">
+      {/* Pilot wählen */}
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-600 mb-1.5">Pilot auswählen:</p>
+        <div className="flex flex-wrap gap-1.5">
           {PILOTEN.map((name) => (
             <button key={name} disabled={saving}
               onClick={() => patch({ pilot: name })}
-              style={{ backgroundColor: b.pilot === name ? PILOT_FARBE.dotHex : PILOT_FARBE.bgHex,
-                       color: b.pilot === name ? '#fff' : '#1e1b4b' }}
-              className="text-xs px-2 py-1 rounded font-bold border border-indigo-400 hover:scale-105 transition-transform disabled:opacity-50">
+              style={{
+                backgroundColor: b.pilot === name ? PILOT_FARBE.dotHex : PILOT_FARBE.bgHex,
+                color: b.pilot === name ? '#fff' : '#1e1b4b',
+                outline: b.pilot === name ? `3px solid ${PILOT_FARBE.dotHex}` : 'none',
+              }}
+              className="text-sm px-3 py-1.5 rounded font-bold border border-indigo-400 hover:scale-105 transition-transform disabled:opacity-50">
               {name}
             </button>
           ))}
           {b.pilot && (
             <button onClick={() => patch({ pilot: '' })} disabled={saving}
-              className="text-xs px-2 py-1 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">
-              Pilot entfernen
+              className="text-sm px-3 py-1.5 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">
+              Kein Pilot
             </button>
           )}
         </div>
       </div>
 
-      {/* Fahrzeug ändern */}
-      <div className="mb-2">
-        <p className="text-xs font-semibold text-gray-600 mb-1">Fahrzeug:</p>
-        <div className="flex flex-wrap gap-1">
+      {/* Fahrzeug wählen */}
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-600 mb-1.5">Fahrzeug auswählen:</p>
+        <div className="flex flex-wrap gap-1.5">
           {FAHRZEUGE.map((f) => (
             <button key={f.id} disabled={saving}
               onClick={() => fahrzeugWaehlen(f.id)}
-              style={{ backgroundColor: f.bgHex, outline: b.fahrzeug === f.id ? `3px solid ${f.farbeHex}` : 'none' }}
-              className="text-xs px-2 py-1 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 text-gray-900">
-              {f.name} (max. {f.maxGaeste} Gast{f.maxGaeste > 1 ? 'e' : ''})
+              style={{
+                backgroundColor: f.bgHex,
+                outline: b.fahrzeug === f.id ? `3px solid ${f.farbeHex}` : 'none',
+              }}
+              className="text-sm px-3 py-1.5 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 text-gray-900">
+              {f.name} <span className="font-normal text-xs opacity-70">(max. {f.maxGaeste}G)</span>
             </button>
           ))}
           {b.fahrzeug && (
             <button onClick={() => patch({ fahrzeug: '' })} disabled={saving}
-              className="text-xs px-2 py-1 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">
-              Fahrzeug entfernen
+              className="text-sm px-3 py-1.5 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">
+              Kein Fahrzeug
             </button>
           )}
         </div>
       </div>
 
-      {/* Gäste bearbeiten */}
+      {/* Gäste */}
       <div>
-        <p className="text-xs font-semibold text-gray-600 mb-1">Gäste (max. {maxGaeste}):</p>
-        <div className="flex flex-wrap gap-1 mb-1">
+        <p className="text-xs font-semibold text-gray-600 mb-1.5">Gäste (max. {maxGaeste}):</p>
+        <div className="flex flex-wrap gap-1 mb-1.5">
           {b.gaeste.map((g, i) => (
             <span key={i} style={{ backgroundColor: GAST_FARBE.bgHex }}
-              className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded ${GAST_FARBE.textClass}`}>
+              className={`flex items-center gap-1 text-sm px-2 py-1 rounded ${GAST_FARBE.textClass}`}>
               G: {g}
-              <button onClick={() => gastEntfernen(i)} disabled={saving} className="ml-1 hover:text-red-600">✕</button>
+              <button onClick={() => gastEntfernen(i)} disabled={saving} className="ml-1 hover:text-red-600 font-bold">✕</button>
             </span>
           ))}
         </div>
         {b.gaeste.length < maxGaeste && (
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             <input type="text" value={gaestInput} onChange={(e) => setGaestInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && gastHinzufuegen()}
               placeholder="Name des Gastes..."
               style={{ backgroundColor: GAST_FARBE.bgHex }}
-              className="text-xs px-2 py-1 rounded border border-gray-400 flex-1 min-w-0" />
+              className="text-sm px-2 py-1.5 rounded border border-gray-400 flex-1 min-w-0" />
             <button onClick={gastHinzufuegen} disabled={saving || !gaestInput.trim()}
               style={{ backgroundColor: GAST_FARBE.bgHex }}
-              className="text-xs px-2 py-1 rounded font-bold border border-gray-400 disabled:opacity-50">
-              + G
+              className="text-sm px-3 py-1.5 rounded font-bold border border-gray-400 disabled:opacity-50">
+              + Gast
             </button>
           </div>
         )}
@@ -430,38 +431,24 @@ export default function KalenderSeite() {
             const istOffen = !b.pilot || !b.fahrzeug;
             const bearbeiten = bearbeitenId === b.id;
             return (
-              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm ${
-                istOffen ? 'border-orange-400' : 'border-gray-400'
+              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-4 shadow-sm ${
+                istOffen ? 'border-orange-400' : 'border-gray-300'
               } ${b.storniert ? 'opacity-60' : ''}`}>
-                {/* Uhrzeit-Kopf */}
-                <div className={`px-3 py-1.5 border-b-2 flex items-center justify-between ${
-                  istOffen ? 'bg-orange-100 border-orange-300' : 'bg-gray-200 border-gray-400'
+
+                {/* Kopfzeile: Uhrzeit + Status */}
+                <div className={`px-3 py-2 flex items-center justify-between ${
+                  istOffen ? 'bg-orange-100 border-b-2 border-orange-300' : 'bg-gray-100 border-b border-gray-300'
                 }`}>
-                  <span className={`font-bold text-sm ${b.storniert ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                    {b.startzeit.slice(0,5)}–{b.endzeit.slice(0,5)} Uhr
-                  </span>
                   <div className="flex items-center gap-2">
+                    <span className={`font-bold text-sm ${b.storniert ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                      {b.startzeit.slice(0,5)}–{b.endzeit.slice(0,5)} Uhr
+                    </span>
                     {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
-                    {b.storniert && <span className="text-xs font-bold text-red-700">STORNIERT</span>}
-                    {!b.storniert && (
-                      <button onClick={() => setBearbeitenId(bearbeiten ? null : b.id)}
-                        className={`text-xs px-2 py-0.5 rounded border font-semibold transition-colors ${
-                          bearbeiten ? 'bg-indigo-600 text-white border-indigo-600' : 'border-indigo-400 text-indigo-700 hover:bg-indigo-50'
-                        }`}>
-                        ✏️ Ändern
-                      </button>
-                    )}
+                    {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
                   </div>
                 </div>
 
-                {/* Bearbeiten-Panel */}
-                {bearbeiten && (
-                  <div className="px-3 pt-3">
-                    <BearbeitenPanel b={b} onUpdated={() => { ladeKalenderDaten(); setBearbeitenId(null); }} onClose={() => setBearbeitenId(null)} />
-                  </div>
-                )}
-
-                {/* Pilot */}
+                {/* Buchungsdetails */}
                 {b.pilot ? (
                   <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 ${PILOT_FARBE.textClass}`}>
                     <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
@@ -474,31 +461,57 @@ export default function KalenderSeite() {
                   </div>
                 )}
                 {b.gaeste.map((g, i) => (
-                  <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${GAST_FARBE.textClass}`}>
+                  <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 border-t border-white/60 ${GAST_FARBE.textClass}`}>
                     <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
                     <span className="text-sm font-semibold">G: {g}</span>
                   </div>
                 ))}
                 {b.fahrzeug ? (
-                  <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 text-gray-900">
+                  <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-2 px-3 py-2 border-t border-white/60 text-gray-900">
                     <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="w-3 h-3 rounded-full flex-shrink-0" />
                     <span className="text-sm font-bold">{fz?.name} · {fz?.typ}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 border-t-2 border-dashed border-orange-300 bg-orange-50">
+                  <div className="flex items-center gap-2 px-3 py-2 border-t border-dashed border-orange-300 bg-orange-50">
                     <span className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-300" />
                     <span className="text-sm text-orange-600 italic">Fahrzeug noch nicht gewählt</span>
                   </div>
                 )}
-                {(b.notiz || !b.storniert) && (
-                  <div className="px-3 py-2 bg-white border-t border-gray-200 flex items-center justify-between gap-2">
-                    {b.notiz ? <p className="text-xs text-gray-600 italic flex-1">{b.notiz}</p> : <span />}
-                    {!b.storniert && (
-                      <button onClick={() => stornieren(b.id)} disabled={storniereId === b.id}
-                        className="text-xs text-red-700 border-2 border-red-400 rounded px-2 py-0.5 hover:bg-red-100 disabled:opacity-50 flex-shrink-0 font-semibold">
-                        {storniereId === b.id ? '...' : 'Stornieren'}
-                      </button>
-                    )}
+                {b.notiz && (
+                  <div className="px-3 py-1.5 bg-white border-t border-gray-100">
+                    <p className="text-xs text-gray-500 italic">{b.notiz}</p>
+                  </div>
+                )}
+
+                {/* Aktions-Buttons direkt sichtbar */}
+                {!b.storniert && (
+                  <div className="flex gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
+                    <button
+                      onClick={() => setBearbeitenId(bearbeiten ? null : b.id)}
+                      className={`flex-1 text-sm font-bold py-2 rounded border-2 transition-colors ${
+                        bearbeiten
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'bg-indigo-100 text-indigo-700 border-indigo-400 hover:bg-indigo-200'
+                      }`}>
+                      ✏️ Ändern
+                    </button>
+                    <button
+                      onClick={() => stornieren(b.id)}
+                      disabled={storniereId === b.id}
+                      className="flex-1 text-sm font-bold py-2 rounded border-2 bg-red-50 text-red-700 border-red-400 hover:bg-red-100 disabled:opacity-50">
+                      {storniereId === b.id ? '...' : '🗑️ Stornieren'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Bearbeiten-Panel */}
+                {bearbeiten && (
+                  <div className="px-3 pb-3 bg-gray-50 border-t border-indigo-200">
+                    <BearbeitenPanel
+                      b={b}
+                      onUpdated={() => { ladeKalenderDaten(); setBearbeitenId(null); }}
+                      onClose={() => setBearbeitenId(null)}
+                    />
                   </div>
                 )}
               </div>
