@@ -9,7 +9,7 @@ import {
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
 import type { TeamUpEvent } from '@/app/api/teamup/route';
-import { FAHRZEUGE, PILOTEN_FARBEN, GAST_FARBE, fahrzeugById, pilotFarbe } from '@/lib/constants';
+import { FAHRZEUGE, PILOTEN, PILOTEN_FARBEN, GAST_FARBE, fahrzeugById, pilotFarbe } from '@/lib/constants';
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -59,21 +59,18 @@ function BuchungKarte({ b }: { b: Buchung }) {
   const pf = pilotFarbe(b.pilot);
   return (
     <div className={`rounded overflow-hidden border-2 mb-0.5 border-gray-400 shadow-sm ${b.storniert ? 'opacity-50' : ''}`}>
-      {/* Pilot */}
       <div className={`flex items-center gap-1 px-1.5 py-1 ${pf.bg} ${pf.text}`}>
         <span className={`flex-shrink-0 w-2 h-2 rounded-full ${pf.dot}`} />
         <span className={`text-[11px] font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
           {b.startzeit.slice(0, 5)} P: {b.pilot}
         </span>
       </div>
-      {/* Gäste */}
       {b.gaeste.map((g, i) => (
         <div key={i} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/40 ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>
           <span className={`flex-shrink-0 w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
           <span className="text-[11px] font-semibold truncate">G: {g}</span>
         </div>
       ))}
-      {/* Fahrzeug */}
       <div className={`flex items-center gap-1 px-1.5 py-1 border-t border-white/40 ${fz?.farbe ?? 'bg-gray-200 text-gray-800'}`}>
         <span className={`flex-shrink-0 w-2 h-2 rounded-full ${fz?.farbeDot ?? 'bg-gray-500'}`} />
         <span className="text-[10px] font-semibold truncate">{fz?.name ?? b.fahrzeug}</span>
@@ -92,6 +89,7 @@ export default function KalenderSeite() {
   const [ausgewaehlt, setAusgewaehlt] = useState<Date | null>(null);
   const [filterFahrzeug, setFilterFahrzeug] = useState('');
   const [filterPilot, setFilterPilot] = useState('');
+  const [filterNurMitGaesten, setFilterNurMitGaesten] = useState(false);
   const [zeigTeamUp, setZeigTeamUp] = useState(true);
   const [storniereId, setStorniereId] = useState<string | null>(null);
 
@@ -134,19 +132,37 @@ export default function KalenderSeite() {
     ladeKalenderDaten();
   };
 
+  const buchungFilter = (b: Buchung) =>
+    (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
+    (!filterPilot    || b.pilot    === filterPilot) &&
+    (!filterNurMitGaesten || b.gaeste.length > 0);
+
   const tagBuchungen = ausgewaehlt
-    ? getBuchungenFuerTag(buchungen, ausgewaehlt).filter(
-        (b) => (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
-               (!filterPilot || b.pilot === filterPilot)
-      )
+    ? getBuchungenFuerTag(buchungen, ausgewaehlt).filter(buchungFilter)
     : [];
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
   const tagTeamUp  = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
-  const piloten    = Array.from(new Set(buchungen.map((b) => b.pilot))).sort();
+
+  // Schnellbuchung: Datum vorauswählen und direkt zum Formular
+  const schnellBuchen = (opts: { pilot?: string; fahrzeug?: string; gaeste?: boolean }) => {
+    const datum = ausgewaehlt ? format(ausgewaehlt, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    const params = new URLSearchParams({ datum });
+    if (opts.pilot)    params.set('pilot', opts.pilot);
+    if (opts.fahrzeug) params.set('fahrzeug', opts.fahrzeug);
+    if (opts.gaeste)   params.set('gaeste', '1');
+    window.location.href = `/buchen?${params.toString()}`;
+  };
+
+  const togglePilot = (name: string) => {
+    setFilterPilot(prev => prev === name ? '' : name);
+  };
+  const toggleFahrzeug = (id: string) => {
+    setFilterFahrzeug(prev => prev === id ? '' : id);
+  };
 
   return (
     <div>
-      {/* Navigation & Filter */}
+      {/* Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <button onClick={() => setMonat(subMonths(monat, 1))} className="p-2 rounded hover:bg-white hover:shadow transition-all">&#9664;</button>
@@ -157,32 +173,39 @@ export default function KalenderSeite() {
           <button onClick={() => setMonat(new Date())} className="text-xs border border-rikscha-green text-rikscha-green px-2 py-1 rounded hover:bg-rikscha-green hover:text-white transition-colors">Heute</button>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <select value={filterFahrzeug} onChange={(e) => setFilterFahrzeug(e.target.value)} className="text-sm border rounded px-2 py-1">
-            <option value="">Alle Fahrzeuge</option>
-            {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-          </select>
-          <select value={filterPilot} onChange={(e) => setFilterPilot(e.target.value)} className="text-sm border rounded px-2 py-1">
-            <option value="">Alle Piloten</option>
-            {piloten.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
           {teamupVerfuegbar && (
             <button onClick={() => setZeigTeamUp(!zeigTeamUp)}
               className={`text-xs px-2 py-1 rounded border transition-colors ${
-                zeigTeamUp ? 'bg-purple-100 border-purple-400 text-purple-800' : 'border-gray-300 text-gray-500'
+                zeigTeamUp ? 'bg-purple-200 border-purple-600 text-purple-900' : 'border-gray-300 text-gray-500'
               }`}>
               TeamUp {zeigTeamUp ? 'an' : 'aus'}
+            </button>
+          )}
+          {(filterFahrzeug || filterPilot || filterNurMitGaesten) && (
+            <button onClick={() => { setFilterFahrzeug(''); setFilterPilot(''); setFilterNurMitGaesten(false); }}
+              className="text-xs px-2 py-1 rounded border border-gray-400 bg-gray-100 text-gray-700 hover:bg-gray-200">
+              Filter ✕ zurücksetzen
             </button>
           )}
         </div>
       </div>
 
-      {/* Legende Fahrzeuge */}
+      {/* Legende Fahrzeuge – klickbar als Filter */}
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
+        <span className="text-xs font-semibold text-gray-500 self-center mr-1">Fahrzeug:</span>
         {FAHRZEUGE.map((f) => (
-          <span key={f.id} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.farbe}`}>
+          <button key={f.id}
+            onClick={() => toggleFahrzeug(f.id)}
+            title="Klick = Filter / Doppelklick = buchen"
+            onDoubleClick={() => schnellBuchen({ fahrzeug: f.id })}
+            className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all ${
+              filterFahrzeug === f.id
+                ? `${f.farbe} scale-105 shadow-md font-bold ring-2 ring-offset-1 ring-gray-600`
+                : `${f.farbe} opacity-80 hover:opacity-100 hover:scale-105`
+            }`}>
             <span className={`w-2 h-2 rounded-full ${f.farbeDot}`} />
             {f.name} &middot; {f.typ}
-          </span>
+          </button>
         ))}
         <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-200 border-red-600 text-red-900">
           <span className="w-2 h-2 rounded-full bg-red-600" />Gesperrt
@@ -200,18 +223,44 @@ export default function KalenderSeite() {
         </span>
       </div>
 
-      {/* Legende Piloten */}
-      <div className="flex flex-wrap gap-2 mb-4 text-xs">
-        {Object.entries(PILOTEN_FARBEN).map(([name, f]) => (
-          <span key={name} className={`flex items-center gap-1 px-2 py-1 rounded border-2 ${f.bg} border-current ${f.text}`}>
-            <span className={`w-2 h-2 rounded-full ${f.dot}`} />
-            P: {name}
-          </span>
-        ))}
-        <span className={`flex items-center gap-1 px-2 py-1 rounded border-2 ${GAST_FARBE.bg} border-current ${GAST_FARBE.text}`}>
+      {/* Legende Piloten – klickbar als Filter + Schnellbuchung */}
+      <div className="flex flex-wrap gap-2 mb-2 text-xs">
+        <span className="text-xs font-semibold text-gray-500 self-center mr-1">Pilot:</span>
+        {PILOTEN.map((name) => {
+          const f = PILOTEN_FARBEN[name] ?? { bg: 'bg-gray-200', text: 'text-gray-800', dot: 'bg-gray-500' };
+          const aktiv = filterPilot === name;
+          return (
+            <button key={name}
+              onClick={() => togglePilot(name)}
+              onDoubleClick={() => schnellBuchen({ pilot: name })}
+              title="Klick = Filter | Doppelklick = Termin mit diesem Piloten"
+              className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all ${
+                aktiv
+                  ? `${f.bg} ${f.text} scale-105 shadow-md font-bold ring-2 ring-offset-1 ring-gray-600`
+                  : `${f.bg} ${f.text} opacity-80 hover:opacity-100 hover:scale-105`
+              }`}>
+              <span className={`w-2 h-2 rounded-full ${f.dot}`} />
+              P: {name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Legende Gäste – mit Abstand + klickbar */}
+      <div className="flex flex-wrap gap-2 mb-4 text-xs border-t-2 border-dashed border-gray-300 pt-3 mt-1">
+        <span className="text-xs font-semibold text-gray-500 self-center mr-1">Gast:</span>
+        <button
+          onClick={() => setFilterNurMitGaesten(p => !p)}
+          onDoubleClick={() => schnellBuchen({ gaeste: true })}
+          title="Klick = nur Buchungen mit Gästen | Doppelklick = Termin mit Gast"
+          className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all ${
+            filterNurMitGaesten
+              ? `${GAST_FARBE.bg} ${GAST_FARBE.text} scale-105 shadow-md font-bold ring-2 ring-offset-1 ring-gray-600`
+              : `${GAST_FARBE.bg} ${GAST_FARBE.text} opacity-80 hover:opacity-100 hover:scale-105`
+          }`}>
           <span className={`w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
           G: Gast
-        </span>
+        </button>
       </div>
 
       {/* Kalender */}
@@ -228,17 +277,13 @@ export default function KalenderSeite() {
             const istFeiertag      = !!feiertagName;
             const kw               = getISOWeek(tag);
             const geradeKW         = kw % 2 === 0;
-            const tagB = getBuchungenFuerTag(buchungen, tag).filter(
-              (b) => (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
-                     (!filterPilot || b.pilot === filterPilot)
-            );
+            const tagB = getBuchungenFuerTag(buchungen, tag).filter(buchungFilter);
             const tagS  = getSperrenFuerTag(sperren, tag);
             const tagT  = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
             const istHeute       = isToday(tag);
             const istAusgewaehlt = ausgewaehlt && isSameDay(tag, ausgewaehlt);
             const mehr = Math.max(0, tagB.length - 1) + Math.max(0, tagT.length - 1);
 
-            // Hintergrund: Priorität heute > ausgewählt > Feiertag > Wochenende > KW-Wechsel
             let bgClass: string;
             if (!imAktuellenMonat) {
               bgClass = istWochenende ? 'bg-blue-100' : geradeKW ? 'bg-gray-100' : 'bg-gray-200';
@@ -264,8 +309,8 @@ export default function KalenderSeite() {
                 <div className="flex items-start justify-between mb-0.5">
                   <div className={[
                     'text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
-                    istHeute     ? 'bg-rikscha-green text-white' :
-                    istFeiertag  ? 'bg-amber-400 text-amber-950' :
+                    istHeute      ? 'bg-rikscha-green text-white' :
+                    istFeiertag   ? 'bg-amber-400 text-amber-950' :
                     istWochenende ? 'bg-blue-400 text-white' :
                     imAktuellenMonat ? 'text-gray-800' : 'text-gray-400',
                   ].join(' ')}>
@@ -284,7 +329,6 @@ export default function KalenderSeite() {
                     )}
                   </div>
                 </div>
-
                 {tagS.map((s) => (
                   <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">
                     &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
@@ -328,7 +372,7 @@ export default function KalenderSeite() {
               <p className="text-xs font-semibold text-red-700 mb-1">Fahrzeugsperren</p>
               {tagSperren.map((s) => (
                 <div key={s.id} className="text-sm bg-red-100 border border-red-400 rounded p-2 mb-1 flex justify-between">
-                  <span>&#128274; {fahrzeugById(s.fahrzeug)?.name} &mdash; {s.grund ?? 'Gesperrt'}</span>
+                  <span>🔒 {fahrzeugById(s.fahrzeug)?.name} — {s.grund ?? 'Gesperrt'}</span>
                   <span className="text-xs text-gray-500">{s.von_datum} bis {s.bis_datum}</span>
                 </div>
               ))}
@@ -341,7 +385,7 @@ export default function KalenderSeite() {
               {tagTeamUp.map((e) => (
                 <div key={e.uid} className="text-sm bg-purple-100 border border-purple-400 rounded p-2 mb-1">
                   <p className="font-semibold text-purple-900">
-                    {e.allDay ? 'Ganztags' : `${e.start.slice(11, 16)}–${e.end.slice(11, 16)}`} &middot; {e.summary}
+                    {e.allDay ? 'Ganztags' : `${e.start.slice(11, 16)}–${e.end.slice(11, 16)}`} · {e.summary}
                   </p>
                   {e.description && <p className="text-xs text-gray-600 mt-0.5">{e.description}</p>}
                 </div>
@@ -360,7 +404,7 @@ export default function KalenderSeite() {
               <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm ${b.storniert ? 'opacity-60' : ''}`}>
                 <div className="px-3 py-1.5 bg-gray-200 border-b-2 border-gray-400 flex items-center justify-between">
                   <span className={`font-bold text-sm ${b.storniert ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                    {b.startzeit.slice(0, 5)}&ndash;{b.endzeit.slice(0, 5)} Uhr
+                    {b.startzeit.slice(0, 5)}–{b.endzeit.slice(0, 5)} Uhr
                   </span>
                   {b.storniert && <span className="text-xs font-bold text-red-700">STORNIERT</span>}
                 </div>
@@ -376,7 +420,7 @@ export default function KalenderSeite() {
                 ))}
                 <div className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${fz?.farbe ?? 'bg-gray-200 text-gray-800'}`}>
                   <span className={`w-3 h-3 rounded-full flex-shrink-0 ${fz?.farbeDot ?? 'bg-gray-500'}`} />
-                  <span className="text-sm font-bold">{fz?.name} &middot; {fz?.typ}</span>
+                  <span className="text-sm font-bold">{fz?.name} · {fz?.typ}</span>
                 </div>
                 {(b.notiz || !b.storniert) && (
                   <div className="px-3 py-2 bg-white border-t border-gray-200 flex items-center justify-between gap-2">
@@ -396,7 +440,7 @@ export default function KalenderSeite() {
       )}
 
       <div className="mt-6 p-4 bg-white rounded-xl shadow">
-        <h3 className="font-semibold text-rikscha-green mb-2">&#128197; Kalender abonnieren (iCal)</h3>
+        <h3 className="font-semibold text-rikscha-green mb-2">📅 Kalender abonnieren (iCal)</h3>
         <div className="flex flex-wrap gap-2 text-xs">
           <a href="/api/ical" className="underline text-rikscha-green">Alle Fahrten</a>
           {FAHRZEUGE.map((f) => (
