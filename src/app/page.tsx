@@ -9,22 +9,16 @@ import {
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
 import type { TeamUpEvent } from '@/app/api/teamup/route';
-import { FAHRZEUGE, fahrzeugById } from '@/lib/constants';
+import { FAHRZEUGE, PILOTEN_FARBEN, GAST_FARBE, fahrzeugById, pilotFarbe } from '@/lib/constants';
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 function getBuchungenFuerTag(buchungen: Buchung[], tag: Date) {
   return buchungen.filter((b) => isSameDay(parseISO(b.datum), tag));
 }
-
 function getSperrenFuerTag(sperren: Sperre[], tag: Date) {
-  return sperren.filter((s) => {
-    const von = parseISO(s.von_datum);
-    const bis = parseISO(s.bis_datum);
-    return tag >= von && tag <= bis;
-  });
+  return sperren.filter((s) => tag >= parseISO(s.von_datum) && tag <= parseISO(s.bis_datum));
 }
-
 function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
@@ -38,6 +32,7 @@ export default function KalenderSeite() {
   const [loading, setLoading] = useState(true);
   const [ausgewaehlt, setAusgewaehlt] = useState<Date | null>(null);
   const [filterFahrzeug, setFilterFahrzeug] = useState('');
+  const [filterPilot, setFilterPilot] = useState('');
   const [zeigTeamUp, setZeigTeamUp] = useState(true);
   const [storniereId, setStorniereId] = useState<string | null>(null);
 
@@ -57,9 +52,7 @@ export default function KalenderSeite() {
       const t = await tRes.json();
       if (Array.isArray(t)) { setTeamup(t); setTeamupVerfuegbar(true); }
       else setTeamupVerfuegbar(false);
-    } else {
-      setTeamupVerfuegbar(false);
-    }
+    } else setTeamupVerfuegbar(false);
     setLoading(false);
   }, [monat]);
 
@@ -81,14 +74,18 @@ export default function KalenderSeite() {
 
   const tagBuchungen = ausgewaehlt
     ? getBuchungenFuerTag(buchungen, ausgewaehlt).filter(
-        (b) => !filterFahrzeug || b.fahrzeug === filterFahrzeug
+        (b) => (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
+               (!filterPilot || b.pilot === filterPilot)
       )
     : [];
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
   const tagTeamUp = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
 
+  const piloten = Array.from(new Set(buchungen.map((b) => b.pilot))).sort();
+
   return (
     <div>
+      {/* Navigation & Filter */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <button onClick={() => setMonat(subMonths(monat, 1))} className="p-2 rounded hover:bg-white hover:shadow transition-all">&#9664;</button>
@@ -103,6 +100,10 @@ export default function KalenderSeite() {
             <option value="">Alle Fahrzeuge</option>
             {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
+          <select value={filterPilot} onChange={(e) => setFilterPilot(e.target.value)} className="text-sm border rounded px-2 py-1">
+            <option value="">Alle Piloten</option>
+            {piloten.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
           {teamupVerfuegbar && (
             <button
               onClick={() => setZeigTeamUp(!zeigTeamUp)}
@@ -116,7 +117,8 @@ export default function KalenderSeite() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-4 text-xs">
+      {/* Legende Fahrzeuge */}
+      <div className="flex flex-wrap gap-2 mb-3 text-xs">
         {FAHRZEUGE.map((f) => (
           <span key={f.id} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.farbe}`}>
             <span className={`w-2 h-2 rounded-full ${f.farbeDot}`}></span>
@@ -133,6 +135,21 @@ export default function KalenderSeite() {
         )}
       </div>
 
+      {/* Legende Piloten */}
+      <div className="flex flex-wrap gap-2 mb-4 text-xs">
+        {Object.entries(PILOTEN_FARBEN).map(([name, f]) => (
+          <span key={name} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.bg} border-current ${f.text}`}>
+            <span className={`w-2 h-2 rounded-full ${f.dot}`}></span>
+            {name}
+          </span>
+        ))}
+        <span className={`flex items-center gap-1 px-2 py-1 rounded border ${GAST_FARBE.bg} border-current ${GAST_FARBE.text}`}>
+          <span className={`w-2 h-2 rounded-full ${GAST_FARBE.dot}`}></span>
+          Gast
+        </span>
+      </div>
+
+      {/* Kalender */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <div className="grid grid-cols-7 bg-rikscha-green text-white text-xs font-semibold">
           {WOCHENTAGE.map((t) => <div key={t} className="py-2 text-center">{t}</div>)}
@@ -143,7 +160,8 @@ export default function KalenderSeite() {
           ))}
           {tage.map((tag) => {
             const tagB = getBuchungenFuerTag(buchungen, tag).filter(
-              (b) => !filterFahrzeug || b.fahrzeug === filterFahrzeug
+              (b) => (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
+                     (!filterPilot || b.pilot === filterPilot)
             );
             const tagS = getSperrenFuerTag(sperren, tag);
             const tagT = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
@@ -170,25 +188,27 @@ export default function KalenderSeite() {
                   </div>
                 ))}
                 {tagB.slice(0, 2).map((b) => {
-                  const fz = fahrzeugById(b.fahrzeug);
+                  const pf = pilotFarbe(b.pilot);
                   return (
-                    <div key={b.id} className={`text-xs rounded px-1 mb-0.5 truncate border ${fz?.farbe ?? 'bg-gray-100'} ${b.storniert ? 'opacity-50 line-through' : ''}`}>
+                    <div key={b.id} className={`text-xs rounded px-1 mb-0.5 truncate border ${pf.bg} border-current ${pf.text} ${b.storniert ? 'opacity-50 line-through' : ''}`}>
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full ${pf.dot} mr-0.5`}></span>
                       {b.startzeit.slice(0, 5)} {b.pilot}
                     </div>
                   );
                 })}
-                {tagT.slice(0, 2).map((e) => (
+                {tagT.slice(0, 1).map((e) => (
                   <div key={e.uid} className="text-xs rounded px-1 mb-0.5 truncate border bg-purple-100 border-purple-400 text-purple-800">
-                    {e.allDay ? '' : e.start.slice(11, 16) + ' '}{e.summary.slice(0, 20)}
+                    {e.allDay ? '' : e.start.slice(11, 16) + ' '}{e.summary.slice(0, 18)}
                   </div>
                 ))}
-                {total > 4 && <div className="text-xs text-gray-400">+{total - 4} mehr</div>}
+                {total > 3 && <div className="text-xs text-gray-400">+{total - 3} mehr</div>}
               </div>
             );
           })}
         </div>
       </div>
 
+      {/* Detail-Panel */}
       {ausgewaehlt && (
         <div className="mt-4 bg-white rounded-xl shadow p-4">
           <div className="flex items-center justify-between mb-3">
@@ -205,7 +225,7 @@ export default function KalenderSeite() {
             <div className="mb-3">
               <p className="text-xs font-semibold text-red-600 mb-1">Fahrzeugsperren</p>
               {tagSperren.map((s) => (
-                <div key={s.id} className="text-sm bg-red-50 border border-red-200 rounded p-2 mb-1 flex justify-between items-center">
+                <div key={s.id} className="text-sm bg-red-50 border border-red-200 rounded p-2 mb-1 flex justify-between">
                   <span>&#128274; {fahrzeugById(s.fahrzeug)?.name} &mdash; {s.grund ?? 'Gesperrt'}</span>
                   <span className="text-xs text-gray-400">{s.von_datum} bis {s.bis_datum}</span>
                 </div>
@@ -233,15 +253,30 @@ export default function KalenderSeite() {
 
           {tagBuchungen.map((b) => {
             const fz = fahrzeugById(b.fahrzeug);
+            const pf = pilotFarbe(b.pilot);
             return (
               <div key={b.id} className={`border rounded p-3 mb-2 ${fz?.farbe ?? 'bg-gray-50 border-gray-200'} ${b.storniert ? 'opacity-60' : ''}`}>
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <p className={`font-semibold ${b.storniert ? 'line-through' : ''}`}>
                       {b.startzeit.slice(0, 5)}&ndash;{b.endzeit.slice(0, 5)} &middot; {fz?.name}
                     </p>
-                    <p className="text-sm">Pilot: <strong>{b.pilot}</strong></p>
-                    {b.gaeste.length > 0 && <p className="text-sm">Gaeste: {b.gaeste.join(', ')}</p>}
+                    <p className="text-sm mt-1">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${pf.bg} ${pf.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${pf.dot}`}></span>
+                        {b.pilot}
+                      </span>
+                    </p>
+                    {b.gaeste.length > 0 && (
+                      <p className="text-sm mt-1 flex flex-wrap gap-1">
+                        {b.gaeste.map((g, i) => (
+                          <span key={i} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${GAST_FARBE.bg} ${GAST_FARBE.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${GAST_FARBE.dot}`}></span>
+                            {g}
+                          </span>
+                        ))}
+                      </p>
+                    )}
                     {b.notiz && <p className="text-xs text-gray-500 mt-1">{b.notiz}</p>}
                   </div>
                   <div className="ml-2">
