@@ -3,8 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
-  getDay, addMonths, subMonths, isToday,
-  isSameDay, parseISO, startOfWeek, endOfWeek, isSameMonth,
+  addMonths, subMonths, isToday, isSameDay, parseISO,
+  startOfWeek, endOfWeek, isSameMonth, getISOWeek, getDay, addDays,
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
@@ -12,6 +12,40 @@ import type { TeamUpEvent } from '@/app/api/teamup/route';
 import { FAHRZEUGE, PILOTEN_FARBEN, GAST_FARBE, fahrzeugById, pilotFarbe } from '@/lib/constants';
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+// --- Feiertage ---
+function osterSonntag(jahr: number): Date {
+  const a = jahr % 19, b = Math.floor(jahr / 100), c = jahr % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(jahr, month - 1, day);
+}
+
+function feiertageDesJahres(jahr: number): Map<string, string> {
+  const ostern = osterSonntag(jahr);
+  const d = (base: Date, offset: number) => addDays(base, offset);
+  const key = (dt: Date) => format(dt, 'yyyy-MM-dd');
+  const map = new Map<string, string>();
+  // Feste Feiertage
+  map.set(`${jahr}-01-01`, 'Neujahr');
+  map.set(`${jahr}-05-01`, 'Tag der Arbeit');
+  map.set(`${jahr}-10-03`, 'Tag der Deutschen Einheit');
+  map.set(`${jahr}-12-25`, '1. Weihnachtstag');
+  map.set(`${jahr}-12-26`, '2. Weihnachtstag');
+  // Bewegliche Feiertage
+  map.set(key(d(ostern, -2)),  'Karfreitag');
+  map.set(key(d(ostern,  1)),  'Ostermontag');
+  map.set(key(d(ostern, 39)), 'Christi Himmelfahrt');
+  map.set(key(d(ostern, 50)), 'Pfingstmontag');
+  map.set(key(d(ostern, 60)), 'Fronleichnam');
+  return map;
+}
 
 function getBuchungenFuerTag(buchungen: Buchung[], tag: Date) {
   return buchungen.filter((b) => isSameDay(parseISO(b.datum), tag));
@@ -61,10 +95,11 @@ export default function KalenderSeite() {
   const [zeigTeamUp, setZeigTeamUp] = useState(true);
   const [storniereId, setStorniereId] = useState<string | null>(null);
 
-  // Vollständiges Gitter: Mo der ersten Woche bis So der letzten Woche
   const gridStart = startOfWeek(startOfMonth(monat), { weekStartsOn: 1 });
   const gridEnd   = endOfWeek(endOfMonth(monat),     { weekStartsOn: 1 });
   const tage      = eachDayOfInterval({ start: gridStart, end: gridEnd });
+
+  const feiertage = feiertageDesJahres(monat.getFullYear());
 
   const ladeKalenderDaten = useCallback(async () => {
     setLoading(true);
@@ -108,8 +143,7 @@ export default function KalenderSeite() {
     : [];
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
   const tagTeamUp  = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
-
-  const piloten = Array.from(new Set(buchungen.map((b) => b.pilot))).sort();
+  const piloten    = Array.from(new Set(buchungen.map((b) => b.pilot))).sort();
 
   return (
     <div>
@@ -133,12 +167,10 @@ export default function KalenderSeite() {
             {piloten.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
           {teamupVerfuegbar && (
-            <button
-              onClick={() => setZeigTeamUp(!zeigTeamUp)}
+            <button onClick={() => setZeigTeamUp(!zeigTeamUp)}
               className={`text-xs px-2 py-1 rounded border transition-colors ${
                 zeigTeamUp ? 'bg-purple-100 border-purple-400 text-purple-800' : 'border-gray-300 text-gray-500'
-              }`}
-            >
+              }`}>
               TeamUp {zeigTeamUp ? 'an' : 'aus'}
             </button>
           )}
@@ -149,30 +181,36 @@ export default function KalenderSeite() {
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
         {FAHRZEUGE.map((f) => (
           <span key={f.id} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.farbe}`}>
-            <span className={`w-2 h-2 rounded-full ${f.farbeDot}`}></span>
+            <span className={`w-2 h-2 rounded-full ${f.farbeDot}`} />
             {f.name} &middot; {f.typ}
           </span>
         ))}
         <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-100 border-red-400 text-red-800">
-          <span className="w-2 h-2 rounded-full bg-red-500"></span>Gesperrt
+          <span className="w-2 h-2 rounded-full bg-red-500" />Gesperrt
         </span>
         {teamupVerfuegbar && (
           <span className="flex items-center gap-1 px-2 py-1 rounded border bg-purple-100 border-purple-400 text-purple-800">
-            <span className="w-2 h-2 rounded-full bg-purple-500"></span>TeamUp
+            <span className="w-2 h-2 rounded-full bg-purple-500" />TeamUp
           </span>
         )}
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-amber-50 border-amber-300 text-amber-800">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />Feiertag
+        </span>
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-blue-50 border-blue-200 text-blue-700">
+          <span className="w-2 h-2 rounded-full bg-blue-300" />Wochenende
+        </span>
       </div>
 
       {/* Legende Piloten */}
       <div className="flex flex-wrap gap-2 mb-4 text-xs">
         {Object.entries(PILOTEN_FARBEN).map(([name, f]) => (
           <span key={name} className={`flex items-center gap-1 px-2 py-1 rounded border ${f.bg} border-current ${f.text}`}>
-            <span className={`w-2 h-2 rounded-full ${f.dot}`}></span>
+            <span className={`w-2 h-2 rounded-full ${f.dot}`} />
             P: {name}
           </span>
         ))}
         <span className={`flex items-center gap-1 px-2 py-1 rounded border ${GAST_FARBE.bg} border-current ${GAST_FARBE.text}`}>
-          <span className={`w-2 h-2 rounded-full ${GAST_FARBE.dot}`}></span>
+          <span className={`w-2 h-2 rounded-full ${GAST_FARBE.dot}`} />
           G: Gast
         </span>
       </div>
@@ -185,40 +223,61 @@ export default function KalenderSeite() {
         <div className="grid grid-cols-7 border-l border-t">
           {tage.map((tag) => {
             const imAktuellenMonat = isSameMonth(tag, monat);
+            const wochentag        = getDay(tag); // 0=So, 6=Sa
+            const istWochenende    = wochentag === 0 || wochentag === 6;
+            const feiertagName     = feiertage.get(format(tag, 'yyyy-MM-dd'));
+            const istFeiertag      = !!feiertagName;
+            const kw               = getISOWeek(tag);
+            const geradeKW         = kw % 2 === 0;
             const tagB = getBuchungenFuerTag(buchungen, tag).filter(
               (b) => (!filterFahrzeug || b.fahrzeug === filterFahrzeug) &&
                      (!filterPilot || b.pilot === filterPilot)
             );
-            const tagS = getSperrenFuerTag(sperren, tag);
-            const tagT = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
-            const istHeute = isToday(tag);
+            const tagS  = getSperrenFuerTag(sperren, tag);
+            const tagT  = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
+            const istHeute       = isToday(tag);
             const istAusgewaehlt = ausgewaehlt && isSameDay(tag, ausgewaehlt);
             const mehr = Math.max(0, tagB.length - 1) + Math.max(0, tagT.length - 1);
+
+            // Hintergrundfarbe (Priorität: heute > ausgewählt > Feiertag > Wochenende > KW-Wechsel > Fremdmonat)
+            let bgClass = geradeKW ? 'bg-white' : 'bg-slate-50';
+            if (!imAktuellenMonat) bgClass = geradeKW ? 'bg-gray-100' : 'bg-gray-50';
+            if (istWochenende)     bgClass = 'bg-blue-50';
+            if (istFeiertag)       bgClass = 'bg-amber-50';
+            if (istHeute)          bgClass = 'bg-green-50';
+
             return (
               <div
                 key={tag.toISOString()}
                 onClick={() => setAusgewaehlt(isSameDay(tag, ausgewaehlt!) ? null : tag)}
                 className={[
                   'border-r border-b min-h-[100px] p-1 cursor-pointer transition-colors',
-                  !imAktuellenMonat ? 'bg-gray-50' : 'bg-white',
-                  istHeute ? '!bg-green-50' : '',
-                  istAusgewaehlt ? 'ring-2 ring-inset ring-rikscha-green' : 'hover:bg-gray-50',
+                  bgClass,
+                  istAusgewaehlt ? 'ring-2 ring-inset ring-rikscha-green' : 'hover:brightness-95',
                 ].join(' ')}
               >
-                {/* Tageszahl – mit Monatsname wenn Monatswechsel */}
-                <div className="flex items-center gap-1 mb-1">
+                <div className="flex items-start justify-between mb-0.5">
                   <div className={[
                     'text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
                     istHeute ? 'bg-rikscha-green text-white' :
+                    istFeiertag ? 'text-amber-700 font-bold' :
+                    istWochenende ? 'text-blue-600' :
                     imAktuellenMonat ? 'text-gray-700' : 'text-gray-400',
                   ].join(' ')}>
                     {format(tag, 'd')}
                   </div>
-                  {(format(tag, 'd') === '1') && (
-                    <span className="text-[10px] font-semibold text-rikscha-green truncate">
-                      {format(tag, 'MMM', { locale: de })}
-                    </span>
-                  )}
+                  <div className="flex flex-col items-end gap-0.5">
+                    {format(tag, 'd') === '1' && (
+                      <span className="text-[10px] font-semibold text-rikscha-green">
+                        {format(tag, 'MMM', { locale: de })}
+                      </span>
+                    )}
+                    {istFeiertag && (
+                      <span className="text-[9px] text-amber-700 font-medium truncate max-w-[60px] text-right leading-tight">
+                        {feiertagName}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {tagS.map((s) => (
@@ -226,9 +285,7 @@ export default function KalenderSeite() {
                     &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
                   </div>
                 ))}
-                {tagB.slice(0, 1).map((b) => (
-                  <BuchungKarte key={b.id} b={b} />
-                ))}
+                {tagB.slice(0, 1).map((b) => <BuchungKarte key={b.id} b={b} />)}
                 {tagT.slice(0, 1).map((e) => (
                   <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-100 border-purple-400 text-purple-800">
                     {e.allDay ? '●' : e.start.slice(11, 16)} {e.summary}
@@ -245,9 +302,16 @@ export default function KalenderSeite() {
       {ausgewaehlt && (
         <div className="mt-4 bg-white rounded-xl shadow p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-rikscha-green">
-              {format(ausgewaehlt, 'EEEE, d. MMMM yyyy', { locale: de })}
-            </h3>
+            <div>
+              <h3 className="font-bold text-rikscha-green">
+                {format(ausgewaehlt, 'EEEE, d. MMMM yyyy', { locale: de })}
+              </h3>
+              {feiertage.get(format(ausgewaehlt, 'yyyy-MM-dd')) && (
+                <p className="text-xs text-amber-700 font-medium mt-0.5">
+                  🎉 {feiertage.get(format(ausgewaehlt, 'yyyy-MM-dd'))}
+                </p>
+              )}
+            </div>
             <a href={`/buchen?datum=${format(ausgewaehlt, 'yyyy-MM-dd')}`}
                className="text-sm bg-rikscha-green text-white px-3 py-1 rounded hover:bg-rikscha-light transition-colors">
               + Fahrt buchen
