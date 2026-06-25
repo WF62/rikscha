@@ -45,41 +45,67 @@ function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
 
-function BuchungKarte({ b }: { b: Buchung }) {
+/** Zwei Buchungen überlappen, wenn ihre Zeiten sich schneiden */
+function ueberlappen(a: Buchung, b: Buchung) {
+  return a.startzeit < b.endzeit && b.startzeit < a.endzeit;
+}
+
+/**
+ * Gruppiert Buchungen: Überlappende kommen in dieselbe Gruppe (parallel),
+ * nicht-überlappende bilden neue Gruppen (sequenziell).
+ */
+function gruppiereTermine(buchungen: Buchung[]): Buchung[][] {
+  const sorted = [...buchungen].sort((a, b) => a.startzeit.localeCompare(b.startzeit));
+  const gruppen: Buchung[][] = [];
+  for (const b of sorted) {
+    const vorhandene = gruppen.find((g) => g.some((x) => ueberlappen(x, b)));
+    if (vorhandene) vorhandene.push(b);
+    else gruppen.push([b]);
+  }
+  return gruppen;
+}
+
+function BuchungKarte({ b, schmal }: { b: Buchung; schmal?: boolean }) {
   const fz = fahrzeugById(b.fahrzeug);
   const istOffen = !b.pilot || !b.fahrzeug;
   return (
     <div className={`rounded overflow-hidden border-2 shadow mb-0.5 ${
       istOffen ? 'border-orange-400 border-dashed' : 'border-gray-400'
-    } ${b.storniert ? 'opacity-50' : ''}`}>
+    } ${b.storniert ? 'opacity-50' : ''} ${schmal ? 'min-w-0 flex-1' : ''}`}>
       {b.pilot ? (
-        <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-1 px-1.5 py-1 ${PILOT_FARBE.textClass}`}>
-          <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
-          <span className={`text-[11px] font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
-            {b.startzeit.slice(0, 5)} P: {b.pilot}
+        <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-1 px-1 py-0.5 ${PILOT_FARBE.textClass}`}>
+          <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
+          <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
+            {b.startzeit.slice(0, 5)} {schmal ? '' : 'P: '}{b.pilot}
           </span>
         </div>
       ) : (
-        <div className="flex items-center gap-1 px-1.5 py-1 bg-orange-100 text-orange-800">
-          <span className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-400" />
-          <span className="text-[11px] font-bold">{b.startzeit.slice(0, 5)} Pilot offen</span>
+        <div className="flex items-center gap-1 px-1 py-0.5 bg-orange-100 text-orange-800">
+          <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-orange-400" />
+          <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate`}>{b.startzeit.slice(0, 5)} offen</span>
         </div>
       )}
-      {b.gaeste.map((g, i) => (
+      {!schmal && b.gaeste.map((g, i) => (
         <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
           <span className="text-[11px] font-semibold truncate">G: {g}</span>
         </div>
       ))}
+      {schmal && b.gaeste.length > 0 && (
+        <div style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
+          <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
+          <span className="text-[9px] font-semibold truncate">{b.gaeste.length}G</span>
+        </div>
+      )}
       {b.fahrzeug ? (
-        <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-1 px-1.5 py-1 border-t border-white/60 text-gray-900">
-          <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="flex-shrink-0 w-2 h-2 rounded-full" />
-          <span className="text-[10px] font-semibold truncate">{fz?.name ?? b.fahrzeug}</span>
+        <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-1 px-1 py-0.5 border-t border-white/60 text-gray-900">
+          <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-semibold truncate`}>{fz?.name ?? b.fahrzeug}</span>
         </div>
       ) : (
-        <div className="flex items-center gap-1 px-1.5 py-1 border-t border-dashed border-orange-300 bg-orange-50 text-orange-700">
-          <span className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-300" />
-          <span className="text-[10px] font-semibold">Fahrzeug offen</span>
+        <div className="flex items-center gap-1 px-1 py-0.5 border-t border-dashed border-orange-300 bg-orange-50 text-orange-700">
+          <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-orange-300" />
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-semibold`}>Fzg offen</span>
         </div>
       )}
     </div>
@@ -128,7 +154,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
         <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-200">✕ Schließen</button>
       </div>
 
-      {/* Pilot wählen */}
+      {/* Pilot */}
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-600 mb-1.5">Pilot auswählen:</p>
         <div className="flex flex-wrap gap-1.5">
@@ -153,17 +179,14 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
         </div>
       </div>
 
-      {/* Fahrzeug wählen */}
+      {/* Fahrzeug */}
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-600 mb-1.5">Fahrzeug auswählen:</p>
         <div className="flex flex-wrap gap-1.5">
           {FAHRZEUGE.map((f) => (
             <button key={f.id} disabled={saving}
               onClick={() => fahrzeugWaehlen(f.id)}
-              style={{
-                backgroundColor: f.bgHex,
-                outline: b.fahrzeug === f.id ? `3px solid ${f.farbeHex}` : 'none',
-              }}
+              style={{ backgroundColor: f.bgHex, outline: b.fahrzeug === f.id ? `3px solid ${f.farbeHex}` : 'none' }}
               className="text-sm px-3 py-1.5 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 text-gray-900">
               {f.name} <span className="font-normal text-xs opacity-70">(max. {f.maxGaeste}G)</span>
             </button>
@@ -363,17 +386,28 @@ export default function KalenderSeite() {
             const tagS = getSperrenFuerTag(sperren, tag);
             const tagT = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
             const istHeute = isToday(tag), istAusgew = ausgewaehlt && isSameDay(tag, ausgewaehlt);
-            const mehr = Math.max(0, tagB.length - 1) + Math.max(0, tagT.length - 1);
+
+            // Gruppiere Termine: überlappend = parallel, sonst sequenziell
+            const gruppen = gruppiereTermine(tagB);
+            // Zeige max. 2 Gruppen, ab 3 Termine insgesamt +N
+            const anzeigeGruppen = tagB.length <= 2 ? gruppen : gruppen.slice(0, 1);
+            const mehrTermine = tagB.length > 2 ? tagB.length - anzeigeGruppen.reduce((s, g) => s + g.length, 0) : 0;
+            const mehrTeamUp = Math.max(0, tagT.length - 1);
+
             let bg: string;
             if (!imAktuellenMonat) bg = istWE ? 'bg-blue-100' : geradeKW ? 'bg-gray-100' : 'bg-gray-200';
             else if (istFT)  bg = 'bg-amber-100';
             else if (istWE)  bg = 'bg-blue-100';
             else             bg = geradeKW ? 'bg-white' : 'bg-slate-100';
             if (istHeute) bg = 'bg-green-100';
+
+            // Zellhöhe: min 110px für 1 Termin, 180px bei 2 sequenziellen
+            const zellHoehe = tagB.length >= 2 && gruppen.length >= 2 ? 'min-h-[180px]' : 'min-h-[110px]';
+
             return (
               <div key={tag.toISOString()}
                 onClick={() => setAusgewaehlt(isSameDay(tag, ausgewaehlt!) ? null : tag)}
-                className={['border-r border-b min-h-[110px] p-1 cursor-pointer transition-all', bg,
+                className={['border-r border-b p-1 cursor-pointer transition-all', zellHoehe, bg,
                   istAusgew ? 'ring-2 ring-inset ring-rikscha-green brightness-95' : 'hover:brightness-95'].join(' ')}>
                 <div className="flex items-start justify-between mb-0.5">
                   <div className={['text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
@@ -386,10 +420,36 @@ export default function KalenderSeite() {
                     {istFT && <span className="text-[9px] text-amber-800 font-semibold truncate max-w-[64px] text-right leading-tight">{ftName}</span>}
                   </div>
                 </div>
-                {tagS.map((s) => <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">🔒 {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}</div>)}
-                {tagB.slice(0, 1).map((b) => <BuchungKarte key={b.id} b={b} />)}
-                {tagT.slice(0, 1).map((e) => <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-200 border-purple-600 text-purple-950 font-semibold">{e.allDay ? '●' : e.start.slice(11, 16)} {e.summary}</div>)}
-                {mehr > 0 && <div className="text-[10px] text-gray-500 font-semibold pl-1">+{mehr} mehr</div>}
+
+                {tagS.map((s) => (
+                  <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">
+                    🔒 {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
+                  </div>
+                ))}
+
+                {/* Gruppen rendern: parallel = flex-row, sequenziell = gestapelt */}
+                {anzeigeGruppen.map((gruppe, gi) => (
+                  gruppe.length > 1
+                    ? (
+                      <div key={gi} className="flex gap-0.5 mb-0.5">
+                        {gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal />)}
+                      </div>
+                    ) : (
+                      <BuchungKarte key={gruppe[0].id} b={gruppe[0]} />
+                    )
+                ))}
+
+                {tagT.slice(0, 1).map((e) => (
+                  <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-200 border-purple-600 text-purple-950 font-semibold">
+                    {e.allDay ? '●' : e.start.slice(11, 16)} {e.summary}
+                  </div>
+                ))}
+
+                {(mehrTermine > 0 || mehrTeamUp > 0) && (
+                  <div className="text-[10px] text-gray-500 font-semibold pl-1">
+                    +{mehrTermine + mehrTeamUp} mehr
+                  </div>
+                )}
               </div>
             );
           })}
@@ -435,7 +495,7 @@ export default function KalenderSeite() {
                 istOffen ? 'border-orange-400' : 'border-gray-300'
               } ${b.storniert ? 'opacity-60' : ''}`}>
 
-                {/* Kopfzeile: Uhrzeit + Status */}
+                {/* Kopfzeile */}
                 <div className={`px-3 py-2 flex items-center justify-between ${
                   istOffen ? 'bg-orange-100 border-b-2 border-orange-300' : 'bg-gray-100 border-b border-gray-300'
                 }`}>
@@ -448,7 +508,7 @@ export default function KalenderSeite() {
                   </div>
                 </div>
 
-                {/* Buchungsdetails */}
+                {/* Details */}
                 {b.pilot ? (
                   <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 ${PILOT_FARBE.textClass}`}>
                     <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
@@ -483,7 +543,7 @@ export default function KalenderSeite() {
                   </div>
                 )}
 
-                {/* Aktions-Buttons direkt sichtbar */}
+                {/* Aktions-Buttons */}
                 {!b.storniert && (
                   <div className="flex gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
                     <button
