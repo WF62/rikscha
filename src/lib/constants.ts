@@ -4,27 +4,27 @@ export const FAHRZEUGE = [
     name: 'Flotte Lotte',
     typ: 'Rikscha',
     maxGaeste: 2,
-    farbe: 'bg-green-200 border-green-600 text-green-900',
-    farbeDot: 'bg-green-600',
-    farbeHex: '#16a34a',
+    farbe: 'bg-green-300 border-green-700 text-green-950',
+    farbeDot: 'bg-green-700',
+    farbeHex: '#15803d',
   },
   {
     id: 'flinker_flitzer',
     name: 'Flinker Flitzer',
     typ: 'Liegetandem',
     maxGaeste: 1,
-    farbe: 'bg-blue-200 border-blue-600 text-blue-900',
-    farbeDot: 'bg-blue-600',
-    farbeHex: '#2563eb',
+    farbe: 'bg-blue-300 border-blue-700 text-blue-950',
+    farbeDot: 'bg-blue-700',
+    farbeHex: '#1d4ed8',
   },
   {
     id: 'jruuse_piter',
     name: 'Jruuse Piter',
     typ: 'Paralleltandem',
     maxGaeste: 1,
-    farbe: 'bg-orange-200 border-orange-500 text-orange-900',
-    farbeDot: 'bg-orange-500',
-    farbeHex: '#f97316',
+    farbe: 'bg-orange-300 border-orange-600 text-orange-950',
+    farbeDot: 'bg-orange-600',
+    farbeHex: '#ea580c',
   },
 ] as const;
 
@@ -44,22 +44,22 @@ export const PILOTEN = [
 export type Pilot = (typeof PILOTEN)[number];
 
 export const PILOTEN_FARBEN: Record<string, { bg: string; text: string; dot: string }> = {
-  'Walter':       { bg: 'bg-sky-100',    text: 'text-sky-800',    dot: 'bg-sky-500' },
-  'Hans-Heinrich':{ bg: 'bg-violet-100', text: 'text-violet-800', dot: 'bg-violet-500' },
-  'Lucia':        { bg: 'bg-pink-100',   text: 'text-pink-800',   dot: 'bg-pink-500' },
-  'Sabine':       { bg: 'bg-rose-100',   text: 'text-rose-800',   dot: 'bg-rose-500' },
-  'Werner':       { bg: 'bg-teal-100',   text: 'text-teal-800',   dot: 'bg-teal-500' },
-  'Holger':       { bg: 'bg-lime-100',   text: 'text-lime-800',   dot: 'bg-lime-600' },
-  'Guido':        { bg: 'bg-amber-100',  text: 'text-amber-800',  dot: 'bg-amber-500' },
-  'Helenah':      { bg: 'bg-fuchsia-100',text: 'text-fuchsia-800',dot: 'bg-fuchsia-500' },
+  'Walter':        { bg: 'bg-sky-300',     text: 'text-sky-950',     dot: 'bg-sky-700' },
+  'Hans-Heinrich': { bg: 'bg-violet-300',  text: 'text-violet-950',  dot: 'bg-violet-700' },
+  'Lucia':         { bg: 'bg-pink-300',    text: 'text-pink-950',    dot: 'bg-pink-700' },
+  'Sabine':        { bg: 'bg-rose-300',    text: 'text-rose-950',    dot: 'bg-rose-700' },
+  'Werner':        { bg: 'bg-teal-300',    text: 'text-teal-950',    dot: 'bg-teal-700' },
+  'Holger':        { bg: 'bg-lime-300',    text: 'text-lime-950',    dot: 'bg-lime-700' },
+  'Guido':         { bg: 'bg-amber-300',   text: 'text-amber-950',   dot: 'bg-amber-700' },
+  'Helenah':       { bg: 'bg-fuchsia-300', text: 'text-fuchsia-950', dot: 'bg-fuchsia-700' },
 };
 
-export const GAST_FARBE = { bg: 'bg-cyan-100', text: 'text-cyan-800', dot: 'bg-cyan-500' };
+export const GAST_FARBE = { bg: 'bg-cyan-300', text: 'text-cyan-950', dot: 'bg-cyan-700' };
 
 export function fahrzeugById(id: string) {
   return FAHRZEUGE.find((f) => f.id === id);
 }
 
 export function pilotFarbe(pilot: string) {
-  return PILOTEN_FARBEN[pilot] ?? { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400' };
+  return PILOTEN_FARBEN[pilot] ?? { bg: 'bg-gray-200', text: 'text-gray-800', dot: 'bg-gray-500' };
 }
