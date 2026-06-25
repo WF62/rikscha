@@ -8,6 +8,7 @@ import {
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
+import type { TeamUpEvent } from '@/app/api/teamup/route';
 import { FAHRZEUGE, fahrzeugById } from '@/lib/constants';
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -24,26 +25,41 @@ function getSperrenFuerTag(sperren: Sperre[], tag: Date) {
   });
 }
 
+function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
+  return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
+}
+
 export default function KalenderSeite() {
   const [monat, setMonat] = useState(new Date());
   const [buchungen, setBuchungen] = useState<Buchung[]>([]);
   const [sperren, setSperren] = useState<Sperre[]>([]);
+  const [teamup, setTeamup] = useState<TeamUpEvent[]>([]);
+  const [teamupVerfuegbar, setTeamupVerfuegbar] = useState(true);
   const [loading, setLoading] = useState(true);
   const [ausgewaehlt, setAusgewaehlt] = useState<Date | null>(null);
   const [filterFahrzeug, setFilterFahrzeug] = useState('');
+  const [zeigTeamUp, setZeigTeamUp] = useState(true);
   const [storniereId, setStorniereId] = useState<string | null>(null);
 
   const ladeKalenderDaten = useCallback(async () => {
     setLoading(true);
     const von = format(startOfMonth(monat), 'yyyy-MM-dd');
     const bis = format(endOfMonth(monat), 'yyyy-MM-dd');
-    const [bRes, sRes] = await Promise.all([
+    const [bRes, sRes, tRes] = await Promise.all([
       fetch(`/api/buchungen?von=${von}&bis=${bis}`),
       fetch(`/api/sperren?von=${von}&bis=${bis}`),
+      fetch(`/api/teamup?von=${von}&bis=${bis}`),
     ]);
     const [b, s] = await Promise.all([bRes.json(), sRes.json()]);
     setBuchungen(b);
     setSperren(s);
+    if (tRes.ok) {
+      const t = await tRes.json();
+      if (Array.isArray(t)) { setTeamup(t); setTeamupVerfuegbar(true); }
+      else setTeamupVerfuegbar(false);
+    } else {
+      setTeamupVerfuegbar(false);
+    }
     setLoading(false);
   }, [monat]);
 
@@ -69,6 +85,7 @@ export default function KalenderSeite() {
       )
     : [];
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
+  const tagTeamUp = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
 
   return (
     <div>
@@ -81,10 +98,22 @@ export default function KalenderSeite() {
           <button onClick={() => setMonat(addMonths(monat, 1))} className="p-2 rounded hover:bg-white hover:shadow transition-all">&#9654;</button>
           <button onClick={() => setMonat(new Date())} className="text-xs border border-rikscha-green text-rikscha-green px-2 py-1 rounded hover:bg-rikscha-green hover:text-white transition-colors">Heute</button>
         </div>
-        <select value={filterFahrzeug} onChange={(e) => setFilterFahrzeug(e.target.value)} className="text-sm border rounded px-2 py-1">
-          <option value="">Alle Fahrzeuge</option>
-          {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-        </select>
+        <div className="flex gap-2 flex-wrap">
+          <select value={filterFahrzeug} onChange={(e) => setFilterFahrzeug(e.target.value)} className="text-sm border rounded px-2 py-1">
+            <option value="">Alle Fahrzeuge</option>
+            {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+          {teamupVerfuegbar && (
+            <button
+              onClick={() => setZeigTeamUp(!zeigTeamUp)}
+              className={`text-xs px-2 py-1 rounded border transition-colors ${
+                zeigTeamUp ? 'bg-purple-100 border-purple-400 text-purple-800' : 'border-gray-300 text-gray-500'
+              }`}
+            >
+              TeamUp {zeigTeamUp ? 'an' : 'aus'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 mb-4 text-xs">
@@ -97,6 +126,11 @@ export default function KalenderSeite() {
         <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-100 border-red-400 text-red-800">
           <span className="w-2 h-2 rounded-full bg-red-500"></span>Gesperrt
         </span>
+        {teamupVerfuegbar && (
+          <span className="flex items-center gap-1 px-2 py-1 rounded border bg-purple-100 border-purple-400 text-purple-800">
+            <span className="w-2 h-2 rounded-full bg-purple-500"></span>TeamUp
+          </span>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -112,8 +146,10 @@ export default function KalenderSeite() {
               (b) => !filterFahrzeug || b.fahrzeug === filterFahrzeug
             );
             const tagS = getSperrenFuerTag(sperren, tag);
+            const tagT = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
             const istHeute = isToday(tag);
             const istAusgewaehlt = ausgewaehlt && isSameDay(tag, ausgewaehlt);
+            const total = tagB.length + tagT.length;
             return (
               <div
                 key={tag.toISOString()}
@@ -133,7 +169,7 @@ export default function KalenderSeite() {
                     &#128274; {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
                   </div>
                 ))}
-                {tagB.slice(0, 3).map((b) => {
+                {tagB.slice(0, 2).map((b) => {
                   const fz = fahrzeugById(b.fahrzeug);
                   return (
                     <div key={b.id} className={`text-xs rounded px-1 mb-0.5 truncate border ${fz?.farbe ?? 'bg-gray-100'} ${b.storniert ? 'opacity-50 line-through' : ''}`}>
@@ -141,7 +177,12 @@ export default function KalenderSeite() {
                     </div>
                   );
                 })}
-                {tagB.length > 3 && <div className="text-xs text-gray-400">+{tagB.length - 3} mehr</div>}
+                {tagT.slice(0, 2).map((e) => (
+                  <div key={e.uid} className="text-xs rounded px-1 mb-0.5 truncate border bg-purple-100 border-purple-400 text-purple-800">
+                    {e.allDay ? '' : e.start.slice(11, 16) + ' '}{e.summary.slice(0, 20)}
+                  </div>
+                ))}
+                {total > 4 && <div className="text-xs text-gray-400">+{total - 4} mehr</div>}
               </div>
             );
           })}
@@ -159,6 +200,7 @@ export default function KalenderSeite() {
               + Fahrt buchen
             </a>
           </div>
+
           {tagSperren.length > 0 && (
             <div className="mb-3">
               <p className="text-xs font-semibold text-red-600 mb-1">Fahrzeugsperren</p>
@@ -170,9 +212,25 @@ export default function KalenderSeite() {
               ))}
             </div>
           )}
-          {tagBuchungen.length === 0 && tagSperren.length === 0 && (
+
+          {tagTeamUp.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-purple-600 mb-1">TeamUp-Termine</p>
+              {tagTeamUp.map((e) => (
+                <div key={e.uid} className="text-sm bg-purple-50 border border-purple-200 rounded p-2 mb-1">
+                  <p className="font-semibold text-purple-800">
+                    {e.allDay ? 'Ganztags' : `${e.start.slice(11, 16)}&ndash;${e.end.slice(11, 16)}`} &middot; {e.summary}
+                  </p>
+                  {e.description && <p className="text-xs text-gray-500 mt-0.5">{e.description}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tagBuchungen.length === 0 && tagSperren.length === 0 && tagTeamUp.length === 0 && (
             <p className="text-gray-400 text-sm">Keine Buchungen an diesem Tag.</p>
           )}
+
           {tagBuchungen.map((b) => {
             const fz = fahrzeugById(b.fahrzeug);
             return (
