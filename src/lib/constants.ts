@@ -30,28 +30,35 @@ export const FAHRZEUGE = [
 
 export type FahrzeugId = (typeof FAHRZEUGE)[number]['id'];
 
+// Alphabetisch sortiert
 export const PILOTEN = [
-  'Walter',
-  'Hans-Heinrich',
-  'Lucia',
-  'Sabine',
-  'Werner',
-  'Holger',
+  'Doro',
   'Guido',
+  'Hans-Heinrich',
   'Helenah',
+  'Heribert',
+  'Holger',
+  'Lucia',
+  'Rolf',
+  'Sabine',
+  'Walter',
+  'Werner',
 ] as const;
 
 export type Pilot = (typeof PILOTEN)[number];
 
 export const PILOTEN_FARBEN: Record<string, { bg: string; text: string; dot: string }> = {
-  'Walter':        { bg: 'bg-sky-300',     text: 'text-sky-950',     dot: 'bg-sky-700' },
-  'Hans-Heinrich': { bg: 'bg-violet-300',  text: 'text-violet-950',  dot: 'bg-violet-700' },
-  'Lucia':         { bg: 'bg-pink-300',    text: 'text-pink-950',    dot: 'bg-pink-700' },
-  'Sabine':        { bg: 'bg-rose-300',    text: 'text-rose-950',    dot: 'bg-rose-700' },
-  'Werner':        { bg: 'bg-teal-300',    text: 'text-teal-950',    dot: 'bg-teal-700' },
-  'Holger':        { bg: 'bg-lime-300',    text: 'text-lime-950',    dot: 'bg-lime-700' },
+  'Doro':          { bg: 'bg-indigo-300',  text: 'text-indigo-950',  dot: 'bg-indigo-700' },
   'Guido':         { bg: 'bg-amber-300',   text: 'text-amber-950',   dot: 'bg-amber-700' },
+  'Hans-Heinrich': { bg: 'bg-violet-300',  text: 'text-violet-950',  dot: 'bg-violet-700' },
   'Helenah':       { bg: 'bg-fuchsia-300', text: 'text-fuchsia-950', dot: 'bg-fuchsia-700' },
+  'Heribert':      { bg: 'bg-yellow-300',  text: 'text-yellow-950',  dot: 'bg-yellow-700' },
+  'Holger':        { bg: 'bg-lime-300',    text: 'text-lime-950',    dot: 'bg-lime-700' },
+  'Lucia':         { bg: 'bg-pink-300',    text: 'text-pink-950',    dot: 'bg-pink-700' },
+  'Rolf':          { bg: 'bg-emerald-300', text: 'text-emerald-950', dot: 'bg-emerald-700' },
+  'Sabine':        { bg: 'bg-rose-300',    text: 'text-rose-950',    dot: 'bg-rose-700' },
+  'Walter':        { bg: 'bg-sky-300',     text: 'text-sky-950',     dot: 'bg-sky-700' },
+  'Werner':        { bg: 'bg-teal-300',    text: 'text-teal-950',    dot: 'bg-teal-700' },
 };
 
 export const GAST_FARBE = { bg: 'bg-cyan-300', text: 'text-cyan-950', dot: 'bg-cyan-700' };
