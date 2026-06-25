@@ -57,64 +57,151 @@ function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
 
-/** Buchungskarte mit inline-Farben (Tailwind-Purge-sicher) */
 function BuchungKarte({ b }: { b: Buchung }) {
-  const fz = fahrzeugById(b.fahrzeug);
-  const pf = pilotFarbe(b.pilot);
+  const fz  = fahrzeugById(b.fahrzeug);
+  const pf  = pilotFarbe(b.pilot);
+  const istOffen = !b.pilot || !b.fahrzeug;
   return (
-    <div className={`rounded overflow-hidden border-2 border-gray-400 shadow mb-0.5 ${b.storniert ? 'opacity-50' : ''}`}>
+    <div className={`rounded overflow-hidden border-2 shadow mb-0.5 ${
+      istOffen ? 'border-orange-400 border-dashed' : 'border-gray-400'
+    } ${b.storniert ? 'opacity-50' : ''}`}>
       {/* Pilot */}
-      <div
-        style={{ backgroundColor: pf.bgHex }}
-        className={`flex items-center gap-1 px-1.5 py-1 ${pf.textClass}`}
-      >
-        <span
-          style={{ backgroundColor: pf.dotHex }}
-          className="flex-shrink-0 w-2 h-2 rounded-full"
-        />
-        <span className={`text-[11px] font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
-          {b.startzeit.slice(0, 5)} P: {b.pilot}
-        </span>
-      </div>
+      {b.pilot ? (
+        <div style={{ backgroundColor: pf.bgHex }} className={`flex items-center gap-1 px-1.5 py-1 ${pf.textClass}`}>
+          <span style={{ backgroundColor: pf.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
+          <span className={`text-[11px] font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
+            {b.startzeit.slice(0, 5)} P: {b.pilot}
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1 px-1.5 py-1 bg-orange-100 text-orange-800">
+          <span className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-400" />
+          <span className="text-[11px] font-bold">{b.startzeit.slice(0, 5)} Pilot offen</span>
+        </div>
+      )}
       {/* Gäste */}
       {b.gaeste.map((g, i) => (
-        <div
-          key={i}
-          style={{ backgroundColor: GAST_FARBE.bgHex }}
-          className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}
-        >
-          <span
-            style={{ backgroundColor: GAST_FARBE.dotHex }}
-            className="flex-shrink-0 w-2 h-2 rounded-full"
-          />
+        <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
+          <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
           <span className="text-[11px] font-semibold truncate">G: {g}</span>
         </div>
       ))}
       {/* Fahrzeug */}
-      <div
-        style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }}
-        className="flex items-center gap-1 px-1.5 py-1 border-t border-white/60 text-gray-900"
-      >
-        <span
-          style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }}
-          className="flex-shrink-0 w-2 h-2 rounded-full"
-        />
-        <span className="text-[10px] font-semibold truncate">{fz?.name ?? b.fahrzeug}</span>
-      </div>
+      {b.fahrzeug ? (
+        <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-1 px-1.5 py-1 border-t border-white/60 text-gray-900">
+          <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="flex-shrink-0 w-2 h-2 rounded-full" />
+          <span className="text-[10px] font-semibold truncate">{fz?.name ?? b.fahrzeug}</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1 px-1.5 py-1 border-t border-dashed border-orange-300 bg-orange-50 text-orange-700">
+          <span className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-300" />
+          <span className="text-[10px] font-semibold">Fahrzeug offen</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Quick-Fill-Bar für unvollständige Buchungen */
+function QuickFill({ b, onUpdated }: { b: Buchung; onUpdated: () => void }) {
+  const [saving, setSaving] = useState(false);
+  const [gastInput, setGastInput] = useState('');
+  const fehltPilot    = !b.pilot;
+  const fehltFahrzeug = !b.fahrzeug;
+  if (!fehltPilot && !fehltFahrzeug) return null;
+
+  const patch = async (data: Record<string, unknown>) => {
+    setSaving(true);
+    await fetch(`/api/buchungen/${b.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    setSaving(false);
+    onUpdated();
+  };
+
+  const gastHinzufuegen = () => {
+    if (!gastInput.trim()) return;
+    const neu = [...b.gaeste, gastInput.trim()].slice(0, 2);
+    patch({ gaeste: neu });
+    setGastInput('');
+  };
+
+  return (
+    <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-3 mb-3">
+      <p className="text-xs font-bold text-orange-700 mb-2">
+        ⚡ Offener Termin – fehlende Angaben ergänzen:
+      </p>
+      {fehltPilot && (
+        <div className="mb-2">
+          <p className="text-xs text-gray-600 font-semibold mb-1">Pilot wählen:</p>
+          <div className="flex flex-wrap gap-1">
+            {PILOTEN.map((name) => {
+              const pf = pilotFarbe(name);
+              return (
+                <button key={name} disabled={saving}
+                  onClick={() => patch({ pilot: name })}
+                  style={{ backgroundColor: pf.bgHex }}
+                  className={`text-xs px-2 py-1 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 ${pf.textClass}`}>
+                  P: {name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {fehltFahrzeug && (
+        <div className="mb-2">
+          <p className="text-xs text-gray-600 font-semibold mb-1">Fahrzeug wählen:</p>
+          <div className="flex flex-wrap gap-1">
+            {FAHRZEUGE.map((f) => (
+              <button key={f.id} disabled={saving}
+                onClick={() => patch({ fahrzeug: f.id })}
+                style={{ backgroundColor: f.bgHex }}
+                className="text-xs px-2 py-1 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 text-gray-900">
+                {f.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Gast nachträglich hinzufügen */}
+      {b.gaeste.length < 2 && (
+        <div>
+          <p className="text-xs text-gray-600 font-semibold mb-1">Gast ergänzen:</p>
+          <div className="flex gap-1">
+            <input
+              type="text"
+              value={gastInput}
+              onChange={(e) => setGastInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && gastHinzufuegen()}
+              placeholder="Name..."
+              style={{ backgroundColor: GAST_FARBE.bgHex }}
+              className="text-xs px-2 py-1 rounded border border-gray-400 flex-1 min-w-0"
+            />
+            <button onClick={gastHinzufuegen} disabled={saving || !gastInput.trim()}
+              style={{ backgroundColor: GAST_FARBE.bgHex }}
+              className="text-xs px-2 py-1 rounded font-bold border border-gray-400 disabled:opacity-50">
+              + G
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function KalenderSeite() {
-  const [monat, setMonat] = useState(new Date());
+  const [monat, setMonat]   = useState(new Date());
   const [buchungen, setBuchungen] = useState<Buchung[]>([]);
-  const [sperren, setSperren] = useState<Sperre[]>([]);
-  const [teamup, setTeamup] = useState<TeamUpEvent[]>([]);
+  const [sperren, setSperren]     = useState<Sperre[]>([]);
+  const [teamup, setTeamup]       = useState<TeamUpEvent[]>([]);
   const [teamupVerfuegbar, setTeamupVerfuegbar] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]     = useState(true);
   const [ausgewaehlt, setAusgewaehlt] = useState<Date | null>(null);
   const [filterFahrzeug, setFilterFahrzeug] = useState('');
-  const [filterPilot, setFilterPilot] = useState('');
+  const [filterPilot, setFilterPilot]       = useState('');
   const [filterNurMitGaesten, setFilterNurMitGaesten] = useState(false);
   const [zeigTeamUp, setZeigTeamUp] = useState(true);
   const [storniereId, setStorniereId] = useState<string | null>(null);
@@ -169,12 +256,11 @@ export default function KalenderSeite() {
   const tagSperren = ausgewaehlt ? getSperrenFuerTag(sperren, ausgewaehlt) : [];
   const tagTeamUp  = ausgewaehlt && zeigTeamUp ? getTeamUpFuerTag(teamup, ausgewaehlt) : [];
 
-  const schnellBuchen = (opts: { pilot?: string; fahrzeug?: string; gaeste?: boolean }) => {
+  const schnellBuchen = (opts: { pilot?: string; fahrzeug?: string }) => {
     const datum = ausgewaehlt ? format(ausgewaehlt, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
     const params = new URLSearchParams({ datum });
     if (opts.pilot)    params.set('pilot', opts.pilot);
     if (opts.fahrzeug) params.set('fahrzeug', opts.fahrzeug);
-    if (opts.gaeste)   params.set('gaeste', '1');
     window.location.href = `/buchen?${params.toString()}`;
   };
 
@@ -229,20 +315,11 @@ export default function KalenderSeite() {
             {f.name} &middot; {f.typ}
           </button>
         ))}
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-200 border-red-600 text-red-900">
-          <span className="w-2 h-2 rounded-full bg-red-600" />Gesperrt
-        </span>
-        {teamupVerfuegbar && (
-          <span className="flex items-center gap-1 px-2 py-1 rounded border bg-purple-200 border-purple-600 text-purple-900">
-            <span className="w-2 h-2 rounded-full bg-purple-600" />TeamUp
-          </span>
-        )}
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-amber-200 border-amber-500 text-amber-900">
-          <span className="w-2 h-2 rounded-full bg-amber-500" />Feiertag
-        </span>
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-blue-200 border-blue-500 text-blue-900">
-          <span className="w-2 h-2 rounded-full bg-blue-500" />Wochenende
-        </span>
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-red-200 border-red-600 text-red-900"><span className="w-2 h-2 rounded-full bg-red-600" />Gesperrt</span>
+        {teamupVerfuegbar && <span className="flex items-center gap-1 px-2 py-1 rounded border bg-purple-200 border-purple-600 text-purple-900"><span className="w-2 h-2 rounded-full bg-purple-600" />TeamUp</span>}
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-amber-200 border-amber-500 text-amber-900"><span className="w-2 h-2 rounded-full bg-amber-500" />Feiertag</span>
+        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-blue-200 border-blue-500 text-blue-900"><span className="w-2 h-2 rounded-full bg-blue-500" />Wochenende</span>
+        <span className="flex items-center gap-1 px-2 py-1 rounded border border-dashed border-orange-400 bg-orange-50 text-orange-800"><span className="w-2 h-2 rounded-full bg-orange-400" />Offen</span>
       </div>
 
       {/* Legende Piloten */}
@@ -250,8 +327,7 @@ export default function KalenderSeite() {
         <span className="text-xs font-semibold text-gray-500 self-center mr-1">Pilot:</span>
         {PILOTEN.map((name) => {
           const pf  = pilotFarbe(name);
-          const leg = pilotFarbeLegende(name);
-          const aktiv = filterPilot === name;
+          const leg = PILOTEN_FARBEN_LEGENDE[name] ?? { text: 'text-gray-800' };
           return (
             <button key={name}
               onClick={() => togglePilot(name)}
@@ -259,7 +335,7 @@ export default function KalenderSeite() {
               title="Klick = Filter | Doppelklick = Termin"
               style={{ backgroundColor: pf.bgHex }}
               className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all font-semibold ${
-                aktiv
+                filterPilot === name
                   ? 'scale-105 shadow-md ring-2 ring-offset-1 ring-gray-600 border-gray-700'
                   : 'border-gray-400 opacity-90 hover:opacity-100 hover:scale-105'
               } ${leg.text}`}>
@@ -275,8 +351,7 @@ export default function KalenderSeite() {
         <span className="text-xs font-semibold text-gray-500 self-center mr-1">Gast:</span>
         <button
           onClick={() => setFilterNurMitGaesten(p => !p)}
-          onDoubleClick={() => schnellBuchen({ gaeste: true })}
-          title="Klick = nur mit Gästen | Doppelklick = Termin"
+          title="Klick = nur Buchungen mit Gästen"
           style={{ backgroundColor: GAST_FARBE.bgHex }}
           className={`flex items-center gap-1 px-2 py-1 rounded border-2 transition-all font-semibold ${
             filterNurMitGaesten
@@ -303,8 +378,8 @@ export default function KalenderSeite() {
             const kw               = getISOWeek(tag);
             const geradeKW         = kw % 2 === 0;
             const tagB = getBuchungenFuerTag(buchungen, tag).filter(buchungFilter);
-            const tagS  = getSperrenFuerTag(sperren, tag);
-            const tagT  = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
+            const tagS = getSperrenFuerTag(sperren, tag);
+            const tagT = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
             const istHeute       = isToday(tag);
             const istAusgewaehlt = ausgewaehlt && isSameDay(tag, ausgewaehlt);
             const mehr = Math.max(0, tagB.length - 1) + Math.max(0, tagT.length - 1);
@@ -322,35 +397,24 @@ export default function KalenderSeite() {
             if (istHeute) bgClass = 'bg-green-100';
 
             return (
-              <div
-                key={tag.toISOString()}
+              <div key={tag.toISOString()}
                 onClick={() => setAusgewaehlt(isSameDay(tag, ausgewaehlt!) ? null : tag)}
-                className={[
-                  'border-r border-b min-h-[110px] p-1 cursor-pointer transition-all',
-                  bgClass,
+                className={['border-r border-b min-h-[110px] p-1 cursor-pointer transition-all', bgClass,
                   istAusgewaehlt ? 'ring-2 ring-inset ring-rikscha-green brightness-95' : 'hover:brightness-95',
-                ].join(' ')}
-              >
+                ].join(' ')}>
                 <div className="flex items-start justify-between mb-0.5">
-                  <div className={[
-                    'text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
-                    istHeute      ? 'bg-rikscha-green text-white' :
-                    istFeiertag   ? 'bg-amber-400 text-amber-950' :
+                  <div className={['text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0',
+                    istHeute ? 'bg-rikscha-green text-white' :
+                    istFeiertag ? 'bg-amber-400 text-amber-950' :
                     istWochenende ? 'bg-blue-400 text-white' :
                     imAktuellenMonat ? 'text-gray-800' : 'text-gray-400',
-                  ].join(' ')}>
-                    {format(tag, 'd')}
-                  </div>
+                  ].join(' ')}>{format(tag, 'd')}</div>
                   <div className="flex flex-col items-end gap-0.5">
                     {format(tag, 'd') === '1' && (
-                      <span className="text-[10px] font-bold text-rikscha-green">
-                        {format(tag, 'MMM', { locale: de })}
-                      </span>
+                      <span className="text-[10px] font-bold text-rikscha-green">{format(tag, 'MMM', { locale: de })}</span>
                     )}
                     {istFeiertag && (
-                      <span className="text-[9px] text-amber-800 font-semibold truncate max-w-[64px] text-right leading-tight">
-                        {feiertagName}
-                      </span>
+                      <span className="text-[9px] text-amber-800 font-semibold truncate max-w-[64px] text-right leading-tight">{feiertagName}</span>
                     )}
                   </div>
                 </div>
@@ -387,8 +451,8 @@ export default function KalenderSeite() {
               )}
             </div>
             <a href={`/buchen?datum=${format(ausgewaehlt, 'yyyy-MM-dd')}`}
-               className="text-sm bg-rikscha-green text-white px-3 py-1 rounded hover:bg-rikscha-light transition-colors">
-              + Fahrt buchen
+              className="text-sm bg-rikscha-green text-white px-3 py-1 rounded hover:bg-rikscha-light transition-colors">
+              + Termin
             </a>
           </div>
 
@@ -425,41 +489,66 @@ export default function KalenderSeite() {
           {tagBuchungen.map((b) => {
             const fz = fahrzeugById(b.fahrzeug);
             const pf = pilotFarbe(b.pilot);
+            const istOffen = !b.pilot || !b.fahrzeug;
             return (
-              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm border-gray-400 ${b.storniert ? 'opacity-60' : ''}`}>
-                <div className="px-3 py-1.5 bg-gray-200 border-b-2 border-gray-400 flex items-center justify-between">
+              <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-3 shadow-sm ${
+                istOffen ? 'border-orange-400' : 'border-gray-400'
+              } ${b.storniert ? 'opacity-60' : ''}`}>
+                {/* Uhrzeit */}
+                <div className={`px-3 py-1.5 border-b-2 flex items-center justify-between ${
+                  istOffen ? 'bg-orange-100 border-orange-300' : 'bg-gray-200 border-gray-400'
+                }`}>
                   <span className={`font-bold text-sm ${b.storniert ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                     {b.startzeit.slice(0, 5)}–{b.endzeit.slice(0, 5)} Uhr
                   </span>
-                  {b.storniert && <span className="text-xs font-bold text-red-700">STORNIERT</span>}
+                  <div className="flex items-center gap-2">
+                    {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
+                    {b.storniert && <span className="text-xs font-bold text-red-700">STORNIERT</span>}
+                  </div>
                 </div>
+
+                {/* Quick-Fill für offene Termine */}
+                {istOffen && !b.storniert && (
+                  <div className="px-3 pt-3">
+                    <QuickFill b={b} onUpdated={ladeKalenderDaten} />
+                  </div>
+                )}
+
                 {/* Pilot */}
-                <div
-                  style={{ backgroundColor: pf.bgHex }}
-                  className={`flex items-center gap-2 px-3 py-2 ${pf.textClass}`}
-                >
-                  <span style={{ backgroundColor: pf.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
-                  <span className="text-sm font-bold">P: {b.pilot}</span>
-                </div>
+                {b.pilot ? (
+                  <div style={{ backgroundColor: pf.bgHex }} className={`flex items-center gap-2 px-3 py-2 ${pf.textClass}`}>
+                    <span style={{ backgroundColor: pf.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
+                    <span className="text-sm font-bold">P: {b.pilot}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-orange-50">
+                    <span className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-300" />
+                    <span className="text-sm text-orange-600 italic">Pilot noch nicht zugewiesen</span>
+                  </div>
+                )}
+
                 {/* Gäste */}
                 {b.gaeste.map((g, i) => (
-                  <div
-                    key={i}
-                    style={{ backgroundColor: GAST_FARBE.bgHex }}
-                    className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${GAST_FARBE.textClass}`}
-                  >
+                  <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 ${GAST_FARBE.textClass}`}>
                     <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
                     <span className="text-sm font-semibold">G: {g}</span>
                   </div>
                 ))}
+
                 {/* Fahrzeug */}
-                <div
-                  style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }}
-                  className="flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 text-gray-900"
-                >
-                  <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="w-3 h-3 rounded-full flex-shrink-0" />
-                  <span className="text-sm font-bold">{fz?.name} · {fz?.typ}</span>
-                </div>
+                {b.fahrzeug ? (
+                  <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-2 px-3 py-2 border-t-2 border-white/60 text-gray-900">
+                    <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="w-3 h-3 rounded-full flex-shrink-0" />
+                    <span className="text-sm font-bold">{fz?.name} · {fz?.typ}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 border-t-2 border-dashed border-orange-300 bg-orange-50">
+                    <span className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-300" />
+                    <span className="text-sm text-orange-600 italic">Fahrzeug noch nicht gewählt</span>
+                  </div>
+                )}
+
+                {/* Notiz + Stornieren */}
                 {(b.notiz || !b.storniert) && (
                   <div className="px-3 py-2 bg-white border-t border-gray-200 flex items-center justify-between gap-2">
                     {b.notiz ? <p className="text-xs text-gray-600 italic flex-1">{b.notiz}</p> : <span />}
