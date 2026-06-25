@@ -45,15 +45,9 @@ function getTeamUpFuerTag(events: TeamUpEvent[], tag: Date) {
   return events.filter((e) => isSameDay(parseISO(e.start.slice(0, 10)), tag));
 }
 
-/** Zwei Buchungen überlappen, wenn ihre Zeiten sich schneiden */
 function ueberlappen(a: Buchung, b: Buchung) {
   return a.startzeit < b.endzeit && b.startzeit < a.endzeit;
 }
-
-/**
- * Gruppiert Buchungen: Überlappende kommen in dieselbe Gruppe (parallel),
- * nicht-überlappende bilden neue Gruppen (sequenziell).
- */
 function gruppiereTermine(buchungen: Buchung[]): Buchung[][] {
   const sorted = [...buchungen].sort((a, b) => a.startzeit.localeCompare(b.startzeit));
   const gruppen: Buchung[][] = [];
@@ -112,7 +106,6 @@ function BuchungKarte({ b, schmal }: { b: Buchung; schmal?: boolean }) {
   );
 }
 
-/** Inline-Bearbeiten-Panel */
 function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () => void; onClose: () => void }) {
   const [saving, setSaving] = useState(false);
   const [gaestInput, setGaestInput] = useState('');
@@ -128,18 +121,15 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
     onUpdated();
   };
 
-  const fahrzeugWaehlen = (fzId: string) => {
-    const fz = FAHRZEUGE.find((f) => f.id === fzId);
-    const maxG = fz?.maxGaeste ?? 2;
-    patch({ fahrzeug: fzId, gaeste: b.gaeste.slice(0, maxG) });
-  };
+  // Fahrzeugwechsel löscht keine Gäste; Limit gilt nur beim Hinzufügen
+  const fahrzeugWaehlen = (fzId: string) => patch({ fahrzeug: fzId });
 
   const gastHinzufuegen = () => {
     if (!gaestInput.trim()) return;
     const fz = fahrzeugById(b.fahrzeug);
     const maxG = fz?.maxGaeste ?? 2;
-    const neu = [...b.gaeste, gaestInput.trim()].slice(0, maxG);
-    patch({ gaeste: neu });
+    if (b.gaeste.length >= maxG) return;
+    patch({ gaeste: [...b.gaeste, gaestInput.trim()] });
     setGaestInput('');
   };
   const gastEntfernen = (i: number) => patch({ gaeste: b.gaeste.filter((_, idx) => idx !== i) });
@@ -225,6 +215,9 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
               + Gast
             </button>
           </div>
+        )}
+        {b.gaeste.length >= maxGaeste && (
+          <p className="text-xs text-orange-600 italic">Maximale Gästeanzahl für dieses Fahrzeug erreicht.</p>
         )}
       </div>
     </div>
@@ -387,9 +380,7 @@ export default function KalenderSeite() {
             const tagT = zeigTeamUp ? getTeamUpFuerTag(teamup, tag) : [];
             const istHeute = isToday(tag), istAusgew = ausgewaehlt && isSameDay(tag, ausgewaehlt);
 
-            // Gruppiere Termine: überlappend = parallel, sonst sequenziell
             const gruppen = gruppiereTermine(tagB);
-            // Zeige max. 2 Gruppen, ab 3 Termine insgesamt +N
             const anzeigeGruppen = tagB.length <= 2 ? gruppen : gruppen.slice(0, 1);
             const mehrTermine = tagB.length > 2 ? tagB.length - anzeigeGruppen.reduce((s, g) => s + g.length, 0) : 0;
             const mehrTeamUp = Math.max(0, tagT.length - 1);
@@ -401,7 +392,6 @@ export default function KalenderSeite() {
             else             bg = geradeKW ? 'bg-white' : 'bg-slate-100';
             if (istHeute) bg = 'bg-green-100';
 
-            // Zellhöhe: min 110px für 1 Termin, 180px bei 2 sequenziellen
             const zellHoehe = tagB.length >= 2 && gruppen.length >= 2 ? 'min-h-[180px]' : 'min-h-[110px]';
 
             return (
@@ -420,35 +410,23 @@ export default function KalenderSeite() {
                     {istFT && <span className="text-[9px] text-amber-800 font-semibold truncate max-w-[64px] text-right leading-tight">{ftName}</span>}
                   </div>
                 </div>
-
                 {tagS.map((s) => (
                   <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">
                     🔒 {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}
                   </div>
                 ))}
-
-                {/* Gruppen rendern: parallel = flex-row, sequenziell = gestapelt */}
                 {anzeigeGruppen.map((gruppe, gi) => (
                   gruppe.length > 1
-                    ? (
-                      <div key={gi} className="flex gap-0.5 mb-0.5">
-                        {gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal />)}
-                      </div>
-                    ) : (
-                      <BuchungKarte key={gruppe[0].id} b={gruppe[0]} />
-                    )
+                    ? <div key={gi} className="flex gap-0.5 mb-0.5">{gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal />)}</div>
+                    : <BuchungKarte key={gruppe[0].id} b={gruppe[0]} />
                 ))}
-
                 {tagT.slice(0, 1).map((e) => (
                   <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-200 border-purple-600 text-purple-950 font-semibold">
                     {e.allDay ? '●' : e.start.slice(11, 16)} {e.summary}
                   </div>
                 ))}
-
                 {(mehrTermine > 0 || mehrTeamUp > 0) && (
-                  <div className="text-[10px] text-gray-500 font-semibold pl-1">
-                    +{mehrTermine + mehrTeamUp} mehr
-                  </div>
+                  <div className="text-[10px] text-gray-500 font-semibold pl-1">+{mehrTermine + mehrTeamUp} mehr</div>
                 )}
               </div>
             );
@@ -494,8 +472,6 @@ export default function KalenderSeite() {
               <div key={b.id} className={`border-2 rounded-lg overflow-hidden mb-4 shadow-sm ${
                 istOffen ? 'border-orange-400' : 'border-gray-300'
               } ${b.storniert ? 'opacity-60' : ''}`}>
-
-                {/* Kopfzeile */}
                 <div className={`px-3 py-2 flex items-center justify-between ${
                   istOffen ? 'bg-orange-100 border-b-2 border-orange-300' : 'bg-gray-100 border-b border-gray-300'
                 }`}>
@@ -507,8 +483,6 @@ export default function KalenderSeite() {
                     {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
                   </div>
                 </div>
-
-                {/* Details */}
                 {b.pilot ? (
                   <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 ${PILOT_FARBE.textClass}`}>
                     <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
@@ -542,16 +516,12 @@ export default function KalenderSeite() {
                     <p className="text-xs text-gray-500 italic">{b.notiz}</p>
                   </div>
                 )}
-
-                {/* Aktions-Buttons */}
                 {!b.storniert && (
                   <div className="flex gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
                     <button
                       onClick={() => setBearbeitenId(bearbeiten ? null : b.id)}
                       className={`flex-1 text-sm font-bold py-2 rounded border-2 transition-colors ${
-                        bearbeiten
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-indigo-100 text-indigo-700 border-indigo-400 hover:bg-indigo-200'
+                        bearbeiten ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-100 text-indigo-700 border-indigo-400 hover:bg-indigo-200'
                       }`}>
                       ✏️ Ändern
                     </button>
@@ -563,8 +533,6 @@ export default function KalenderSeite() {
                     </button>
                   </div>
                 )}
-
-                {/* Bearbeiten-Panel */}
                 {bearbeiten && (
                   <div className="px-3 pb-3 bg-gray-50 border-t border-indigo-200">
                     <BearbeitenPanel
