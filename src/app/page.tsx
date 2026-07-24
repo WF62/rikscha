@@ -92,13 +92,13 @@ function BuchungKarte({ b, schmal }: { b: Buchung; schmal?: boolean }) {
           <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate`}>{b.startzeit.slice(0,5)} offen</span>
         </div>
       )}
-      {!schmal && b.gaeste.map((g, i) => (
+      {!schmal && (b.gaeste ?? []).map((g, i) => (
         <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
           <span className="text-[11px] font-semibold truncate">G: {g}</span>
         </div>
       ))}
-      {schmal && b.gaeste.length > 0 && (
+      {schmal && (b.gaeste ?? []).length > 0 && (
         <div style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
           <span className="text-[9px] font-semibold">{b.gaeste.length}G</span>
@@ -140,11 +140,12 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
   const gastHinzufuegen = () => {
     if (!gaestInput.trim()) return;
     const fz = fahrzeugById(b.fahrzeug);
-    if (b.gaeste.length >= (fz?.maxGaeste ?? 2)) return;
-    patch({ gaeste: [...b.gaeste, gaestInput.trim()] });
+    const gaeste = b.gaeste ?? [];
+    if (gaeste.length >= (fz?.maxGaeste ?? 2)) return;
+    patch({ gaeste: [...gaeste, gaestInput.trim()] });
     setGaestInput('');
   };
-  const gastEntfernen = (i: number) => patch({ gaeste: b.gaeste.filter((_, idx) => idx !== i) });
+  const gastEntfernen = (i: number) => patch({ gaeste: (b.gaeste ?? []).filter((_, idx) => idx !== i) });
   const notizSpeichern = () => { patch({ notiz: notiz.trim() }); setNotizGeaendert(false); };
 
   const fz = fahrzeugById(b.fahrzeug);
@@ -332,7 +333,8 @@ export default function KalenderSeite() {
       fetch(`/api/teamup?von=${von}&bis=${bis}`),
     ]);
     const [b, s] = await Promise.all([bRes.json(), sRes.json()]);
-    setBuchungen(b); setSperren(s);
+    setBuchungen(Array.isArray(b) ? b : []);
+    setSperren(Array.isArray(s) ? s : []);
     if (tRes.ok) { const t = await tRes.json(); if (Array.isArray(t)) { setTeamup(t); setTeamupVerfuegbar(true); } else setTeamupVerfuegbar(false); }
     else setTeamupVerfuegbar(false);
     setLoading(false);
