@@ -46,17 +46,22 @@ function BuchenFormular() {
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
     setSpeichern(true); setFehler('');
-    const res = await fetch('/api/buchungen', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fahrzeug: form.fahrzeug || '', pilot: form.pilot || '',
-        gaeste, datum: form.datum, startzeit: form.startzeit,
-        endzeit: form.endzeit, notiz: form.notiz,
-      }),
-    });
-    if (res.ok) { router.push('/'); }
-    else { const j = await res.json(); setFehler(j.error ?? 'Fehler beim Speichern.'); setSpeichern(false); }
+    try {
+      const res = await fetch('/api/buchungen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fahrzeug: form.fahrzeug || '', pilot: form.pilot || '',
+          gaeste, datum: form.datum, startzeit: form.startzeit,
+          endzeit: form.endzeit, notiz: form.notiz,
+        }),
+      });
+      if (res.ok) { router.push('/'); }
+      else { const j = await res.json(); setFehler(j.error ?? 'Fehler beim Speichern.'); setSpeichern(false); }
+    } catch (err) {
+      setFehler('Verbindungsfehler – bitte prüfe deine Internetverbindung und versuche es erneut.');
+      setSpeichern(false);
+    }
   };
 
   return (
