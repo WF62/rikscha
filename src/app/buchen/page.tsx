@@ -27,7 +27,7 @@ function BuchenFormular() {
   useEffect(() => {
     if (form.datum) {
       fetch(`/api/sperren?von=${form.datum}&bis=${form.datum}`)
-        .then((r) => r.json()).then(setSperren);
+        .then((r) => r.json()).then((d) => setSperren(Array.isArray(d) ? d : []));
     }
   }, [form.datum]);
 
