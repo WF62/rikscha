@@ -89,7 +89,7 @@ export default function GaleriePage() {
       `}</style>
 
       <nav className="page-nav">
-        <a href="/website">← Zurück zur Website</a>
+        <a href="/">← Zurück zur Website</a>
         <span className="sep">·</span>
         <a href="/website" className="title">Mertener Rikschakutscher</a>
       </nav>

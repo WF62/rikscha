@@ -460,7 +460,7 @@ export default async function WebsitePage() {
           <h2>Wann sind wir unterwegs?</h2>
           <p>Schaut im Fahrtenkalender nach, wann wir unterwegs sind — oder bucht direkt eine eigene Fahrt.</p>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:'1.5rem',marginTop:'2rem'}}>
-            <a href="/" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
+            <a href="/kalender" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
               <span style={{fontSize:'2.5rem'}}>📅</span>
               <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Fahrtenkalender</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>Alle Termine auf einen Blick</div></div>
               <span style={{padding:'0.5rem 1.25rem',background:'#2D6B1E',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Kalender öffnen ↗</span>
@@ -572,7 +572,7 @@ export default async function WebsitePage() {
             <button id="pw-abmelden" style={{padding:'0.4rem 1rem',border:'1.5px solid #D6CCB8',borderRadius:'8px',background:'transparent',color:'#6B5C44',fontSize:'0.82rem',cursor:'pointer'}}>Abmelden</button>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'2rem'}}>
-            <a href="/" target="_blank" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
+            <a href="/kalender" target="_blank" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
               <span style={{fontSize:'1.5rem'}}>📅</span>
               <span style={{fontWeight:700,fontSize:'0.95rem'}}>Fahrtenkalender</span>
               <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Termine buchen & verwalten</span>

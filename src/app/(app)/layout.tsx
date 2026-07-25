@@ -11,7 +11,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <nav className="flex gap-4 text-sm">
-            <a href="/" className="hover:text-green-200 transition-colors">Kalender</a>
+            <a href="/" className="hover:text-green-200 transition-colors">← Website</a>
+            <a href="/kalender" className="hover:text-green-200 transition-colors">Kalender</a>
             <a href="/gutschein" className="hover:text-green-200 transition-colors">Gutschein</a>
             <a href="/buchen" className="bg-white text-rikscha-green font-semibold px-3 py-1 rounded hover:bg-green-50 transition-colors">+ Fahrt buchen</a>
           </nav>

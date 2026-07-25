@@ -76,7 +76,7 @@ export default function TextePage() {
       `}</style>
 
       <nav className="page-nav">
-        <a href="/website">← Zur Website</a>
+        <a href="/">← Zur Website</a>
         <span className="sep">·</span>
         <span style={{color:'rgba(255,255,255,0.6)',fontSize:'0.88rem'}}>Texte bearbeiten</span>
       </nav>
@@ -106,7 +106,7 @@ export default function TextePage() {
             <h2>Texte der Website</h2>
             <button className="btn-abmelden" id="abmelden-btn">Abmelden</button>
           </div>
-          <a href="/website" target="_blank" className="preview-link">↗ Website in neuem Tab öffnen</a>
+          <a href="/" target="_blank" className="preview-link">↗ Website in neuem Tab öffnen</a>
           <div id="felder-container"></div>
         </div>
       </div>
