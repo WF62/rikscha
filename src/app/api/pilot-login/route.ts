@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   const { pilot, password } = await req.json();
@@ -7,16 +8,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400 });
   }
 
-  let passwörter: Record<string, string> = {};
-  try {
-    passwörter = JSON.parse(process.env.PILOT_PASSWORDS ?? '{}');
-  } catch {
-    return NextResponse.json({ error: 'Konfigurationsfehler.' }, { status: 500 });
-  }
+  const db = createServiceClient();
+  const { data, error } = await db
+    .from('piloten_zugang')
+    .select('id, name, rolle')
+    .eq('name', pilot)
+    .eq('passwort', password)
+    .eq('aktiv', true)
+    .maybeSingle();
 
-  if (passwörter[pilot] && passwörter[pilot] === password) {
-    return NextResponse.json({ ok: true, pilot });
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data)  return NextResponse.json({ error: 'Falscher Name oder Passwort.' }, { status: 401 });
 
-  return NextResponse.json({ error: 'Falscher Name oder Passwort.' }, { status: 401 });
+  return NextResponse.json({ ok: true, pilot: data.name, rolle: data.rolle });
 }
