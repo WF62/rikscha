@@ -49,7 +49,7 @@ export default function DatenschutzPage() {
           <h2>1. Verantwortliche Stelle</h2>
           <p>Verantwortlich für die Datenverarbeitung auf dieser Website:</p>
           <p>
-            <span className="placeholder">Vorname Nachname</span><br/>
+            Gesellschaft der Franziskanerinnen zu Olpe (GFO)<br/>
             Mertener Rikschakutscher<br/>
             <span className="placeholder">Straße Hausnummer</span><br/>
             <span className="placeholder">PLZ</span> Bornheim-Merten<br/>

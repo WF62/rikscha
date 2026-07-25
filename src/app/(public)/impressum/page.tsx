@@ -47,18 +47,12 @@ export default function ImpressumPage() {
 
         <div className="block">
           <h2>Angaben gemäß § 5 TMG</h2>
-          <p><span className="placeholder">Vorname Nachname</span></p>
+          <p>Gesellschaft der Franziskanerinnen zu Olpe (GFO)</p>
           <p>Mertener Rikschakutscher</p>
           <p>
             <span className="placeholder">Straße Hausnummer</span><br/>
             <span className="placeholder">PLZ</span> Bornheim-Merten
           </p>
-        </div>
-
-        <div className="block">
-          <h2>Träger</h2>
-          <p>Gesellschaft der Franziskanerinnen zu Olpe (GFO)</p>
-          <p><span className="placeholder">Adresse der GFO</span></p>
         </div>
 
         <div className="block">
@@ -69,7 +63,7 @@ export default function ImpressumPage() {
 
         <div className="block">
           <h2>Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)</h2>
-          <p><span className="placeholder">Vorname Nachname</span></p>
+          <p>Gesellschaft der Franziskanerinnen zu Olpe (GFO)</p>
           <p>
             <span className="placeholder">Straße Hausnummer</span><br/>
             <span className="placeholder">PLZ</span> Bornheim-Merten
