@@ -532,7 +532,7 @@ export default async function WebsitePage() {
         <p>Ein ehrenamtliches Projekt der <a href="#">Gesellschaft der Franziskanerinnen zu Olpe (GFO)</a></p>
         <p style={{marginTop:'0.25rem'}}>📞 <a href="tel:022279328383">02227 9328383</a></p>
         <p style={{marginTop:'1rem',borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:'1rem'}}>
-          <a href="#">Impressum</a> &nbsp;·&nbsp; <a href="#">Datenschutz</a>
+          <a href="/impressum">Impressum</a> &nbsp;·&nbsp; <a href="/datenschutz">Datenschutz</a>
           &nbsp;·&nbsp; <a href="#" className="piloten-link" id="piloten-link">Piloten</a>
         </p>
         <p style={{marginTop:'0.5rem',fontSize:'0.75rem',color:'rgba(255,255,255,0.3)'}}>© 2025</p>
