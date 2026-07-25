@@ -72,13 +72,13 @@ function tagBg(tag: Date, datum: Date, ansicht: Ansicht, feiertage: Map<string, 
   return geradeKW ? 'bg-white' : 'bg-slate-100';
 }
 
-function BuchungKarte({ b, schmal }: { b: Buchung; schmal?: boolean }) {
+function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; onClick?: (e: React.MouseEvent) => void }) {
   const fz = fahrzeugById(b.fahrzeug);
   const istOffen = !b.pilot || !b.fahrzeug;
   return (
-    <div className={`rounded overflow-hidden border-2 shadow mb-0.5 ${
+    <div onClick={onClick} className={`rounded overflow-hidden border-2 shadow mb-0.5 ${
       istOffen ? 'border-orange-400 border-dashed' : 'border-gray-400'
-    } ${b.storniert ? 'opacity-50' : ''} ${schmal ? 'min-w-0 flex-1' : ''}`}>
+    } ${b.storniert ? 'opacity-50' : ''} ${schmal ? 'min-w-0 flex-1' : ''} ${onClick ? 'cursor-pointer hover:brightness-90' : ''}`}>
       {b.pilot ? (
         <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-1 px-1 py-0.5 ${PILOT_FARBE.textClass}`}>
           <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
@@ -522,8 +522,8 @@ export default function KalenderSeite() {
                   {tagS.map((s) => <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">🔒 {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}</div>)}
                   {anzeigeGruppen.map((gruppe, gi) => (
                     gruppe.length > 1
-                      ? <div key={gi} className="flex gap-0.5 mb-0.5">{gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal />)}</div>
-                      : <BuchungKarte key={gruppe[0].id} b={gruppe[0]} />
+                      ? <div key={gi} className="flex gap-0.5 mb-0.5">{gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal onClick={(e) => { e.stopPropagation(); setAusgewaehlt(tag); setBearbeitenId(b.id); setTimeout(() => document.getElementById('detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }} />)}</div>
+                      : <BuchungKarte key={gruppe[0].id} b={gruppe[0]} onClick={(e) => { e.stopPropagation(); setAusgewaehlt(tag); setBearbeitenId(gruppe[0].id); setTimeout(() => document.getElementById('detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }} />
                   ))}
                   {tagT.slice(0,1).map((e) => <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-200 border-purple-600 text-purple-950 font-semibold">{e.allDay ? '●' : e.start.slice(11,16)} {e.summary}</div>)}
                   {(mehrTermine > 0 || (tagT.length > 1)) && <div className="text-[10px] text-gray-500 font-semibold pl-1">+{mehrTermine + Math.max(0,tagT.length-1)} mehr</div>}
@@ -565,8 +565,8 @@ export default function KalenderSeite() {
                   {tagS.map((s) => <div key={s.id} className="text-[10px] bg-red-200 text-red-900 border border-red-500 rounded px-1 mb-0.5 truncate font-semibold">🔒 {fahrzeugById(s.fahrzeug)?.name ?? s.fahrzeug}</div>)}
                   {gruppen.map((gruppe, gi) => (
                     gruppe.length > 1
-                      ? <div key={gi} className="flex gap-0.5 mb-0.5">{gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal />)}</div>
-                      : <BuchungKarte key={gruppe[0].id} b={gruppe[0]} />
+                      ? <div key={gi} className="flex gap-0.5 mb-0.5">{gruppe.map((b) => <BuchungKarte key={b.id} b={b} schmal onClick={(e) => { e.stopPropagation(); setAusgewaehlt(tag); setBearbeitenId(b.id); setTimeout(() => document.getElementById('detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }} />)}</div>
+                      : <BuchungKarte key={gruppe[0].id} b={gruppe[0]} onClick={(e) => { e.stopPropagation(); setAusgewaehlt(tag); setBearbeitenId(gruppe[0].id); setTimeout(() => document.getElementById('detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }} />
                   ))}
                   {tagT.map((e) => <div key={e.uid} className="text-[10px] rounded px-1 mb-0.5 truncate border bg-purple-200 border-purple-600 text-purple-950 font-semibold">{e.allDay?'●':e.start.slice(11,16)} {e.summary}</div>)}
                   {tagB.length === 0 && tagS.length === 0 && tagT.length === 0 && (
@@ -615,7 +615,7 @@ export default function KalenderSeite() {
 
       {/* Detail-Panel (Monat/Woche) */}
       {ansicht !== 'tag' && ausgewaehlt && (
-        <div className="mt-4 bg-white rounded-xl shadow p-4">
+        <div id="detail-panel" className="mt-4 bg-white rounded-xl shadow p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="font-bold text-rikscha-green">{format(ausgewaehlt,'EEEE, d. MMMM yyyy',{locale:de})}</h3>
