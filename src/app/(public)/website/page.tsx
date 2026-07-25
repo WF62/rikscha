@@ -1,11 +1,37 @@
 import type { Metadata } from 'next';
+import { createServiceClient } from '@/lib/supabase';
 
 export const metadata: Metadata = {
   title: 'Mertener Rikschakutscher – Bornheim-Merten',
   description: 'Kostenlose Rikschafahrten durch Bornheim-Merten seit 2018. Drei Rikschas, elf Piloten, ein Herz fürs Ehrenamt.',
 };
 
-export default function WebsitePage() {
+const DEFAULTS: Record<string, string> = {
+  hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Piloten.',
+  gruppenfahrten_1:  'Was 2018 mit ersten Begegnungen und gemeinsamen Ideen begann, ist heute ein fester Bestandteil des sozialen Lebens in Bornheim-Merten.',
+  gruppenfahrten_2:  'Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Piloten, alle gemeinsam unterwegs. Ob Geburtstagskorso, Hochzeitsüberraschung oder Vereinsausflug — im Konvoi wird aus einer Fahrt ein echtes Event.',
+  lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
+  flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
+  piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
+  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
+  spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
+};
+
+async function ladeInhalte(): Promise<Record<string, string>> {
+  try {
+    const db = createServiceClient();
+    const { data } = await db.from('inhalte').select('schluessel, wert');
+    const map: Record<string, string> = { ...DEFAULTS };
+    (data ?? []).forEach((r: { schluessel: string; wert: string }) => { map[r.schluessel] = r.wert; });
+    return map;
+  } catch {
+    return { ...DEFAULTS };
+  }
+}
+
+export default async function WebsitePage() {
+  const t = await ladeInhalte();
   return (
     <>
       <style>{`
@@ -230,7 +256,7 @@ export default function WebsitePage() {
       <section className="hero">
         <div className="hero-eyebrow">Bornheim-Merten · Ehrenamt · seit 2018</div>
         <h1>Mertener<br/>Rikschakutscher</h1>
-        <p className="hero-sub">Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Piloten.</p>
+        <p className="hero-sub">{t.hero_sub}</p>
         <div className="vehicle-pills">
           <span className="pill pill-lotte">Flotte Lotte</span>
           <span className="pill pill-flitzer">Flinker Flitzer</span>
@@ -251,8 +277,8 @@ export default function WebsitePage() {
           <div className="group-inner">
             <div className="eyebrow">Das besondere Highlight</div>
             <h2>Drei Rikschas,<br/>ein gemeinsames Erlebnis</h2>
-            <p>Was 2018 mit ersten Begegnungen und gemeinsamen Ideen begann, ist heute ein fester Bestandteil des sozialen Lebens in Bornheim-Merten.</p>
-            <p>Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Piloten, alle gemeinsam unterwegs. Ob Geburtstagskorso, Hochzeitsüberraschung oder Vereinsausflug — im Konvoi wird aus einer Fahrt ein echtes Event.</p>
+            <p>{t.gruppenfahrten_1}</p>
+            <p>{t.gruppenfahrten_2}</p>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon">🎂</span>Geburtstage & Jubiläen</div>
               <div className="anlass"><span className="anlass-icon">💒</span>Hochzeiten & Polterabend</div>
@@ -283,7 +309,7 @@ export default function WebsitePage() {
                 <div className="fahrzeug-name">Flotte Lotte</div>
                 <div className="fahrzeug-typ">Rikscha</div>
                 <span className="fahrzeug-gaeste gaeste-lotte">👥 bis 2 Gäste</span>
-                <p>Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.</p>
+                <p>{t.lotte_text}</p>
               </div>
             </div>
             <div className="fahrzeug-row">
@@ -295,7 +321,7 @@ export default function WebsitePage() {
                 <div className="fahrzeug-name">Flinker Flitzer</div>
                 <div className="fahrzeug-typ">Liegetandem</div>
                 <span className="fahrzeug-gaeste gaeste-flitzer">👤 1 Gast</span>
-                <p>Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.</p>
+                <p>{t.flitzer_text}</p>
               </div>
             </div>
             <div className="fahrzeug-row">
@@ -307,7 +333,7 @@ export default function WebsitePage() {
                 <div className="fahrzeug-name">Jruuse Piter</div>
                 <div className="fahrzeug-typ">Paralleltandem</div>
                 <span className="fahrzeug-gaeste gaeste-piter">👤 1 Gast</span>
-                <p>Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.</p>
+                <p>{t.piter_text}</p>
               </div>
             </div>
           </div>
@@ -321,7 +347,7 @@ export default function WebsitePage() {
         <div className="container">
           <div className="eyebrow">Unser Team</div>
           <h2>Elf Piloten mit Herzblut</h2>
-          <p>Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden.</p>
+          <p>{t.team_text}</p>
           <div className="piloten-grid">
             {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
               const [initials, name] = p.split('|');
@@ -399,7 +425,7 @@ export default function WebsitePage() {
         <div className="container">
           <div className="eyebrow">Unterstützen</div>
           <h2>Unsere Fahrten sind kostenlos —<br/>aus Freude am Fahren.</h2>
-          <p>Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!</p>
+          <p>{t.spenden_text}</p>
           <div className="spenden-grid">
             <div className="spenden-card">
               <h3>💳 PayPal</h3>
@@ -474,7 +500,7 @@ export default function WebsitePage() {
         <div className="container">
           <div className="eyebrow">Schreib uns</div>
           <h2>Fahrt anfragen oder Fragen stellen</h2>
-          <p>Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: <strong style={{color:'#fff'}}>02227 9328383</strong></p>
+          <p>{t.kontakt_text}</p>
           <form className="kontakt-form" onSubmit={() => false}>
             <div className="form-row">
               <div className="form-group"><label>Name</label><input type="text" placeholder="Dein Name" required/></div>
