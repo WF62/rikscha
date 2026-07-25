@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { createServiceClient } from '@/lib/supabase';
+import HamburgerMenu from './HamburgerMenu';
 
 export const dynamic = 'force-dynamic';
 
@@ -214,26 +215,12 @@ export default async function WebsitePage() {
         .btn-upload:hover { opacity: 0.85; }
         .upload-status { font-size: 0.82rem; margin-top: 0.5rem; }
 
-        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 6px; }
-        .hamburger span { display: block; width: 24px; height: 2px; background: #fff; border-radius: 2px; transition: all 0.25s; }
-        .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-        .hamburger.open span:nth-child(2) { opacity: 0; }
-        .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-        .mobile-menu {
-          display: none; position: fixed; top: 52px; left: 0; right: 0; bottom: 0;
-          background: #2D6B1E; z-index: 99; overflow-y: auto;
-          flex-direction: column; padding: 1.5rem 2rem 3rem;
-        }
-        .mobile-menu.open { display: flex; }
-        .mobile-menu a { color: #fff; text-decoration: none; font-size: 1.1rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.12); display: block; }
-        .mobile-menu a:hover { color: var(--gold); }
-        .mobile-menu .mobile-btn { margin-top: 1rem; background: rgba(255,255,255,0.15); border-radius: 8px; border: none; padding: 0.85rem 1rem; font-weight: 700; font-size: 1.05rem; }
+        .hamburger-btn { display: none; }
+        @media (max-width: 768px) { .hamburger-btn { display: flex; } }
 
         @media (max-width: 768px) {
           nav { padding: 0 1rem; }
           .nav-links { display: none; }
-          .hamburger { display: flex; }
           section { padding: 3rem 1.25rem; }
           .hero { padding: 3.5rem 1.25rem 3.5rem; }
           .fahrzeug-row { grid-template-columns: 1fr; }
@@ -273,24 +260,8 @@ export default async function WebsitePage() {
           <li><a href="/kalender" className="nav-btn">📅 Termine</a></li>
           <li><a href="/gutschein" className="nav-btn">🎁 Gutschein</a></li>
         </ul>
-        <button className="hamburger" id="hamburger" aria-label="Menü öffnen">
-          <span/><span/><span/>
-        </button>
+        <HamburgerMenu />
       </nav>
-
-      {/* Mobile Menü */}
-      <div className="mobile-menu" id="mobile-menu">
-        <a href="#fahrten">Fahrten</a>
-        <a href="#fahrzeuge">Fahrzeuge</a>
-        <a href="#team">Team</a>
-        <a href="#touren">Touren</a>
-        <a href="#ausbildung">Mitmachen</a>
-        <a href="#spenden">Spenden</a>
-        <a href="/galerie">Galerie</a>
-        <a href="#kontakt">Kontakt</a>
-        <a href="/kalender" className="mobile-btn">📅 Termine</a>
-        <a href="/gutschein" className="mobile-btn">🎁 Gutschein</a>
-      </div>
 
       {/* Hero */}
       <section className="hero">
@@ -778,25 +749,6 @@ export default async function WebsitePage() {
         ladeGalerie();
 
         })(); // IIFE
-      `}}/>
-      <script dangerouslySetInnerHTML={{__html: `
-        (function() {
-          var hb = document.getElementById('hamburger');
-          var mm = document.getElementById('mobile-menu');
-          if (!hb || !mm) return;
-          hb.addEventListener('click', function() {
-            hb.classList.toggle('open');
-            mm.classList.toggle('open');
-            document.body.style.overflow = mm.classList.contains('open') ? 'hidden' : '';
-          });
-          mm.querySelectorAll('a').forEach(function(a) {
-            a.addEventListener('click', function() {
-              hb.classList.remove('open');
-              mm.classList.remove('open');
-              document.body.style.overflow = '';
-            });
-          });
-        })();
       `}}/>
     </>
   );
