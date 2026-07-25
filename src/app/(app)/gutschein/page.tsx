@@ -181,8 +181,12 @@ export default function GutscheinPage() {
                   <div className="field-value" contentEditable suppressContentEditableWarning data-placeholder="Wunschdatum oder nach Absprache" />
                 </div>
                 <div className="field-row">
-                  <span className="field-label">Von</span>
+                  <span className="field-label">Geschenk von</span>
                   <div className="field-value" contentEditable suppressContentEditableWarning data-placeholder="Dein Name" />
+                </div>
+                <div className="field-row" style={{alignItems:'flex-start',paddingTop:'4px'}}>
+                  <span className="field-label" style={{paddingTop:'2px'}}>Bemerkung</span>
+                  <div className="field-value" contentEditable suppressContentEditableWarning data-placeholder="Sonderwünsche, Hinweise …" style={{minHeight:'2.4em'}} />
                 </div>
               </div>
               <div className="voucher-footer">
