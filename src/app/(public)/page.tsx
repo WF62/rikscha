@@ -251,6 +251,8 @@ export default async function WebsitePage() {
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
+          <li><a href="/kalender">Termine</a></li>
+          <li><a href="/gutschein">Gutschein</a></li>
         </ul>
       </nav>
 
