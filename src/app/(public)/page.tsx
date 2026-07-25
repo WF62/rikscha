@@ -86,9 +86,10 @@ export default async function WebsitePage() {
 
         nav { position: sticky; top: 0; z-index: 100; background: #2D6B1E; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; gap: 1rem; }
         .nav-logo { font-family: var(--serif); font-size: 1rem; font-weight: bold; white-space: nowrap; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-        .nav-links { display: flex; gap: 1rem; list-style: none; flex-wrap: nowrap; overflow: hidden; }
-        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.02em; transition: color 0.15s; white-space: nowrap; }
+        .nav-links { display: flex; gap: 0.75rem; list-style: none; flex-wrap: nowrap; align-items: center; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.02em; transition: color 0.15s; white-space: nowrap; }
         .nav-links a:hover { color: #fff; }
+        .nav-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 0.25rem 0.7rem; font-weight: 600; }
 
         .hero { background: #3A7A28; color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
         .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: var(--ground); clip-path: ellipse(55% 100% at 50% 100%); }
@@ -251,8 +252,8 @@ export default async function WebsitePage() {
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
-          <li><a href="/kalender">Termine</a></li>
-          <li><a href="/gutschein">Gutschein</a></li>
+          <li><a href="/kalender" className="nav-btn">📅 Termine</a></li>
+          <li><a href="/gutschein" className="nav-btn">🎁 Gutschein</a></li>
         </ul>
       </nav>
 
