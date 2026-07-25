@@ -124,6 +124,10 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
   const [gaestInput, setGaestInput] = useState('');
   const [notiz, setNotiz] = useState(b.notiz ?? '');
   const [notizGeaendert, setNotizGeaendert] = useState(false);
+  const [datum, setDatum] = useState(b.datum);
+  const [startzeit, setStartzeit] = useState(b.startzeit.slice(0, 5));
+  const [endzeit, setEndzeit] = useState(b.endzeit.slice(0, 5));
+  const [zeitGeaendert, setZeitGeaendert] = useState(false);
 
   const patch = async (data: Record<string, unknown>) => {
     setSaving(true);
@@ -147,6 +151,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
   };
   const gastEntfernen = (i: number) => patch({ gaeste: (b.gaeste ?? []).filter((_, idx) => idx !== i) });
   const notizSpeichern = () => { patch({ notiz: notiz.trim() }); setNotizGeaendert(false); };
+  const zeitSpeichern = () => { patch({ datum, startzeit: startzeit + ':00', endzeit: endzeit + ':00' }); setZeitGeaendert(false); };
 
   const fz = fahrzeugById(b.fahrzeug);
   const maxGaeste = fz?.maxGaeste ?? 2;
@@ -156,6 +161,32 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
       <div className="flex justify-between items-center mb-3">
         <p className="text-sm font-bold text-indigo-700">✏️ Termin bearbeiten</p>
         <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-200">✕ Schließen</button>
+      </div>
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-600 mb-1.5">Datum &amp; Uhrzeit:</p>
+        <div className="flex flex-wrap gap-2 items-end">
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] text-gray-500">Datum</label>
+            <input type="date" value={datum} onChange={(e) => { setDatum(e.target.value); setZeitGeaendert(true); }}
+              className="text-sm border border-gray-400 rounded px-2 py-1.5 bg-white" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] text-gray-500">Von</label>
+            <input type="time" value={startzeit} onChange={(e) => { setStartzeit(e.target.value); setZeitGeaendert(true); }}
+              className="text-sm border border-gray-400 rounded px-2 py-1.5 bg-white" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] text-gray-500">Bis</label>
+            <input type="time" value={endzeit} onChange={(e) => { setEndzeit(e.target.value); setZeitGeaendert(true); }}
+              className="text-sm border border-gray-400 rounded px-2 py-1.5 bg-white" />
+          </div>
+          {zeitGeaendert && (
+            <button onClick={zeitSpeichern} disabled={saving}
+              className="text-sm px-3 py-1.5 rounded bg-indigo-600 text-white font-bold hover:bg-indigo-700 disabled:opacity-50">
+              Speichern
+            </button>
+          )}
+        </div>
       </div>
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-600 mb-1.5">Pilot:</p>
