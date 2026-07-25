@@ -27,13 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <p className="text-xs text-green-200">Fahrtenkalender</p>
               </div>
             </div>
-            <nav className="flex gap-4 text-sm items-center">
+            <nav className="flex gap-4 text-sm">
               <a href="/" className="hover:text-green-200 transition-colors">Kalender</a>
               <a href="/buchen" className="bg-white text-rikscha-green font-semibold px-3 py-1 rounded hover:bg-green-50 transition-colors">+ Fahrt buchen</a>
-              <a href="/admin" className="text-green-300 hover:text-white text-xs transition-colors">Admin</a>
-              <form action="/api/logout" method="POST">
-                <button type="submit" className="text-green-300 hover:text-white text-xs transition-colors">Abmelden</button>
-              </form>
             </nav>
           </div>
         </header>
