@@ -777,23 +777,26 @@ export default async function WebsitePage() {
         }
         ladeGalerie();
 
-        // Hamburger
-        var hb = document.getElementById('hamburger');
-        var mm = document.getElementById('mobile-menu');
-        hb.addEventListener('click', function() {
-          hb.classList.toggle('open');
-          mm.classList.toggle('open');
-          document.body.style.overflow = mm.classList.contains('open') ? 'hidden' : '';
-        });
-        mm.querySelectorAll('a').forEach(function(a) {
-          a.addEventListener('click', function() {
-            hb.classList.remove('open');
-            mm.classList.remove('open');
-            document.body.style.overflow = '';
-          });
-        });
-
         })(); // IIFE
+      `}}/>
+      <script dangerouslySetInnerHTML={{__html: `
+        (function() {
+          var hb = document.getElementById('hamburger');
+          var mm = document.getElementById('mobile-menu');
+          if (!hb || !mm) return;
+          hb.addEventListener('click', function() {
+            hb.classList.toggle('open');
+            mm.classList.toggle('open');
+            document.body.style.overflow = mm.classList.contains('open') ? 'hidden' : '';
+          });
+          mm.querySelectorAll('a').forEach(function(a) {
+            a.addEventListener('click', function() {
+              hb.classList.remove('open');
+              mm.classList.remove('open');
+              document.body.style.overflow = '';
+            });
+          });
+        })();
       `}}/>
     </>
   );
