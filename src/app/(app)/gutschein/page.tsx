@@ -1,7 +1,6 @@
-export const metadata = {
-  title: 'Rikscha-Gutschein – Mertener Rikschakutscher',
-  description: 'Gutschein für eine Rikschafahrt durch Merten – ausdrucken und verschenken!',
-};
+'use client';
+
+export const dynamic = 'force-dynamic';
 
 export default function GutscheinPage() {
   return (
