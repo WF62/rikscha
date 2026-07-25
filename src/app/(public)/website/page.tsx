@@ -163,6 +163,27 @@ export default function WebsitePage() {
         footer .piloten-link { color: rgba(255,255,255,0.35); font-size: 0.78rem; }
         footer .piloten-link:hover { color: rgba(255,255,255,0.6); }
 
+        /* Galerie */
+        .galerie-section { background: var(--ground); }
+        .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
+        .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+        .galerie-info { padding: 0.75rem 1rem; }
+        .galerie-beschreibung { font-size: 0.9rem; color: var(--ink); margin-bottom: 0.25rem; }
+        .galerie-meta { font-size: 0.75rem; color: var(--mid); }
+        .galerie-empty { text-align: center; color: var(--mid); padding: 3rem; font-size: 0.95rem; }
+
+        /* Upload-Bereich */
+        .upload-box { background: var(--green-soft); border: 2px dashed var(--green); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem; }
+        .upload-box h3 { color: var(--green); margin-bottom: 1rem; font-size: 1rem; }
+        .upload-field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+        .upload-field label { font-size: 0.78rem; font-weight: 600; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; }
+        .upload-field input, .upload-field textarea { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; font-size: 0.9rem; background: var(--surface); color: var(--ink); outline: none; width: 100%; font-family: var(--sans); }
+        .upload-field textarea { resize: vertical; min-height: 70px; }
+        .btn-upload { background: var(--green); color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+        .btn-upload:hover { opacity: 0.85; }
+        .upload-status { font-size: 0.82rem; margin-top: 0.5rem; }
+
         @media (max-width: 640px) {
           nav { padding: 0 1rem; }
           .nav-links { display: none; }
@@ -200,6 +221,7 @@ export default function WebsitePage() {
           <li><a href="#touren">Touren</a></li>
           <li><a href="#ausbildung">Mitmachen</a></li>
           <li><a href="#spenden">Spenden</a></li>
+          <li><a href="#galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
         </ul>
       </nav>
@@ -433,6 +455,20 @@ export default function WebsitePage() {
 
       <hr className="section-rule"/>
 
+      {/* Galerie */}
+      <section className="galerie-section" id="galerie">
+        <div className="container-wide">
+          <div className="eyebrow">Eindrücke</div>
+          <h2>Momente auf der Strecke</h2>
+          <p>Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
+          <div className="galerie-grid" id="galerie-grid">
+            <div className="galerie-empty" id="galerie-leer">Fotos werden geladen …</div>
+          </div>
+        </div>
+      </section>
+
+      <hr className="section-rule"/>
+
       {/* Kontakt */}
       <section className="kontakt-section" id="kontakt">
         <div className="container">
@@ -531,6 +567,21 @@ export default function WebsitePage() {
               <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Koordination & Anfragen</span>
             </a>
           </div>
+          {/* Foto hochladen */}
+          <div className="upload-box" id="upload-box" style={{marginBottom:'1.5rem'}}>
+            <h3>📷 Foto hochladen</h3>
+            <div className="upload-field">
+              <label>Foto auswählen</label>
+              <input type="file" id="upload-datei" accept="image/*"/>
+            </div>
+            <div className="upload-field">
+              <label>Bildbeschreibung</label>
+              <textarea id="upload-beschreibung" placeholder="Was ist auf dem Foto zu sehen? Wo wurde es gemacht?"></textarea>
+            </div>
+            <button className="btn-upload" id="upload-btn">Foto hochladen</button>
+            <div className="upload-status" id="upload-status"></div>
+          </div>
+
           <div style={{background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',padding:'1.25rem'}}>
             <div style={{fontWeight:700,marginBottom:'0.75rem',color:'#2D6B1E'}}>📋 Wichtige Hinweise</div>
             <ul style={{listStyle:'none',padding:0,display:'flex',flexDirection:'column',gap:'0.5rem',fontSize:'0.9rem',color:'#6B5C44'}}>
@@ -565,6 +616,7 @@ export default function WebsitePage() {
 
         document.getElementById('pw-abmelden').addEventListener('click', function() {
           sessionStorage.removeItem('pilot_name');
+          sessionStorage.removeItem('pilot_pw');
           document.getElementById('piloten-bereich').style.display = 'none';
           document.body.style.overflow = '';
         });
@@ -614,6 +666,7 @@ export default function WebsitePage() {
             });
             if (res.ok) {
               sessionStorage.setItem('pilot_name', pilot);
+              sessionStorage.setItem('pilot_pw', pw);
               document.getElementById('pw-overlay').style.display = 'none';
               document.getElementById('pw-input').value = '';
               showPilotenBereich(pilot);
@@ -638,7 +691,85 @@ export default function WebsitePage() {
 
         document.querySelector('.kontakt-form').addEventListener('submit', function(e) {
           e.preventDefault();
-          alert('Vielen Dank! Wir melden uns bald bei dir. \\u{1F6B2}');
+          alert('Vielen Dank! Wir melden uns bald bei dir. 🚲');
+        });
+
+        // Galerie laden
+        async function ladeGalerie() {
+          try {
+            var res = await fetch('/api/galerie');
+            var fotos = await res.json();
+            var grid = document.getElementById('galerie-grid');
+            var leer = document.getElementById('galerie-leer');
+            if (!fotos.length) {
+              leer.textContent = 'Noch keine Fotos vorhanden — Piloten können Fotos nach dem Einloggen hochladen.';
+              return;
+            }
+            leer.remove();
+            fotos.forEach(function(f) {
+              var card = document.createElement('div');
+              card.className = 'galerie-card';
+              var datum = new Date(f.created_at).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
+              card.innerHTML = '<img src="' + f.url + '" alt="' + (f.beschreibung || '') + '" loading="lazy">'
+                + '<div class="galerie-info">'
+                + (f.beschreibung ? '<div class="galerie-beschreibung">' + f.beschreibung + '</div>' : '')
+                + '<div class="galerie-meta">' + f.pilot + ' · ' + datum + '</div>'
+                + '</div>';
+              grid.appendChild(card);
+            });
+          } catch(e) {
+            document.getElementById('galerie-leer').textContent = 'Galerie konnte nicht geladen werden.';
+          }
+        }
+        ladeGalerie();
+
+        // Upload
+        document.getElementById('upload-btn').addEventListener('click', async function() {
+          var datei = document.getElementById('upload-datei').files[0];
+          var beschreibung = document.getElementById('upload-beschreibung').value.trim();
+          var status = document.getElementById('upload-status');
+          var btn = document.getElementById('upload-btn');
+          var pilotName = sessionStorage.getItem('pilot_name');
+          var pilotPw = sessionStorage.getItem('pilot_pw');
+
+          if (!pilotName || !pilotPw) {
+            status.style.color = '#c0392b';
+            status.textContent = 'Bitte zuerst einloggen.';
+            return;
+          }
+          if (!datei) {
+            status.style.color = '#c0392b';
+            status.textContent = 'Bitte ein Foto auswählen.';
+            return;
+          }
+
+          btn.textContent = 'Wird hochgeladen …'; btn.disabled = true;
+          status.textContent = '';
+
+          var form = new FormData();
+          form.append('pilot', pilotName);
+          form.append('password', pilotPw);
+          form.append('beschreibung', beschreibung);
+          form.append('datei', datei);
+
+          try {
+            var res = await fetch('/api/galerie', { method: 'POST', body: form });
+            if (res.ok) {
+              status.style.color = '#2D6B1E';
+              status.textContent = 'Foto erfolgreich hochgeladen!';
+              document.getElementById('upload-datei').value = '';
+              document.getElementById('upload-beschreibung').value = '';
+              ladeGalerie();
+            } else {
+              var j = await res.json();
+              status.style.color = '#c0392b';
+              status.textContent = j.error || 'Fehler beim Hochladen.';
+            }
+          } catch(e) {
+            status.style.color = '#c0392b';
+            status.textContent = 'Verbindungsfehler.';
+          }
+          btn.textContent = 'Foto hochladen'; btn.disabled = false;
         });
       `}}/>
     </>
