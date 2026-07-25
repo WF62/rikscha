@@ -80,6 +80,11 @@ export default function HamburgerMenu() {
             marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
           }}>🎁 Gutschein</a>
+          <a href="/flyer" onClick={close} style={{
+            color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
+            marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
+            padding: '0.85rem 1rem', display: 'block',
+          }}>🖨️ Flyer</a>
         </div>
       )}
     </>
