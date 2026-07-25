@@ -1,7 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 
-export async function GET() {
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS });
+}
+
+export async function GET(_req: NextRequest) {
   const db = createServiceClient();
   const { data, error } = await db
     .from('piloten_zugang')
@@ -9,6 +19,6 @@ export async function GET() {
     .eq('aktiv', true)
     .order('name');
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data ?? []);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+  return NextResponse.json(data ?? [], { headers: CORS });
 }
