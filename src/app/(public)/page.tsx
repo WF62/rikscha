@@ -97,7 +97,8 @@ export default async function WebsitePage() {
         .hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: normal; line-height: 1.15; text-wrap: balance; margin-bottom: 1.25rem; }
         .hero-sub { font-size: 1.1rem; color: rgba(255,255,255,0.8); max-width: 540px; margin: 0 auto 2rem; text-wrap: balance; }
         .vehicle-pills { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
-        .pill { padding: 0.35rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em; border: 2px solid currentColor; }
+        .pill { padding: 0.35rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em; border: 2px solid currentColor; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
+        .pill:hover { opacity: 0.75; }
         .pill-lotte { color: #86efac; border-color: #86efac; }
         .pill-flitzer { color: #93c5fd; border-color: #93c5fd; }
         .pill-piter { color: #fdba74; border-color: #fdba74; }
@@ -297,9 +298,9 @@ export default async function WebsitePage() {
         <h1>Mertener<br/>Rikschakutscher</h1>
         <p className="hero-sub">{t.hero_sub}</p>
         <div className="vehicle-pills">
-          <span className="pill pill-lotte">Flotte Lotte</span>
-          <span className="pill pill-flitzer">Flinker Flitzer</span>
-          <span className="pill pill-piter">Jruuse Piter</span>
+          <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
+          <a href="#fahrzeug-flitzer" className="pill pill-flitzer">Flinker Flitzer</a>
+          <a href="#fahrzeug-piter" className="pill pill-piter">Jruuse Piter</a>
         </div>
         <div className="hero-btns">
           <a href="#kontakt" className="btn btn-gold">Fahrt anfragen</a>
@@ -339,7 +340,7 @@ export default async function WebsitePage() {
           <h2>Drei Rikschas, drei Charaktere</h2>
           <p>Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.</p>
           <div className="fahrzeug-list">
-            <div className="fahrzeug-row">
+            <div className="fahrzeug-row" id="fahrzeug-lotte">
               <div className="fahrzeug-badge badge-lotte">
                 <svg viewBox="0 0 64 40" fill="none"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
                 Rikscha
@@ -351,7 +352,7 @@ export default async function WebsitePage() {
                 <p>{t.lotte_text}</p>
               </div>
             </div>
-            <div className="fahrzeug-row">
+            <div className="fahrzeug-row" id="fahrzeug-flitzer">
               <div className="fahrzeug-badge badge-flitzer">
                 <svg viewBox="0 0 64 40" fill="none"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
                 Liegetandem
@@ -363,7 +364,7 @@ export default async function WebsitePage() {
                 <p>{t.flitzer_text}</p>
               </div>
             </div>
-            <div className="fahrzeug-row">
+            <div className="fahrzeug-row" id="fahrzeug-piter">
               <div className="fahrzeug-badge badge-piter">
                 <svg viewBox="0 0 64 40" fill="none"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
                 Paralleltandem
@@ -645,6 +646,8 @@ export default async function WebsitePage() {
       </div>
 
       <script dangerouslySetInnerHTML={{__html: `
+        document.addEventListener('DOMContentLoaded', function() {
+
         document.getElementById('piloten-link').addEventListener('click', function(e) {
           e.preventDefault();
           var gespeichert = sessionStorage.getItem('pilot_name');
@@ -739,7 +742,8 @@ export default async function WebsitePage() {
           document.body.style.overflow = 'hidden';
         }
 
-        document.querySelector('.kontakt-form').addEventListener('submit', function(e) {
+        var kf = document.querySelector('.kontakt-form');
+        if (kf) kf.addEventListener('submit', function(e) {
           e.preventDefault();
           alert('Vielen Dank! Wir melden uns bald bei dir. 🚲');
         });
@@ -788,6 +792,8 @@ export default async function WebsitePage() {
             document.body.style.overflow = '';
           });
         });
+
+        }); // DOMContentLoaded
       `}}/>
     </>
   );
