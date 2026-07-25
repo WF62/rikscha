@@ -503,7 +503,7 @@ export default async function WebsitePage() {
           <div className="eyebrow">Schreib uns</div>
           <h2>Fahrt anfragen oder Fragen stellen</h2>
           <p>{t.kontakt_text}</p>
-          <form className="kontakt-form" onSubmit={() => false}>
+          <form className="kontakt-form">
             <div className="form-row">
               <div className="form-group"><label>Name</label><input type="text" placeholder="Dein Name" required/></div>
               <div className="form-group"><label>E-Mail</label><input type="email" placeholder="deine@email.de" required/></div>
