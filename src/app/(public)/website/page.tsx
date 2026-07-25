@@ -221,7 +221,7 @@ export default function WebsitePage() {
           <li><a href="#touren">Touren</a></li>
           <li><a href="#ausbildung">Mitmachen</a></li>
           <li><a href="#spenden">Spenden</a></li>
-          <li><a href="#galerie">Galerie</a></li>
+          <li><a href="/galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
         </ul>
       </nav>
@@ -556,10 +556,10 @@ export default function WebsitePage() {
               <span style={{fontWeight:700,fontSize:'0.95rem'}}>Fahrt buchen</span>
               <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Neuen Termin eintragen</span>
             </a>
-            <a href="/gutschein" target="_blank" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
-              <span style={{fontSize:'1.5rem'}}>🎫</span>
-              <span style={{fontWeight:700,fontSize:'0.95rem'}}>Gutschein drucken</span>
-              <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Geschenk-Gutschein erstellen</span>
+            <a href="/galerie" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
+              <span style={{fontSize:'1.5rem'}}>📷</span>
+              <span style={{fontWeight:700,fontSize:'0.95rem'}}>Foto hochladen</span>
+              <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Bild zur Galerie hinzufügen</span>
             </a>
             <a href="tel:022279328383" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
               <span style={{fontSize:'1.5rem'}}>📞</span>
@@ -567,21 +567,6 @@ export default function WebsitePage() {
               <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Koordination & Anfragen</span>
             </a>
           </div>
-          {/* Foto hochladen */}
-          <div className="upload-box" id="upload-box" style={{marginBottom:'1.5rem'}}>
-            <h3>📷 Foto hochladen</h3>
-            <div className="upload-field">
-              <label>Foto auswählen</label>
-              <input type="file" id="upload-datei" accept="image/*"/>
-            </div>
-            <div className="upload-field">
-              <label>Bildbeschreibung</label>
-              <textarea id="upload-beschreibung" placeholder="Was ist auf dem Foto zu sehen? Wo wurde es gemacht?"></textarea>
-            </div>
-            <button className="btn-upload" id="upload-btn">Foto hochladen</button>
-            <div className="upload-status" id="upload-status"></div>
-          </div>
-
           <div style={{background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',padding:'1.25rem'}}>
             <div style={{fontWeight:700,marginBottom:'0.75rem',color:'#2D6B1E'}}>📋 Wichtige Hinweise</div>
             <ul style={{listStyle:'none',padding:0,display:'flex',flexDirection:'column',gap:'0.5rem',fontSize:'0.9rem',color:'#6B5C44'}}>
@@ -702,11 +687,11 @@ export default function WebsitePage() {
             var grid = document.getElementById('galerie-grid');
             var leer = document.getElementById('galerie-leer');
             if (!fotos.length) {
-              leer.textContent = 'Noch keine Fotos vorhanden — Piloten können Fotos nach dem Einloggen hochladen.';
+              leer.innerHTML = 'Noch keine Fotos — <a href="/galerie" style="color:var(--gold)">zur Galerie</a> und erstes Foto hochladen!';
               return;
             }
             leer.remove();
-            fotos.forEach(function(f) {
+            fotos.slice(0, 6).forEach(function(f) {
               var card = document.createElement('div');
               card.className = 'galerie-card';
               var datum = new Date(f.created_at).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
@@ -722,55 +707,6 @@ export default function WebsitePage() {
           }
         }
         ladeGalerie();
-
-        // Upload
-        document.getElementById('upload-btn').addEventListener('click', async function() {
-          var datei = document.getElementById('upload-datei').files[0];
-          var beschreibung = document.getElementById('upload-beschreibung').value.trim();
-          var status = document.getElementById('upload-status');
-          var btn = document.getElementById('upload-btn');
-          var pilotName = sessionStorage.getItem('pilot_name');
-          var pilotPw = sessionStorage.getItem('pilot_pw');
-
-          if (!pilotName || !pilotPw) {
-            status.style.color = '#c0392b';
-            status.textContent = 'Bitte zuerst einloggen.';
-            return;
-          }
-          if (!datei) {
-            status.style.color = '#c0392b';
-            status.textContent = 'Bitte ein Foto auswählen.';
-            return;
-          }
-
-          btn.textContent = 'Wird hochgeladen …'; btn.disabled = true;
-          status.textContent = '';
-
-          var form = new FormData();
-          form.append('pilot', pilotName);
-          form.append('password', pilotPw);
-          form.append('beschreibung', beschreibung);
-          form.append('datei', datei);
-
-          try {
-            var res = await fetch('/api/galerie', { method: 'POST', body: form });
-            if (res.ok) {
-              status.style.color = '#2D6B1E';
-              status.textContent = 'Foto erfolgreich hochgeladen!';
-              document.getElementById('upload-datei').value = '';
-              document.getElementById('upload-beschreibung').value = '';
-              ladeGalerie();
-            } else {
-              var j = await res.json();
-              status.style.color = '#c0392b';
-              status.textContent = j.error || 'Fehler beim Hochladen.';
-            }
-          } catch(e) {
-            status.style.color = '#c0392b';
-            status.textContent = 'Verbindungsfehler.';
-          }
-          btn.textContent = 'Foto hochladen'; btn.disabled = false;
-        });
       `}}/>
     </>
   );
