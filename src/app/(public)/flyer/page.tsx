@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import PrintButton from './PrintButton';
 
@@ -5,7 +6,36 @@ export const metadata: Metadata = {
   title: 'Flyer – Mertener Rikschakutscher',
 };
 
-export default function FlyerPage() {
+const DEFAULT: Record<string, string> = {
+  flyer_fahrten_text:  'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
+  flyer_lotte_text:    'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung. Ideal für Seniorengruppen und Familienausflüge.',
+  flyer_flitzer_text:  'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.',
+  flyer_piter_text:    'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
+  flyer_foto_fahrt1:   '',
+  flyer_foto_fahrt2:   '',
+  flyer_foto_lotte:    '',
+  flyer_foto_flitzer:  '',
+  flyer_foto_piter:    '',
+};
+
+async function ladeFlyerInhalte(): Promise<Record<string, string>> {
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+    const res = await fetch(`${base}/api/inhalte`, { cache: 'no-store' });
+    if (!res.ok) return DEFAULT;
+    const alle: { schluessel: string; wert: string }[] = await res.json();
+    const result = { ...DEFAULT };
+    for (const { schluessel, wert } of alle) {
+      if (schluessel in result) result[schluessel] = wert;
+    }
+    return result;
+  } catch {
+    return DEFAULT;
+  }
+}
+
+export default async function FlyerPage() {
+  const c = await ladeFlyerInhalte();
   return (
     <>
       <style>{`
@@ -357,7 +387,7 @@ export default function FlyerPage() {
             <div className="v2-body">
               <div className="eyebrow">Kostenlos &amp; Herzlich</div>
               <h3>Fahrtwind für alle</h3>
-              <p>Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.</p>
+              <p>{c.flyer_fahrten_text}</p>
               <div className="pill-row">
                 <span className="chip chip-green">Kostenlos</span>
                 <span className="chip chip-green">Ehrenamtlich</span>
@@ -366,14 +396,14 @@ export default function FlyerPage() {
               </div>
             </div>
             <div className="v2-photos">
-              <div className="photo-ph ph-dark" style={{flex:1,width:106}}>
-                <div className="ph-icon">📷</div>
-                <div className="ph-label">Foto Fahrt 1</div>
-              </div>
-              <div className="photo-ph ph-dark" style={{flex:1,width:106}}>
-                <div className="ph-icon">📷</div>
-                <div className="ph-label">Foto Fahrt 2</div>
-              </div>
+              {c.flyer_foto_fahrt1
+                ? <img src={c.flyer_foto_fahrt1} alt="Fahrt 1" style={{flex:1,width:106,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{flex:1,width:106}}><div className="ph-icon">📷</div><div className="ph-label">Foto Fahrt 1</div></div>
+              }
+              {c.flyer_foto_fahrt2
+                ? <img src={c.flyer_foto_fahrt2} alt="Fahrt 2" style={{flex:1,width:106,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{flex:1,width:106}}><div className="ph-icon">📷</div><div className="ph-label">Foto Fahrt 2</div></div>
+              }
             </div>
           </div>
 
@@ -438,14 +468,14 @@ export default function FlyerPage() {
             <div className="fz-panel-body">
               <div className="fz-label">Rikscha · max. 2 Gäste</div>
               <h3>Flotte Lotte</h3>
-              <p>Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung. Ideal für Seniorengruppen und Familienausflüge.</p>
+              <p>{c.flyer_lotte_text}</p>
               <span className="fz-badge">👥 bis 2 Gäste</span>
             </div>
             <div className="fz-panel-photo">
-              <div className="photo-ph ph-dark" style={{width:128,height:230}}>
-                <div className="ph-icon">📷</div>
-                <div className="ph-label">Foto<br/>Flotte Lotte</div>
-              </div>
+              {c.flyer_foto_lotte
+                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte" style={{width:128,height:230,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{width:128,height:230}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flotte Lotte</div></div>
+              }
             </div>
           </div>
 
@@ -459,14 +489,14 @@ export default function FlyerPage() {
             <div className="fz-panel-body">
               <div className="fz-label">Liegetandem · 1 Gast</div>
               <h3>Flinker Flitzer</h3>
-              <p>Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.</p>
+              <p>{c.flyer_flitzer_text}</p>
               <span className="fz-badge">👤 1 Gast</span>
             </div>
             <div className="fz-panel-photo">
-              <div className="photo-ph ph-dark" style={{width:128,height:178}}>
-                <div className="ph-icon">📷</div>
-                <div className="ph-label">Foto<br/>Flinker Flitzer</div>
-              </div>
+              {c.flyer_foto_flitzer
+                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer" style={{width:128,height:178,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{width:128,height:178}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flinker Flitzer</div></div>
+              }
             </div>
           </div>
 
@@ -480,14 +510,14 @@ export default function FlyerPage() {
             <div className="fz-panel-body">
               <div className="fz-label">Paralleltandem · 1 Gast</div>
               <h3>Jruuse Piter</h3>
-              <p>Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.</p>
+              <p>{c.flyer_piter_text}</p>
               <span className="fz-badge">👤 1 Gast</span>
             </div>
             <div className="fz-panel-photo">
-              <div className="photo-ph ph-dark" style={{width:128,height:125}}>
-                <div className="ph-icon">📷</div>
-                <div className="ph-label">Foto<br/>Jruuse Piter</div>
-              </div>
+              {c.flyer_foto_piter
+                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter" style={{width:128,height:125,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{width:128,height:125}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Jruuse Piter</div></div>
+              }
             </div>
           </div>
 
