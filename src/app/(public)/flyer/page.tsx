@@ -283,6 +283,10 @@ export default async function FlyerPage() {
           .p3 { height: 43mm; }
           .p4 { height: 30mm; }
           .back-sheet { page-break-before: always; break-before: page; transform: none; }
+          /* Rückseiten-Panels für beidseitigen Druck um 180° drehen */
+          .back-sheet .panel { transform: rotate(180deg); transform-origin: center center; }
+          /* r3: Titelleiste unten statt oben */
+          .back-sheet .r3 .panel-title-top { top: auto; bottom: 0; }
           :root { --tab: 6mm; }
           /* Gutschein-Panel kompakter im Druck */
           .v1 { gap: 0.3rem; padding-top: calc(var(--tab) + 0.4rem); padding-bottom: 0.5rem; }
@@ -300,6 +304,7 @@ export default async function FlyerPage() {
       {/* Druckleiste */}
       <nav className="print-bar">
         <a href="/">← Zurück zur Website</a>
+        <span style={{fontSize:'0.75rem',color:'#888',marginLeft:'1.5rem'}}>💡 Im Druckdialog: Kopf-/Fußzeilen deaktivieren</span>
         <a href="/flyer/bearbeiten" style={{marginLeft:'auto',marginRight:'1rem'}}>✏️ Fotos &amp; Texte bearbeiten</a>
         <PrintButton />
       </nav>
