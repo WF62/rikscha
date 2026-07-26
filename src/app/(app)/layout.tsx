@@ -1,4 +1,5 @@
 import FlyerNavLink from './FlyerNavLink';
+import Banner from './Banner';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,6 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
+      <Banner />
       <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
       <footer className="text-center text-xs text-gray-400 py-6">
         Rikscha-Team &bull; <a href="/api/ical" className="underline">iCal Feed</a>
