@@ -19,6 +19,7 @@ const DEFAULTS: Record<string, string> = {
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
   piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  galerie_homepage:  '',
   foto_lotte:        '',
   foto_flitzer:      '',
   foto_piter:        '',
@@ -38,11 +39,16 @@ const DEFAULTS: Record<string, string> = {
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
 };
 
-async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
+async function ladeGalerie(auswahlJson: string): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
   try {
+    let ids: string[] = [];
+    try { ids = JSON.parse(auswahlJson); } catch { ids = []; }
+    if (!Array.isArray(ids) || ids.length === 0) return [];
     const db = createServiceClient();
-    const { data } = await db.from('galerie_fotos').select('id,url,beschreibung,pilot,created_at').order('created_at', { ascending: false }).limit(8);
-    return data ?? [];
+    const { data } = await db.from('galerie').select('id,url,beschreibung,pilot,created_at').in('id', ids);
+    // Reihenfolge der Auswahl beibehalten
+    const map = new Map((data ?? []).map(r => [r.id, r]));
+    return ids.map(id => map.get(id)).filter(Boolean) as typeof data;
   } catch {
     return [];
   }
@@ -61,7 +67,8 @@ async function ladeInhalte(): Promise<Record<string, string>> {
 }
 
 export default async function WebsitePage() {
-  const [t, galerie] = await Promise.all([ladeInhalte(), ladeGalerie()]);
+  const t = await ladeInhalte();
+  const galerie = await ladeGalerie(t.galerie_homepage ?? '');
   return (
     <>
       <style>{`
