@@ -242,7 +242,8 @@ export default async function FlyerPage() {
         .fz-panel-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
         .fz-panel-body p { font-size: 0.71rem; line-height: 1.5; }
         .fz-panel-body .fz-badge { align-self: flex-start; margin-top: 0.35rem; font-size: 0.63rem; font-weight: 700; color: #fff; border-radius: 999px; padding: 0.1rem 0.52rem; }
-        .fz-panel-photo { display: flex; flex-direction: column; padding: calc(var(--tab) + 0.4rem) 0.6rem 0.4rem 0; flex: 1; align-self: stretch; box-sizing: border-box; }
+        .fz-panel-photo { display: flex; flex-direction: column; padding: calc(var(--tab) + 0.4rem) 0 0.4rem 0; flex: 1; align-self: stretch; box-sizing: border-box; }
+        .fz-panel-photo img, .fz-panel-photo .photo-ph { margin-right: 0.6rem; }
         .fz-panel-photo img { flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 6px; display: block; }
         .fz-panel-photo .photo-ph { flex: 1; min-height: 0; width: 100%; }
         .r1 { background: var(--lotte-bg); } .r1 .fz-accent { background: var(--lotte); } .r1 .fz-label { color: #92400e; } .r1 h3 { color: #78350f; } .r1 p { color: #92400e; } .r1 .fz-badge { background: var(--lotte); }
