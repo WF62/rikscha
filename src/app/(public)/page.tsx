@@ -156,7 +156,7 @@ export default async function WebsitePage() {
         p { color: var(--mid); margin-bottom: 1rem; }
         p:last-child { margin-bottom: 0; }
 
-        .group-section { background: #14380A; color: #fff; position: relative; overflow: hidden; }
+        .group-section { background: #1E5210; color: #fff; position: relative; overflow: hidden; }
         .group-section p { color: rgba(255,255,255,0.92); }
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
