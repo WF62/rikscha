@@ -96,6 +96,7 @@ export default async function WebsitePage() {
         .nav-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 0.25rem 0.7rem; font-weight: 600; }
 
         .hero { background: linear-gradient(160deg, #3A8A26 0%, #2D6B1E 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
+        .hero .container { text-align: center; }
         .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: #F5F0E7; clip-path: ellipse(55% 100% at 50% 100%); }
         .hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
         .hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: normal; line-height: 1.15; text-wrap: balance; margin-bottom: 1.25rem; }
@@ -129,7 +130,7 @@ export default async function WebsitePage() {
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
         .big-3 { position: absolute; right: -0.1em; top: 50%; transform: translateY(-50%); font-family: var(--serif); font-size: clamp(12rem, 22vw, 22rem); font-weight: bold; color: rgba(255,255,255,0.06); line-height: 1; pointer-events: none; user-select: none; }
-        .group-inner { max-width: 600px; position: relative; z-index: 1; }
+        .group-inner { position: relative; z-index: 1; }
         .anlaesse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1.75rem; }
         .anlass { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 0.95rem; color: rgba(255,255,255,0.95); }
         .anlass-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
@@ -269,17 +270,19 @@ export default async function WebsitePage() {
 
       {/* Hero */}
       <section className="hero">
-        <div className="hero-eyebrow">Bornheim-Merten · Ehrenamt · seit 2018</div>
-        <h1>Mertener<br/>Rikschakutscher</h1>
-        <p className="hero-sub">{t.hero_sub}</p>
-        <div className="vehicle-pills">
-          <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
-          <a href="#fahrzeug-flitzer" className="pill pill-flitzer">Flinker Flitzer</a>
-          <a href="#fahrzeug-piter" className="pill pill-piter">Jruuse Piter</a>
-        </div>
-        <div className="hero-btns">
-          <a href="#kontakt" className="btn btn-gold">Fahrt anfragen</a>
-          <a href="#fahrten" className="btn btn-outline">Mehr erfahren</a>
+        <div className="container">
+          <div className="hero-eyebrow">Bornheim-Merten · Ehrenamt · seit 2018</div>
+          <h1>Mertener<br/>Rikschakutscher</h1>
+          <p className="hero-sub">{t.hero_sub}</p>
+          <div className="vehicle-pills">
+            <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
+            <a href="#fahrzeug-flitzer" className="pill pill-flitzer">Flinker Flitzer</a>
+            <a href="#fahrzeug-piter" className="pill pill-piter">Jruuse Piter</a>
+          </div>
+          <div className="hero-btns">
+            <a href="#kontakt" className="btn btn-gold">Fahrt anfragen</a>
+            <a href="#fahrten" className="btn btn-outline">Mehr erfahren</a>
+          </div>
         </div>
       </section>
 
