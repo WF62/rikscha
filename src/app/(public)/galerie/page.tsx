@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string };
 type UploadDatei = { datei: File; vorschau: string; beschreibung: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
-const KATEGORIEN = ['Ausfahrten', 'Gruppenfahrten', 'Veranstaltungen', 'Training', 'Sonstiges'];
 
 export default function GaleriePage() {
   const [fotos, setFotos]         = useState<Foto[]>([]);
@@ -12,8 +11,7 @@ export default function GaleriePage() {
   const [pilot]                    = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
   const [password]                 = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
   const [dateien, setDateien]     = useState<UploadDatei[]>([]);
-  const [kategorie, setKategorie] = useState(KATEGORIEN[0]);
-  const [neueKat, setNeueKat]     = useState('');
+  const [kategorie, setKategorie] = useState('Ausfahrten');
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver]   = useState(false);
   const [filterPilot, setFilterPilot] = useState('');
@@ -53,7 +51,7 @@ export default function GaleriePage() {
     setDateien(d => d.map((x, j) => j === i ? { ...x, beschreibung: text } : x));
   }
 
-  const aktiveKat = kategorie === '__neu__' ? neueKat.trim() || 'Sonstiges' : kategorie;
+  const aktiveKat = kategorie.trim() || 'Sonstiges';
 
   async function hochladen() {
     const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
@@ -245,18 +243,12 @@ export default function GaleriePage() {
               {/* Kategorie-Auswahl */}
               <div className="kat-row">
                 <label>Kategorie / Ordner:</label>
-                <select value={kategorie} onChange={e => setKategorie(e.target.value)}>
-                  {KATEGORIEN.map(k => <option key={k} value={k}>{k}</option>)}
-                  <option value="__neu__">+ Neue Kategorie …</option>
-                </select>
-                {kategorie === '__neu__' && (
-                  <input
-                    value={neueKat}
-                    onChange={e => setNeueKat(e.target.value)}
-                    placeholder="Name der neuen Kategorie"
-                    style={{minWidth: 180}}
-                  />
-                )}
+                <input
+                  value={kategorie}
+                  onChange={e => setKategorie(e.target.value)}
+                  placeholder="z. B. Ausfahrten, Geburtstag, Sommer 2025"
+                  style={{minWidth: 220}}
+                />
               </div>
 
               {/* Drop-Zone */}
