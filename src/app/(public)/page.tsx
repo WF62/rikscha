@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import HamburgerMenu from './HamburgerMenu';
 import PilotenFooterLink from './PilotenFooterLink';
 import PilotenModal from './PilotenModal';
+import Banner from '../(app)/Banner';
 
 export const dynamic = 'force-dynamic';
 
@@ -237,7 +238,7 @@ export default async function WebsitePage() {
       `}</style>
 
       {/* Navigation */}
-      <nav>
+      <nav aria-label="Hauptnavigation">
         <a href="/" className="nav-logo">
           <svg width="28" height="28" viewBox="0 0 100 100" style={{verticalAlign:'middle',marginRight:'0.5rem'}} fill="none">
             <circle cx="50" cy="50" r="48" fill="#3A7A28"/>
@@ -264,6 +265,7 @@ export default async function WebsitePage() {
         </ul>
         <HamburgerMenu />
       </nav>
+      <Banner />
 
       {/* Hero */}
       <section className="hero">

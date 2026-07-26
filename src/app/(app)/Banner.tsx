@@ -44,8 +44,8 @@ export default function Banner() {
     <>
       <style>{`
         @keyframes rikscha-laufband {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0%   { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
         }
         .rikscha-banner-track {
           display: flex;
