@@ -1,10 +1,16 @@
 export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import PrintButton from './PrintButton';
+import { createServiceClient } from '@/lib/supabase';
 
 export const metadata: Metadata = {
   title: 'Flyer – Mertener Rikschakutscher',
 };
+
+const SCHLUSSEL = [
+  'flyer_fahrten_text', 'flyer_lotte_text', 'flyer_flitzer_text', 'flyer_piter_text',
+  'flyer_foto_fahrt1', 'flyer_foto_fahrt2', 'flyer_foto_lotte', 'flyer_foto_flitzer', 'flyer_foto_piter',
+];
 
 const DEFAULT: Record<string, string> = {
   flyer_fahrten_text:  'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
@@ -20,12 +26,13 @@ const DEFAULT: Record<string, string> = {
 
 async function ladeFlyerInhalte(): Promise<Record<string, string>> {
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
-    const res = await fetch(`${base}/api/inhalte`, { cache: 'no-store' });
-    if (!res.ok) return DEFAULT;
-    const alle: { schluessel: string; wert: string }[] = await res.json();
+    const db = createServiceClient();
+    const { data } = await db
+      .from('inhalte')
+      .select('schluessel, wert')
+      .in('schluessel', SCHLUSSEL);
     const result = { ...DEFAULT };
-    for (const { schluessel, wert } of alle) {
+    for (const { schluessel, wert } of data ?? []) {
       if (schluessel in result) result[schluessel] = wert;
     }
     return result;

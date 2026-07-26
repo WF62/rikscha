@@ -81,14 +81,38 @@ export default function FlyerBearbeitenPage() {
     setLaden(false);
   }
 
+  async function bildKomprimieren(datei: File, maxPx = 1400, qualitaet = 0.85): Promise<File> {
+    return new Promise(resolve => {
+      const img = new Image();
+      const url = URL.createObjectURL(datei);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        if (width > maxPx || height > maxPx) {
+          if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+          else { width = Math.round(width * maxPx / height); height = maxPx; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          resolve(blob ? new File([blob], datei.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }) : datei);
+        }, 'image/jpeg', qualitaet);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(datei); };
+      img.src = url;
+    });
+  }
+
   async function fotoHochladen(schluessel: string, datei: File) {
     setUploadStatus(s => ({ ...s, [schluessel]: 'uploading' }));
-    const form = new FormData();
-    form.append('pilot', pilot);
-    form.append('password', password);
-    form.append('schluessel', schluessel);
-    form.append('datei', datei);
     try {
+      const komprimiert = await bildKomprimieren(datei);
+      const form = new FormData();
+      form.append('pilot', pilot);
+      form.append('password', password);
+      form.append('schluessel', schluessel);
+      form.append('datei', komprimiert);
       const res = await fetch('/api/flyer-foto', { method: 'POST', body: form });
       if (res.ok) {
         const { url } = await res.json();
@@ -100,10 +124,13 @@ export default function FlyerBearbeitenPage() {
         setUploadStatus(s => ({ ...s, [schluessel]: 'ok' }));
         setTimeout(() => setUploadStatus(s => ({ ...s, [schluessel]: '' })), 4000);
       } else {
+        const j = await res.json().catch(() => ({}));
         setUploadStatus(s => ({ ...s, [schluessel]: 'err' }));
+        console.error('Upload-Fehler:', j.error);
       }
-    } catch {
+    } catch (e) {
       setUploadStatus(s => ({ ...s, [schluessel]: 'err' }));
+      console.error('Upload-Fehler:', e);
     }
   }
 
