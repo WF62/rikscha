@@ -21,5 +21,13 @@ export async function GET(_req: NextRequest) {
     .order('name');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
-  return NextResponse.json(data ?? [], { headers: CORS });
+
+  const liste = data ?? [];
+  const adminName = process.env.ADMIN_NAME || 'Admin';
+  const hatAdmin = liste.some((p: { name: string }) => p.name === adminName);
+  if (!hatAdmin && process.env.ADMIN_PASSWORD) {
+    liste.unshift({ id: 'admin', name: adminName, rolle: 'admin' });
+  }
+
+  return NextResponse.json(liste, { headers: CORS });
 }
