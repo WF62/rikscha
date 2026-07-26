@@ -539,7 +539,7 @@ export default async function WebsitePage() {
         <p style={{marginTop:'0.25rem'}}>📞 <a href="tel:022279328383">02227 9328383</a></p>
         <p style={{marginTop:'1rem',borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:'1rem'}}>
           <a href="/impressum">Impressum</a> &nbsp;·&nbsp; <a href="/datenschutz">Datenschutz</a>
-          &nbsp;·&nbsp; <a href="#" className="piloten-link" id="piloten-link">Piloten</a>
+          &nbsp;·&nbsp; <a href="javascript:void(0)" className="piloten-link" id="piloten-link">Piloten</a>
         </p>
         <p style={{marginTop:'0.5rem',fontSize:'0.75rem',color:'rgba(255,255,255,0.3)'}}>© 2025</p>
       </footer>
@@ -593,10 +593,10 @@ export default async function WebsitePage() {
               <span style={{fontWeight:700,fontSize:'0.95rem'}}>Fahrt buchen</span>
               <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Neuen Termin eintragen</span>
             </a>
-            <a href="/galerie" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
-              <span style={{fontSize:'1.5rem'}}>📷</span>
-              <span style={{fontWeight:700,fontSize:'0.95rem'}}>Foto hochladen</span>
-              <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Bild zur Galerie hinzufügen</span>
+            <a href="/dokumente" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
+              <span style={{fontSize:'1.5rem'}}>📂</span>
+              <span style={{fontWeight:700,fontSize:'0.95rem'}}>Ablage</span>
+              <span style={{fontSize:'0.78rem',color:'#6B5C44'}}>Dokumente & Fotos</span>
             </a>
             <a href="tel:022279328383" style={{display:'flex',flexDirection:'column',gap:'0.4rem',padding:'1.25rem',background:'#FDFAF5',borderRadius:'12px',border:'1.5px solid #D6CCB8',textDecoration:'none',color:'#1C1208'}}>
               <span style={{fontSize:'1.5rem'}}>📞</span>
