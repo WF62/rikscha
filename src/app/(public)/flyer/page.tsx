@@ -262,15 +262,17 @@ export default async function FlyerPage() {
           html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; height: auto !important; }
           .print-bar, .flyer-wrap > h1, .flyer-wrap > p.page-hint, .side-label, .preview-wrap { display: none !important; }
           .flyer-wrap { padding: 0 !important; }
-          .sheet { width: 210mm; height: 296mm; box-shadow: none; margin: 0; overflow: hidden; }
-          .panel { width: 210mm; overflow: hidden; }
+          /* zoom 1.42: Inhalt bei 148mm (= 560px) → skaliert auf 210mm (A4-Breite).
+             Alle Schriften, Abstände und Rahmen wachsen gleichmäßig mit. */
+          .sheet { width: 148mm; height: 208mm; box-shadow: none; margin: 0; overflow: hidden; zoom: 1.42; }
+          .panel { width: 148mm; overflow: hidden; }
           .panel::before { display: none; }
-          .p1 { height: 89mm; }
-          .p2 { height: 79mm; }
-          .p3 { height: 69mm; }
-          .p4 { height: 59mm; }
+          .p1 { height: 63mm; }
+          .p2 { height: 56mm; }
+          .p3 { height: 49mm; }
+          .p4 { height: 40mm; }
           .back-sheet { page-break-before: always; break-before: page; transform: none; }
-          :root { --tab: 10mm; }
+          :root { --tab: 7mm; }
         }
       `}</style>
 
