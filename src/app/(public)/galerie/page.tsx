@@ -13,6 +13,7 @@ export default function GaleriePage() {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const ordnerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { ladeGalerie(); }, []);
 
@@ -196,15 +197,30 @@ export default function GaleriePage() {
                 <div className="drop-zone-icon">🖼️</div>
                 <div className="drop-zone-text">Fotos hier hineinziehen oder klicken zum Auswählen</div>
                 <div className="drop-zone-hint">Mehrere Dateien auf einmal möglich · JPG, PNG, HEIC, WebP</div>
-                <button className="btn-waehlen" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}>
-                  Dateien auswählen
-                </button>
+                <div style={{display:'flex',gap:'0.6rem',justifyContent:'center',flexWrap:'wrap',marginTop:'0.75rem'}}>
+                  <button className="btn-waehlen" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}>
+                    Dateien auswählen
+                  </button>
+                  <button className="btn-waehlen" style={{background:'var(--mid)'}} onClick={e => { e.stopPropagation(); ordnerRef.current?.click(); }}>
+                    📁 Ordner auswählen
+                  </button>
+                </div>
               </div>
               <input
                 ref={inputRef}
                 type="file"
                 accept="image/*"
                 multiple
+                style={{display:'none'}}
+                onChange={e => dateiHinzufuegen(e.target.files)}
+              />
+              <input
+                ref={ordnerRef}
+                type="file"
+                accept="image/*"
+                multiple
+                // @ts-expect-error webkitdirectory is non-standard but widely supported
+                webkitdirectory=""
                 style={{display:'none'}}
                 onChange={e => dateiHinzufuegen(e.target.files)}
               />
