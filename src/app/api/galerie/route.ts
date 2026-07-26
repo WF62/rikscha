@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { checkPilot } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -36,16 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400, headers: CORS });
   }
 
-  // Pilot-Authentifizierung
-  const { data: pilotData } = await db
-    .from('piloten_zugang')
-    .select('id')
-    .eq('name', pilot)
-    .eq('passwort', password)
-    .eq('aktiv', true)
-    .maybeSingle();
-
-  if (!pilotData) {
+  if (!await checkPilot(pilot, password)) {
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
   }
 

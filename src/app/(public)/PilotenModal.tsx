@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 
-type Ansicht = 'login' | 'pw-aendern' | 'bereich';
+type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner';
 
 export default function PilotenModal() {
   const [offen, setOffen] = useState(false);
@@ -15,6 +15,8 @@ export default function PilotenModal() {
   const [laden, setLaden] = useState(false);
   const [pilotName, setPilotName] = useState('');
   const [pilotPw, setPilotPw] = useState('');
+  const [bannerTexte, setBannerTexte] = useState<string[]>(['']);
+  const [bannerSaving, setBannerSaving] = useState(false);
   const pwInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -110,6 +112,27 @@ export default function PilotenModal() {
     setLaden(false);
   }
 
+  async function ladeBanner() {
+    try {
+      const res = await fetch('/api/banner');
+      const texte: string[] = await res.json();
+      setBannerTexte(texte.length ? texte : ['']);
+    } catch {
+      setBannerTexte(['']);
+    }
+  }
+
+  async function bannerSpeichern() {
+    setBannerSaving(true);
+    await fetch('/api/banner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot: pilotName, password: pilotPw, texte: bannerTexte }),
+    });
+    setBannerSaving(false);
+    setAnsicht('bereich');
+  }
+
   function abmelden() {
     sessionStorage.removeItem('pilot_name');
     sessionStorage.removeItem('pilot_pw');
@@ -189,6 +212,7 @@ export default function PilotenModal() {
         {/* PASSWORT ÄNDERN */}
         {ansicht === 'pw-aendern' && (
           <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🔑</span>
               <div>
@@ -220,7 +244,7 @@ export default function PilotenModal() {
         {/* PILOTEN-BEREICH */}
         {ansicht === 'bereich' && (
           <div style={{ maxWidth: 600 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ fontSize: '1.8rem' }}>🚲</span>
                 <div>
@@ -236,13 +260,16 @@ export default function PilotenModal() {
                 { href: '/buchen', icon: '➕', titel: 'Fahrt buchen', sub: 'Neuen Termin eintragen', border: '#2D6B1E' },
                 { href: '/dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
                 { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
-                { href: '/kalender', icon: '📢', titel: 'Banner', sub: 'Banner bearbeiten (im Kalender)', border: '#D6CCB8' },
+                { href: '#banner', icon: '📢', titel: 'Banner', sub: 'Ankündigungen bearbeiten', border: '#D6CCB8' },
                 { href: '/texte', icon: '✏️', titel: 'Texte bearbeiten', sub: 'Website-Texte anpassen', border: '#D6CCB8' },
                 { href: '/admin', icon: '⚙️', titel: 'Verwaltung', sub: 'Piloten & Einstellungen', border: '#D6CCB8' },
                 { href: 'tel:022279328383', icon: '📞', titel: '02227 9328383', sub: 'Koordination & Anfragen', border: '#D6CCB8' },
               ].map(k => (
-                <a key={k.href + k.titel} href={k.href} target={k.href.startsWith('/') ? '_blank' : undefined}
-                  style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208' }}>
+                <a key={k.href + k.titel}
+                  href={k.href === '#banner' ? undefined : k.href}
+                  target={k.href.startsWith('/') ? '_blank' : undefined}
+                  onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); } : undefined}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
                   <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{k.titel}</span>
                   <span style={{ fontSize: '0.75rem', color: '#6B5C44' }}>{k.sub}</span>
@@ -259,6 +286,46 @@ export default function PilotenModal() {
               </ul>
             </div>
           </div>
+        )}
+
+        {/* BANNER */}
+        {ansicht === 'banner' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>📢</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Banner bearbeiten</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Mehrere Texte rotieren alle 5 Sekunden</div>
+              </div>
+            </div>
+            <div style={{ marginTop: '1.25rem' }}>
+              {bannerTexte.map((t, i) => (
+                <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem', alignItems: 'center' }}>
+                  <input
+                    value={t}
+                    onChange={e => setBannerTexte(bt => bt.map((x, j) => j === i ? e.target.value : x))}
+                    placeholder={`Banner-Text ${i + 1}`}
+                    style={{ flex: 1, border: '1.5px solid #D6CCB8', borderRadius: 6, padding: '0.5rem 0.7rem', fontSize: '0.88rem', fontFamily: 'inherit' }}
+                  />
+                  <button onClick={() => setBannerTexte(bt => bt.filter((_, j) => j !== i))}
+                    style={{ background: '#FEE2E2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '0.4rem 0.6rem', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+                </div>
+              ))}
+              {bannerTexte.length < 5 && (
+                <button onClick={() => setBannerTexte(bt => [...bt, ''])}
+                  style={{ background: '#F5F0E7', border: '1.5px dashed #D6CCB8', borderRadius: 6, padding: '0.4rem 1rem', fontSize: '0.82rem', cursor: 'pointer', color: '#5C4E38', width: '100%', marginBottom: '1rem' }}>
+                  + Weiteren Text hinzufügen
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+              <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', cursor: 'pointer', fontWeight: 600 }}>Abbrechen</button>
+              <button onClick={bannerSpeichern} disabled={bannerSaving} style={{ background: '#b45309', color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.4rem', cursor: 'pointer', fontWeight: 700 }}>
+                {bannerSaving ? 'Speichern…' : 'Speichern'}
+              </button>
+            </div>
+          </>
         )}
 
       </div>
