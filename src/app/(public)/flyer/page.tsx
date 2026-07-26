@@ -208,8 +208,9 @@ export default async function FlyerPage() {
         .chip { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; }
         .chip-green { background: #d1fae5; color: #065f46; }
         .chip-gold  { background: #fef3c7; color: #92400e; }
-        .v2-photos { display: flex; flex-direction: column; gap: 0.5rem; padding: calc(var(--tab) + 0.5rem) 0.9rem 0.9rem 0; flex-shrink: 0; }
-        .v2-photos .photo-ph { width: 106px; flex: 1; }
+        .v2-photos { display: flex; flex-direction: column; gap: 0.5rem; padding: calc(var(--tab) + 0.5rem) 0.9rem 0.9rem 0; flex-shrink: 0; width: 116px; align-self: stretch; }
+        .v2-photos img { width: 100%; flex: 1; object-fit: cover; border-radius: 6px; display: block; }
+        .v2-photos .photo-ph { width: 100%; flex: 1; }
 
         /* ── V3 Fahrzeuge ── */
         .v3 { background: var(--cream); padding: calc(var(--tab) + 0.8rem) 1.6rem 0.8rem; display: flex; flex-direction: column; justify-content: center; }
@@ -241,7 +242,9 @@ export default async function FlyerPage() {
         .fz-panel-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
         .fz-panel-body p { font-size: 0.71rem; line-height: 1.5; }
         .fz-panel-body .fz-badge { align-self: flex-start; margin-top: 0.35rem; font-size: 0.63rem; font-weight: 700; color: #fff; border-radius: 999px; padding: 0.1rem 0.52rem; }
-        .fz-panel-photo { display: flex; align-items: center; padding: calc(var(--tab) + 0.7rem) 0.9rem 0.9rem 0; flex-shrink: 0; }
+        .fz-panel-photo { display: flex; align-items: stretch; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0; flex-shrink: 0; width: 140px; }
+        .fz-panel-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+        .fz-panel-photo .photo-ph { width: 100%; height: 100%; }
         .r1 { background: var(--lotte-bg); } .r1 .fz-accent { background: var(--lotte); } .r1 .fz-label { color: #92400e; } .r1 h3 { color: #78350f; } .r1 p { color: #92400e; } .r1 .fz-badge { background: var(--lotte); }
         .r2 { background: var(--flitzer-bg); } .r2 .fz-accent { background: var(--flitzer); } .r2 .fz-label { color: #075985; } .r2 h3 { color: #0c4a6e; } .r2 p { color: #075985; } .r2 .fz-badge { background: var(--flitzer); }
         .r3 { background: var(--piter-bg); } .r3 .fz-accent { background: var(--piter); } .r3 .fz-label { color: #4c1d95; } .r3 h3 { color: #3b0764; } .r3 p { color: #4c1d95; } .r3 .fz-badge { background: var(--piter); }
@@ -419,12 +422,12 @@ export default async function FlyerPage() {
             </div>
             <div className="v2-photos">
               {c.flyer_foto_fahrt1
-                ? <img src={c.flyer_foto_fahrt1} alt="Fahrt 1" style={{flex:1,width:106,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{flex:1,width:106}}><div className="ph-icon">📷</div><div className="ph-label">Foto Fahrt 1</div></div>
+                ? <img src={c.flyer_foto_fahrt1} alt="Fahrt 1"/>
+                : <div className="photo-ph ph-dark"><div className="ph-icon">📷</div><div className="ph-label">Foto Fahrt 1</div></div>
               }
               {c.flyer_foto_fahrt2
-                ? <img src={c.flyer_foto_fahrt2} alt="Fahrt 2" style={{flex:1,width:106,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{flex:1,width:106}}><div className="ph-icon">📷</div><div className="ph-label">Foto Fahrt 2</div></div>
+                ? <img src={c.flyer_foto_fahrt2} alt="Fahrt 2"/>
+                : <div className="photo-ph ph-dark"><div className="ph-icon">📷</div><div className="ph-label">Foto Fahrt 2</div></div>
               }
             </div>
           </div>
@@ -495,8 +498,8 @@ export default async function FlyerPage() {
             </div>
             <div className="fz-panel-photo">
               {c.flyer_foto_lotte
-                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte" style={{width:128,height:155,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{width:128,height:155}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flotte Lotte</div></div>
+                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/>
+                : <div className="photo-ph ph-dark"><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flotte Lotte</div></div>
               }
             </div>
           </div>
@@ -516,8 +519,8 @@ export default async function FlyerPage() {
             </div>
             <div className="fz-panel-photo">
               {c.flyer_foto_flitzer
-                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer" style={{width:128,height:138,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{width:128,height:138}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flinker Flitzer</div></div>
+                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/>
+                : <div className="photo-ph ph-dark"><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flinker Flitzer</div></div>
               }
             </div>
           </div>
@@ -537,8 +540,8 @@ export default async function FlyerPage() {
             </div>
             <div className="fz-panel-photo">
               {c.flyer_foto_piter
-                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter" style={{width:128,height:115,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{width:128,height:115}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Jruuse Piter</div></div>
+                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/>
+                : <div className="photo-ph ph-dark"><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Jruuse Piter</div></div>
               }
             </div>
           </div>

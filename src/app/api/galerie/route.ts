@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   const bytes = await datei.arrayBuffer();
 
   const { error: uploadError } = await db.storage
-    .from('galerie-fotos')
+    .from('piloten-dateien')
     .upload(filename, bytes, { contentType: datei.type, upsert: false });
 
   if (uploadError) {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: { publicUrl } } = db.storage
-    .from('galerie-fotos')
+    .from('piloten-dateien')
     .getPublicUrl(filename);
 
   const { data: row, error: dbError } = await db
