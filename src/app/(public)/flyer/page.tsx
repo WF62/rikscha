@@ -450,7 +450,7 @@ export default async function FlyerPage() {
           {/* V4: Cover */}
           <div className="panel p4 v4">
             <div className="cover-row">
-              <div className="logo-ph"><div className="ph-icon">🖼️</div><div style={{fontSize:'0.46rem'}}>Logo</div></div>
+              <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="Mertener Rikschakutscher Logo" style={{width:52,height:52,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>
               <div>
                 <div style={{fontSize:'0.54rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.48)',marginBottom:'0.18rem'}}>Bornheim-Merten · seit 2018</div>
                 <div className="cover-title">Mertener Rikschakutscher</div>
