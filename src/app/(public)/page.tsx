@@ -171,8 +171,8 @@ export default async function WebsitePage() {
         .fahrzeug-row { display: grid; grid-template-columns: 260px 1fr; gap: 2.5rem; align-items: start; padding: 2.5rem 0; border-top: 1px solid var(--border); }
         .fahrzeug-row:last-child { border-bottom: 1px solid var(--border); }
         .fahrzeug-foto-wrap { width: 100%; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; position: relative; }
-        .fahrzeug-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .fahrzeug-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; border-radius: 8px; }
+        .fahrzeug-foto-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fahrzeug-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; border-radius: 8px; }
         .fahrzeug-placeholder svg { width: 52px; height: 52px; }
         .placeholder-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
         .placeholder-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
