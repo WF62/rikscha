@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 
-type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner';
+type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto' | 'homepage-galerie';
+type GalerieFoto = { id: string; url: string; beschreibung: string; pilot: string };
 
 export default function PilotenModal() {
   const [offen, setOffen] = useState(false);
@@ -17,6 +18,11 @@ export default function PilotenModal() {
   const [pilotPw, setPilotPw] = useState('');
   const [bannerTexte, setBannerTexte] = useState<string[]>(['']);
   const [bannerSaving, setBannerSaving] = useState(false);
+  const [fotoUploading, setFotoUploading] = useState<string | null>(null);
+  const [fotoMsg, setFotoMsg] = useState<Record<string, string>>({});
+  const [alleFotos, setAlleFotos] = useState<GalerieFoto[]>([]);
+  const [ausgewaehlteIds, setAusgewaehlteIds] = useState<string[]>([]);
+  const [galerieSaving, setGalerieSaving] = useState(false);
   const pwInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -133,6 +139,53 @@ export default function PilotenModal() {
     setAnsicht('bereich');
   }
 
+  async function ladeHomepageGalerie() {
+    const [fotosRes, auswahlRes] = await Promise.all([
+      fetch('/api/galerie'),
+      fetch('/api/inhalte'),
+    ]);
+    const fotos: GalerieFoto[] = fotosRes.ok ? await fotosRes.json() : [];
+    const inhalte: { schluessel: string; wert: string }[] = auswahlRes.ok ? await auswahlRes.json() : [];
+    setAlleFotos(fotos);
+    const eintrag = inhalte.find(x => x.schluessel === 'galerie_homepage');
+    try { setAusgewaehlteIds(eintrag ? JSON.parse(eintrag.wert) : []); } catch { setAusgewaehlteIds([]); }
+  }
+
+  async function galerieAuswahlSpeichern() {
+    setGalerieSaving(true);
+    await fetch('/api/inhalte', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot: pilotName, password: pilotPw, schluessel: 'galerie_homepage', wert: JSON.stringify(ausgewaehlteIds) }),
+    });
+    setGalerieSaving(false);
+    setAnsicht('bereich');
+  }
+
+  function toggleFoto(id: string) {
+    setAusgewaehlteIds(ids =>
+      ids.includes(id) ? ids.filter(x => x !== id) : ids.length < 8 ? [...ids, id] : ids
+    );
+  }
+
+  async function fahrzeugFotoHochladen(schluessel: string, datei: File) {
+    setFotoUploading(schluessel);
+    setFotoMsg(m => ({ ...m, [schluessel]: '' }));
+    const form = new FormData();
+    form.append('pilot', pilotName);
+    form.append('password', pilotPw);
+    form.append('schluessel', schluessel);
+    form.append('datei', datei);
+    try {
+      const res = await fetch('/api/flyer-foto', { method: 'POST', body: form });
+      const j = await res.json();
+      setFotoMsg(m => ({ ...m, [schluessel]: res.ok ? '✓ Gespeichert' : (j.error || 'Fehler') }));
+    } catch {
+      setFotoMsg(m => ({ ...m, [schluessel]: 'Verbindungsfehler' }));
+    }
+    setFotoUploading(null);
+  }
+
   function abmelden() {
     localStorage.removeItem('pilot_name');
     localStorage.removeItem('pilot_pw');
@@ -151,7 +204,8 @@ export default function PilotenModal() {
 
   const card: React.CSSProperties = {
     background: '#fff', borderRadius: 14, padding: '2rem 2.5rem',
-    width: 'min(420px, 92vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+    width: ansicht === 'homepage-galerie' ? 'min(640px, 96vw)' : 'min(420px, 92vw)',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
     position: 'relative',
   };
 
@@ -261,6 +315,9 @@ export default function PilotenModal() {
                 { href: '/dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
                 { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
                 { href: '#banner', icon: '📢', titel: 'Banner', sub: 'Ankündigungen bearbeiten', border: '#D6CCB8' },
+                { href: '#fahrzeugfotos', icon: '🚲', titel: 'Fahrzeugfotos', sub: 'Fotos der Rikschas hochladen', border: '#D6CCB8' },
+                { href: '#mein-foto', icon: '🤳', titel: 'Mein Foto', sub: 'Eigenes Bild für die Teamseite', border: '#D6CCB8' },
+                { href: '#homepage-galerie', icon: '🖼️', titel: 'Galerie-Auswahl', sub: 'Bis zu 8 Fotos für die Homepage', border: '#C8881A' },
                 { href: '/texte', icon: '✏️', titel: 'Texte bearbeiten', sub: 'Website-Texte anpassen', border: '#D6CCB8' },
                 { href: '/admin', icon: '⚙️', titel: 'Verwaltung', sub: 'Piloten & Einstellungen', border: '#D6CCB8' },
                 { href: 'tel:022279328383', icon: '📞', titel: '02227 9328383', sub: 'Koordination & Anfragen', border: '#D6CCB8' },
@@ -268,7 +325,11 @@ export default function PilotenModal() {
                 <a key={k.href + k.titel}
                   href={k.href === '#banner' ? undefined : k.href}
                   target={k.href.startsWith('/') ? '_blank' : undefined}
-                  onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); } : undefined}
+                  onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); }
+                    : k.href === '#fahrzeugfotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
+                    : k.href === '#mein-foto' ? (e) => { e.preventDefault(); setAnsicht('mein-foto' as Ansicht); }
+                    : k.href === '#homepage-galerie' ? (e) => { e.preventDefault(); ladeHomepageGalerie(); setAnsicht('homepage-galerie'); }
+                    : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
                   <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{k.titel}</span>
@@ -325,6 +386,120 @@ export default function PilotenModal() {
                 {bannerSaving ? 'Speichern…' : 'Speichern'}
               </button>
             </div>
+          </>
+        )}
+
+        {/* HOMEPAGE-GALERIE */}
+        {ansicht === 'homepage-galerie' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>🖼️ Galerie-Auswahl für Homepage</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>{ausgewaehlteIds.length} / 8 Fotos ausgewählt</div>
+              </div>
+              <button onClick={galerieAuswahlSpeichern} disabled={galerieSaving}
+                style={{ background: '#C8881A', color: '#fff', border: 'none', borderRadius: 7, padding: '0.45rem 1.1rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                {galerieSaving ? 'Speichern…' : 'Auswahl speichern'}
+              </button>
+            </div>
+            {alleFotos.length === 0 && (
+              <div style={{ color: '#9a8a72', fontSize: '0.85rem', textAlign: 'center', padding: '2rem' }}>Noch keine Fotos in der Galerie.</div>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', maxHeight: '55vh', overflowY: 'auto' }}>
+              {alleFotos.map(f => {
+                const aktiv = ausgewaehlteIds.includes(f.id);
+                const pos = ausgewaehlteIds.indexOf(f.id);
+                return (
+                  <div key={f.id} onClick={() => toggleFoto(f.id)}
+                    style={{ position: 'relative', cursor: 'pointer', borderRadius: 8, overflow: 'hidden', border: aktiv ? '2.5px solid #C8881A' : '2.5px solid transparent', opacity: !aktiv && ausgewaehlteIds.length >= 8 ? 0.4 : 1 }}>
+                    <img src={f.url} alt={f.beschreibung || ''} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                    {aktiv && (
+                      <div style={{ position: 'absolute', top: 4, right: 4, background: '#C8881A', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.72rem' }}>
+                        {pos + 1}
+                      </div>
+                    )}
+                    {f.beschreibung && (
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.6rem', padding: '0.2rem 0.35rem', lineHeight: 1.3 }}>{f.beschreibung}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* MEIN FOTO */}
+        {ansicht === 'mein-foto' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>🤳</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Mein Foto</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Erscheint auf der Teamseite der Website</div>
+              </div>
+            </div>
+            <div style={{ background: '#F5F0E7', borderRadius: 10, padding: '1.25rem', border: '1.5px solid #D6CCB8', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.82rem', color: '#5C4E38', marginBottom: '1rem', lineHeight: 1.5 }}>
+                Lade ein quadratisches Foto von dir hoch — es wird als Profilbild auf der Teamseite angezeigt.<br/>
+                <span style={{ color: '#9a8a72', fontSize: '0.75rem' }}>Empfehlung: quadratisch, min. 200×200 px, JPG oder PNG</span>
+              </div>
+              <label style={{ display: 'inline-block', background: '#2D6B1E', color: '#fff', borderRadius: 7, padding: '0.55rem 1.25rem', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer' }}>
+                {fotoUploading === `foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_')}` ? 'Lädt hoch…' : '📷 Foto auswählen & hochladen'}
+                <input type="file" accept="image/*" style={{ display: 'none' }}
+                  disabled={fotoUploading !== null}
+                  onChange={e => {
+                    const d = e.target.files?.[0];
+                    const key = `foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`;
+                    if (d) fahrzeugFotoHochladen(key, d);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              {fotoMsg[`foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`] && (
+                <div style={{ marginTop: '0.75rem', fontSize: '0.82rem', color: fotoMsg[`foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`].startsWith('✓') ? '#15803d' : '#dc2626' }}>
+                  {fotoMsg[`foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`]}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* FAHRZEUGFOTOS */}
+        {ansicht === 'fahrzeugfotos' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>🚲</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Fahrzeugfotos</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Fotos erscheinen sofort auf der Website</div>
+              </div>
+            </div>
+            {[
+              { schluessel: 'foto_lotte',   name: 'Flotte Lotte',    farbe: '#15803d' },
+              { schluessel: 'foto_flitzer', name: 'Flinker Flitzer', farbe: '#1d4ed8' },
+              { schluessel: 'foto_piter',   name: 'Jruuse Piter',    farbe: '#ea580c' },
+            ].map(f => (
+              <div key={f.schluessel} style={{ background: '#F5F0E7', borderRadius: 10, padding: '1rem 1.1rem', marginBottom: '0.75rem', border: '1.5px solid #D6CCB8' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: f.farbe, marginBottom: '0.5rem' }}>{f.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <label style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 1rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                    {fotoUploading === f.schluessel ? 'Lädt hoch…' : 'Foto wählen'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }}
+                      disabled={fotoUploading !== null}
+                      onChange={e => { const d = e.target.files?.[0]; if (d) fahrzeugFotoHochladen(f.schluessel, d); e.target.value = ''; }}
+                    />
+                  </label>
+                  {fotoMsg[f.schluessel] && (
+                    <span style={{ fontSize: '0.78rem', color: fotoMsg[f.schluessel].startsWith('✓') ? '#15803d' : '#dc2626' }}>
+                      {fotoMsg[f.schluessel]}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
           </>
         )}
 

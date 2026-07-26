@@ -19,10 +19,40 @@ const DEFAULTS: Record<string, string> = {
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
   piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  galerie_homepage:  '',
+  foto_lotte:        '',
+  foto_flitzer:      '',
+  foto_piter:        '',
+  foto_pilot_doro:        '',
+  foto_pilot_guido:       '',
+  foto_pilot_hans_heinrich: '',
+  foto_pilot_helenah:     '',
+  foto_pilot_heribert:    '',
+  foto_pilot_holger:      '',
+  foto_pilot_lucia:       '',
+  foto_pilot_rolf:        '',
+  foto_pilot_sabine:      '',
+  foto_pilot_walter:      '',
+  foto_pilot_werner:      '',
   team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
   kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
 };
+
+async function ladeGalerie(auswahlJson: string): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
+  try {
+    let ids: string[] = [];
+    try { ids = JSON.parse(auswahlJson); } catch { ids = []; }
+    if (!Array.isArray(ids) || ids.length === 0) return [];
+    const db = createServiceClient();
+    const { data } = await db.from('galerie').select('id,url,beschreibung,pilot,created_at').in('id', ids);
+    // Reihenfolge der Auswahl beibehalten
+    const map = new Map((data ?? []).map(r => [r.id, r]));
+    return ids.map(id => map.get(id)).filter(Boolean) as { id: string; url: string; beschreibung: string; pilot: string; created_at: string }[];
+  } catch {
+    return [];
+  }
+}
 
 async function ladeInhalte(): Promise<Record<string, string>> {
   try {
@@ -38,6 +68,7 @@ async function ladeInhalte(): Promise<Record<string, string>> {
 
 export default async function WebsitePage() {
   const t = await ladeInhalte();
+  const galerie = await ladeGalerie(t.galerie_homepage ?? '');
   return (
     <>
       <style>{`
@@ -88,15 +119,16 @@ export default async function WebsitePage() {
 
         body { font-family: var(--sans); background: var(--ground); color: var(--ink); font-size: 17px; line-height: 1.65; }
 
-        nav { position: sticky; top: 0; z-index: 100; background: #2D6B1E; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; gap: 1rem; }
+        nav { position: sticky; top: 0; z-index: 100; background: #1C4A10; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1.5rem; min-height: 52px; gap: 1rem; box-shadow: 0 3px 12px rgba(0,0,0,0.35); border-bottom: 2px solid rgba(0,0,0,0.2); flex-wrap: wrap; }
         .nav-logo { font-family: var(--serif); font-size: 1rem; font-weight: bold; white-space: nowrap; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-        .nav-links { display: flex; gap: 0.75rem; list-style: none; flex-wrap: nowrap; align-items: center; }
+        .nav-links { display: flex; gap: 0.75rem; list-style: none; flex-wrap: wrap; align-items: center; }
         .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.02em; transition: color 0.15s; white-space: nowrap; }
         .nav-links a:hover { color: #fff; }
         .nav-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 0.25rem 0.7rem; font-weight: 600; }
 
-        .hero { background: #3A7A28; color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
-        .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: var(--ground); clip-path: ellipse(55% 100% at 50% 100%); }
+        .hero { background: linear-gradient(160deg, #3A8A26 0%, #2D6B1E 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
+        .hero .container { text-align: center; }
+        .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: #F5F0E7; clip-path: ellipse(55% 100% at 50% 100%); }
         .hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
         .hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: normal; line-height: 1.15; text-wrap: balance; margin-bottom: 1.25rem; }
         .hero-sub { font-size: 1.1rem; color: rgba(255,255,255,0.92); max-width: 540px; margin: 0 auto 2rem; text-wrap: balance; }
@@ -115,7 +147,7 @@ export default async function WebsitePage() {
         .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
         section { padding: 4.5rem 2rem; }
-        .container { max-width: 860px; margin: 0 auto; }
+        .container { max-width: 1080px; margin: 0 auto; }
         .container-wide { max-width: 1080px; margin: 0 auto; }
         .section-rule { border: none; border-top: 1px solid var(--border); margin: 0; }
         .eyebrow { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 0.6rem; }
@@ -124,22 +156,28 @@ export default async function WebsitePage() {
         p { color: var(--mid); margin-bottom: 1rem; }
         p:last-child { margin-bottom: 0; }
 
-        .group-section { background: #3A7A28; color: #fff; position: relative; overflow: hidden; }
+        .group-section { background: #14380A; color: #fff; position: relative; overflow: hidden; }
         .group-section p { color: rgba(255,255,255,0.92); }
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
         .big-3 { position: absolute; right: -0.1em; top: 50%; transform: translateY(-50%); font-family: var(--serif); font-size: clamp(12rem, 22vw, 22rem); font-weight: bold; color: rgba(255,255,255,0.06); line-height: 1; pointer-events: none; user-select: none; }
-        .group-inner { max-width: 600px; position: relative; z-index: 1; }
+        .group-inner { position: relative; z-index: 1; }
         .anlaesse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1.75rem; }
-        .anlass { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 0.95rem; color: rgba(255,255,255,0.9); }
+        .anlass { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 0.95rem; color: rgba(255,255,255,0.95); }
         .anlass-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
 
-        .fahrzeuge-section { background: var(--surface); }
+        .fahrzeuge-section { background: #F5F0E7; }
         .fahrzeug-list { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
-        .fahrzeug-row { display: grid; grid-template-columns: 180px 1fr; gap: 2rem; align-items: start; padding: 2rem 0; border-top: 1px solid var(--border); }
+        .fahrzeug-row { display: grid; grid-template-columns: 260px 1fr; gap: 2.5rem; align-items: start; padding: 2.5rem 0; border-top: 1px solid var(--border); }
         .fahrzeug-row:last-child { border-bottom: 1px solid var(--border); }
-        .fahrzeug-badge { width: 100%; aspect-ratio: 3/2; border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; }
-        .fahrzeug-badge svg { width: 48px; height: 48px; }
+        .fahrzeug-foto-wrap { width: 100%; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; position: relative; }
+        .fahrzeug-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fahrzeug-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; border-radius: 8px; }
+        .fahrzeug-placeholder svg { width: 52px; height: 52px; }
+        .placeholder-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
+        .placeholder-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
+        .placeholder-piter { background: var(--piter-bg); color: var(--piter-fg); }
+        .foto-hinweis { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.85); font-size: 0.68rem; text-align: center; padding: 0.3rem; }
         .badge-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
         .badge-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .badge-piter { background: var(--piter-bg); color: var(--piter-fg); }
@@ -150,13 +188,15 @@ export default async function WebsitePage() {
         .gaeste-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .gaeste-piter { background: var(--piter-bg); color: var(--piter-fg); }
 
-        .piloten-section { background: var(--ground); }
-        .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; margin-top: 2rem; }
-        .pilot-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center; }
-        .pilot-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1.4rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-weight: bold; }
+        .piloten-section { background: #FDFAF5; }
+        .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .pilot-card { background: #F5F0E7; border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 0.75rem; text-align: center; }
+        .pilot-foto-wrap { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 0 auto 0.6rem; }
+        .pilot-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pilot-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-weight: bold; border: 2px solid var(--border); }
         .pilot-name { font-size: 0.88rem; font-weight: 600; color: var(--ink); }
 
-        .ausbildung-section { background: var(--surface); }
+        .ausbildung-section { background: #F5F0E7; }
         .steps { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 2rem; }
         .step { display: flex; gap: 1.25rem; align-items: flex-start; }
         .step-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
@@ -165,7 +205,7 @@ export default async function WebsitePage() {
         .melde-box h3 { margin-bottom: 0.25rem; }
         .melde-box p { margin: 0; font-size: 0.92rem; }
 
-        .zukunft-section { background: var(--ground); }
+        .zukunft-section { background: #FDFAF5; }
         .zukunft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
         .zukunft-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
         .zukunft-icon { font-size: 1.8rem; margin-bottom: 0.75rem; display: block; }
@@ -177,7 +217,7 @@ export default async function WebsitePage() {
         .iban { font-family: monospace; font-size: 0.88rem; background: var(--ground); padding: 0.6rem 0.8rem; border-radius: var(--radius); letter-spacing: 0.04em; word-break: break-all; color: var(--ink); display: block; margin-top: 0.5rem; }
         .btn-paypal { background: #003087; color: #fff; display: inline-flex; align-items: center; gap: 0.5rem; width: 100%; justify-content: center; margin-top: 0.5rem; }
 
-        .kontakt-section { background: #3A7A28; color: #fff; }
+        .kontakt-section { background: #1C4A10; color: #fff; }
         .kontakt-section h2 { color: #fff; }
         .kontakt-section .eyebrow { color: var(--gold); }
         .kontakt-section p { color: rgba(255,255,255,0.92); }
@@ -198,7 +238,7 @@ export default async function WebsitePage() {
         footer .piloten-link:hover { color: rgba(255,255,255,0.8); }
 
         /* Galerie */
-        .galerie-section { background: var(--ground); }
+        .galerie-section { background: #F5F0E7; }
         .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
         .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
         .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
@@ -227,7 +267,8 @@ export default async function WebsitePage() {
           section { padding: 3rem 1.25rem; }
           .hero { padding: 3.5rem 1.25rem 3.5rem; }
           .fahrzeug-row { grid-template-columns: 1fr; }
-          .fahrzeug-badge { aspect-ratio: 2/1; max-width: 220px; }
+          .fahrzeug-row { grid-template-columns: 1fr; }
+          .fahrzeug-foto-wrap { max-width: 320px; }
           .form-row { grid-template-columns: 1fr; }
           .melde-box { flex-direction: column; }
           .big-3 { font-size: 40vw; opacity: 0.5; }
@@ -269,17 +310,19 @@ export default async function WebsitePage() {
 
       {/* Hero */}
       <section className="hero">
-        <div className="hero-eyebrow">Bornheim-Merten · Ehrenamt · seit 2018</div>
-        <h1>Mertener<br/>Rikschakutscher</h1>
-        <p className="hero-sub">{t.hero_sub}</p>
-        <div className="vehicle-pills">
-          <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
-          <a href="#fahrzeug-flitzer" className="pill pill-flitzer">Flinker Flitzer</a>
-          <a href="#fahrzeug-piter" className="pill pill-piter">Jruuse Piter</a>
-        </div>
-        <div className="hero-btns">
-          <a href="#kontakt" className="btn btn-gold">Fahrt anfragen</a>
-          <a href="#fahrten" className="btn btn-outline">Mehr erfahren</a>
+        <div className="container">
+          <div className="hero-eyebrow">Bornheim-Merten · Ehrenamt · seit 2018</div>
+          <h1>Mertener<br/>Rikschakutscher</h1>
+          <p className="hero-sub">{t.hero_sub}</p>
+          <div className="vehicle-pills">
+            <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
+            <a href="#fahrzeug-flitzer" className="pill pill-flitzer">Flinker Flitzer</a>
+            <a href="#fahrzeug-piter" className="pill pill-piter">Jruuse Piter</a>
+          </div>
+          <div className="hero-btns">
+            <a href="#kontakt" className="btn btn-gold">Fahrt anfragen</a>
+            <a href="#fahrten" className="btn btn-outline">Mehr erfahren</a>
+          </div>
         </div>
       </section>
 
@@ -316,9 +359,15 @@ export default async function WebsitePage() {
           <p>Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.</p>
           <div className="fahrzeug-list">
             <div className="fahrzeug-row" id="fahrzeug-lotte">
-              <div className="fahrzeug-badge badge-lotte">
-                <svg viewBox="0 0 64 40" fill="none"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
-                Rikscha
+              <div className="fahrzeug-foto-wrap">
+                {t.foto_lotte
+                  ? <img src={t.foto_lotte} alt="Flotte Lotte" />
+                  : <div className="fahrzeug-placeholder placeholder-lotte">
+                      <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
+                      Rikscha
+                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                    </div>
+                }
               </div>
               <div>
                 <div className="fahrzeug-name">Flotte Lotte</div>
@@ -328,9 +377,15 @@ export default async function WebsitePage() {
               </div>
             </div>
             <div className="fahrzeug-row" id="fahrzeug-flitzer">
-              <div className="fahrzeug-badge badge-flitzer">
-                <svg viewBox="0 0 64 40" fill="none"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
-                Liegetandem
+              <div className="fahrzeug-foto-wrap">
+                {t.foto_flitzer
+                  ? <img src={t.foto_flitzer} alt="Flinker Flitzer" />
+                  : <div className="fahrzeug-placeholder placeholder-flitzer">
+                      <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
+                      Liegetandem
+                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                    </div>
+                }
               </div>
               <div>
                 <div className="fahrzeug-name">Flinker Flitzer</div>
@@ -340,9 +395,15 @@ export default async function WebsitePage() {
               </div>
             </div>
             <div className="fahrzeug-row" id="fahrzeug-piter">
-              <div className="fahrzeug-badge badge-piter">
-                <svg viewBox="0 0 64 40" fill="none"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
-                Paralleltandem
+              <div className="fahrzeug-foto-wrap">
+                {t.foto_piter
+                  ? <img src={t.foto_piter} alt="Jruuse Piter" />
+                  : <div className="fahrzeug-placeholder placeholder-piter">
+                      <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
+                      Paralleltandem
+                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                    </div>
+                }
               </div>
               <div>
                 <div className="fahrzeug-name">Jruuse Piter</div>
@@ -366,9 +427,14 @@ export default async function WebsitePage() {
           <div className="piloten-grid">
             {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
               const [initials, name] = p.split('|');
+              const fotoKey = `foto_pilot_${name.toLowerCase().replace(/-/g, '_')}`;
+              const fotoUrl = t[fotoKey];
               return (
                 <div key={name} className="pilot-card">
-                  <div className="pilot-avatar">{initials}</div>
+                  {fotoUrl
+                    ? <div className="pilot-foto-wrap"><img src={fotoUrl} alt={name} /></div>
+                    : <div className="pilot-avatar">{initials}</div>
+                  }
                   <div className="pilot-name">{name}</div>
                 </div>
               );
@@ -498,13 +564,29 @@ export default async function WebsitePage() {
 
       {/* Galerie */}
       <section className="galerie-section" id="galerie">
-        <div className="container-wide">
+        <div className="container">
           <div className="eyebrow">Eindrücke</div>
           <h2>Momente auf der Strecke</h2>
           <p>Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
-          <div className="galerie-grid" id="galerie-grid">
-            <div className="galerie-empty" id="galerie-leer">Fotos werden geladen …</div>
+          <div className="galerie-grid">
+            {galerie.length === 0
+              ? <div className="galerie-empty">Noch keine Fotos vorhanden — Piloten können über den Piloten-Bereich Fotos hochladen.</div>
+              : galerie.map(f => (
+                <div key={f.id} className="galerie-card">
+                  <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
+                  <div className="galerie-info">
+                    {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
+                    <div className="galerie-meta">{f.pilot} · {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+                  </div>
+                </div>
+              ))
+            }
           </div>
+          {galerie.length > 0 && (
+            <div style={{textAlign:'center',marginTop:'1.5rem'}}>
+              <a href="/galerie" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen ↗</a>
+            </div>
+          )}
         </div>
       </section>
 
