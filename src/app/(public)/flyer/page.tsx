@@ -258,19 +258,20 @@ export default async function FlyerPage() {
         /* ── PRINT ── */
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         @media print {
-          @page { size: A4 portrait; margin: 0; }
+          /* 10mm Rand oben+unten → bedruckbare Fläche = 277mm.
+             zoom 1.42: Inhalt bei 148mm (560px-Layout) → skaliert auf 210mm Breite.
+             Panel-Höhen so berechnet, dass 4 Panels × zoom = 277mm exakt. */
+          @page { size: A4 portrait; margin: 10mm 0; }
           html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; height: auto !important; }
           .print-bar, .flyer-wrap > h1, .flyer-wrap > p.page-hint, .side-label, .preview-wrap { display: none !important; }
           .flyer-wrap { padding: 0 !important; }
-          /* zoom 1.42: Inhalt bei 148mm (= 560px) → skaliert auf 210mm (A4-Breite).
-             Alle Schriften, Abstände und Rahmen wachsen gleichmäßig mit. */
-          .sheet { width: 148mm; height: 208mm; box-shadow: none; margin: 0; overflow: hidden; zoom: 1.42; }
+          .sheet { width: 148mm; height: 195mm; box-shadow: none; margin: 0; overflow: hidden; zoom: 1.42; }
           .panel { width: 148mm; overflow: hidden; }
           .panel::before { display: none; }
-          .p1 { height: 63mm; }
-          .p2 { height: 56mm; }
-          .p3 { height: 49mm; }
-          .p4 { height: 40mm; }
+          .p1 { height: 58.5mm; }
+          .p2 { height: 52mm; }
+          .p3 { height: 45.5mm; }
+          .p4 { height: 39mm; }
           .back-sheet { page-break-before: always; break-before: page; transform: none; }
           :root { --tab: 7mm; }
         }
