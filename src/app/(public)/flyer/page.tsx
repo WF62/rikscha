@@ -268,12 +268,21 @@ export default async function FlyerPage() {
           .sheet { width: 148mm; height: 195mm; box-shadow: none; margin: 0; overflow: hidden; zoom: 1.42; }
           .panel { width: 148mm; overflow: hidden; }
           .panel::before { display: none; }
-          .p1 { height: 58.5mm; }
-          .p2 { height: 52mm; }
-          .p3 { height: 45.5mm; }
-          .p4 { height: 39mm; }
+          .p1 { height: 72mm; }
+          .p2 { height: 50mm; }
+          .p3 { height: 43mm; }
+          .p4 { height: 30mm; }
           .back-sheet { page-break-before: always; break-before: page; transform: none; }
-          :root { --tab: 7mm; }
+          :root { --tab: 6mm; }
+          /* Gutschein-Panel kompakter im Druck */
+          .v1 { gap: 0.3rem; padding-top: calc(var(--tab) + 0.4rem); padding-bottom: 0.5rem; }
+          .voucher-sub { display: none; }
+          .fill-field label { font-size: 0.48rem; }
+          .fill-line { height: 16px; }
+          .fz-check { font-size: 0.58rem; }
+          .voucher-brand { font-size: 0.56rem; }
+          .sig-block { margin-top: 0.3rem; }
+          .voucher-note { padding-top: 0.2rem; font-size: 0.52rem; }
         }
       `}</style>
 
@@ -441,7 +450,7 @@ export default async function FlyerPage() {
           {/* V4: Cover */}
           <div className="panel p4 v4">
             <div className="cover-row">
-              <div className="logo-ph"><div className="ph-icon">🖼️</div><div style={{fontSize:'0.46rem'}}>Logo</div></div>
+              <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="Mertener Rikschakutscher Logo" style={{width:52,height:52,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>
               <div>
                 <div style={{fontSize:'0.54rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.48)',marginBottom:'0.18rem'}}>Bornheim-Merten · seit 2018</div>
                 <div className="cover-title">Mertener Rikschakutscher</div>
