@@ -13,13 +13,21 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const db = createServiceClient();
-  const { data, error } = await db
+  const { searchParams } = new URL(req.url);
+  const pilot = searchParams.get('pilot');
+  const kategorie = searchParams.get('kategorie');
+
+  let query = db
     .from('galerie')
-    .select('id, url, beschreibung, pilot, created_at')
+    .select('id, url, beschreibung, pilot, kategorie, created_at')
     .order('created_at', { ascending: false });
 
+  if (pilot) query = query.eq('pilot', pilot);
+  if (kategorie) query = query.eq('kategorie', kategorie);
+
+  const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
   return NextResponse.json(data ?? [], { headers: CORS });
 }
@@ -31,6 +39,7 @@ export async function POST(req: NextRequest) {
   const pilot = form.get('pilot') as string;
   const password = form.get('password') as string;
   const beschreibung = form.get('beschreibung') as string;
+  const kategorie = (form.get('kategorie') as string || 'Sonstiges').trim();
   const datei = form.get('datei') as File | null;
 
   if (!pilot || !password || !datei) {
@@ -41,9 +50,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
   }
 
-  // Datei hochladen
+  const pilotOrdner = pilot.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  const katOrdner = kategorie.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_äöüß]/g, '');
   const ext = datei.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const filename = `${pilotOrdner}/${katOrdner}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const bytes = await datei.arrayBuffer();
 
   const { error: uploadError } = await db.storage
@@ -58,10 +68,9 @@ export async function POST(req: NextRequest) {
     .from('galerie-fotos')
     .getPublicUrl(filename);
 
-  // Metadaten speichern
   const { data: row, error: dbError } = await db
     .from('galerie')
-    .insert({ url: publicUrl, beschreibung, pilot })
+    .insert({ url: publicUrl, beschreibung, pilot, kategorie })
     .select()
     .single();
 
