@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 
-type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto' | 'homepage-galerie';
+type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto' | 'homepage-galerie' | 'dokumente';
 type GalerieFoto = { id: string; url: string; beschreibung: string; pilot: string };
+type Dokument = { id: string; name: string; kategorie: string; url: string; groesse: number; typ: string; hochgeladen_von: string; erstellt_am: string };
 
 export default function PilotenModal() {
   const [offen, setOffen] = useState(false);
@@ -23,6 +24,12 @@ export default function PilotenModal() {
   const [alleFotos, setAlleFotos] = useState<GalerieFoto[]>([]);
   const [ausgewaehlteIds, setAusgewaehlteIds] = useState<string[]>([]);
   const [galerieSaving, setGalerieSaving] = useState(false);
+  const [dokumente, setDokumente] = useState<Dokument[]>([]);
+  const [dokLaden, setDokLaden] = useState(false);
+  const [dokUploading, setDokUploading] = useState(false);
+  const [dokKategorie, setDokKategorie] = useState('');
+  const [dokMsg, setDokMsg] = useState('');
+  const dokInputRef = useRef<HTMLInputElement>(null);
   const pwInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -186,6 +193,46 @@ export default function PilotenModal() {
     setFotoUploading(null);
   }
 
+  async function ladeDokumente() {
+    setDokLaden(true);
+    try { const res = await fetch('/api/piloten-dateien'); setDokumente(await res.json()); } catch {}
+    setDokLaden(false);
+  }
+
+  async function dokumentHochladen(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setDokUploading(true);
+    setDokMsg('');
+    let ok = 0;
+    let err = 0;
+    for (const datei of Array.from(files)) {
+      const form = new FormData();
+      form.append('pilot', pilotName);
+      form.append('password', pilotPw);
+      form.append('kategorie', dokKategorie.trim() || 'Sonstiges');
+      form.append('datei', datei);
+      try {
+        const res = await fetch('/api/piloten-dateien', { method: 'POST', body: form });
+        if (res.ok) ok++; else err++;
+      } catch { err++; }
+    }
+    setDokMsg(err === 0 ? `✓ ${ok} Datei${ok !== 1 ? 'en' : ''} hochgeladen` : `${ok} ok, ${err} Fehler`);
+    await ladeDokumente();
+    setDokUploading(false);
+  }
+
+  async function dokumentLoeschen(id: string) {
+    if (!confirm('Datei wirklich löschen?')) return;
+    await fetch('/api/piloten-dateien', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, pilot: pilotName, password: pilotPw }) });
+    setDokumente(d => d.filter(x => x.id !== id));
+  }
+
+  function formatGroesse(bytes: number) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+
   function abmelden() {
     localStorage.removeItem('pilot_name');
     localStorage.removeItem('pilot_pw');
@@ -204,7 +251,7 @@ export default function PilotenModal() {
 
   const card: React.CSSProperties = {
     background: '#fff', borderRadius: 14, padding: '2rem 2.5rem',
-    width: ansicht === 'homepage-galerie' ? 'min(640px, 96vw)' : 'min(420px, 92vw)',
+    width: (ansicht === 'homepage-galerie' || ansicht === 'dokumente') ? 'min(640px, 96vw)' : 'min(420px, 92vw)',
     boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
     position: 'relative',
     maxHeight: '90dvh',
@@ -315,7 +362,8 @@ export default function PilotenModal() {
               {[
                 { href: '/kalender', icon: '📅', titel: 'Fahrtenkalender', sub: 'Termine buchen & verwalten', border: '#D6CCB8' },
                 { href: '/buchen', icon: '➕', titel: 'Fahrt buchen', sub: 'Neuen Termin eintragen', border: '#2D6B1E' },
-                { href: '/dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
+                { href: '/flyer', icon: '🖨️', titel: 'Flyer', sub: 'Druckvorlagen & Flyer', border: '#2D6B1E' },
+                { href: '#dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
                 { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
                 { href: '#banner', icon: '📢', titel: 'Banner', sub: 'Ankündigungen bearbeiten', border: '#D6CCB8' },
                 { href: '#fahrzeugfotos', icon: '🚲', titel: 'Fahrzeugfotos', sub: 'Fotos der Rikschas hochladen', border: '#D6CCB8' },
@@ -332,6 +380,7 @@ export default function PilotenModal() {
                     : k.href === '#fahrzeugfotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
                     : k.href === '#mein-foto' ? (e) => { e.preventDefault(); setAnsicht('mein-foto' as Ansicht); }
                     : k.href === '#homepage-galerie' ? (e) => { e.preventDefault(); ladeHomepageGalerie(); setAnsicht('homepage-galerie'); }
+                    : k.href === '#dokumente' ? (e) => { e.preventDefault(); ladeDokumente(); setAnsicht('dokumente'); }
                     : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
@@ -503,6 +552,68 @@ export default function PilotenModal() {
                 </div>
               </div>
             ))}
+          </>
+        )}
+
+        {/* DOKUMENTE */}
+        {ansicht === 'dokumente' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>📂</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Ablage</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Dokumente, Flyer, PDFs für das Team</div>
+              </div>
+            </div>
+
+            {/* Upload */}
+            <div style={{ background: '#F5F0E7', borderRadius: 10, padding: '1rem 1.1rem', marginBottom: '1.25rem', border: '1.5px solid #D6CCB8' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#2D6B1E', marginBottom: '0.75rem' }}>Datei hochladen</div>
+              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <input
+                  value={dokKategorie}
+                  onChange={e => setDokKategorie(e.target.value)}
+                  placeholder="Ordner / Kategorie (z. B. Flyer)"
+                  style={{ flex: 1, minWidth: 150, border: '1.5px solid #D6CCB8', borderRadius: 6, padding: '0.45rem 0.7rem', fontSize: '0.85rem', fontFamily: 'inherit', background: '#fff' }}
+                />
+                <label style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 6, padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {dokUploading ? 'Lädt hoch…' : '+ Dateien wählen'}
+                  <input ref={dokInputRef} type="file" multiple style={{ display: 'none' }} disabled={dokUploading}
+                    onChange={e => { dokumentHochladen(e.target.files); e.target.value = ''; }} />
+                </label>
+              </div>
+              {dokMsg && <div style={{ fontSize: '0.8rem', color: dokMsg.startsWith('✓') ? '#15803d' : '#dc2626' }}>{dokMsg}</div>}
+            </div>
+
+            {/* Dateiliste */}
+            {dokLaden && <div style={{ color: '#6B5C44', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>Wird geladen …</div>}
+            {!dokLaden && dokumente.length === 0 && <div style={{ color: '#6B5C44', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>Noch keine Dateien vorhanden.</div>}
+            {dokumente.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {dokumente.map(d => (
+                  <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#F5F0E7', borderRadius: 8, padding: '0.65rem 0.85rem', border: '1px solid #D6CCB8' }}>
+                    <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>
+                      {d.typ.includes('pdf') ? '📄' : d.typ.includes('image') ? '🖼️' : d.typ.includes('word') ? '📝' : '📎'}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1C1208', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#6B5C44' }}>
+                        {d.kategorie} · {formatGroesse(d.groesse)} · {d.hochgeladen_von}
+                      </div>
+                    </div>
+                    <a href={d.url} target="_blank" rel="noopener noreferrer"
+                      style={{ background: '#2D6B1E', color: '#fff', borderRadius: 6, padding: '0.35rem 0.7rem', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>
+                      ↓
+                    </a>
+                    <button onClick={() => dokumentLoeschen(d.id)}
+                      style={{ background: '#FEE2E2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '0.35rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
