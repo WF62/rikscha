@@ -290,6 +290,7 @@ export default async function FlyerPage() {
       {/* Druckleiste */}
       <nav className="print-bar">
         <a href="/">← Zurück zur Website</a>
+        <a href="/flyer/bearbeiten" style={{marginLeft:'auto',marginRight:'1rem'}}>✏️ Fotos &amp; Texte bearbeiten</a>
         <PrintButton />
       </nav>
 

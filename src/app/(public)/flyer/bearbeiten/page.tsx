@@ -1,12 +1,12 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-const FOTOS: { schluessel: string; label: string; hinweis: string }[] = [
-  { schluessel: 'flyer_foto_fahrt1',  label: 'Foto Fahrt 1',       hinweis: 'Erscheint im Abschnitt „Fahrtwind für alle" (linkes Foto)' },
-  { schluessel: 'flyer_foto_fahrt2',  label: 'Foto Fahrt 2',       hinweis: 'Erscheint im Abschnitt „Fahrtwind für alle" (rechtes Foto)' },
-  { schluessel: 'flyer_foto_lotte',   label: 'Foto Flotte Lotte',  hinweis: 'Erscheint auf der Rückseite beim Rikscha-Abschnitt' },
-  { schluessel: 'flyer_foto_flitzer', label: 'Foto Flinker Flitzer', hinweis: 'Erscheint auf der Rückseite beim Liegetandem-Abschnitt' },
-  { schluessel: 'flyer_foto_piter',   label: 'Foto Jruuse Piter',  hinweis: 'Erscheint auf der Rückseite beim Paralleltandem-Abschnitt' },
+const FOTOS: { schluessel: string; label: string; emoji: string; hinweis: string }[] = [
+  { schluessel: 'flyer_foto_lotte',   emoji: '🟡', label: 'Flotte Lotte',    hinweis: 'Rikscha · bis 2 Gäste · Rückseite oben (oranges Panel)' },
+  { schluessel: 'flyer_foto_piter',   emoji: '🟣', label: 'Jruuse Piter',    hinweis: 'Paralleltandem · 1 Gast · Rückseite Mitte (lila Panel)' },
+  { schluessel: 'flyer_foto_flitzer', emoji: '🔵', label: 'Flinker Flitzer', hinweis: 'Liegetandem · 1 Gast · Rückseite Mitte (blaues Panel)' },
+  { schluessel: 'flyer_foto_fahrt1',  emoji: '📸', label: 'Fahrtfoto 1',     hinweis: 'Vorderseite „Fahrtwind für alle" · linkes Foto' },
+  { schluessel: 'flyer_foto_fahrt2',  emoji: '📸', label: 'Fahrtfoto 2',     hinweis: 'Vorderseite „Fahrtwind für alle" · rechtes Foto' },
 ];
 
 const TEXTE: { schluessel: string; label: string; hinweis: string }[] = [
@@ -252,12 +252,12 @@ export default function FlyerBearbeitenPage() {
             {/* Fotos */}
             <h2 className="section-head">📷 Fotos</h2>
             <div className="foto-grid">
-              {FOTOS.map(({ schluessel, label, hinweis }) => {
+              {FOTOS.map(({ schluessel, emoji, label, hinweis }) => {
                 const url = feldWert(schluessel);
                 const st  = uploadStatus[schluessel] || '';
                 return (
                   <div key={schluessel} className="foto-card">
-                    <div className="foto-card-label">{label}</div>
+                    <div className="foto-card-label">{emoji} {label}</div>
                     <div className="foto-card-hinweis">{hinweis}</div>
                     {url
                       ? <img src={url} alt={label} className="foto-preview" />
