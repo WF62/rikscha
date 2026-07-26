@@ -352,7 +352,7 @@ export default async function FlyerPage() {
           {/* V1: Gutschein */}
           <div className="panel p1 v1">
             <div className="panel-title-top pt-gold">
-              <span className="pt-icon" style={{padding:'0 0.1rem'}}><img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="Logo" style={{width:18,height:18,borderRadius:'50%',objectFit:'cover',verticalAlign:'middle'}}/></span>
+              <span className="pt-icon">🎁</span>
               <span className="pt-label">Geschenkgutschein · Rikschafahrt · Mertener Rikschakutscher</span>
             </div>
             <div className="voucher-head">
@@ -391,6 +391,7 @@ export default async function FlyerPage() {
                 </div>
               </div>
               <div className="voucher-side">
+                <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="Logo" style={{width:52,height:52,borderRadius:'50%',objectFit:'cover',alignSelf:'center',marginBottom:'0.3rem'}}/>
                 <div className="voucher-brand">
                   Mertener<br/>Rikschakutscher
                   <small>Bornheim-Merten · seit 2018</small>
