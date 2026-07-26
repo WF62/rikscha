@@ -1,27 +1,39 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-type Foto = { id: string; url: string; beschreibung: string; pilot: string; created_at: string };
+type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string };
 type UploadDatei = { datei: File; vorschau: string; beschreibung: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
+
 export default function GaleriePage() {
-  const [fotos, setFotos]       = useState<Foto[]>([]);
-  const [galLaden, setGalLaden] = useState(true);
-  const [pilot]                  = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
-  const [password]               = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
-  const [dateien, setDateien]   = useState<UploadDatei[]>([]);
+  const [fotos, setFotos]         = useState<Foto[]>([]);
+  const [galLaden, setGalLaden]   = useState(true);
+  const [pilot]                    = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
+  const [password]                 = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
+  const [dateien, setDateien]     = useState<UploadDatei[]>([]);
+  const [kategorie, setKategorie] = useState('Ausfahrten');
   const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const ordnerRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver]   = useState(false);
+  const [filterPilot, setFilterPilot] = useState('');
+  const [filterKat, setFilterKat]     = useState('');
+  const inputRef   = useRef<HTMLInputElement>(null);
+  const ordnerRef  = useRef<HTMLInputElement>(null);
 
   useEffect(() => { ladeGalerie(); }, []);
 
   async function ladeGalerie() {
     setGalLaden(true);
-    try { const res = await fetch('/api/galerie'); setFotos(await res.json()); } catch {}
+    try {
+      const params = new URLSearchParams();
+      if (filterPilot) params.set('pilot', filterPilot);
+      if (filterKat)   params.set('kategorie', filterKat);
+      const res = await fetch('/api/galerie?' + params.toString());
+      setFotos(await res.json());
+    } catch {}
     setGalLaden(false);
   }
+
+  useEffect(() => { ladeGalerie(); }, [filterPilot, filterKat]);
 
   function dateiHinzufuegen(files: FileList | null) {
     if (!files) return;
@@ -39,6 +51,8 @@ export default function GaleriePage() {
     setDateien(d => d.map((x, j) => j === i ? { ...x, beschreibung: text } : x));
   }
 
+  const aktiveKat = kategorie.trim() || 'Sonstiges';
+
   async function hochladen() {
     const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
     if (offene.length === 0) return;
@@ -47,13 +61,13 @@ export default function GaleriePage() {
     for (let i = 0; i < dateien.length; i++) {
       const d = dateien[i];
       if (d.status !== 'warten' && d.status !== 'err') continue;
-
       setDateien(prev => prev.map((x, j) => j === i ? { ...x, status: 'laden' } : x));
 
       const form = new FormData();
       form.append('pilot', pilot);
       form.append('password', password || 'skip');
       form.append('beschreibung', d.beschreibung);
+      form.append('kategorie', aktiveKat);
       form.append('datei', d.datei);
 
       try {
@@ -77,9 +91,11 @@ export default function GaleriePage() {
     setDateien(d => d.filter(x => x.status !== 'ok'));
   }
 
-  const istPilot = !!pilot;
-  const anzahlOffen = dateien.filter(d => d.status === 'warten' || d.status === 'err').length;
-  const anzahlOk = dateien.filter(d => d.status === 'ok').length;
+  const istPilot      = !!pilot;
+  const anzahlOffen   = dateien.filter(d => d.status === 'warten' || d.status === 'err').length;
+  const anzahlOk      = dateien.filter(d => d.status === 'ok').length;
+  const allePiloten   = Array.from(new Set(fotos.map(f => f.pilot))).sort();
+  const alleKats      = Array.from(new Set(fotos.map(f => f.kategorie).filter(Boolean))).sort() as string[];
 
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -103,22 +119,34 @@ export default function GaleriePage() {
     .page-body { max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
     h1 { font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
     .eyebrow { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 0.5rem; }
-    .lead { color: var(--mid); margin-bottom: 2.5rem; }
+    .lead { color: var(--mid); margin-bottom: 1.5rem; }
+    .filter-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+    .filter-bar select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.45rem 0.7rem; font-size: 0.85rem; background: var(--surface); color: var(--ink); cursor: pointer; }
+    .filter-bar select:focus { outline: none; border-color: var(--green); }
+    .filter-reset { background: none; border: none; color: var(--mid); font-size: 0.82rem; cursor: pointer; text-decoration: underline; }
+    .filter-reset:hover { color: var(--ink); }
+    .filter-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); }
     .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 3rem; }
     .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
     .galerie-info { padding: 0.75rem 1rem; }
     .galerie-beschreibung { font-size: 0.92rem; color: var(--ink); margin-bottom: 0.3rem; line-height: 1.45; }
-    .galerie-meta { font-size: 0.75rem; color: var(--mid); }
+    .galerie-meta { font-size: 0.75rem; color: var(--mid); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .galerie-kat { background: var(--green-soft); color: var(--green); border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
     .upload-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; }
     .upload-section h2 { font-family: var(--serif); font-size: 1.4rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
+    .kat-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 1rem 0 0; }
+    .kat-row label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); white-space: nowrap; }
+    .kat-row select, .kat-row input { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.7rem; font-size: 0.9rem; background: var(--ground); color: var(--ink); font-family: var(--sans); outline: none; }
+    .kat-row select:focus, .kat-row input:focus { border-color: var(--green); }
     .drop-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin: 1.25rem 0; }
     .drop-zone:hover, .drop-zone.active { border-color: var(--green); background: var(--green-soft); }
     .drop-zone-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
     .drop-zone-text { font-size: 0.95rem; color: var(--mid); }
     .drop-zone-hint { font-size: 0.78rem; color: var(--mid); margin-top: 0.35rem; opacity: 0.7; }
     .btn-waehlen { background: var(--green); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
+    .btn-waehlen-grau { background: var(--mid); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
     .upload-liste { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
     .upload-item { display: grid; grid-template-columns: 80px 1fr auto; gap: 0.75rem; align-items: center; background: var(--ground); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.75rem; }
     .upload-item.status-ok { border-color: #86efac; background: #f0fdf4; }
@@ -163,16 +191,42 @@ export default function GaleriePage() {
         <h1>Galerie</h1>
         <p className="lead">Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
 
+        {/* Filter */}
+        {(allePiloten.length > 0 || alleKats.length > 0) && (
+          <div className="filter-bar">
+            <span className="filter-label">Filtern:</span>
+            {allePiloten.length > 1 && (
+              <select value={filterPilot} onChange={e => setFilterPilot(e.target.value)}>
+                <option value="">Alle Piloten</option>
+                {allePiloten.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            )}
+            {alleKats.length > 1 && (
+              <select value={filterKat} onChange={e => setFilterKat(e.target.value)}>
+                <option value="">Alle Kategorien</option>
+                {alleKats.map(k => <option key={k} value={k}>{k}</option>)}
+              </select>
+            )}
+            {(filterPilot || filterKat) && (
+              <button className="filter-reset" onClick={() => { setFilterPilot(''); setFilterKat(''); }}>
+                Filter zurücksetzen
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="galerie-grid">
           {galLaden && <div className="galerie-empty">Fotos werden geladen …</div>}
-          {!galLaden && fotos.length === 0 && <div className="galerie-empty">Noch keine Fotos vorhanden — ladet das erste Foto hoch!</div>}
+          {!galLaden && fotos.length === 0 && <div className="galerie-empty">Keine Fotos gefunden.</div>}
           {fotos.map(f => (
             <div key={f.id} className="galerie-card">
               <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
               <div className="galerie-info">
                 {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
                 <div className="galerie-meta">
-                  {f.pilot} · {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  <span>{f.pilot}</span>
+                  {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}
+                  <span>· {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 </div>
               </div>
             </div>
@@ -186,6 +240,17 @@ export default function GaleriePage() {
               <h2>📷 Fotos hochladen</h2>
               <p style={{fontSize:'0.85rem',color:'var(--mid)'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
 
+              {/* Kategorie-Auswahl */}
+              <div className="kat-row">
+                <label>Kategorie / Ordner:</label>
+                <input
+                  value={kategorie}
+                  onChange={e => setKategorie(e.target.value)}
+                  placeholder="z. B. Ausfahrten, Geburtstag, Sommer 2025"
+                  style={{minWidth: 220}}
+                />
+              </div>
+
               {/* Drop-Zone */}
               <div
                 className={`drop-zone${dragOver ? ' active' : ''}`}
@@ -196,33 +261,22 @@ export default function GaleriePage() {
               >
                 <div className="drop-zone-icon">🖼️</div>
                 <div className="drop-zone-text">Fotos hier hineinziehen oder klicken zum Auswählen</div>
-                <div className="drop-zone-hint">Mehrere Dateien auf einmal möglich · JPG, PNG, HEIC, WebP</div>
+                <div className="drop-zone-hint">Mehrere Dateien und ganze Ordner möglich · JPG, PNG, HEIC, WebP</div>
                 <div style={{display:'flex',gap:'0.6rem',justifyContent:'center',flexWrap:'wrap',marginTop:'0.75rem'}}>
                   <button className="btn-waehlen" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}>
                     Dateien auswählen
                   </button>
-                  <button className="btn-waehlen" style={{background:'var(--mid)'}} onClick={e => { e.stopPropagation(); ordnerRef.current?.click(); }}>
+                  <button className="btn-waehlen-grau" onClick={e => { e.stopPropagation(); ordnerRef.current?.click(); }}>
                     📁 Ordner auswählen
                   </button>
                 </div>
               </div>
+              <input ref={inputRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e => dateiHinzufuegen(e.target.files)} />
               <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                style={{display:'none'}}
-                onChange={e => dateiHinzufuegen(e.target.files)}
-              />
-              <input
-                ref={ordnerRef}
-                type="file"
-                accept="image/*"
-                multiple
+                ref={ordnerRef} type="file" accept="image/*" multiple
                 // @ts-expect-error webkitdirectory is non-standard but widely supported
                 webkitdirectory=""
-                style={{display:'none'}}
-                onChange={e => dateiHinzufuegen(e.target.files)}
+                style={{display:'none'}} onChange={e => dateiHinzufuegen(e.target.files)}
               />
 
               {/* Dateiliste */}
@@ -243,9 +297,9 @@ export default function GaleriePage() {
                               disabled={d.status === 'laden'}
                             />
                           )}
-                          {d.status === 'ok' && <div className="upload-item-status ok">✓ Hochgeladen</div>}
+                          {d.status === 'ok'    && <div className="upload-item-status ok">✓ Hochgeladen in „{aktiveKat}"</div>}
                           {d.status === 'laden' && <div className="upload-item-status laden">Wird hochgeladen …</div>}
-                          {d.status === 'err' && <div className="upload-item-status err">✗ {d.meldung}</div>}
+                          {d.status === 'err'   && <div className="upload-item-status err">✗ {d.meldung}</div>}
                         </div>
                         <button className="btn-entfernen" onClick={() => entfernen(i)} title="Entfernen">×</button>
                       </div>
@@ -256,15 +310,13 @@ export default function GaleriePage() {
                     <button className="btn-submit" onClick={hochladen} disabled={uploading || anzahlOffen === 0}>
                       {uploading
                         ? 'Wird hochgeladen …'
-                        : `${anzahlOffen} Foto${anzahlOffen !== 1 ? 's' : ''} hochladen`}
+                        : `${anzahlOffen} Foto${anzahlOffen !== 1 ? 's' : ''} → „${aktiveKat}" hochladen`}
                     </button>
                     {anzahlOk > 0 && (
-                      <button className="btn-clear" onClick={alleErfolgreichEntfernen}>
-                        Erledigte entfernen ({anzahlOk})
-                      </button>
+                      <button className="btn-clear" onClick={alleErfolgreichEntfernen}>Erledigte entfernen ({anzahlOk})</button>
                     )}
                     <span className="upload-summary">
-                      {dateien.length} Datei{dateien.length !== 1 ? 'en' : ''} ausgewählt
+                      {dateien.length} Datei{dateien.length !== 1 ? 'en' : ''}
                       {anzahlOk > 0 ? ` · ${anzahlOk} fertig` : ''}
                     </span>
                   </div>
