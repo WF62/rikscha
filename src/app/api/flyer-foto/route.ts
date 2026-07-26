@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
   const filename = `${schluessel}-${Date.now()}.${ext}`;
   const bytes = await datei.arrayBuffer();
 
-  // In piloten-dateien Bucket hochladen (erscheint in der Ablage)
   const { error: uploadError } = await db.storage
     .from('piloten-dateien')
     .upload(filename, bytes, { contentType: datei.type, upsert: true });
@@ -52,19 +51,32 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = db.storage.from('piloten-dateien').getPublicUrl(filename);
 
-  // In inhalte speichern (verknüpft mit dem Flyer)
-  const { error: inhalteError } = await db
+  // Prüfen ob Zeile bereits existiert, dann update sonst insert
+  const now = new Date().toISOString();
+  const bezeichnung = BEZEICHNUNGEN[schluessel] ?? schluessel;
+
+  const { data: existing } = await db
     .from('inhalte')
-    .upsert(
-      { schluessel, wert: publicUrl, bezeichnung: BEZEICHNUNGEN[schluessel] ?? schluessel, geaendert_von: pilot, geaendert_am: new Date().toISOString() },
-      { onConflict: 'schluessel' }
-    );
+    .select('schluessel')
+    .eq('schluessel', schluessel)
+    .maybeSingle();
 
-  if (inhalteError) return NextResponse.json({ error: inhalteError.message }, { status: 500, headers: CORS });
+  if (existing) {
+    const { error } = await db
+      .from('inhalte')
+      .update({ wert: publicUrl, bezeichnung, geaendert_von: pilot, geaendert_am: now })
+      .eq('schluessel', schluessel);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+  } else {
+    const { error } = await db
+      .from('inhalte')
+      .insert({ schluessel, wert: publicUrl, bezeichnung, geaendert_von: pilot, geaendert_am: now });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+  }
 
-  // Zusätzlich in piloten_dateien Tabelle eintragen (erscheint in der Ablage)
+  // Zusätzlich in Ablage eintragen
   await db.from('piloten_dateien').insert({
-    name: BEZEICHNUNGEN[schluessel] ?? datei.name,
+    name: bezeichnung,
     kategorie: 'Flyer',
     url: publicUrl,
     groesse: datei.size,
