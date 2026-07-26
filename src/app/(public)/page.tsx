@@ -19,6 +19,9 @@ const DEFAULTS: Record<string, string> = {
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
   piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  foto_lotte:        '',
+  foto_flitzer:      '',
+  foto_piter:        '',
   team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
   kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
@@ -137,10 +140,16 @@ export default async function WebsitePage() {
 
         .fahrzeuge-section { background: #F5F0E7; }
         .fahrzeug-list { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
-        .fahrzeug-row { display: grid; grid-template-columns: 180px 1fr; gap: 2rem; align-items: start; padding: 2rem 0; border-top: 1px solid var(--border); }
+        .fahrzeug-row { display: grid; grid-template-columns: 260px 1fr; gap: 2.5rem; align-items: start; padding: 2.5rem 0; border-top: 1px solid var(--border); }
         .fahrzeug-row:last-child { border-bottom: 1px solid var(--border); }
-        .fahrzeug-badge { width: 100%; aspect-ratio: 3/2; border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; }
-        .fahrzeug-badge svg { width: 48px; height: 48px; }
+        .fahrzeug-foto-wrap { width: 100%; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; position: relative; }
+        .fahrzeug-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fahrzeug-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; border-radius: 8px; }
+        .fahrzeug-placeholder svg { width: 52px; height: 52px; }
+        .placeholder-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
+        .placeholder-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
+        .placeholder-piter { background: var(--piter-bg); color: var(--piter-fg); }
+        .foto-hinweis { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.85); font-size: 0.68rem; text-align: center; padding: 0.3rem; }
         .badge-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
         .badge-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .badge-piter { background: var(--piter-bg); color: var(--piter-fg); }
@@ -228,7 +237,8 @@ export default async function WebsitePage() {
           section { padding: 3rem 1.25rem; }
           .hero { padding: 3.5rem 1.25rem 3.5rem; }
           .fahrzeug-row { grid-template-columns: 1fr; }
-          .fahrzeug-badge { aspect-ratio: 2/1; max-width: 220px; }
+          .fahrzeug-row { grid-template-columns: 1fr; }
+          .fahrzeug-foto-wrap { max-width: 320px; }
           .form-row { grid-template-columns: 1fr; }
           .melde-box { flex-direction: column; }
           .big-3 { font-size: 40vw; opacity: 0.5; }
@@ -319,9 +329,15 @@ export default async function WebsitePage() {
           <p>Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.</p>
           <div className="fahrzeug-list">
             <div className="fahrzeug-row" id="fahrzeug-lotte">
-              <div className="fahrzeug-badge badge-lotte">
-                <svg viewBox="0 0 64 40" fill="none"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
-                Rikscha
+              <div className="fahrzeug-foto-wrap">
+                {t.foto_lotte
+                  ? <img src={t.foto_lotte} alt="Flotte Lotte" />
+                  : <div className="fahrzeug-placeholder placeholder-lotte">
+                      <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
+                      Rikscha
+                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                    </div>
+                }
               </div>
               <div>
                 <div className="fahrzeug-name">Flotte Lotte</div>
@@ -331,9 +347,15 @@ export default async function WebsitePage() {
               </div>
             </div>
             <div className="fahrzeug-row" id="fahrzeug-flitzer">
-              <div className="fahrzeug-badge badge-flitzer">
-                <svg viewBox="0 0 64 40" fill="none"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
-                Liegetandem
+              <div className="fahrzeug-foto-wrap">
+                {t.foto_flitzer
+                  ? <img src={t.foto_flitzer} alt="Flinker Flitzer" />
+                  : <div className="fahrzeug-placeholder placeholder-flitzer">
+                      <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
+                      Liegetandem
+                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                    </div>
+                }
               </div>
               <div>
                 <div className="fahrzeug-name">Flinker Flitzer</div>
@@ -343,9 +365,15 @@ export default async function WebsitePage() {
               </div>
             </div>
             <div className="fahrzeug-row" id="fahrzeug-piter">
-              <div className="fahrzeug-badge badge-piter">
-                <svg viewBox="0 0 64 40" fill="none"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
-                Paralleltandem
+              <div className="fahrzeug-foto-wrap">
+                {t.foto_piter
+                  ? <img src={t.foto_piter} alt="Jruuse Piter" />
+                  : <div className="fahrzeug-placeholder placeholder-piter">
+                      <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
+                      Paralleltandem
+                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                    </div>
+                }
               </div>
               <div>
                 <div className="fahrzeug-name">Jruuse Piter</div>

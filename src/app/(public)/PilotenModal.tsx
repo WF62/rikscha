@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 
-type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner';
+type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos';
 
 export default function PilotenModal() {
   const [offen, setOffen] = useState(false);
@@ -17,6 +17,8 @@ export default function PilotenModal() {
   const [pilotPw, setPilotPw] = useState('');
   const [bannerTexte, setBannerTexte] = useState<string[]>(['']);
   const [bannerSaving, setBannerSaving] = useState(false);
+  const [fotoUploading, setFotoUploading] = useState<string | null>(null);
+  const [fotoMsg, setFotoMsg] = useState<Record<string, string>>({});
   const pwInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -131,6 +133,24 @@ export default function PilotenModal() {
     });
     setBannerSaving(false);
     setAnsicht('bereich');
+  }
+
+  async function fahrzeugFotoHochladen(schluessel: string, datei: File) {
+    setFotoUploading(schluessel);
+    setFotoMsg(m => ({ ...m, [schluessel]: '' }));
+    const form = new FormData();
+    form.append('pilot', pilotName);
+    form.append('password', pilotPw);
+    form.append('schluessel', schluessel);
+    form.append('datei', datei);
+    try {
+      const res = await fetch('/api/flyer-foto', { method: 'POST', body: form });
+      const j = await res.json();
+      setFotoMsg(m => ({ ...m, [schluessel]: res.ok ? '✓ Gespeichert' : (j.error || 'Fehler') }));
+    } catch {
+      setFotoMsg(m => ({ ...m, [schluessel]: 'Verbindungsfehler' }));
+    }
+    setFotoUploading(null);
   }
 
   function abmelden() {
@@ -261,6 +281,7 @@ export default function PilotenModal() {
                 { href: '/dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
                 { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
                 { href: '#banner', icon: '📢', titel: 'Banner', sub: 'Ankündigungen bearbeiten', border: '#D6CCB8' },
+                { href: '#fahrzeugfotos', icon: '🚲', titel: 'Fahrzeugfotos', sub: 'Fotos der Rikschas hochladen', border: '#D6CCB8' },
                 { href: '/texte', icon: '✏️', titel: 'Texte bearbeiten', sub: 'Website-Texte anpassen', border: '#D6CCB8' },
                 { href: '/admin', icon: '⚙️', titel: 'Verwaltung', sub: 'Piloten & Einstellungen', border: '#D6CCB8' },
                 { href: 'tel:022279328383', icon: '📞', titel: '02227 9328383', sub: 'Koordination & Anfragen', border: '#D6CCB8' },
@@ -268,7 +289,9 @@ export default function PilotenModal() {
                 <a key={k.href + k.titel}
                   href={k.href === '#banner' ? undefined : k.href}
                   target={k.href.startsWith('/') ? '_blank' : undefined}
-                  onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); } : undefined}
+                  onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); }
+                    : k.href === '#fahrzeugfotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
+                    : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
                   <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{k.titel}</span>
@@ -325,6 +348,43 @@ export default function PilotenModal() {
                 {bannerSaving ? 'Speichern…' : 'Speichern'}
               </button>
             </div>
+          </>
+        )}
+
+        {/* FAHRZEUGFOTOS */}
+        {ansicht === 'fahrzeugfotos' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>🚲</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Fahrzeugfotos</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Fotos erscheinen sofort auf der Website</div>
+              </div>
+            </div>
+            {[
+              { schluessel: 'foto_lotte',   name: 'Flotte Lotte',    farbe: '#15803d' },
+              { schluessel: 'foto_flitzer', name: 'Flinker Flitzer', farbe: '#1d4ed8' },
+              { schluessel: 'foto_piter',   name: 'Jruuse Piter',    farbe: '#ea580c' },
+            ].map(f => (
+              <div key={f.schluessel} style={{ background: '#F5F0E7', borderRadius: 10, padding: '1rem 1.1rem', marginBottom: '0.75rem', border: '1.5px solid #D6CCB8' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: f.farbe, marginBottom: '0.5rem' }}>{f.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <label style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 1rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                    {fotoUploading === f.schluessel ? 'Lädt hoch…' : 'Foto wählen'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }}
+                      disabled={fotoUploading !== null}
+                      onChange={e => { const d = e.target.files?.[0]; if (d) fahrzeugFotoHochladen(f.schluessel, d); e.target.value = ''; }}
+                    />
+                  </label>
+                  {fotoMsg[f.schluessel] && (
+                    <span style={{ fontSize: '0.78rem', color: fotoMsg[f.schluessel].startsWith('✓') ? '#15803d' : '#dc2626' }}>
+                      {fotoMsg[f.schluessel]}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
           </>
         )}
 
