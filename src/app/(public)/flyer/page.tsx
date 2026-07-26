@@ -200,7 +200,7 @@ export default async function FlyerPage() {
         /* ── V2 Fahrten ── */
         .v2 { background: #fff; display: flex; align-items: stretch; }
         .v2-stripe { width: 6px; background: linear-gradient(to bottom, var(--green), var(--green2)); flex-shrink: 0; }
-        .v2-body { flex: 1; padding: calc(var(--tab) + 1rem) 1.2rem 1rem 1.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .v2-body { flex: 1; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .v2-body .eyebrow { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 0.15rem; }
         .v2-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: normal; color: var(--ink); margin-bottom: 0.35rem; }
         .v2-body p { font-size: 0.72rem; color: var(--mid); line-height: 1.52; margin-bottom: 0.4rem; }
@@ -208,9 +208,9 @@ export default async function FlyerPage() {
         .chip { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; }
         .chip-green { background: #d1fae5; color: #065f46; }
         .chip-gold  { background: #fef3c7; color: #92400e; }
-        .v2-photos { position: relative; flex-shrink: 0; width: 116px; align-self: stretch; overflow: hidden; }
-        .v2-photos > *:first-child { position: absolute; top: calc(var(--tab) + 0.4rem); bottom: calc(50% + 0.25rem); left: 0; right: 0.8rem; width: calc(100% - 0.8rem); object-fit: cover; border-radius: 6px; display: block; }
-        .v2-photos > *:last-child  { position: absolute; top: calc(50% + 0.25rem); bottom: 0.4rem; left: 0; right: 0.8rem; width: calc(100% - 0.8rem); object-fit: cover; border-radius: 6px; display: block; }
+        .v2-photos { display: flex; flex-direction: column; gap: 0.4rem; padding: calc(var(--tab) + 0.4rem) 0.8rem 0.4rem 0; flex-shrink: 0; width: 155px; align-self: stretch; box-sizing: border-box; }
+        .v2-photos img { flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 6px; display: block; }
+        .v2-photos .photo-ph { flex: 1; min-height: 0; width: 100%; }
 
         /* ── V3 Fahrzeuge ── */
         .v3 { background: var(--cream); padding: calc(var(--tab) + 0.8rem) 1.6rem 0.8rem; display: flex; flex-direction: column; justify-content: center; }
@@ -237,14 +237,14 @@ export default async function FlyerPage() {
         /* ── Rückseite ── */
         .fz-panel { display: flex; align-items: stretch; }
         .fz-accent { width: 8px; flex-shrink: 0; }
-        .fz-panel-body { flex: 1; padding: calc(var(--tab) + 1rem) 1.2rem 1rem 1.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .fz-panel-body { flex: 1; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .fz-panel-body .fz-label { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 0.08rem; }
         .fz-panel-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
         .fz-panel-body p { font-size: 0.71rem; line-height: 1.5; }
         .fz-panel-body .fz-badge { align-self: flex-start; margin-top: 0.35rem; font-size: 0.63rem; font-weight: 700; color: #fff; border-radius: 999px; padding: 0.1rem 0.52rem; }
-        .fz-panel-photo { position: relative; flex-shrink: 0; width: 130px; align-self: stretch; overflow: hidden; }
-        .fz-panel-photo img { position: absolute; top: calc(var(--tab) + 0.4rem); bottom: 0.4rem; right: 0.6rem; left: 0; width: calc(100% - 0.6rem); height: calc(100% - var(--tab) - 0.8rem); object-fit: cover; border-radius: 6px; display: block; }
-        .fz-panel-photo .photo-ph { position: absolute; top: calc(var(--tab) + 0.4rem); bottom: 0.4rem; right: 0.6rem; left: 0; width: calc(100% - 0.6rem); }
+        .fz-panel-photo { display: flex; flex-direction: column; padding: calc(var(--tab) + 0.4rem) 0.6rem 0.4rem 0; flex-shrink: 0; width: 165px; align-self: stretch; box-sizing: border-box; }
+        .fz-panel-photo img { flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 6px; display: block; }
+        .fz-panel-photo .photo-ph { flex: 1; min-height: 0; width: 100%; }
         .r1 { background: var(--lotte-bg); } .r1 .fz-accent { background: var(--lotte); } .r1 .fz-label { color: #92400e; } .r1 h3 { color: #78350f; } .r1 p { color: #92400e; } .r1 .fz-badge { background: var(--lotte); }
         .r2 { background: var(--flitzer-bg); } .r2 .fz-accent { background: var(--flitzer); } .r2 .fz-label { color: #075985; } .r2 h3 { color: #0c4a6e; } .r2 p { color: #075985; } .r2 .fz-badge { background: var(--flitzer); }
         .r3 { background: var(--piter-bg); } .r3 .fz-accent { background: var(--piter); } .r3 .fz-label { color: #4c1d95; } .r3 h3 { color: #3b0764; } .r3 p { color: #4c1d95; } .r3 .fz-badge { background: var(--piter); }
