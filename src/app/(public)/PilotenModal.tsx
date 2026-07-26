@@ -207,11 +207,14 @@ export default function PilotenModal() {
     width: ansicht === 'homepage-galerie' ? 'min(640px, 96vw)' : 'min(420px, 92vw)',
     boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
     position: 'relative',
+    maxHeight: '90dvh',
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch',
   };
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '5vh 0' }}
       onClick={schliessen}
     >
       <div style={card} onClick={e => e.stopPropagation()}>
