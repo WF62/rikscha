@@ -208,7 +208,7 @@ export default async function FlyerPage() {
         .chip { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; }
         .chip-green { background: #d1fae5; color: #065f46; }
         .chip-gold  { background: #fef3c7; color: #92400e; }
-        .v2-photos { display: flex; flex-direction: column; gap: 0.4rem; padding: calc(var(--tab) + 0.4rem) 0.8rem 0.4rem 0; flex-shrink: 0; width: 116px; align-self: stretch; box-sizing: border-box; }
+        .v2-photos { display: flex; flex-direction: column; gap: 0.4rem; padding: calc(var(--tab) + 0.4rem) 0.8rem 0.4rem 0; flex-shrink: 0; width: 155px; align-self: stretch; box-sizing: border-box; }
         .v2-photos img { flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 6px; display: block; }
         .v2-photos .photo-ph { flex: 1; min-height: 0; width: 100%; }
 
@@ -242,7 +242,7 @@ export default async function FlyerPage() {
         .fz-panel-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
         .fz-panel-body p { font-size: 0.71rem; line-height: 1.5; }
         .fz-panel-body .fz-badge { align-self: flex-start; margin-top: 0.35rem; font-size: 0.63rem; font-weight: 700; color: #fff; border-radius: 999px; padding: 0.1rem 0.52rem; }
-        .fz-panel-photo { display: flex; flex-direction: column; padding: calc(var(--tab) + 0.4rem) 0.6rem 0.4rem 0; flex-shrink: 0; width: 130px; align-self: stretch; box-sizing: border-box; }
+        .fz-panel-photo { display: flex; flex-direction: column; padding: calc(var(--tab) + 0.4rem) 0.6rem 0.4rem 0; flex-shrink: 0; width: 165px; align-self: stretch; box-sizing: border-box; }
         .fz-panel-photo img { flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 6px; display: block; }
         .fz-panel-photo .photo-ph { flex: 1; min-height: 0; width: 100%; }
         .r1 { background: var(--lotte-bg); } .r1 .fz-accent { background: var(--lotte); } .r1 .fz-label { color: #92400e; } .r1 h3 { color: #78350f; } .r1 p { color: #92400e; } .r1 .fz-badge { background: var(--lotte); }
