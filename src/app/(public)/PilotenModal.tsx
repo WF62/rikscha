@@ -21,8 +21,8 @@ export default function PilotenModal() {
 
   useEffect(() => {
     function handleOpen() {
-      const gespeichert = sessionStorage.getItem('pilot_name');
-      const gespeichertPw = sessionStorage.getItem('pilot_pw');
+      const gespeichert = localStorage.getItem('pilot_name');
+      const gespeichertPw = localStorage.getItem('pilot_pw');
       if (gespeichert && gespeichertPw) {
         setPilotName(gespeichert);
         setPilotPw(gespeichertPw);
@@ -67,8 +67,8 @@ export default function PilotenModal() {
       });
       const j = await res.json();
       if (res.ok) {
-        sessionStorage.setItem('pilot_name', j.pilot);
-        sessionStorage.setItem('pilot_pw', passwort);
+        localStorage.setItem('pilot_name', j.pilot);
+        localStorage.setItem('pilot_pw', passwort);
         setPilotName(j.pilot);
         setPilotPw(passwort);
         if (j.muss_pw_aendern) {
@@ -100,7 +100,7 @@ export default function PilotenModal() {
       });
       const j = await res.json();
       if (res.ok) {
-        sessionStorage.setItem('pilot_pw', neuesPw);
+        localStorage.setItem('pilot_pw', neuesPw);
         setPilotPw(neuesPw);
         setAnsicht('bereich');
       } else {
@@ -134,8 +134,8 @@ export default function PilotenModal() {
   }
 
   function abmelden() {
-    sessionStorage.removeItem('pilot_name');
-    sessionStorage.removeItem('pilot_pw');
+    localStorage.removeItem('pilot_name');
+    localStorage.removeItem('pilot_pw');
     setPilotName('');
     setPilotPw('');
     setPasswort('');

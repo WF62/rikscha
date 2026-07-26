@@ -33,9 +33,9 @@ function datumLabel(iso: string) {
 }
 
 export default function DokumentePage() {
-  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_name') ?? '' : '');
-  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_pw') ?? '' : '');
-  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!sessionStorage.getItem('pilot_name'));
+  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
+  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
+  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('pilot_name'));
   const [loginFehler, setLoginFehler] = useState('');
   const [dateien, setDateien]   = useState<Datei[]>([]);
   const [laden, setLaden]       = useState(false);
@@ -52,15 +52,15 @@ export default function DokumentePage() {
     setLoginFehler('');
     setLaden(true);
     try {
-      // Pilot via sessionStorage vorausfüllen
+      // Pilot via localStorage vorausfüllen
       const res = await fetch('/api/pilot-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pilot, password }),
       });
       if (!res.ok) { setLoginFehler('Name oder Passwort falsch.'); setLaden(false); return; }
-      sessionStorage.setItem('pilot_name', pilot);
-      sessionStorage.setItem('pilot_pw', password);
+      localStorage.setItem('pilot_name', pilot);
+      localStorage.setItem('pilot_pw', password);
       setEingeloggt(true);
       await ladeDateien();
     } catch { setLoginFehler('Verbindungsfehler.'); }
