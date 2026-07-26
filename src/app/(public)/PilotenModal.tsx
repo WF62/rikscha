@@ -234,10 +234,14 @@ export default function PilotenModal() {
               {[
                 { href: '/kalender', icon: '📅', titel: 'Fahrtenkalender', sub: 'Termine buchen & verwalten', border: '#D6CCB8' },
                 { href: '/buchen', icon: '➕', titel: 'Fahrt buchen', sub: 'Neuen Termin eintragen', border: '#2D6B1E' },
-                { href: '/dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Fotos', border: '#D6CCB8' },
+                { href: '/dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
+                { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
+                { href: '/kalender', icon: '📢', titel: 'Banner', sub: 'Banner bearbeiten (im Kalender)', border: '#D6CCB8' },
+                { href: '/texte', icon: '✏️', titel: 'Texte bearbeiten', sub: 'Website-Texte anpassen', border: '#D6CCB8' },
+                { href: '/admin', icon: '⚙️', titel: 'Verwaltung', sub: 'Piloten & Einstellungen', border: '#D6CCB8' },
                 { href: 'tel:022279328383', icon: '📞', titel: '02227 9328383', sub: 'Koordination & Anfragen', border: '#D6CCB8' },
               ].map(k => (
-                <a key={k.href} href={k.href} target={k.href.startsWith('/') ? '_blank' : undefined}
+                <a key={k.href + k.titel} href={k.href} target={k.href.startsWith('/') ? '_blank' : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
                   <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{k.titel}</span>
