@@ -46,7 +46,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   // Datei aus Storage löschen
   const filename = foto.url.split('/').pop();
   if (filename) {
-    await db.storage.from('galerie-fotos').remove([filename]);
+    await db.storage.from('piloten-dateien').remove([filename]);
   }
 
   await db.from('galerie').delete().eq('id', params.id);
