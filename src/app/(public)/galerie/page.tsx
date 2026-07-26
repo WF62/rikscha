@@ -150,16 +150,8 @@ export default function GaleriePage() {
             <hr className="divider" />
             <div className="upload-section">
               <h2>📷 Foto hinzufügen</h2>
+              <p style={{fontSize:'0.85rem',color:'var(--mid)',marginBottom:'1rem'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
               <div className="upload-grid">
-                <div className="upload-field full">
-                  <label>Dein Name</label>
-                  <select value={pilot} onChange={e => setPilot(e.target.value)}>
-                    {piloten.length > 0
-                      ? piloten.map(p => <option key={p.name} value={p.name}>{p.name}</option>)
-                      : <option value={pilot}>{pilot}</option>
-                    }
-                  </select>
-                </div>
                 <div className="upload-field full">
                   <label>Foto auswählen</label>
                   <input id="upload-datei" type="file" accept="image/*" onChange={e => setDatei(e.target.files?.[0] ?? null)} />

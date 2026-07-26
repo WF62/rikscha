@@ -266,7 +266,7 @@ export default function PilotenModal() {
         {/* PASSWORT ÄNDERN */}
         {ansicht === 'pw-aendern' && (
           <>
-            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🔑</span>
               <div>
@@ -352,7 +352,7 @@ export default function PilotenModal() {
         {/* BANNER */}
         {ansicht === 'banner' && (
           <>
-            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>📢</span>
               <div>
@@ -392,7 +392,7 @@ export default function PilotenModal() {
         {/* HOMEPAGE-GALERIE */}
         {ansicht === 'homepage-galerie' && (
           <>
-            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>🖼️ Galerie-Auswahl für Homepage</div>
@@ -432,7 +432,7 @@ export default function PilotenModal() {
         {/* MEIN FOTO */}
         {ansicht === 'mein-foto' && (
           <>
-            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🤳</span>
               <div>
@@ -469,7 +469,7 @@ export default function PilotenModal() {
         {/* FAHRZEUGFOTOS */}
         {ansicht === 'fahrzeugfotos' && (
           <>
-            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🚲</span>
               <div>
