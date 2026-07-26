@@ -57,10 +57,10 @@ export default async function FlyerPage() {
           --serif: Palatino Linotype, Palatino, Book Antiqua, Georgia, serif;
           --sans:  system-ui, -apple-system, Segoe UI, sans-serif;
           --w: 560px;
-          --h1: 280px;
-          --h2: 227px;
-          --h3: 173px;
-          --h4: 112px;
+          --h1: 237px;
+          --h2: 211px;
+          --h3: 184px;
+          --h4: 157px;
           --tab: 27px;
         }
 
@@ -262,13 +262,13 @@ export default async function FlyerPage() {
           html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; height: auto !important; }
           .print-bar, .flyer-wrap > h1, .flyer-wrap > p.page-hint, .side-label, .preview-wrap { display: none !important; }
           .flyer-wrap { padding: 0 !important; }
-          .sheet { width: 210mm; height: 297mm; box-shadow: none; margin: 0; overflow: hidden; }
+          .sheet { width: 210mm; height: 296mm; box-shadow: none; margin: 0; overflow: hidden; }
           .panel { width: 210mm; overflow: hidden; }
           .panel::before { display: none; }
-          .p1 { height: 105mm; }
-          .p2 { height:  85mm; }
-          .p3 { height:  65mm; }
-          .p4 { height:  42mm; }
+          .p1 { height: 89mm; }
+          .p2 { height: 79mm; }
+          .p3 { height: 69mm; }
+          .p4 { height: 59mm; }
           .back-sheet { page-break-before: always; break-before: page; transform: none; }
           :root { --tab: 10mm; }
         }
@@ -459,70 +459,8 @@ export default async function FlyerPage() {
         <p className="side-label">Rückseite (beim Drucken an langer Kante spiegeln · 180° gedreht)</p>
         <div className="sheet back-sheet">
 
-          {/* H1: Flotte Lotte */}
-          <div className="panel p1 r1 fz-panel">
-            <div className="panel-title-top pt-lotte">
-              <span className="pt-icon">🟡</span>
-              <span className="pt-label">Flotte Lotte · Rikscha · bis 2 Gäste</span>
-            </div>
-            <div className="fz-accent"></div>
-            <div className="fz-panel-body">
-              <div className="fz-label">Rikscha · max. 2 Gäste</div>
-              <h3>Flotte Lotte</h3>
-              <p>{c.flyer_lotte_text}</p>
-              <span className="fz-badge">👥 bis 2 Gäste</span>
-            </div>
-            <div className="fz-panel-photo">
-              {c.flyer_foto_lotte
-                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte" style={{width:128,height:230,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{width:128,height:230}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flotte Lotte</div></div>
-              }
-            </div>
-          </div>
-
-          {/* H2: Flinker Flitzer */}
-          <div className="panel p2 r2 fz-panel">
-            <div className="panel-title-top pt-flitzer">
-              <span className="pt-icon">🔵</span>
-              <span className="pt-label">Flinker Flitzer · Liegetandem · 1 Gast</span>
-            </div>
-            <div className="fz-accent"></div>
-            <div className="fz-panel-body">
-              <div className="fz-label">Liegetandem · 1 Gast</div>
-              <h3>Flinker Flitzer</h3>
-              <p>{c.flyer_flitzer_text}</p>
-              <span className="fz-badge">👤 1 Gast</span>
-            </div>
-            <div className="fz-panel-photo">
-              {c.flyer_foto_flitzer
-                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer" style={{width:128,height:178,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{width:128,height:178}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flinker Flitzer</div></div>
-              }
-            </div>
-          </div>
-
-          {/* H3: Jruuse Piter */}
-          <div className="panel p3 r3 fz-panel">
-            <div className="panel-title-top pt-piter">
-              <span className="pt-icon">🟣</span>
-              <span className="pt-label">Jruuse Piter · Paralleltandem · 1 Gast</span>
-            </div>
-            <div className="fz-accent"></div>
-            <div className="fz-panel-body">
-              <div className="fz-label">Paralleltandem · 1 Gast</div>
-              <h3>Jruuse Piter</h3>
-              <p>{c.flyer_piter_text}</p>
-              <span className="fz-badge">👤 1 Gast</span>
-            </div>
-            <div className="fz-panel-photo">
-              {c.flyer_foto_piter
-                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter" style={{width:128,height:125,objectFit:'cover',borderRadius:6}}/>
-                : <div className="photo-ph ph-dark" style={{width:128,height:125}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Jruuse Piter</div></div>
-              }
-            </div>
-          </div>
-
-          {/* H4: Spenden + Kontakt */}
+          {/* Grün unten (visuell nach 180°-Drehung): HTML-Position 1 → nach Drehung visuell unten */}
+          {/* Spenden + Kontakt → visuell UNTEN nach Drehung → p4 (59mm) */}
           <div className="panel p4 r4">
             <div className="panel-title-bottom pt-cream">
               <span className="pt-icon">💚</span>
@@ -559,6 +497,69 @@ export default async function FlyerPage() {
               </div>
               <div className="qr-ph">▣</div>
               <div className="r4-url">rikscha-merten.de</div>
+            </div>
+          </div>
+
+          {/* Lila über Grün → p3 (69mm) */}
+          <div className="panel p3 r3 fz-panel">
+            <div className="panel-title-top pt-piter">
+              <span className="pt-icon">🟣</span>
+              <span className="pt-label">Jruuse Piter · Paralleltandem · 1 Gast</span>
+            </div>
+            <div className="fz-accent"></div>
+            <div className="fz-panel-body">
+              <div className="fz-label">Paralleltandem · 1 Gast</div>
+              <h3>Jruuse Piter</h3>
+              <p>{c.flyer_piter_text}</p>
+              <span className="fz-badge">👤 1 Gast</span>
+            </div>
+            <div className="fz-panel-photo">
+              {c.flyer_foto_piter
+                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter" style={{width:128,height:115,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{width:128,height:115}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Jruuse Piter</div></div>
+              }
+            </div>
+          </div>
+
+          {/* Blau über Lila → p2 (79mm) */}
+          <div className="panel p2 r2 fz-panel">
+            <div className="panel-title-top pt-flitzer">
+              <span className="pt-icon">🔵</span>
+              <span className="pt-label">Flinker Flitzer · Liegetandem · 1 Gast</span>
+            </div>
+            <div className="fz-accent"></div>
+            <div className="fz-panel-body">
+              <div className="fz-label">Liegetandem · 1 Gast</div>
+              <h3>Flinker Flitzer</h3>
+              <p>{c.flyer_flitzer_text}</p>
+              <span className="fz-badge">👤 1 Gast</span>
+            </div>
+            <div className="fz-panel-photo">
+              {c.flyer_foto_flitzer
+                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer" style={{width:128,height:138,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{width:128,height:138}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flinker Flitzer</div></div>
+              }
+            </div>
+          </div>
+
+          {/* Orange oben (visuell) → HTML-Position 4 → nach Drehung visuell oben → p1 (89mm) */}
+          <div className="panel p1 r1 fz-panel">
+            <div className="panel-title-top pt-lotte">
+              <span className="pt-icon">🟡</span>
+              <span className="pt-label">Flotte Lotte · Rikscha · bis 2 Gäste</span>
+            </div>
+            <div className="fz-accent"></div>
+            <div className="fz-panel-body">
+              <div className="fz-label">Rikscha · max. 2 Gäste</div>
+              <h3>Flotte Lotte</h3>
+              <p>{c.flyer_lotte_text}</p>
+              <span className="fz-badge">👥 bis 2 Gäste</span>
+            </div>
+            <div className="fz-panel-photo">
+              {c.flyer_foto_lotte
+                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte" style={{width:128,height:155,objectFit:'cover',borderRadius:6}}/>
+                : <div className="photo-ph ph-dark" style={{width:128,height:155}}><div className="ph-icon">📷</div><div className="ph-label">Foto<br/>Flotte Lotte</div></div>
+              }
             </div>
           </div>
 
