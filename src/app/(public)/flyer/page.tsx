@@ -279,7 +279,8 @@ export default async function FlyerPage() {
           .voucher-sub { display: none; }
           .fill-field label { font-size: 0.48rem; }
           .fill-line { height: 16px; }
-          .fz-check { font-size: 0.58rem; }
+          .fz-check { font-size: 0.55rem; }
+          .fz-checks { flex-wrap: nowrap; gap: 0.2rem; }
           .voucher-brand { font-size: 0.56rem; }
           .sig-block { margin-top: 0.3rem; }
           .voucher-note { padding-top: 0.2rem; font-size: 0.52rem; }
