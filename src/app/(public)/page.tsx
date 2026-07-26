@@ -50,7 +50,7 @@ export default async function WebsitePage() {
           --gold:       #C8881A;
           --gold-soft:  #FBF0DC;
           --ink:        #1C1208;
-          --mid:        #6B5C44;
+          --mid:        #5A4B34;
           --ground:     #F5F0E7;
           --surface:    #FDFAF5;
           --border:     #D6CCB8;
@@ -80,7 +80,7 @@ export default async function WebsitePage() {
         :root[data-theme="light"] {
           --green: #1B4A12; --green-mid: #2E7A1F; --green-soft: #EBF3E7;
           --gold: #C8881A; --gold-soft: #FBF0DC;
-          --ink: #1C1208; --mid: #6B5C44;
+          --ink: #1C1208; --mid: #5A4B34;
           --ground: #F5F0E7; --surface: #FDFAF5; --border: #D6CCB8;
           --lotte-bg: #dcfce7; --flitzer-bg: #dbeafe; --piter-bg: #ffedd5;
         }
@@ -98,7 +98,7 @@ export default async function WebsitePage() {
         .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: var(--ground); clip-path: ellipse(55% 100% at 50% 100%); }
         .hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
         .hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: normal; line-height: 1.15; text-wrap: balance; margin-bottom: 1.25rem; }
-        .hero-sub { font-size: 1.1rem; color: rgba(255,255,255,0.8); max-width: 540px; margin: 0 auto 2rem; text-wrap: balance; }
+        .hero-sub { font-size: 1.1rem; color: rgba(255,255,255,0.92); max-width: 540px; margin: 0 auto 2rem; text-wrap: balance; }
         .vehicle-pills { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
         .pill { padding: 0.35rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em; border: 2px solid currentColor; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
         .pill:hover { opacity: 0.75; }
@@ -124,7 +124,7 @@ export default async function WebsitePage() {
         p:last-child { margin-bottom: 0; }
 
         .group-section { background: #3A7A28; color: #fff; position: relative; overflow: hidden; }
-        .group-section p { color: rgba(255,255,255,0.75); }
+        .group-section p { color: rgba(255,255,255,0.92); }
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
         .big-3 { position: absolute; right: -0.1em; top: 50%; transform: translateY(-50%); font-family: var(--serif); font-size: clamp(12rem, 22vw, 22rem); font-weight: bold; color: rgba(255,255,255,0.06); line-height: 1; pointer-events: none; user-select: none; }
@@ -179,13 +179,13 @@ export default async function WebsitePage() {
         .kontakt-section { background: #3A7A28; color: #fff; }
         .kontakt-section h2 { color: #fff; }
         .kontakt-section .eyebrow { color: var(--gold); }
-        .kontakt-section p { color: rgba(255,255,255,0.75); }
+        .kontakt-section p { color: rgba(255,255,255,0.92); }
         .kontakt-form { margin-top: 2rem; display: grid; gap: 1rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-        .form-group label { font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
-        .form-group input, .form-group textarea, .form-group select { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius); color: #fff; padding: 0.65rem 0.9rem; font-size: 0.95rem; font-family: var(--sans); outline: none; transition: border-color 0.15s; width: 100%; }
-        .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(255,255,255,0.4); }
+        .form-group label { font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.88); }
+        .form-group input, .form-group textarea, .form-group select { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35); border-radius: var(--radius); color: #fff; padding: 0.65rem 0.9rem; font-size: 0.95rem; font-family: var(--sans); outline: none; transition: border-color 0.15s; width: 100%; }
+        .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(255,255,255,0.55); }
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--gold); }
         .form-group select option { background: var(--green); color: #fff; }
         .form-group textarea { resize: vertical; min-height: 100px; }
@@ -193,8 +193,8 @@ export default async function WebsitePage() {
         footer { background: #1a1208; color: rgba(255,255,255,0.75); text-align: center; padding: 2.5rem 1rem; font-size: 0.88rem; line-height: 1.8; }
         footer a { color: #C8881A; text-decoration: none; transition: color 0.15s; }
         footer a:hover { color: #e0a030; }
-        footer .piloten-link { color: rgba(255,255,255,0.35); font-size: 0.78rem; }
-        footer .piloten-link:hover { color: rgba(255,255,255,0.6); }
+        footer .piloten-link { color: rgba(255,255,255,0.5); font-size: 0.78rem; }
+        footer .piloten-link:hover { color: rgba(255,255,255,0.8); }
 
         /* Galerie */
         .galerie-section { background: var(--ground); }
