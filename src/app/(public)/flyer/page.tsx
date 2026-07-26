@@ -251,7 +251,7 @@ export default async function FlyerPage() {
         .r2 .fz-panel-photo { flex: 2; }
 
         .r3 { background: var(--piter-bg); } .r3 .fz-accent { background: var(--piter); } .r3 .fz-label { color: #4c1d95; } .r3 h3 { color: #3b0764; } .r3 p { color: #4c1d95; } .r3 .fz-badge { background: var(--piter); }
-        .r3 .fz-panel-photo { padding-top: calc(var(--tab) + 0.4rem + 5%); padding-bottom: 5%; }
+        .r3 .fz-panel-photo img { transform: scale(0.9); transform-origin: center center; }
 
         .spenden-block { background: linear-gradient(135deg, #1a4a0e 0%, var(--green) 100%); border-radius: 7px; padding: 0.7rem 0.9rem; display: flex; flex-direction: column; gap: 0.35rem; color: #fff; flex: 1; }
         .spenden-block .sp-eye { font-size: 0.55rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
