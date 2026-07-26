@@ -9,6 +9,14 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+const BEZEICHNUNGEN: Record<string, string> = {
+  flyer_foto_lotte:   'Flyer – Flotte Lotte',
+  flyer_foto_piter:   'Flyer – Jruuse Piter',
+  flyer_foto_flitzer: 'Flyer – Flinker Flitzer',
+  flyer_foto_fahrt1:  'Flyer – Fahrtfoto 1',
+  flyer_foto_fahrt2:  'Flyer – Fahrtfoto 2',
+};
+
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
 }
@@ -16,10 +24,10 @@ export async function OPTIONS() {
 export async function POST(req: NextRequest) {
   const db = createServiceClient();
   const form = await req.formData();
-  const pilot    = form.get('pilot')    as string;
-  const password = form.get('password') as string;
-  const schluessel = form.get('schluessel') as string; // z.B. "flyer_foto_lotte"
-  const datei    = form.get('datei')    as File | null;
+  const pilot      = form.get('pilot')      as string;
+  const password   = form.get('password')   as string;
+  const schluessel = form.get('schluessel') as string;
+  const datei      = form.get('datei')      as File | null;
 
   if (!pilot || !password || !schluessel || !datei) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400, headers: CORS });
@@ -33,23 +41,37 @@ export async function POST(req: NextRequest) {
   const filename = `${schluessel}-${Date.now()}.${ext}`;
   const bytes = await datei.arrayBuffer();
 
+  // In piloten-dateien Bucket hochladen (erscheint in der Ablage)
   const { error: uploadError } = await db.storage
-    .from('galerie-fotos')
+    .from('piloten-dateien')
     .upload(filename, bytes, { contentType: datei.type, upsert: true });
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500, headers: CORS });
   }
 
-  const { data: { publicUrl } } = db.storage.from('galerie-fotos').getPublicUrl(filename);
+  const { data: { publicUrl } } = db.storage.from('piloten-dateien').getPublicUrl(filename);
 
-  const { error } = await db
+  // In inhalte speichern (verknüpft mit dem Flyer)
+  const { error: inhalteError } = await db
     .from('inhalte')
     .upsert(
-      { schluessel, wert: publicUrl, bezeichnung: schluessel, geaendert_von: pilot, geaendert_am: new Date().toISOString() },
+      { schluessel, wert: publicUrl, bezeichnung: BEZEICHNUNGEN[schluessel] ?? schluessel, geaendert_von: pilot, geaendert_am: new Date().toISOString() },
       { onConflict: 'schluessel' }
     );
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+  if (inhalteError) return NextResponse.json({ error: inhalteError.message }, { status: 500, headers: CORS });
+
+  // Zusätzlich in piloten_dateien Tabelle eintragen (erscheint in der Ablage)
+  await db.from('piloten_dateien').insert({
+    name: BEZEICHNUNGEN[schluessel] ?? datei.name,
+    kategorie: 'Flyer',
+    url: publicUrl,
+    groesse: datei.size,
+    typ: datei.type,
+    hochgeladen_von: pilot,
+    storage_pfad: filename,
+  });
+
   return NextResponse.json({ url: publicUrl }, { headers: CORS });
 }
