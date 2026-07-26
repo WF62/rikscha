@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 
@@ -11,10 +12,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     update.storniert    = true;
     update.storniert_am = new Date().toISOString();
   }
-  if (body.notiz    !== undefined) update.notiz    = body.notiz;
-  if (body.pilot    !== undefined) update.pilot    = body.pilot;
-  if (body.fahrzeug !== undefined) update.fahrzeug = body.fahrzeug;
-  if (body.gaeste   !== undefined) update.gaeste   = body.gaeste;
+  if (body.notiz     !== undefined) update.notiz     = body.notiz;
+  if (body.pilot     !== undefined) update.pilot     = body.pilot;
+  if (body.fahrzeug  !== undefined) update.fahrzeug  = body.fahrzeug;
+  if (body.gaeste    !== undefined) update.gaeste    = body.gaeste;
+  if (body.datum     !== undefined) update.datum     = body.datum;
+  if (body.startzeit !== undefined) update.startzeit = body.startzeit;
+  if (body.endzeit   !== undefined) update.endzeit   = body.endzeit;
 
   const { data, error } = await sb
     .from('rikscha_buchungen')
