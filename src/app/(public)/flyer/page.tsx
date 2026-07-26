@@ -352,7 +352,7 @@ export default async function FlyerPage() {
           {/* V1: Gutschein */}
           <div className="panel p1 v1">
             <div className="panel-title-top pt-gold">
-              <span className="pt-icon">🎁</span>
+              <span className="pt-icon" style={{padding:'0 0.1rem'}}><img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="Logo" style={{width:18,height:18,borderRadius:'50%',objectFit:'cover',verticalAlign:'middle'}}/></span>
               <span className="pt-label">Geschenkgutschein · Rikschafahrt · Mertener Rikschakutscher</span>
             </div>
             <div className="voucher-head">
