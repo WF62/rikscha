@@ -88,15 +88,15 @@ export default async function WebsitePage() {
 
         body { font-family: var(--sans); background: var(--ground); color: var(--ink); font-size: 17px; line-height: 1.65; }
 
-        nav { position: sticky; top: 0; z-index: 100; background: #2D6B1E; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; gap: 1rem; }
+        nav { position: sticky; top: 0; z-index: 100; background: #1C4A10; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1.5rem; min-height: 52px; gap: 1rem; box-shadow: 0 3px 12px rgba(0,0,0,0.35); border-bottom: 2px solid rgba(0,0,0,0.2); flex-wrap: wrap; }
         .nav-logo { font-family: var(--serif); font-size: 1rem; font-weight: bold; white-space: nowrap; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-        .nav-links { display: flex; gap: 0.75rem; list-style: none; flex-wrap: nowrap; align-items: center; }
+        .nav-links { display: flex; gap: 0.75rem; list-style: none; flex-wrap: wrap; align-items: center; }
         .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.02em; transition: color 0.15s; white-space: nowrap; }
         .nav-links a:hover { color: #fff; }
         .nav-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 0.25rem 0.7rem; font-weight: 600; }
 
-        .hero { background: #3A7A28; color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
-        .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: var(--ground); clip-path: ellipse(55% 100% at 50% 100%); }
+        .hero { background: linear-gradient(160deg, #3A8A26 0%, #2D6B1E 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
+        .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: #F5F0E7; clip-path: ellipse(55% 100% at 50% 100%); }
         .hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
         .hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: normal; line-height: 1.15; text-wrap: balance; margin-bottom: 1.25rem; }
         .hero-sub { font-size: 1.1rem; color: rgba(255,255,255,0.92); max-width: 540px; margin: 0 auto 2rem; text-wrap: balance; }
@@ -115,7 +115,7 @@ export default async function WebsitePage() {
         .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
         section { padding: 4.5rem 2rem; }
-        .container { max-width: 860px; margin: 0 auto; }
+        .container { max-width: 1080px; margin: 0 auto; }
         .container-wide { max-width: 1080px; margin: 0 auto; }
         .section-rule { border: none; border-top: 1px solid var(--border); margin: 0; }
         .eyebrow { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 0.6rem; }
@@ -124,17 +124,17 @@ export default async function WebsitePage() {
         p { color: var(--mid); margin-bottom: 1rem; }
         p:last-child { margin-bottom: 0; }
 
-        .group-section { background: #3A7A28; color: #fff; position: relative; overflow: hidden; }
+        .group-section { background: #14380A; color: #fff; position: relative; overflow: hidden; }
         .group-section p { color: rgba(255,255,255,0.92); }
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
         .big-3 { position: absolute; right: -0.1em; top: 50%; transform: translateY(-50%); font-family: var(--serif); font-size: clamp(12rem, 22vw, 22rem); font-weight: bold; color: rgba(255,255,255,0.06); line-height: 1; pointer-events: none; user-select: none; }
         .group-inner { max-width: 600px; position: relative; z-index: 1; }
         .anlaesse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1.75rem; }
-        .anlass { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 0.95rem; color: rgba(255,255,255,0.9); }
+        .anlass { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 0.95rem; color: rgba(255,255,255,0.95); }
         .anlass-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
 
-        .fahrzeuge-section { background: var(--surface); }
+        .fahrzeuge-section { background: #F5F0E7; }
         .fahrzeug-list { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
         .fahrzeug-row { display: grid; grid-template-columns: 180px 1fr; gap: 2rem; align-items: start; padding: 2rem 0; border-top: 1px solid var(--border); }
         .fahrzeug-row:last-child { border-bottom: 1px solid var(--border); }
@@ -150,13 +150,13 @@ export default async function WebsitePage() {
         .gaeste-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .gaeste-piter { background: var(--piter-bg); color: var(--piter-fg); }
 
-        .piloten-section { background: var(--ground); }
+        .piloten-section { background: #FDFAF5; }
         .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; margin-top: 2rem; }
         .pilot-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center; }
         .pilot-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1.4rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-weight: bold; }
         .pilot-name { font-size: 0.88rem; font-weight: 600; color: var(--ink); }
 
-        .ausbildung-section { background: var(--surface); }
+        .ausbildung-section { background: #F5F0E7; }
         .steps { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 2rem; }
         .step { display: flex; gap: 1.25rem; align-items: flex-start; }
         .step-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
@@ -165,7 +165,7 @@ export default async function WebsitePage() {
         .melde-box h3 { margin-bottom: 0.25rem; }
         .melde-box p { margin: 0; font-size: 0.92rem; }
 
-        .zukunft-section { background: var(--ground); }
+        .zukunft-section { background: #FDFAF5; }
         .zukunft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
         .zukunft-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
         .zukunft-icon { font-size: 1.8rem; margin-bottom: 0.75rem; display: block; }
@@ -177,7 +177,7 @@ export default async function WebsitePage() {
         .iban { font-family: monospace; font-size: 0.88rem; background: var(--ground); padding: 0.6rem 0.8rem; border-radius: var(--radius); letter-spacing: 0.04em; word-break: break-all; color: var(--ink); display: block; margin-top: 0.5rem; }
         .btn-paypal { background: #003087; color: #fff; display: inline-flex; align-items: center; gap: 0.5rem; width: 100%; justify-content: center; margin-top: 0.5rem; }
 
-        .kontakt-section { background: #3A7A28; color: #fff; }
+        .kontakt-section { background: #1C4A10; color: #fff; }
         .kontakt-section h2 { color: #fff; }
         .kontakt-section .eyebrow { color: var(--gold); }
         .kontakt-section p { color: rgba(255,255,255,0.92); }
@@ -198,7 +198,7 @@ export default async function WebsitePage() {
         footer .piloten-link:hover { color: rgba(255,255,255,0.8); }
 
         /* Galerie */
-        .galerie-section { background: var(--ground); }
+        .galerie-section { background: #F5F0E7; }
         .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
         .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
         .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
