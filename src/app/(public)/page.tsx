@@ -539,7 +539,7 @@ export default async function WebsitePage() {
         <p style={{marginTop:'0.25rem'}}>📞 <a href="tel:022279328383">02227 9328383</a></p>
         <p style={{marginTop:'1rem',borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:'1rem'}}>
           <a href="/impressum">Impressum</a> &nbsp;·&nbsp; <a href="/datenschutz">Datenschutz</a>
-          &nbsp;·&nbsp; <a href="javascript:void(0)" className="piloten-link" id="piloten-link">Piloten</a>
+          &nbsp;·&nbsp; <a href="javascript:void(0)" className="piloten-link" onClick={(e) => { e.preventDefault(); const g = sessionStorage.getItem('pilot_name'); if(g){document.getElementById('pilot-name-display')!.textContent=g;document.getElementById('piloten-bereich')!.style.display='block';document.body.style.overflow='hidden';}else{if((window as any).rikschaLadeNamen)(window as any).rikschaLadeNamen();(document.getElementById('pw-overlay') as HTMLElement).style.display='flex';} }}>Piloten</a>
         </p>
         <p style={{marginTop:'0.5rem',fontSize:'0.75rem',color:'rgba(255,255,255,0.3)'}}>© 2025</p>
       </footer>
@@ -617,16 +617,7 @@ export default async function WebsitePage() {
       </div>
 
       <script dangerouslySetInnerHTML={{__html: `
-        document.addEventListener('DOMContentLoaded', function() {(function() {
-
-        document.getElementById('piloten-link').addEventListener('click', function(e) {
-          e.preventDefault();
-          var gespeichert = sessionStorage.getItem('pilot_name');
-          if (gespeichert) { showPilotenBereich(gespeichert); return; }
-          ladeNamen();
-          var overlay = document.getElementById('pw-overlay');
-          overlay.style.display = 'flex';
-        });
+        (function() {
 
         document.getElementById('pw-cancel').addEventListener('click', function() {
           document.getElementById('pw-overlay').style.display = 'none';
@@ -645,7 +636,7 @@ export default async function WebsitePage() {
           document.body.style.overflow = '';
         });
 
-        async function ladeNamen() {
+        window.rikschaLadeNamen = async function ladeNamen() {
           try {
             var res = await fetch('/api/piloten');
             if (!res.ok) throw new Error();
@@ -748,7 +739,7 @@ export default async function WebsitePage() {
         }
         ladeGalerie();
 
-        })(); }); // IIFE + DOMContentLoaded
+        })(); // IIFE
       `}}/>
     </>
   );
