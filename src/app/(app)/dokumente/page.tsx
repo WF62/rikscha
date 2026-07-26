@@ -33,9 +33,9 @@ function datumLabel(iso: string) {
 }
 
 export default function DokumentePage() {
-  const [pilot, setPilot]       = useState('');
-  const [password, setPassword] = useState('');
-  const [eingeloggt, setEingeloggt] = useState(false);
+  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_name') ?? '' : '');
+  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_pw') ?? '' : '');
+  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!sessionStorage.getItem('pilot_name'));
   const [loginFehler, setLoginFehler] = useState('');
   const [dateien, setDateien]   = useState<Datei[]>([]);
   const [laden, setLaden]       = useState(false);
@@ -68,14 +68,7 @@ export default function DokumentePage() {
   }
 
   useEffect(() => {
-    const name = sessionStorage.getItem('pilot_name');
-    const pw   = sessionStorage.getItem('pilot_pw');
-    if (name && pw) {
-      setPilot(name);
-      setPassword(pw);
-      setEingeloggt(true);
-      ladeDateien();
-    }
+    if (eingeloggt) ladeDateien();
   }, []);
 
   async function ladeDateien() {
