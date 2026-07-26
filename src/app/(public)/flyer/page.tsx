@@ -256,19 +256,20 @@ export default async function FlyerPage() {
         .r4-url { font-size: 0.58rem; color: var(--green); font-weight: 700; }
 
         /* ── PRINT ── */
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         @media print {
-          @page { size: A4; margin: 0; }
-          body { background: #fff; }
+          @page { size: A4 portrait; margin: 0; }
+          html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; height: auto !important; }
           .print-bar, .flyer-wrap > h1, .flyer-wrap > p.page-hint, .side-label, .preview-wrap { display: none !important; }
-          .flyer-wrap { padding: 0; }
-          .sheet { width: 210mm; box-shadow: none; margin: 0 auto; }
+          .flyer-wrap { padding: 0 !important; }
+          .sheet { width: 210mm; height: 297mm; box-shadow: none; margin: 0; overflow: hidden; }
           .panel { width: 210mm; overflow: hidden; }
           .panel::before { display: none; }
           .p1 { height: 105mm; }
           .p2 { height:  85mm; }
           .p3 { height:  65mm; }
           .p4 { height:  42mm; }
-          .back-sheet { page-break-before: always; }
+          .back-sheet { page-break-before: always; break-before: page; transform: none; }
           :root { --tab: 10mm; }
         }
       `}</style>
