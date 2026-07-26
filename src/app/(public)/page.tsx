@@ -22,10 +22,31 @@ const DEFAULTS: Record<string, string> = {
   foto_lotte:        '',
   foto_flitzer:      '',
   foto_piter:        '',
+  foto_pilot_doro:        '',
+  foto_pilot_guido:       '',
+  foto_pilot_hans_heinrich: '',
+  foto_pilot_helenah:     '',
+  foto_pilot_heribert:    '',
+  foto_pilot_holger:      '',
+  foto_pilot_lucia:       '',
+  foto_pilot_rolf:        '',
+  foto_pilot_sabine:      '',
+  foto_pilot_walter:      '',
+  foto_pilot_werner:      '',
   team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
   kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
 };
+
+async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
+  try {
+    const db = createServiceClient();
+    const { data } = await db.from('galerie_fotos').select('id,url,beschreibung,pilot,created_at').order('created_at', { ascending: false }).limit(8);
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
 
 async function ladeInhalte(): Promise<Record<string, string>> {
   try {
@@ -40,7 +61,7 @@ async function ladeInhalte(): Promise<Record<string, string>> {
 }
 
 export default async function WebsitePage() {
-  const t = await ladeInhalte();
+  const [t, galerie] = await Promise.all([ladeInhalte(), ladeGalerie()]);
   return (
     <>
       <style>{`
@@ -161,9 +182,11 @@ export default async function WebsitePage() {
         .gaeste-piter { background: var(--piter-bg); color: var(--piter-fg); }
 
         .piloten-section { background: #FDFAF5; }
-        .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; margin-top: 2rem; }
-        .pilot-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center; }
-        .pilot-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1.4rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-weight: bold; }
+        .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .pilot-card { background: #F5F0E7; border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 0.75rem; text-align: center; }
+        .pilot-foto-wrap { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 0 auto 0.6rem; }
+        .pilot-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pilot-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-weight: bold; border: 2px solid var(--border); }
         .pilot-name { font-size: 0.88rem; font-weight: 600; color: var(--ink); }
 
         .ausbildung-section { background: #F5F0E7; }
@@ -397,9 +420,14 @@ export default async function WebsitePage() {
           <div className="piloten-grid">
             {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
               const [initials, name] = p.split('|');
+              const fotoKey = `foto_pilot_${name.toLowerCase().replace(/-/g, '_')}`;
+              const fotoUrl = t[fotoKey];
               return (
                 <div key={name} className="pilot-card">
-                  <div className="pilot-avatar">{initials}</div>
+                  {fotoUrl
+                    ? <div className="pilot-foto-wrap"><img src={fotoUrl} alt={name} /></div>
+                    : <div className="pilot-avatar">{initials}</div>
+                  }
                   <div className="pilot-name">{name}</div>
                 </div>
               );
@@ -529,13 +557,29 @@ export default async function WebsitePage() {
 
       {/* Galerie */}
       <section className="galerie-section" id="galerie">
-        <div className="container-wide">
+        <div className="container">
           <div className="eyebrow">Eindrücke</div>
           <h2>Momente auf der Strecke</h2>
           <p>Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
-          <div className="galerie-grid" id="galerie-grid">
-            <div className="galerie-empty" id="galerie-leer">Fotos werden geladen …</div>
+          <div className="galerie-grid">
+            {galerie.length === 0
+              ? <div className="galerie-empty">Noch keine Fotos vorhanden — Piloten können über den Piloten-Bereich Fotos hochladen.</div>
+              : galerie.map(f => (
+                <div key={f.id} className="galerie-card">
+                  <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
+                  <div className="galerie-info">
+                    {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
+                    <div className="galerie-meta">{f.pilot} · {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+                  </div>
+                </div>
+              ))
+            }
           </div>
+          {galerie.length > 0 && (
+            <div style={{textAlign:'center',marginTop:'1.5rem'}}>
+              <a href="/galerie" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen ↗</a>
+            </div>
+          )}
         </div>
       </section>
 

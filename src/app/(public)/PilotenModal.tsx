@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 
-type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos';
+type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto';
 
 export default function PilotenModal() {
   const [offen, setOffen] = useState(false);
@@ -282,6 +282,7 @@ export default function PilotenModal() {
                 { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
                 { href: '#banner', icon: '📢', titel: 'Banner', sub: 'Ankündigungen bearbeiten', border: '#D6CCB8' },
                 { href: '#fahrzeugfotos', icon: '🚲', titel: 'Fahrzeugfotos', sub: 'Fotos der Rikschas hochladen', border: '#D6CCB8' },
+                { href: '#mein-foto', icon: '🤳', titel: 'Mein Foto', sub: 'Eigenes Bild für die Teamseite', border: '#D6CCB8' },
                 { href: '/texte', icon: '✏️', titel: 'Texte bearbeiten', sub: 'Website-Texte anpassen', border: '#D6CCB8' },
                 { href: '/admin', icon: '⚙️', titel: 'Verwaltung', sub: 'Piloten & Einstellungen', border: '#D6CCB8' },
                 { href: 'tel:022279328383', icon: '📞', titel: '02227 9328383', sub: 'Koordination & Anfragen', border: '#D6CCB8' },
@@ -291,6 +292,7 @@ export default function PilotenModal() {
                   target={k.href.startsWith('/') ? '_blank' : undefined}
                   onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); }
                     : k.href === '#fahrzeugfotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
+                    : k.href === '#mein-foto' ? (e) => { e.preventDefault(); setAnsicht('mein-foto' as Ansicht); }
                     : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
@@ -347,6 +349,43 @@ export default function PilotenModal() {
               <button onClick={bannerSpeichern} disabled={bannerSaving} style={{ background: '#b45309', color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.4rem', cursor: 'pointer', fontWeight: 700 }}>
                 {bannerSaving ? 'Speichern…' : 'Speichern'}
               </button>
+            </div>
+          </>
+        )}
+
+        {/* MEIN FOTO */}
+        {ansicht === 'mein-foto' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>🤳</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Mein Foto</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Erscheint auf der Teamseite der Website</div>
+              </div>
+            </div>
+            <div style={{ background: '#F5F0E7', borderRadius: 10, padding: '1.25rem', border: '1.5px solid #D6CCB8', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.82rem', color: '#5C4E38', marginBottom: '1rem', lineHeight: 1.5 }}>
+                Lade ein quadratisches Foto von dir hoch — es wird als Profilbild auf der Teamseite angezeigt.<br/>
+                <span style={{ color: '#9a8a72', fontSize: '0.75rem' }}>Empfehlung: quadratisch, min. 200×200 px, JPG oder PNG</span>
+              </div>
+              <label style={{ display: 'inline-block', background: '#2D6B1E', color: '#fff', borderRadius: 7, padding: '0.55rem 1.25rem', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer' }}>
+                {fotoUploading === `foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_')}` ? 'Lädt hoch…' : '📷 Foto auswählen & hochladen'}
+                <input type="file" accept="image/*" style={{ display: 'none' }}
+                  disabled={fotoUploading !== null}
+                  onChange={e => {
+                    const d = e.target.files?.[0];
+                    const key = `foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`;
+                    if (d) fahrzeugFotoHochladen(key, d);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              {fotoMsg[`foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`] && (
+                <div style={{ marginTop: '0.75rem', fontSize: '0.82rem', color: fotoMsg[`foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`].startsWith('✓') ? '#15803d' : '#dc2626' }}>
+                  {fotoMsg[`foto_pilot_${pilotName.toLowerCase().replace(/-/g,'_').replace(/\s+/g,'_')}`]}
+                </div>
+              )}
             </div>
           </>
         )}
