@@ -10,8 +10,9 @@ export default function FlyerNavLink() {
 
   if (!istPilot) return null;
   return (
-    <a href="/flyer-editor" className="hover:text-green-200 transition-colors">
-      🖨️ Flyer
-    </a>
+    <>
+      <a href="/dokumente" className="hover:text-green-200 transition-colors">📂 Ablage</a>
+      <a href="/flyer-editor" className="hover:text-green-200 transition-colors">🖨️ Flyer</a>
+    </>
   );
 }

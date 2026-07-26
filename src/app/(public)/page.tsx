@@ -617,7 +617,7 @@ export default async function WebsitePage() {
       </div>
 
       <script dangerouslySetInnerHTML={{__html: `
-        (function() {
+        document.addEventListener('DOMContentLoaded', function() {(function() {
 
         document.getElementById('piloten-link').addEventListener('click', function(e) {
           e.preventDefault();
@@ -748,7 +748,7 @@ export default async function WebsitePage() {
         }
         ladeGalerie();
 
-        })(); // IIFE
+        })(); }); // IIFE + DOMContentLoaded
       `}}/>
     </>
   );
