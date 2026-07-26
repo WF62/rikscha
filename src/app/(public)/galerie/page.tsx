@@ -1,72 +1,84 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type Foto = { id: string; url: string; beschreibung: string; pilot: string; created_at: string };
+type UploadDatei = { datei: File; vorschau: string; beschreibung: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
 export default function GaleriePage() {
   const [fotos, setFotos]       = useState<Foto[]>([]);
   const [galLaden, setGalLaden] = useState(true);
-  const [piloten, setPiloten]   = useState<{ name: string; rolle: string }[]>([]);
-  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
+  const [pilot]                  = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
   const [password]               = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
-  const [datei, setDatei]       = useState<File | null>(null);
-  const [beschreibung, setBeschreibung] = useState('');
+  const [dateien, setDateien]   = useState<UploadDatei[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [msg, setMsg]           = useState<{ typ: 'ok' | 'err'; text: string } | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    ladeGalerie();
-    if (!pilot) ladePiloten();
-  }, []);
+  useEffect(() => { ladeGalerie(); }, []);
 
   async function ladeGalerie() {
     setGalLaden(true);
-    try {
-      const res = await fetch('/api/galerie');
-      setFotos(await res.json());
-    } catch {}
+    try { const res = await fetch('/api/galerie'); setFotos(await res.json()); } catch {}
     setGalLaden(false);
   }
 
-  async function ladePiloten() {
-    try {
-      const res = await fetch('/api/piloten');
-      const daten = await res.json();
-      setPiloten(daten);
-      if (daten.length > 0 && !pilot) setPilot(daten[0].name);
-    } catch {}
+  function dateiHinzufuegen(files: FileList | null) {
+    if (!files) return;
+    const neu: UploadDatei[] = Array.from(files)
+      .filter(f => f.type.startsWith('image/'))
+      .map(f => ({ datei: f, vorschau: URL.createObjectURL(f), beschreibung: '', status: 'warten' }));
+    setDateien(d => [...d, ...neu]);
+  }
+
+  function entfernen(i: number) {
+    setDateien(d => { URL.revokeObjectURL(d[i].vorschau); return d.filter((_, j) => j !== i); });
+  }
+
+  function beschreibungSetzen(i: number, text: string) {
+    setDateien(d => d.map((x, j) => j === i ? { ...x, beschreibung: text } : x));
   }
 
   async function hochladen() {
-    setMsg(null);
-    if (!pilot) { setMsg({ typ: 'err', text: 'Bitte deinen Namen wählen.' }); return; }
-    if (!datei) { setMsg({ typ: 'err', text: 'Bitte ein Foto auswählen.' }); return; }
+    const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
+    if (offene.length === 0) return;
     setUploading(true);
-    const form = new FormData();
-    form.append('pilot', pilot);
-    form.append('password', password || 'skip');
-    form.append('beschreibung', beschreibung);
-    form.append('datei', datei);
-    try {
-      const res = await fetch('/api/galerie', { method: 'POST', body: form });
-      const j = await res.json();
-      if (res.ok) {
-        setMsg({ typ: 'ok', text: 'Foto erfolgreich hochgeladen!' });
-        setDatei(null);
-        setBeschreibung('');
-        const inp = document.getElementById('upload-datei') as HTMLInputElement;
-        if (inp) inp.value = '';
-        await ladeGalerie();
-      } else {
-        setMsg({ typ: 'err', text: j.error || 'Fehler beim Hochladen.' });
+
+    for (let i = 0; i < dateien.length; i++) {
+      const d = dateien[i];
+      if (d.status !== 'warten' && d.status !== 'err') continue;
+
+      setDateien(prev => prev.map((x, j) => j === i ? { ...x, status: 'laden' } : x));
+
+      const form = new FormData();
+      form.append('pilot', pilot);
+      form.append('password', password || 'skip');
+      form.append('beschreibung', d.beschreibung);
+      form.append('datei', d.datei);
+
+      try {
+        const res = await fetch('/api/galerie', { method: 'POST', body: form });
+        const j = await res.json();
+        if (res.ok) {
+          setDateien(prev => prev.map((x, k) => k === i ? { ...x, status: 'ok' } : x));
+        } else {
+          setDateien(prev => prev.map((x, k) => k === i ? { ...x, status: 'err', meldung: j.error || 'Fehler' } : x));
+        }
+      } catch {
+        setDateien(prev => prev.map((x, k) => k === i ? { ...x, status: 'err', meldung: 'Verbindungsfehler' } : x));
       }
-    } catch {
-      setMsg({ typ: 'err', text: 'Verbindungsfehler — bitte nochmal versuchen.' });
     }
+
     setUploading(false);
+    await ladeGalerie();
+  }
+
+  function alleErfolgreichEntfernen() {
+    setDateien(d => d.filter(x => x.status !== 'ok'));
   }
 
   const istPilot = !!pilot;
+  const anzahlOffen = dateien.filter(d => d.status === 'warten' || d.status === 'err').length;
+  const anzahlOk = dateien.filter(d => d.status === 'ok').length;
 
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -99,20 +111,41 @@ export default function GaleriePage() {
     .galerie-meta { font-size: 0.75rem; color: var(--mid); }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
     .upload-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; }
-    .upload-section h2 { font-family: var(--serif); font-size: 1.4rem; font-weight: normal; color: var(--ink); margin-bottom: 1.5rem; }
-    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .upload-field { display: flex; flex-direction: column; gap: 0.35rem; }
-    .upload-field.full { grid-column: 1/-1; }
-    .upload-field label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); }
-    .upload-field input, .upload-field textarea, .upload-field select { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.6rem 0.8rem; font-size: 0.95rem; background: var(--ground); color: var(--ink); font-family: var(--sans); outline: none; width: 100%; }
-    .upload-field input:focus, .upload-field textarea:focus { border-color: var(--green); }
-    .upload-field textarea { resize: vertical; min-height: 80px; }
-    .btn-submit { background: var(--green); color: #fff; border: none; padding: 0.7rem 2rem; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+    .upload-section h2 { font-family: var(--serif); font-size: 1.4rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
+    .drop-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin: 1.25rem 0; }
+    .drop-zone:hover, .drop-zone.active { border-color: var(--green); background: var(--green-soft); }
+    .drop-zone-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .drop-zone-text { font-size: 0.95rem; color: var(--mid); }
+    .drop-zone-hint { font-size: 0.78rem; color: var(--mid); margin-top: 0.35rem; opacity: 0.7; }
+    .btn-waehlen { background: var(--green); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
+    .upload-liste { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .upload-item { display: grid; grid-template-columns: 80px 1fr auto; gap: 0.75rem; align-items: center; background: var(--ground); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.75rem; }
+    .upload-item.status-ok { border-color: #86efac; background: #f0fdf4; }
+    .upload-item.status-err { border-color: #fca5a5; background: #fef2f2; }
+    .upload-item.status-laden { opacity: 0.7; }
+    .upload-thumb { width: 80px; height: 60px; object-fit: cover; border-radius: 4px; display: block; }
+    .upload-item-info { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+    .upload-item-name { font-size: 0.8rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upload-item-input { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.4rem 0.6rem; font-size: 0.82rem; background: var(--surface); color: var(--ink); font-family: var(--sans); outline: none; width: 100%; }
+    .upload-item-input:focus { border-color: var(--green); }
+    .upload-item-status { font-size: 0.75rem; margin-top: 0.2rem; }
+    .upload-item-status.ok { color: #16a34a; }
+    .upload-item-status.err { color: #dc2626; }
+    .upload-item-status.laden { color: var(--mid); }
+    .btn-entfernen { background: none; border: none; cursor: pointer; color: var(--mid); font-size: 1.1rem; padding: 0.2rem; line-height: 1; flex-shrink: 0; }
+    .btn-entfernen:hover { color: #dc2626; }
+    .upload-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .btn-submit { background: var(--green); color: #fff; border: none; padding: 0.7rem 2rem; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; cursor: pointer; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-    .upload-msg-ok { background: var(--green-soft); color: var(--green); font-size: 0.85rem; margin-top: 0.75rem; padding: 0.6rem 0.9rem; border-radius: var(--radius); }
-    .upload-msg-err { background: #fde8e8; color: #c0392b; font-size: 0.85rem; margin-top: 0.75rem; padding: 0.6rem 0.9rem; border-radius: var(--radius); }
+    .btn-clear { background: none; border: 1.5px solid var(--border); color: var(--mid); padding: 0.65rem 1.2rem; border-radius: var(--radius); font-size: 0.88rem; cursor: pointer; }
+    .btn-clear:hover { border-color: var(--ink); color: var(--ink); }
+    .upload-summary { font-size: 0.85rem; color: var(--mid); }
     .divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
-    @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } .upload-field.full { grid-column: 1; } .page-body { padding: 2rem 1rem 4rem; } }
+    @media (max-width: 600px) {
+      .upload-item { grid-template-columns: 60px 1fr auto; }
+      .upload-thumb { width: 60px; height: 45px; }
+      .page-body { padding: 2rem 1rem 4rem; }
+    }
   `;
 
   return (
@@ -149,24 +182,78 @@ export default function GaleriePage() {
           <>
             <hr className="divider" />
             <div className="upload-section">
-              <h2>📷 Foto hinzufügen</h2>
-              <p style={{fontSize:'0.85rem',color:'var(--mid)',marginBottom:'1rem'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
-              <div className="upload-grid">
-                <div className="upload-field full">
-                  <label>Foto auswählen</label>
-                  <input id="upload-datei" type="file" accept="image/*" onChange={e => setDatei(e.target.files?.[0] ?? null)} />
-                </div>
-                <div className="upload-field full">
-                  <label>Bildbeschreibung</label>
-                  <textarea value={beschreibung} onChange={e => setBeschreibung(e.target.value)} placeholder="Was ist auf dem Foto zu sehen? Wo wurde es gemacht?" />
-                </div>
-                <div className="upload-field full">
-                  <button className="btn-submit" onClick={hochladen} disabled={uploading}>
-                    {uploading ? 'Wird hochgeladen …' : 'Foto hochladen'}
-                  </button>
-                  {msg && <div className={msg.typ === 'ok' ? 'upload-msg-ok' : 'upload-msg-err'}>{msg.text}</div>}
-                </div>
+              <h2>📷 Fotos hochladen</h2>
+              <p style={{fontSize:'0.85rem',color:'var(--mid)'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
+
+              {/* Drop-Zone */}
+              <div
+                className={`drop-zone${dragOver ? ' active' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => { e.preventDefault(); setDragOver(false); dateiHinzufuegen(e.dataTransfer.files); }}
+                onClick={() => inputRef.current?.click()}
+              >
+                <div className="drop-zone-icon">🖼️</div>
+                <div className="drop-zone-text">Fotos hier hineinziehen oder klicken zum Auswählen</div>
+                <div className="drop-zone-hint">Mehrere Dateien auf einmal möglich · JPG, PNG, HEIC, WebP</div>
+                <button className="btn-waehlen" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}>
+                  Dateien auswählen
+                </button>
               </div>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                style={{display:'none'}}
+                onChange={e => dateiHinzufuegen(e.target.files)}
+              />
+
+              {/* Dateiliste */}
+              {dateien.length > 0 && (
+                <>
+                  <div className="upload-liste">
+                    {dateien.map((d, i) => (
+                      <div key={i} className={`upload-item status-${d.status}`}>
+                        <img src={d.vorschau} alt="" className="upload-thumb" />
+                        <div className="upload-item-info">
+                          <div className="upload-item-name">{d.datei.name}</div>
+                          {d.status !== 'ok' && (
+                            <input
+                              className="upload-item-input"
+                              value={d.beschreibung}
+                              onChange={e => beschreibungSetzen(i, e.target.value)}
+                              placeholder="Kurze Bildbeschreibung (optional)"
+                              disabled={d.status === 'laden'}
+                            />
+                          )}
+                          {d.status === 'ok' && <div className="upload-item-status ok">✓ Hochgeladen</div>}
+                          {d.status === 'laden' && <div className="upload-item-status laden">Wird hochgeladen …</div>}
+                          {d.status === 'err' && <div className="upload-item-status err">✗ {d.meldung}</div>}
+                        </div>
+                        <button className="btn-entfernen" onClick={() => entfernen(i)} title="Entfernen">×</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="upload-actions">
+                    <button className="btn-submit" onClick={hochladen} disabled={uploading || anzahlOffen === 0}>
+                      {uploading
+                        ? 'Wird hochgeladen …'
+                        : `${anzahlOffen} Foto${anzahlOffen !== 1 ? 's' : ''} hochladen`}
+                    </button>
+                    {anzahlOk > 0 && (
+                      <button className="btn-clear" onClick={alleErfolgreichEntfernen}>
+                        Erledigte entfernen ({anzahlOk})
+                      </button>
+                    )}
+                    <span className="upload-summary">
+                      {dateien.length} Datei{dateien.length !== 1 ? 'en' : ''} ausgewählt
+                      {anzahlOk > 0 ? ` · ${anzahlOk} fertig` : ''}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}
