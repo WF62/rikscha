@@ -200,7 +200,7 @@ export default async function FlyerPage() {
         /* ── V2 Fahrten ── */
         .v2 { background: #fff; display: flex; align-items: stretch; }
         .v2-stripe { width: 6px; background: linear-gradient(to bottom, var(--green), var(--green2)); flex-shrink: 0; }
-        .v2-body { flex: 1; padding: calc(var(--tab) + 1rem) 1.2rem 1rem 1.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .v2-body { flex: 1; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .v2-body .eyebrow { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 0.15rem; }
         .v2-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: normal; color: var(--ink); margin-bottom: 0.35rem; }
         .v2-body p { font-size: 0.72rem; color: var(--mid); line-height: 1.52; margin-bottom: 0.4rem; }
@@ -237,7 +237,7 @@ export default async function FlyerPage() {
         /* ── Rückseite ── */
         .fz-panel { display: flex; align-items: stretch; }
         .fz-accent { width: 8px; flex-shrink: 0; }
-        .fz-panel-body { flex: 1; padding: calc(var(--tab) + 1rem) 1.2rem 1rem 1.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .fz-panel-body { flex: 1; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .fz-panel-body .fz-label { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 0.08rem; }
         .fz-panel-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
         .fz-panel-body p { font-size: 0.71rem; line-height: 1.5; }
