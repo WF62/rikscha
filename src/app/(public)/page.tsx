@@ -48,7 +48,7 @@ async function ladeGalerie(auswahlJson: string): Promise<{ id: string; url: stri
     const { data } = await db.from('galerie').select('id,url,beschreibung,pilot,created_at').in('id', ids);
     // Reihenfolge der Auswahl beibehalten
     const map = new Map((data ?? []).map(r => [r.id, r]));
-    return ids.map(id => map.get(id)).filter(Boolean) as typeof data;
+    return ids.map(id => map.get(id)).filter(Boolean) as { id: string; url: string; beschreibung: string; pilot: string; created_at: string }[];
   } catch {
     return [];
   }
