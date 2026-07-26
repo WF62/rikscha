@@ -212,6 +212,7 @@ export default function PilotenModal() {
         {/* PASSWORT ÄNDERN */}
         {ansicht === 'pw-aendern' && (
           <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🔑</span>
               <div>
@@ -243,7 +244,7 @@ export default function PilotenModal() {
         {/* PILOTEN-BEREICH */}
         {ansicht === 'bereich' && (
           <div style={{ maxWidth: 600 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ fontSize: '1.8rem' }}>🚲</span>
                 <div>
@@ -290,6 +291,7 @@ export default function PilotenModal() {
         {/* BANNER */}
         {ansicht === 'banner' && (
           <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: 'none', border: 'none', color: '#6B5C44', cursor: 'pointer', fontSize: '0.82rem', marginBottom: '0.75rem', padding: 0 }}>← Zurück</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>📢</span>
               <div>

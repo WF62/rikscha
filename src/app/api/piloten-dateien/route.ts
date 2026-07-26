@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { checkPilot as checkPilotAuth } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -12,16 +13,6 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS });
 }
 
-async function checkPilot(db: ReturnType<typeof createServiceClient>, pilot: string, password: string) {
-  const { data } = await db
-    .from('piloten_zugang')
-    .select('id')
-    .eq('name', pilot)
-    .eq('passwort', password)
-    .eq('aktiv', true)
-    .maybeSingle();
-  return !!data;
-}
 
 export async function GET() {
   const db = createServiceClient();
@@ -46,7 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400, headers: CORS });
   }
 
-  if (!(await checkPilot(db, pilot, password))) {
+  if (!(await checkPilotAuth(pilot, password))) {
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
   }
 
@@ -89,7 +80,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const db = createServiceClient();
-  if (!(await checkPilot(db, pilot, password))) {
+  if (!(await checkPilotAuth(pilot, password))) {
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
   }
 

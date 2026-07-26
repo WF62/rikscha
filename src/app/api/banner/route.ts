@@ -1,17 +1,8 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { checkPilot as checkPilotAuth } from '@/lib/pilotAuth';
 
-async function checkPilot(db: ReturnType<typeof createServiceClient>, pilot: string, password: string) {
-  const { data } = await db
-    .from('piloten_zugang')
-    .select('id')
-    .eq('name', pilot)
-    .eq('passwort', password)
-    .eq('aktiv', true)
-    .maybeSingle();
-  return !!data;
-}
 
 export async function GET() {
   const db = createServiceClient();
@@ -41,11 +32,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400 });
   }
 
-  const db = createServiceClient();
-  if (!(await checkPilot(db, pilot, password))) {
+  if (!(await checkPilotAuth(pilot, password))) {
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
   }
 
+  const db = createServiceClient();
   // Alte Banner-Einträge entfernen, dann neue speichern
   await db.from('inhalte').delete().like('schluessel', 'banner_%');
 
