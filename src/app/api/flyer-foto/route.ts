@@ -52,15 +52,26 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = db.storage.from('piloten-dateien').getPublicUrl(filename);
 
-  // In inhalte speichern (verknüpft mit dem Flyer)
-  const { error: inhalteError } = await db
+  // In inhalte speichern: erst update versuchen, bei 0 betroffenen Zeilen inserieren
+  const now = new Date().toISOString();
+  const { count, error: updateError } = await db
     .from('inhalte')
-    .upsert(
-      { schluessel, wert: publicUrl, bezeichnung: BEZEICHNUNGEN[schluessel] ?? schluessel, geaendert_von: pilot, geaendert_am: new Date().toISOString() },
-      { onConflict: 'schluessel' }
-    );
+    .update({ wert: publicUrl, bezeichnung: BEZEICHNUNGEN[schluessel] ?? schluessel, geaendert_von: pilot, geaendert_am: now })
+    .eq('schluessel', schluessel)
+    .select('schluessel', { count: 'exact', head: true });
 
-  if (inhalteError) return NextResponse.json({ error: inhalteError.message }, { status: 500, headers: CORS });
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500, headers: CORS });
+
+  if ((count ?? 0) === 0) {
+    const { error: insertError } = await db.from('inhalte').insert({
+      schluessel,
+      wert: publicUrl,
+      bezeichnung: BEZEICHNUNGEN[schluessel] ?? schluessel,
+      geaendert_von: pilot,
+      geaendert_am: now,
+    });
+    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500, headers: CORS });
+  }
 
   // Zusätzlich in piloten_dateien Tabelle eintragen (erscheint in der Ablage)
   await db.from('piloten_dateien').insert({
