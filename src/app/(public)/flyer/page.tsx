@@ -286,7 +286,7 @@ export default async function FlyerPage() {
           /* Rückseiten-Panels für beidseitigen Druck um 180° drehen */
           .back-sheet .panel { transform: rotate(180deg); transform-origin: center center; }
           /* r3: Titelleiste unten statt oben */
-          .back-sheet .r3 .panel-title-top { top: auto; bottom: 0; }
+          .back-sheet .r2 .panel-title-top { top: auto; bottom: 0; }
           :root { --tab: 6mm; }
           /* Gutschein-Panel kompakter im Druck */
           .v1 { gap: 0.3rem; padding-top: calc(var(--tab) + 0.4rem); padding-bottom: 0.5rem; }
