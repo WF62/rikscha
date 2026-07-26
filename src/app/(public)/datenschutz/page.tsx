@@ -84,7 +84,7 @@ export default function DatenschutzPage() {
 
         <div className="block">
           <h2>7. Cookies</h2>
-          <p>Diese Website verwendet keine Tracking-Cookies. Es werden lediglich technisch notwendige Session-Informationen im Arbeitsspeicher des Browsers gespeichert (sessionStorage), die beim Schließen des Tabs automatisch gelöscht werden.</p>
+          <p>Diese Website verwendet keine Tracking-Cookies. Es werden lediglich technisch notwendige Session-Informationen im Arbeitsspeicher des Browsers gespeichert (localStorage), die beim Schließen des Tabs automatisch gelöscht werden.</p>
         </div>
 
         <div className="block">

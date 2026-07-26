@@ -5,7 +5,7 @@ export default function FlyerNavLink() {
   const [istPilot, setIstPilot] = useState(false);
 
   useEffect(() => {
-    setIstPilot(!!sessionStorage.getItem('pilot_name'));
+    setIstPilot(!!localStorage.getItem('pilot_name'));
   }, []);
 
   if (!istPilot) return null;

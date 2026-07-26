@@ -14,8 +14,8 @@ export default function Banner() {
 
   useEffect(() => {
     fetch('/api/banner').then(r => r.json()).then((d: string[]) => setTexte(d));
-    const name = sessionStorage.getItem('pilot_name');
-    const pw   = sessionStorage.getItem('pilot_pw');
+    const name = localStorage.getItem('pilot_name');
+    const pw   = localStorage.getItem('pilot_pw');
     if (name && pw) { setPilot(name); setPassword(pw); setIstPilot(true); }
   }, []);
 

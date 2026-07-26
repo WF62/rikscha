@@ -16,9 +16,9 @@ const BEZEICHNUNGEN: Record<string, string> = {
 type Feld = { schluessel: string; wert: string; bezeichnung?: string; geaendert_von?: string; geaendert_am?: string };
 
 export default function TextePage() {
-  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_name') ?? '' : '');
-  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_pw') ?? '' : '');
-  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!sessionStorage.getItem('pilot_name'));
+  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
+  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
+  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('pilot_name'));
   const [piloten, setPiloten]   = useState<{ name: string; rolle: string }[]>([]);
   const [felder, setFelder]     = useState<Feld[]>([]);
   const [fehler, setFehler]     = useState('');
@@ -61,8 +61,8 @@ export default function TextePage() {
         body: JSON.stringify({ pilot, password }),
       });
       if (res.ok) {
-        sessionStorage.setItem('pilot_name', pilot);
-        sessionStorage.setItem('pilot_pw', password);
+        localStorage.setItem('pilot_name', pilot);
+        localStorage.setItem('pilot_pw', password);
         setEingeloggt(true);
         await ladeFelder();
       } else {
@@ -192,7 +192,7 @@ export default function TextePage() {
           <>
             <div className="editor-header">
               <h2>Texte der Website</h2>
-              <button className="btn-abmelden" onClick={() => { sessionStorage.removeItem('pilot_name'); sessionStorage.removeItem('pilot_pw'); setEingeloggt(false); setFelder([]); }}>
+              <button className="btn-abmelden" onClick={() => { localStorage.removeItem('pilot_name'); localStorage.removeItem('pilot_pw'); setEingeloggt(false); setFelder([]); }}>
                 Abmelden
               </button>
             </div>

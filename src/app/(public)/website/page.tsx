@@ -613,7 +613,7 @@ export default async function WebsitePage() {
       <script dangerouslySetInnerHTML={{__html: `
         document.getElementById('piloten-link').addEventListener('click', function(e) {
           e.preventDefault();
-          var gespeichert = sessionStorage.getItem('pilot_name');
+          var gespeichert = localStorage.getItem('pilot_name');
           if (gespeichert) { showPilotenBereich(gespeichert); return; }
           ladeNamen();
           var overlay = document.getElementById('pw-overlay');
@@ -631,8 +631,8 @@ export default async function WebsitePage() {
         document.getElementById('pw-btn').addEventListener('click', pwCheck);
 
         document.getElementById('pw-abmelden').addEventListener('click', function() {
-          sessionStorage.removeItem('pilot_name');
-          sessionStorage.removeItem('pilot_pw');
+          localStorage.removeItem('pilot_name');
+          localStorage.removeItem('pilot_pw');
           document.getElementById('piloten-bereich').style.display = 'none';
           document.body.style.overflow = '';
         });
@@ -681,8 +681,8 @@ export default async function WebsitePage() {
               body: JSON.stringify({ pilot: pilot, password: pw })
             });
             if (res.ok) {
-              sessionStorage.setItem('pilot_name', pilot);
-              sessionStorage.setItem('pilot_pw', pw);
+              localStorage.setItem('pilot_name', pilot);
+              localStorage.setItem('pilot_pw', pw);
               document.getElementById('pw-overlay').style.display = 'none';
               document.getElementById('pw-input').value = '';
               showPilotenBereich(pilot);

@@ -7,8 +7,8 @@ export default function GaleriePage() {
   const [fotos, setFotos]       = useState<Foto[]>([]);
   const [galLaden, setGalLaden] = useState(true);
   const [piloten, setPiloten]   = useState<{ name: string; rolle: string }[]>([]);
-  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_name') ?? '' : '');
-  const [password]               = useState(() => typeof window !== 'undefined' ? sessionStorage.getItem('pilot_pw') ?? '' : '');
+  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
+  const [password]               = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
   const [datei, setDatei]       = useState<File | null>(null);
   const [beschreibung, setBeschreibung] = useState('');
   const [uploading, setUploading] = useState(false);
