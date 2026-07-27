@@ -1,9 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string };
-type UploadDatei = { datei: File; vorschau: string; beschreibung: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
-
+type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string; sichtbar: boolean };
+type UploadDatei = { datei: File; vorschau: string; beschreibung: string; sichtbar: boolean; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
 export default function GaleriePage() {
   const [fotos, setFotos]         = useState<Foto[]>([]);
@@ -17,9 +16,13 @@ export default function GaleriePage() {
   const [filterPilot, setFilterPilot] = useState('');
   const [filterKat, setFilterKat]     = useState('');
   const inputRef   = useRef<HTMLInputElement>(null);
+  const kameraRef  = useRef<HTMLInputElement>(null);
   const ordnerRef  = useRef<HTMLInputElement>(null);
 
+  const istPilot = !!pilot;
+
   useEffect(() => { ladeGalerie(); }, []);
+  useEffect(() => { ladeGalerie(); }, [filterPilot, filterKat]);
 
   async function ladeGalerie() {
     setGalLaden(true);
@@ -27,19 +30,18 @@ export default function GaleriePage() {
       const params = new URLSearchParams();
       if (filterPilot) params.set('pilot', filterPilot);
       if (filterKat)   params.set('kategorie', filterKat);
+      if (!istPilot)   params.set('nurSichtbare', '1');
       const res = await fetch('/api/galerie?' + params.toString());
       setFotos(await res.json());
     } catch {}
     setGalLaden(false);
   }
 
-  useEffect(() => { ladeGalerie(); }, [filterPilot, filterKat]);
-
   function dateiHinzufuegen(files: FileList | null) {
     if (!files) return;
     const neu: UploadDatei[] = Array.from(files)
       .filter(f => f.type.startsWith('image/'))
-      .map(f => ({ datei: f, vorschau: URL.createObjectURL(f), beschreibung: '', status: 'warten' }));
+      .map(f => ({ datei: f, vorschau: URL.createObjectURL(f), beschreibung: '', sichtbar: true, status: 'warten' }));
     setDateien(d => [...d, ...neu]);
   }
 
@@ -51,7 +53,15 @@ export default function GaleriePage() {
     setDateien(d => d.map((x, j) => j === i ? { ...x, beschreibung: text } : x));
   }
 
+  function sichtbarToggle(i: number) {
+    setDateien(d => d.map((x, j) => j === i ? { ...x, sichtbar: !x.sichtbar } : x));
+  }
+
   const aktiveKat = kategorie.trim() || 'Sonstiges';
+  const anzahlOffen = dateien.filter(d => d.status === 'warten' || d.status === 'err').length;
+  const anzahlOk    = dateien.filter(d => d.status === 'ok').length;
+  const allePiloten = Array.from(new Set(fotos.map(f => f.pilot))).sort();
+  const alleKats    = Array.from(new Set(fotos.map(f => f.kategorie).filter(Boolean))).sort() as string[];
 
   async function hochladen() {
     const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
@@ -68,6 +78,7 @@ export default function GaleriePage() {
       form.append('password', password || 'skip');
       form.append('beschreibung', d.beschreibung);
       form.append('kategorie', aktiveKat);
+      form.append('sichtbar', d.sichtbar ? '1' : '0');
       form.append('datei', d.datei);
 
       try {
@@ -90,12 +101,6 @@ export default function GaleriePage() {
   function alleErfolgreichEntfernen() {
     setDateien(d => d.filter(x => x.status !== 'ok'));
   }
-
-  const istPilot      = !!pilot;
-  const anzahlOffen   = dateien.filter(d => d.status === 'warten' || d.status === 'err').length;
-  const anzahlOk      = dateien.filter(d => d.status === 'ok').length;
-  const allePiloten   = Array.from(new Set(fotos.map(f => f.pilot))).sort();
-  const alleKats      = Array.from(new Set(fotos.map(f => f.kategorie).filter(Boolean))).sort() as string[];
 
   const css = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -127,28 +132,32 @@ export default function GaleriePage() {
     .filter-reset:hover { color: var(--ink); }
     .filter-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); }
     .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 3rem; }
-    .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; }
     .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
     .galerie-info { padding: 0.75rem 1rem; }
     .galerie-beschreibung { font-size: 0.92rem; color: var(--ink); margin-bottom: 0.3rem; line-height: 1.45; }
     .galerie-meta { font-size: 0.75rem; color: var(--mid); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
     .galerie-kat { background: var(--green-soft); color: var(--green); border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .galerie-datum { font-variant-numeric: tabular-nums; }
+    .badge-versteckt { position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 3px; }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
     .upload-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; }
     .upload-section h2 { font-family: var(--serif); font-size: 1.4rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
     .kat-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 1rem 0 0; }
     .kat-row label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); white-space: nowrap; }
-    .kat-row select, .kat-row input { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.7rem; font-size: 0.9rem; background: var(--ground); color: var(--ink); font-family: var(--sans); outline: none; }
-    .kat-row select:focus, .kat-row input:focus { border-color: var(--green); }
+    .kat-row input { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.7rem; font-size: 0.9rem; background: var(--ground); color: var(--ink); font-family: var(--sans); outline: none; }
+    .kat-row input:focus { border-color: var(--green); }
     .drop-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin: 1.25rem 0; }
     .drop-zone:hover, .drop-zone.active { border-color: var(--green); background: var(--green-soft); }
     .drop-zone-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
     .drop-zone-text { font-size: 0.95rem; color: var(--mid); }
     .drop-zone-hint { font-size: 0.78rem; color: var(--mid); margin-top: 0.35rem; opacity: 0.7; }
-    .btn-waehlen { background: var(--green); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
-    .btn-waehlen-grau { background: var(--mid); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
+    .btn-row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 0.75rem; }
+    .btn-waehlen { background: var(--green); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+    .btn-kamera { background: #1a6fa8; color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+    .btn-waehlen-grau { background: var(--mid); color: #fff; border: none; padding: 0.55rem 1.4rem; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; cursor: pointer; }
     .upload-liste { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
-    .upload-item { display: grid; grid-template-columns: 80px 1fr auto; gap: 0.75rem; align-items: center; background: var(--ground); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.75rem; }
+    .upload-item { display: grid; grid-template-columns: 80px 1fr auto; gap: 0.75rem; align-items: start; background: var(--ground); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.75rem; }
     .upload-item.status-ok { border-color: #86efac; background: #f0fdf4; }
     .upload-item.status-err { border-color: #fca5a5; background: #fef2f2; }
     .upload-item.status-laden { opacity: 0.7; }
@@ -157,6 +166,10 @@ export default function GaleriePage() {
     .upload-item-name { font-size: 0.8rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .upload-item-input { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.4rem 0.6rem; font-size: 0.82rem; background: var(--surface); color: var(--ink); font-family: var(--sans); outline: none; width: 100%; }
     .upload-item-input:focus { border-color: var(--green); }
+    .sichtbar-toggle { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; cursor: pointer; user-select: none; margin-top: 0.1rem; }
+    .sichtbar-toggle input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; }
+    .sichtbar-toggle.versteckt { color: var(--mid); }
+    .sichtbar-toggle.sichtbar { color: var(--green); font-weight: 600; }
     .upload-item-status { font-size: 0.75rem; margin-top: 0.2rem; }
     .upload-item-status.ok { color: #16a34a; }
     .upload-item-status.err { color: #dc2626; }
@@ -215,24 +228,27 @@ export default function GaleriePage() {
           </div>
         )}
 
+        {/* Galerie-Grid */}
         <div className="galerie-grid">
           {galLaden && <div className="galerie-empty">Fotos werden geladen …</div>}
           {!galLaden && fotos.length === 0 && <div className="galerie-empty">Keine Fotos gefunden.</div>}
           {fotos.map(f => (
             <div key={f.id} className="galerie-card">
               <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
+              {istPilot && !f.sichtbar && <span className="badge-versteckt">🔒 Nur Piloten</span>}
               <div className="galerie-info">
                 {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
                 <div className="galerie-meta">
                   <span>{f.pilot}</span>
                   {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}
-                  <span>· {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                  <span className="galerie-datum">· {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Upload für Piloten */}
         {istPilot && (
           <>
             <hr className="divider" />
@@ -240,9 +256,8 @@ export default function GaleriePage() {
               <h2>📷 Fotos hochladen</h2>
               <p style={{fontSize:'0.85rem',color:'var(--mid)'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
 
-              {/* Kategorie-Auswahl */}
               <div className="kat-row">
-                <label>Kategorie / Ordner:</label>
+                <label>Kategorie:</label>
                 <input
                   value={kategorie}
                   onChange={e => setKategorie(e.target.value)}
@@ -251,7 +266,6 @@ export default function GaleriePage() {
                 />
               </div>
 
-              {/* Drop-Zone */}
               <div
                 className={`drop-zone${dragOver ? ' active' : ''}`}
                 onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -260,18 +274,24 @@ export default function GaleriePage() {
                 onClick={() => inputRef.current?.click()}
               >
                 <div className="drop-zone-icon">🖼️</div>
-                <div className="drop-zone-text">Fotos hier hineinziehen oder klicken zum Auswählen</div>
-                <div className="drop-zone-hint">Mehrere Dateien und ganze Ordner möglich · JPG, PNG, HEIC, WebP</div>
-                <div style={{display:'flex',gap:'0.6rem',justifyContent:'center',flexWrap:'wrap',marginTop:'0.75rem'}}>
+                <div className="drop-zone-text">Fotos hier hineinziehen oder auswählen</div>
+                <div className="drop-zone-hint">JPG, PNG, HEIC, WebP · Mehrere Dateien und Ordner möglich</div>
+                <div className="btn-row">
+                  <button className="btn-kamera" onClick={e => { e.stopPropagation(); kameraRef.current?.click(); }}>
+                    📸 Kamera
+                  </button>
                   <button className="btn-waehlen" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}>
                     Dateien auswählen
                   </button>
                   <button className="btn-waehlen-grau" onClick={e => { e.stopPropagation(); ordnerRef.current?.click(); }}>
-                    📁 Ordner auswählen
+                    📁 Ordner
                   </button>
                 </div>
               </div>
-              <input ref={inputRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e => dateiHinzufuegen(e.target.files)} />
+
+              {/* Versteckte Inputs */}
+              <input ref={kameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={e => dateiHinzufuegen(e.target.files)} />
+              <input ref={inputRef}  type="file" accept="image/*" multiple style={{display:'none'}} onChange={e => dateiHinzufuegen(e.target.files)} />
               <input
                 ref={ordnerRef} type="file" accept="image/*" multiple
                 // @ts-expect-error webkitdirectory is non-standard but widely supported
@@ -297,7 +317,18 @@ export default function GaleriePage() {
                               disabled={d.status === 'laden'}
                             />
                           )}
-                          {d.status === 'ok'    && <div className="upload-item-status ok">✓ Hochgeladen in „{aktiveKat}"</div>}
+                          {d.status !== 'ok' && (
+                            <label className={`sichtbar-toggle ${d.sichtbar ? 'sichtbar' : 'versteckt'}`}>
+                              <input
+                                type="checkbox"
+                                checked={d.sichtbar}
+                                onChange={() => sichtbarToggle(i)}
+                                disabled={d.status === 'laden'}
+                              />
+                              {d.sichtbar ? '🌐 Für Besucher sichtbar' : '🔒 Nur für Piloten'}
+                            </label>
+                          )}
+                          {d.status === 'ok'    && <div className="upload-item-status ok">✓ Hochgeladen in „{aktiveKat}" · {d.sichtbar ? '🌐 Öffentlich' : '🔒 Nur Piloten'}</div>}
                           {d.status === 'laden' && <div className="upload-item-status laden">Wird hochgeladen …</div>}
                           {d.status === 'err'   && <div className="upload-item-status err">✗ {d.meldung}</div>}
                         </div>
