@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string; sichtbar: boolean };
+type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string; sichtbar: boolean; freigegeben: boolean; stimmen: number };
 type UploadDatei = { datei: File; vorschau: string; beschreibung: string; sichtbar: boolean; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
 export default function GaleriePage() {
@@ -15,6 +15,11 @@ export default function GaleriePage() {
   const [dragOver, setDragOver]   = useState(false);
   const [filterPilot, setFilterPilot] = useState('');
   const [filterKat, setFilterKat]     = useState('');
+  const [gestimmt, setGestimmt]       = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try { return new Set(JSON.parse(localStorage.getItem('gestimmt') ?? '[]')); } catch { return new Set(); }
+  });
+  const [freigabeQueue, setFreigabeQueue] = useState<Foto[]>([]);
   const inputRef   = useRef<HTMLInputElement>(null);
   const kameraRef  = useRef<HTMLInputElement>(null);
   const ordnerRef  = useRef<HTMLInputElement>(null);
@@ -23,6 +28,32 @@ export default function GaleriePage() {
 
   useEffect(() => { ladeGalerie(); }, []);
   useEffect(() => { ladeGalerie(); }, [filterPilot, filterKat]);
+  useEffect(() => { if (istPilot) ladeFreigabeQueue(); }, [istPilot]);
+
+  async function ladeFreigabeQueue() {
+    const res = await fetch('/api/galerie?nurUnfreigegeben=1&pilot=' + encodeURIComponent(pilot));
+    const data = await res.json();
+    setFreigabeQueue(Array.isArray(data) ? data.filter((f: Foto) => !f.freigegeben) : []);
+  }
+
+  async function freigeben(id: string, ja: boolean) {
+    await fetch(`/api/galerie/${id}/freigeben`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, freigeben: ja }),
+    });
+    setFreigabeQueue(q => q.filter(f => f.id !== id));
+    if (ja) ladeGalerie();
+  }
+
+  async function abstimmen(id: string) {
+    if (gestimmt.has(id)) return;
+    await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
+    const neu = new Set(gestimmt).add(id);
+    setGestimmt(neu);
+    localStorage.setItem('gestimmt', JSON.stringify([...neu]));
+    setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
+  }
 
   async function ladeGalerie() {
     setGalLaden(true);
@@ -132,15 +163,33 @@ export default function GaleriePage() {
     .filter-reset:hover { color: var(--ink); }
     .filter-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); }
     .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 3rem; }
-    .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; }
+    .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
     .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-    .galerie-info { padding: 0.75rem 1rem; }
-    .galerie-beschreibung { font-size: 0.92rem; color: var(--ink); margin-bottom: 0.3rem; line-height: 1.45; }
+    .galerie-info { padding: 0.75rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+    .galerie-beschreibung { font-size: 0.92rem; color: var(--ink); line-height: 1.45; }
     .galerie-meta { font-size: 0.75rem; color: var(--mid); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
     .galerie-kat { background: var(--green-soft); color: var(--green); border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .galerie-datum { font-variant-numeric: tabular-nums; }
     .badge-versteckt { position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 3px; }
+    .vote-bar { padding: 0.5rem 1rem 0.75rem; display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--border); margin-top: auto; }
+    .btn-vote { background: none; border: 2px solid var(--border); border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.15s; color: var(--ink); }
+    .btn-vote:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+    .btn-vote.voted { border-color: var(--gold); background: #fef3c7; color: #92400e; font-weight: 700; cursor: default; }
+    .vote-count { font-size: 0.8rem; color: var(--mid); }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
+    .queue-section { background: #fff8e7; border: 2px solid var(--gold); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .queue-section h2 { font-family: var(--serif); font-size: 1.2rem; color: #92400e; margin-bottom: 1rem; }
+    .queue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .queue-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .queue-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+    .queue-info { padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--mid); }
+    .queue-actions { display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem 0.75rem; }
+    .btn-freigeben { flex: 1; background: var(--green); color: #fff; border: none; padding: 0.5rem; border-radius: 4px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-ablehnen  { flex: 1; background: #dc2626; color: #fff; border: none; padding: 0.5rem; border-radius: 4px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .wettbewerb-banner { background: linear-gradient(135deg, var(--green) 0%, #1a4a0e 100%); color: #fff; border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .wettbewerb-text h3 { font-family: var(--serif); font-size: 1.1rem; margin-bottom: 0.2rem; }
+    .wettbewerb-text p { font-size: 0.82rem; opacity: 0.85; }
+    .btn-mitmachen { background: var(--gold); color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 4px; font-size: 0.88rem; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
     .upload-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; }
     .upload-section h2 { font-family: var(--serif); font-size: 1.4rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
     .kat-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 1rem 0 0; }
@@ -204,6 +253,37 @@ export default function GaleriePage() {
         <h1>Galerie</h1>
         <p className="lead">Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
 
+        {/* Wettbewerbs-Banner */}
+        <div className="wettbewerb-banner">
+          <div className="wettbewerb-text">
+            <h3>🏆 Foto-Wettbewerb läuft!</h3>
+            <p>War du dabei? Lade dein schönstes Rikscha-Moment hoch und lass abstimmen.</p>
+          </div>
+          <a href="/galerie/hochladen" className="btn-mitmachen">Jetzt mitmachen →</a>
+        </div>
+
+        {/* Moderations-Queue für Piloten */}
+        {istPilot && freigabeQueue.length > 0 && (
+          <div className="queue-section">
+            <h2>📬 Gäste-Fotos zur Freigabe ({freigabeQueue.length})</h2>
+            <div className="queue-grid">
+              {freigabeQueue.map(f => (
+                <div key={f.id} className="queue-card">
+                  <img src={f.url} alt={f.beschreibung || ''} />
+                  <div className="queue-info">
+                    <strong>{f.pilot}</strong>{f.beschreibung ? ` · ${f.beschreibung}` : ''}
+                    <br/>{new Date(f.created_at).toLocaleDateString('de-DE')}
+                  </div>
+                  <div className="queue-actions">
+                    <button className="btn-freigeben" onClick={() => freigeben(f.id, true)}>✓ Freigeben</button>
+                    <button className="btn-ablehnen"  onClick={() => freigeben(f.id, false)}>✗ Ablehnen</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Filter */}
         {(allePiloten.length > 0 || alleKats.length > 0) && (
           <div className="filter-bar">
@@ -243,6 +323,16 @@ export default function GaleriePage() {
                   {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}
                   <span className="galerie-datum">· {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 </div>
+              </div>
+              <div className="vote-bar">
+                <button
+                  className={`btn-vote${gestimmt.has(f.id) ? ' voted' : ''}`}
+                  onClick={() => abstimmen(f.id)}
+                  disabled={gestimmt.has(f.id)}
+                >
+                  👍 {gestimmt.has(f.id) ? 'Abgestimmt' : 'Gefällt mir'}
+                </button>
+                {f.stimmen > 0 && <span className="vote-count">{f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>}
               </div>
             </div>
           ))}

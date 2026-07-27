@@ -16,18 +16,20 @@ export async function OPTIONS() {
 export async function GET(req: NextRequest) {
   const db = createServiceClient();
   const { searchParams } = new URL(req.url);
-  const pilot       = searchParams.get('pilot');
-  const kategorie   = searchParams.get('kategorie');
-  const nurSichtbare = searchParams.get('nurSichtbare') === '1';
+  const pilot           = searchParams.get('pilot');
+  const kategorie       = searchParams.get('kategorie');
+  const nurSichtbare    = searchParams.get('nurSichtbare') === '1';
+  const nurUnfreigegeben = searchParams.get('nurUnfreigegeben') === '1';
 
   let query = db
     .from('galerie')
-    .select('id, url, beschreibung, pilot, kategorie, created_at, sichtbar')
+    .select('id, url, beschreibung, pilot, kategorie, created_at, sichtbar, freigegeben, stimmen')
     .order('created_at', { ascending: false });
 
-  if (pilot)       query = query.eq('pilot', pilot);
-  if (kategorie)   query = query.eq('kategorie', kategorie);
-  if (nurSichtbare) query = query.eq('sichtbar', true);
+  if (pilot)            query = query.eq('pilot', pilot);
+  if (kategorie)        query = query.eq('kategorie', kategorie);
+  if (nurSichtbare)     query = query.eq('sichtbar', true);
+  if (nurUnfreigegeben) query = query.eq('freigegeben', false);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
