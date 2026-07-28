@@ -4,6 +4,7 @@ import HamburgerMenu from './HamburgerMenu';
 import PilotenFooterLink from './PilotenFooterLink';
 import PilotenModal from './PilotenModal';
 import Banner from '../(app)/Banner';
+import QrSpenden from './QrSpenden';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -514,19 +515,30 @@ export default async function WebsitePage() {
           <p>{t.spenden_text}</p>
           <div className="spenden-grid">
             <div className="spenden-card">
-              <h3>💳 PayPal</h3>
-              <p style={{fontSize:'0.9rem'}}>Schnell und unkompliziert — direkt online spenden.</p>
-              <a href="#" className="btn btn-paypal">Jetzt via PayPal spenden</a>
-              <p style={{fontSize:'0.8rem',marginTop:'0.5rem',color:'var(--mid)'}}>PayPal-Link folgt</p>
+              <h3>🏦 Kreissparkasse Köln</h3>
+              <p style={{fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.75rem'}}>QR-Code scannen — Daten werden automatisch eingetragen</p>
+              <canvas id="qr-ksk" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
+              <p style={{fontSize:'0.82rem',marginBottom:'0.25rem'}}>Kontoinhaber:</p>
+              <span className="iban">Förderverein „Miteinander Kloster Merten e. V."</span>
+              <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>IBAN:</p>
+              <span className="iban">DE79 3705 0299 0049 0050 40</span>
+              <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>BIC:</p>
+              <span className="iban">COKSDE33XXX</span>
+              <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>Stichwort:</p>
+              <span className="iban">Rikscha</span>
             </div>
             <div className="spenden-card">
-              <h3>🏦 Überweisung</h3>
-              <p style={{fontSize:'0.9rem'}}>Kontoinhaber:</p>
-              <span className="iban">Mertener Rikschakutscher / GFO</span>
-              <p style={{fontSize:'0.9rem',marginTop:'0.75rem'}}>IBAN:</p>
-              <span className="iban">DE•• •••• •••• •••• •••• ••</span>
-              <p style={{fontSize:'0.9rem',marginTop:'0.75rem'}}>Verwendungszweck:</p>
-              <span className="iban">Spende Mertener Rikschakutscher</span>
+              <h3>🏦 Volksbank Bonn Rhein-Sieg</h3>
+              <p style={{fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.75rem'}}>QR-Code scannen — Daten werden automatisch eingetragen</p>
+              <canvas id="qr-vb" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
+              <p style={{fontSize:'0.82rem',marginBottom:'0.25rem'}}>Kontoinhaber:</p>
+              <span className="iban">Förderverein „Miteinander Kloster Merten e. V."</span>
+              <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>IBAN:</p>
+              <span className="iban">DE14 3806 0186 0410 0560 11</span>
+              <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>BIC:</p>
+              <span className="iban">GENODED1BRS</span>
+              <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>Stichwort:</p>
+              <span className="iban">Rikscha</span>
             </div>
             <div className="spenden-card">
               <h3>💵 Bar</h3>
@@ -534,6 +546,7 @@ export default async function WebsitePage() {
               <p style={{fontSize:'0.9rem',marginTop:'0.75rem'}}>Jede Münze zählt. Danke von Herzen!</p>
             </div>
           </div>
+          <QrSpenden/>
         </div>
       </section>
 
