@@ -519,7 +519,7 @@ export default async function WebsitePage() {
               <p style={{fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.75rem'}}>QR-Code scannen — Daten werden automatisch eingetragen</p>
               <canvas id="qr-ksk" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
               <p style={{fontSize:'0.82rem',marginBottom:'0.25rem'}}>Kontoinhaber:</p>
-              <span className="iban">Förderverein Miteinander Kloster Merten e. V.</span>
+              <span className="iban">Förderverein „Miteinander Kloster Merten e. V."</span>
               <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>IBAN:</p>
               <span className="iban">DE79 3705 0299 0049 0050 40</span>
               <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>BIC:</p>
@@ -532,7 +532,7 @@ export default async function WebsitePage() {
               <p style={{fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.75rem'}}>QR-Code scannen — Daten werden automatisch eingetragen</p>
               <canvas id="qr-vb" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
               <p style={{fontSize:'0.82rem',marginBottom:'0.25rem'}}>Kontoinhaber:</p>
-              <span className="iban">Förderverein Miteinander Kloster Merten e. V.</span>
+              <span className="iban">Förderverein „Miteinander Kloster Merten e. V."</span>
               <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>IBAN:</p>
               <span className="iban">DE14 3806 0186 0410 0560 11</span>
               <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>BIC:</p>

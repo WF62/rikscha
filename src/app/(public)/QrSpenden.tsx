@@ -203,8 +203,8 @@ function drawOnCanvas(id: string, text: string) {
   } catch { /* ignore */ }
 }
 
-const EPC_KSK = ['BCD','002','1','SCT','COKSDE33XXX','Foerderverein Miteinander Kloster Merten e. V.','DE79370502990049005040','EUR','','','Rikscha',''].join('\n');
-const EPC_VB  = ['BCD','002','1','SCT','GENODED1BRS','Foerderverein Miteinander Kloster Merten e. V.','DE14380601860410056011','EUR','','','Rikscha',''].join('\n');
+const EPC_KSK = ['BCD','002','1','SCT','COKSDE33XXX','Förderverein Miteinander Kloster Merten e. V.','DE79370502990049005040','EUR','','','Rikscha',''].join('\n');
+const EPC_VB  = ['BCD','002','1','SCT','GENODED1BRS','Förderverein Miteinander Kloster Merten e. V.','DE14380601860410056011','EUR','','','Rikscha',''].join('\n');
 
 export default function QrSpenden() {
   useEffect(() => {
