@@ -43,10 +43,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: 'Nicht gefunden.' }, { status: 404, headers: CORS });
   }
 
-  // Datei aus Storage löschen
-  const filename = foto.url.split('/').pop();
-  if (filename) {
-    await db.storage.from('piloten-dateien').remove([filename]);
+  // Datei aus Storage löschen — Pfad nach /piloten-dateien/ extrahieren
+  const storageMarker = '/piloten-dateien/';
+  const markerIdx = foto.url.indexOf(storageMarker);
+  if (markerIdx !== -1) {
+    const storagePath = decodeURIComponent(foto.url.slice(markerIdx + storageMarker.length).split('?')[0]);
+    await db.storage.from('piloten-dateien').remove([storagePath]);
   }
 
   await db.from('galerie').delete().eq('id', params.id);
