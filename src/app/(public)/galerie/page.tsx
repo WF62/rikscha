@@ -38,6 +38,7 @@ export default function GaleriePage() {
   const [dragOver, setDragOver]   = useState(false);
   const [filterPilot, setFilterPilot] = useState('');
   const [filterKat, setFilterKat]     = useState('');
+  const [filterSaison, setFilterSaison] = useState('');
   const [gestimmt, setGestimmt]       = useState<Set<string>>(() => {
     if (typeof window === 'undefined') return new Set();
     try { return new Set(JSON.parse(localStorage.getItem('gestimmt') ?? '[]')); } catch { return new Set(); }
@@ -122,6 +123,8 @@ export default function GaleriePage() {
   const anzahlOk    = dateien.filter(d => d.status === 'ok').length;
   const allePiloten = Array.from(new Set(fotos.map(f => f.pilot))).sort();
   const alleKats    = Array.from(new Set(fotos.map(f => f.kategorie).filter(Boolean))).sort() as string[];
+  const alleSaisons = Array.from(new Set(fotos.map(f => new Date(f.created_at).getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
+  const gefilterteFotos = filterSaison ? fotos.filter(f => new Date(f.created_at).getFullYear().toString() === filterSaison) : fotos;
 
   async function hochladen() {
     const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
@@ -357,8 +360,14 @@ export default function GaleriePage() {
                 {alleKats.map(k => <option key={k} value={k}>{k}</option>)}
               </select>
             )}
-            {(filterPilot || filterKat) && (
-              <button className="filter-reset" onClick={() => { setFilterPilot(''); setFilterKat(''); }}>
+            {alleSaisons.length > 1 && (
+              <select value={filterSaison} onChange={e => setFilterSaison(e.target.value)}>
+                <option value="">Alle Saisons</option>
+                {alleSaisons.map(s => <option key={s} value={s}>Saison {s}</option>)}
+              </select>
+            )}
+            {(filterPilot || filterKat || filterSaison) && (
+              <button className="filter-reset" onClick={() => { setFilterPilot(''); setFilterKat(''); setFilterSaison(''); }}>
                 Filter zurücksetzen
               </button>
             )}
@@ -393,8 +402,8 @@ export default function GaleriePage() {
         {/* Galerie-Grid */}
         <div className="galerie-grid">
           {galLaden && <div className="galerie-empty">Fotos werden geladen …</div>}
-          {!galLaden && fotos.length === 0 && <div className="galerie-empty">Keine Fotos gefunden.</div>}
-          {fotos.map(f => (
+          {!galLaden && gefilterteFotos.length === 0 && <div className="galerie-empty">Keine Fotos gefunden.</div>}
+          {gefilterteFotos.map(f => (
             <div key={f.id} className="galerie-card">
               <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
               {istPilot && !f.sichtbar && <span className="badge-versteckt">🔒 Nur Piloten</span>}

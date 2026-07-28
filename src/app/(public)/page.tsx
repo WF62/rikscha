@@ -39,16 +39,16 @@ const DEFAULTS: Record<string, string> = {
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
 };
 
-async function ladeGalerie(auswahlJson: string): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
+async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
   try {
-    let ids: string[] = [];
-    try { ids = JSON.parse(auswahlJson); } catch { ids = []; }
-    if (!Array.isArray(ids) || ids.length === 0) return [];
     const db = createServiceClient();
-    const { data } = await db.from('galerie').select('id,url,beschreibung,pilot,created_at').in('id', ids);
-    // Reihenfolge der Auswahl beibehalten
-    const map = new Map((data ?? []).map(r => [r.id, r]));
-    return ids.map(id => map.get(id)).filter(Boolean) as { id: string; url: string; beschreibung: string; pilot: string; created_at: string }[];
+    const { data } = await db
+      .from('galerie')
+      .select('id,url,beschreibung,pilot,created_at')
+      .eq('sichtbar', true)
+      .order('created_at', { ascending: false })
+      .limit(6);
+    return data ?? [];
   } catch {
     return [];
   }
@@ -68,7 +68,7 @@ async function ladeInhalte(): Promise<Record<string, string>> {
 
 export default async function WebsitePage() {
   const t = await ladeInhalte();
-  const galerie = await ladeGalerie(t.galerie_homepage ?? '');
+  const galerie = await ladeGalerie();
   return (
     <>
       <style>{`
