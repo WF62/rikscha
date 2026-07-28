@@ -55,7 +55,7 @@ export default function GaleriePage() {
   useEffect(() => { if (istPilot) ladeFreigabeQueue(); }, [istPilot]);
 
   async function ladeFreigabeQueue() {
-    const res = await fetch('/api/galerie?nurUnfreigegeben=1&pilot=' + encodeURIComponent(pilot));
+    const res = await fetch('/api/galerie?nurUnfreigegeben=1');
     const data = await res.json();
     setFreigabeQueue(Array.isArray(data) ? data.filter((f: Foto) => !f.freigegeben) : []);
   }
