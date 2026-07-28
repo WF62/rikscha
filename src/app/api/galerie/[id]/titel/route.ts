@@ -15,12 +15,16 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const db = createServiceClient();
-  const { pilot, password, beschreibung } = await req.json();
+  const { pilot, password, beschreibung, fotograf } = await req.json();
 
   if (!await checkPilot(pilot, password)) {
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
   }
 
-  await db.from('galerie').update({ beschreibung }).eq('id', params.id);
+  const felder: Record<string, string> = {};
+  if (beschreibung !== undefined) felder.beschreibung = beschreibung;
+  if (fotograf      !== undefined) felder.pilot       = fotograf;
+  if (Object.keys(felder).length > 0)
+    await db.from('galerie').update(felder).eq('id', params.id);
   return NextResponse.json({ ok: true }, { headers: CORS });
 }

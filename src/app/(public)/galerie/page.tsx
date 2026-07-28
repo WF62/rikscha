@@ -44,6 +44,9 @@ export default function GaleriePage() {
     try { return new Set(JSON.parse(localStorage.getItem('gestimmt') ?? '[]')); } catch { return new Set(); }
   });
   const [freigabeQueue, setFreigabeQueue] = useState<Foto[]>([]);
+  const [editId, setEditId]               = useState<string | null>(null);
+  const [editTitel, setEditTitel]         = useState('');
+  const [editFotograf, setEditFotograf]   = useState('');
   const inputRef   = useRef<HTMLInputElement>(null);
   const kameraRef  = useRef<HTMLInputElement>(null);
   const ordnerRef  = useRef<HTMLInputElement>(null);
@@ -77,6 +80,23 @@ export default function GaleriePage() {
       body: JSON.stringify({ pilot, password, beschreibung: titel }),
     });
     setFotos(f => f.map(x => x.id === id ? { ...x, beschreibung: titel } : x));
+  }
+
+  function editOeffnen(f: Foto) {
+    setEditId(f.id);
+    setEditTitel(f.beschreibung || '');
+    setEditFotograf(f.pilot || '');
+  }
+
+  async function editSpeichern() {
+    if (!editId) return;
+    await fetch(`/api/galerie/${editId}/titel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, beschreibung: editTitel, fotograf: editFotograf }),
+    });
+    setFotos(f => f.map(x => x.id === editId ? { ...x, beschreibung: editTitel, pilot: editFotograf } : x));
+    setEditId(null);
   }
 
   async function abstimmen(id: string) {
@@ -432,19 +452,32 @@ export default function GaleriePage() {
             <div key={f.id} className="galerie-card">
               <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
               {istPilot && !f.sichtbar && <span className="badge-versteckt">🔒 Nur Piloten</span>}
+
+              {/* Edit-Overlay für Piloten */}
+              {istPilot && editId === f.id && (
+                <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.75)', zIndex:10, display:'flex', flexDirection:'column', gap:'0.5rem', padding:'0.75rem', justifyContent:'center' }}>
+                  <input
+                    value={editFotograf}
+                    onChange={e => setEditFotograf(e.target.value)}
+                    placeholder="Fotografen-Name"
+                    style={{ border:'none', borderRadius:4, padding:'0.4rem 0.6rem', fontSize:'0.85rem', width:'100%' }}
+                  />
+                  <input
+                    value={editTitel}
+                    onChange={e => setEditTitel(e.target.value)}
+                    placeholder="Bildtitel (optional)"
+                    style={{ border:'none', borderRadius:4, padding:'0.4rem 0.6rem', fontSize:'0.85rem', width:'100%' }}
+                  />
+                  <div style={{ display:'flex', gap:'0.4rem' }}>
+                    <button onClick={editSpeichern} style={{ flex:1, background:'#2D6B1E', color:'#fff', border:'none', borderRadius:4, padding:'0.4rem', fontSize:'0.82rem', fontWeight:700, cursor:'pointer' }}>✓ Speichern</button>
+                    <button onClick={() => setEditId(null)} style={{ flex:1, background:'#555', color:'#fff', border:'none', borderRadius:4, padding:'0.4rem', fontSize:'0.82rem', cursor:'pointer' }}>Abbrechen</button>
+                  </div>
+                </div>
+              )}
+
               <div className="galerie-info">
                 <div className="galerie-fotograf">📷 {f.pilot || 'Unbekannt'}</div>
-                {f.beschreibung
-                  ? <div className="galerie-titel">„{f.beschreibung}"</div>
-                  : istPilot
-                    ? <input
-                        className="titel-input"
-                        placeholder="Titel hinzufügen …"
-                        onBlur={e => { if (e.target.value.trim()) titelSpeichern(f.id, e.target.value.trim()); }}
-                        onKeyDown={e => { if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) titelSpeichern(f.id, (e.target as HTMLInputElement).value.trim()); }}
-                      />
-                    : null
-                }
+                {f.beschreibung && <div className="galerie-titel">„{f.beschreibung}"</div>}
                 <div className="galerie-meta">
                   {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}
                   <span className="galerie-datum">{new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
@@ -470,13 +503,22 @@ export default function GaleriePage() {
                 <span className="vote-count">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>
               </div>
               {istPilot && (
-                <button
-                  onClick={() => fotoLoeschen(f.id)}
-                  title="Foto löschen"
-                  style={{ position:'absolute', top:'0.4rem', right:'0.4rem', background:'rgba(0,0,0,0.55)', border:'none', borderRadius:4, color:'#fff', fontSize:'0.75rem', padding:'0.2rem 0.5rem', cursor:'pointer', zIndex:5 }}
-                >
-                  🗑 Löschen
-                </button>
+                <>
+                  <button
+                    onClick={() => editOeffnen(f)}
+                    title="Titel und Fotografen bearbeiten"
+                    style={{ position:'absolute', top:'0.4rem', left:'0.4rem', background:'rgba(0,0,0,0.55)', border:'none', borderRadius:4, color:'#fff', fontSize:'0.75rem', padding:'0.2rem 0.5rem', cursor:'pointer', zIndex:5 }}
+                  >
+                    ✏️ Bearbeiten
+                  </button>
+                  <button
+                    onClick={() => fotoLoeschen(f.id)}
+                    title="Foto löschen"
+                    style={{ position:'absolute', top:'0.4rem', right:'0.4rem', background:'rgba(0,0,0,0.55)', border:'none', borderRadius:4, color:'#fff', fontSize:'0.75rem', padding:'0.2rem 0.5rem', cursor:'pointer', zIndex:5 }}
+                  >
+                    🗑 Löschen
+                  </button>
+                </>
               )}
             </div>
           ))}
