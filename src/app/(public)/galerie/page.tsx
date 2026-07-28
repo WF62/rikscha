@@ -4,6 +4,29 @@ import { useState, useEffect, useRef } from 'react';
 type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string; sichtbar: boolean; freigegeben: boolean; stimmen: number };
 type UploadDatei = { datei: File; vorschau: string; beschreibung: string; sichtbar: boolean; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
+async function komprimieren(datei: File, maxPx = 1920, qualitaet = 0.82): Promise<File> {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(datei);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxPx && height <= maxPx) { resolve(datei); return; }
+      const scale = Math.min(maxPx / width, maxPx / height);
+      width  = Math.round(width  * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        resolve(blob ? new File([blob], datei.name, { type: 'image/jpeg' }) : datei);
+      }, 'image/jpeg', qualitaet);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(datei); };
+    img.src = url;
+  });
+}
+
 export default function GaleriePage() {
   const [fotos, setFotos]         = useState<Foto[]>([]);
   const [galLaden, setGalLaden]   = useState(true);
@@ -52,6 +75,11 @@ export default function GaleriePage() {
     const neu = new Set(gestimmt).add(id);
     setGestimmt(neu);
     localStorage.setItem('gestimmt', JSON.stringify(Array.from(neu)));
+    setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
+  }
+
+  async function gastStimme(id: string) {
+    await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
     setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
   }
 
@@ -105,13 +133,14 @@ export default function GaleriePage() {
       if (d.status !== 'warten' && d.status !== 'err') continue;
       setDateien(prev => prev.map((x, j) => j === i ? { ...x, status: 'laden' } : x));
 
+      const komprimiert = await komprimieren(d.datei);
       const form = new FormData();
       form.append('pilot', pilot);
       form.append('password', password || 'skip');
       form.append('beschreibung', d.beschreibung);
       form.append('kategorie', aktiveKat);
       form.append('sichtbar', d.sichtbar ? '1' : '0');
-      form.append('datei', d.datei);
+      form.append('datei', komprimiert);
 
       try {
         const res = await fetch('/api/galerie', { method: 'POST', body: form });
@@ -176,6 +205,8 @@ export default function GaleriePage() {
     .btn-vote { background: none; border: 2px solid var(--border); border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.15s; color: var(--ink); }
     .btn-vote:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
     .btn-vote.voted { border-color: var(--gold); background: #fef3c7; color: #92400e; font-weight: 700; cursor: default; }
+    .btn-gast-stimme { border-color: var(--green); color: var(--green); font-size: 0.78rem; padding: 0.3rem 0.65rem; }
+    .btn-gast-stimme:hover { background: var(--green); color: #fff; }
     .vote-count { font-size: 0.8rem; color: var(--mid); }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
     .queue-section { background: #fff8e7; border: 2px solid var(--gold); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
@@ -233,6 +264,22 @@ export default function GaleriePage() {
     .btn-clear:hover { border-color: var(--ink); color: var(--ink); }
     .upload-summary { font-size: 0.85rem; color: var(--mid); }
     .divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+    .motiv-box { display:flex; gap:1rem; align-items:flex-start; background:var(--surface); border:1.5px solid var(--border); border-left:4px solid var(--gold); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.25rem; font-size:0.92rem; line-height:1.6; color:var(--ink); }
+    .motiv-icon { font-size:2rem; flex-shrink:0; }
+    .motiv-box p { margin:0.3rem 0 0; color:var(--mid); }
+    .rangliste-section { margin-bottom:2rem; }
+    .rangliste-title { font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem; }
+    .rangliste-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; }
+    .rang-card { background:var(--surface); border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; position:relative; }
+    .rang-card.rang-1 { border-color:#f59e0b; }
+    .rang-card.rang-2 { border-color:#94a3b8; }
+    .rang-card.rang-3 { border-color:#b45309; }
+    .rang-card img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+    .rang-badge { position:absolute; top:0.4rem; left:0.4rem; background:rgba(0,0,0,0.7); color:#fff; border-radius:999px; padding:0.2rem 0.55rem; font-size:0.75rem; font-weight:700; }
+    .rang-info { padding:0.5rem 0.6rem; }
+    .rang-name { font-size:0.8rem; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rang-stimmen { font-size:0.75rem; color:var(--gold); font-weight:700; }
+    @media (max-width:500px) { .rangliste-grid { grid-template-columns:repeat(2,1fr); } .rang-card:last-child { display:none; } }
     @media (max-width: 600px) {
       .upload-item { grid-template-columns: 60px 1fr auto; }
       .upload-thumb { width: 60px; height: 45px; }
@@ -254,11 +301,20 @@ export default function GaleriePage() {
         <h1>Galerie</h1>
         <p className="lead">Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
 
+        {/* Motivationstext Wettbewerb */}
+        <div className="motiv-box">
+          <div className="motiv-icon">📸</div>
+          <div>
+            <strong>Warum solltest du mitmachen?</strong>
+            <p>Jede Rikscha-Fahrt ist ein einzigartiger Moment — voller Lächeln, Entdeckungen und unvergesslicher Orte. Teile deinen schönsten Augenblick mit unserer Community und lass andere dafür abstimmen. Die <strong>drei Fotos mit den meisten Stimmen</strong> gewinnen: Ihre Fotografinnen und Fotografen werden zu einem <strong>besonderen Exklusiv-Event</strong> eingeladen. Sei dabei!</p>
+          </div>
+        </div>
+
         {/* Wettbewerbs-Banner */}
         <div className="wettbewerb-banner">
           <div className="wettbewerb-text">
             <h3>🏆 Foto-Wettbewerb läuft!</h3>
-            <p>War du dabei? Lade dein schönstes Rikscha-Moment hoch und lass abstimmen.</p>
+            <p>Lade dein Foto hoch, sammle Stimmen — die Top 3 gewinnen ein Exklusiv-Event.</p>
           </div>
           <a href="/galerie/hochladen" className="btn-mitmachen">Jetzt mitmachen →</a>
         </div>
@@ -309,6 +365,31 @@ export default function GaleriePage() {
           </div>
         )}
 
+        {/* Top-3-Rangliste */}
+        {(() => {
+          const top3 = [...fotos].filter(f => f.stimmen > 0).sort((a, b) => b.stimmen - a.stimmen).slice(0, 3);
+          if (top3.length === 0) return null;
+          const medal = ['🥇', '🥈', '🥉'];
+          const cls   = ['rang-1', 'rang-2', 'rang-3'];
+          return (
+            <div className="rangliste-section">
+              <div className="rangliste-title">🏆 Aktuelle Top-3</div>
+              <div className="rangliste-grid">
+                {top3.map((f, i) => (
+                  <div key={f.id} className={`rang-card ${cls[i]}`}>
+                    <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
+                    <span className="rang-badge">{medal[i]} Platz {i + 1}</span>
+                    <div className="rang-info">
+                      <div className="rang-name">{f.pilot}</div>
+                      <div className="rang-stimmen">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Galerie-Grid */}
         <div className="galerie-grid">
           {galLaden && <div className="galerie-empty">Fotos werden geladen …</div>}
@@ -333,6 +414,15 @@ export default function GaleriePage() {
                 >
                   👍 {gestimmt.has(f.id) ? 'Abgestimmt' : 'Gefällt mir'}
                 </button>
+                {istPilot && (
+                  <button
+                    className="btn-vote btn-gast-stimme"
+                    onClick={() => gastStimme(f.id)}
+                    title="Stimme für einen Gast ohne Smartphone eintragen"
+                  >
+                    +1 Gast
+                  </button>
+                )}
                 {f.stimmen > 0 && <span className="vote-count">{f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>}
               </div>
             </div>

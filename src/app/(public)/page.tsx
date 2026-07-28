@@ -568,23 +568,36 @@ export default async function WebsitePage() {
           <div className="eyebrow">Eindrücke</div>
           <h2>Momente auf der Strecke</h2>
           <p>Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
+
+          {/* Wettbewerbs-Banner */}
+          <div style={{background:'var(--green)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',marginBottom:'1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap'}}>
+            <div style={{color:'#fff'}}>
+              <div style={{fontWeight:700,fontSize:'1rem'}}>🏆 Foto-Wettbewerb läuft!</div>
+              <div style={{fontSize:'0.85rem',opacity:0.85,marginTop:'0.2rem'}}>Stimme für dein Lieblingsfoto — oder lade dein eigenes hoch!</div>
+            </div>
+            <div style={{display:'flex',gap:'0.6rem',flexWrap:'wrap'}}>
+              <a href="/galerie" style={{display:'inline-block',padding:'0.55rem 1rem',background:'#fff',color:'var(--green)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>👍 Jetzt abstimmen →</a>
+              <a href="/galerie/hochladen" style={{display:'inline-block',padding:'0.55rem 1rem',background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>📸 Foto einreichen</a>
+            </div>
+          </div>
+
           <div className="galerie-grid">
             {galerie.length === 0
-              ? <div className="galerie-empty">Noch keine Fotos vorhanden — Piloten können über den Piloten-Bereich Fotos hochladen.</div>
+              ? <div className="galerie-empty">Noch keine Fotos vorhanden.</div>
               : galerie.map(f => (
-                <div key={f.id} className="galerie-card">
+                <a key={f.id} className="galerie-card" href="/galerie" style={{textDecoration:'none',color:'inherit',display:'block'}}>
                   <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
                   <div className="galerie-info">
                     {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
                     <div className="galerie-meta">{f.pilot} · {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
                   </div>
-                </div>
+                </a>
               ))
             }
           </div>
           {galerie.length > 0 && (
             <div style={{textAlign:'center',marginTop:'1.5rem'}}>
-              <a href="/galerie" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen ↗</a>
+              <a href="/galerie" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen &amp; abstimmen ↗</a>
             </div>
           )}
         </div>

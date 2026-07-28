@@ -3,6 +3,29 @@ import { useState, useRef, useEffect } from 'react';
 
 type UploadDatei = { datei: File; vorschau: string; name: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
+async function komprimieren(datei: File, maxPx = 1920, qualitaet = 0.82): Promise<File> {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(datei);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxPx && height <= maxPx) { resolve(datei); return; }
+      const scale = Math.min(maxPx / width, maxPx / height);
+      width  = Math.round(width  * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        resolve(blob ? new File([blob], datei.name, { type: 'image/jpeg' }) : datei);
+      }, 'image/jpeg', qualitaet);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(datei); };
+    img.src = url;
+  });
+}
+
 export default function GasteUploadPage() {
   const [dateien, setDateien] = useState<UploadDatei[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -29,6 +52,7 @@ export default function GasteUploadPage() {
   async function hochladen() {
     const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
     if (!offene.length) return;
+    if (!gastName.trim()) { alert('Bitte gib deinen Namen ein — er wird für die Gewinner-Ermittlung benötigt.'); return; }
     setUploading(true);
 
     for (let i = 0; i < dateien.length; i++) {
@@ -36,6 +60,7 @@ export default function GasteUploadPage() {
       if (d.status !== 'warten' && d.status !== 'err') continue;
       setDateien(prev => prev.map((x, j) => j === i ? { ...x, status: 'laden' } : x));
 
+      const komprimiert = await komprimieren(d.datei);
       const form = new FormData();
       form.append('pilot', gastName.trim() || 'Gast');
       form.append('password', '__gast__');
@@ -43,7 +68,7 @@ export default function GasteUploadPage() {
       form.append('kategorie', 'Gäste-Wettbewerb');
       form.append('sichtbar', '0');
       form.append('freigegeben', '0');
-      form.append('datei', d.datei);
+      form.append('datei', komprimiert);
 
       try {
         const res = await fetch('/api/galerie/gast', { method: 'POST', body: form });
@@ -122,12 +147,13 @@ export default function GasteUploadPage() {
           </div>
         ) : (
           <div className="card">
-            <label className="field-label">Dein Name (optional)</label>
+            <label className="field-label">Dein Name <span style={{color:'#dc2626'}}>*</span> <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'var(--mid)'}}>— für die Gewinner-Ermittlung</span></label>
             <input
               className="field-input"
               value={gastName}
               onChange={e => setGastName(e.target.value)}
-              placeholder="z. B. Maria oder Anonym"
+              placeholder="Vor- und Nachname"
+              required
             />
 
             <div className="btn-row">
@@ -168,7 +194,7 @@ export default function GasteUploadPage() {
                   ))}
                 </div>
 
-                <button className="btn-submit" onClick={hochladen} disabled={uploading || anzahlOffen === 0}>
+                <button className="btn-submit" onClick={hochladen} disabled={uploading || anzahlOffen === 0 || !gastName.trim()}>
                   {uploading ? 'Wird hochgeladen …' : `${anzahlOffen} Foto${anzahlOffen !== 1 ? 's' : ''} einreichen`}
                 </button>
               </>
