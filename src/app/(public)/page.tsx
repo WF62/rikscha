@@ -39,12 +39,12 @@ const DEFAULTS: Record<string, string> = {
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
 };
 
-async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string }[]> {
+async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string; stimmen: number }[]> {
   try {
     const db = createServiceClient();
     const { data } = await db
       .from('galerie')
-      .select('id,url,beschreibung,pilot,created_at')
+      .select('id,url,beschreibung,pilot,created_at,stimmen')
       .eq('sichtbar', true)
       .order('created_at', { ascending: false })
       .limit(6);
@@ -240,11 +240,13 @@ export default async function WebsitePage() {
         /* Galerie */
         .galerie-section { background: #F5F0E7; }
         .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
-        .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
         .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-        .galerie-info { padding: 0.75rem 1rem; }
-        .galerie-beschreibung { font-size: 0.9rem; color: var(--ink); margin-bottom: 0.25rem; }
-        .galerie-meta { font-size: 0.75rem; color: var(--mid); }
+        .galerie-info { padding: 0.75rem 1rem 0.5rem; flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+        .galerie-fotograf { font-size: 0.92rem; font-weight: 700; color: var(--ink); }
+        .galerie-titel { font-size: 0.82rem; color: var(--mid); font-style: italic; }
+        .galerie-meta { font-size: 0.72rem; color: var(--mid); margin-top: 0.15rem; }
+        .galerie-vote { padding: 0.4rem 1rem 0.65rem; font-size: 0.85rem; font-weight: 700; color: #b45309; }
         .galerie-empty { text-align: center; color: var(--mid); padding: 3rem; font-size: 0.95rem; }
 
         /* Upload-Bereich */
@@ -585,12 +587,17 @@ export default async function WebsitePage() {
             {galerie.length === 0
               ? <div className="galerie-empty">Noch keine Fotos vorhanden.</div>
               : galerie.map(f => (
-                <a key={f.id} className="galerie-card" href="/galerie" style={{textDecoration:'none',color:'inherit',display:'block'}}>
+                <a key={f.id} className="galerie-card" href="/galerie" style={{textDecoration:'none',color:'inherit'}}>
                   <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
                   <div className="galerie-info">
-                    {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
-                    <div className="galerie-meta">{f.pilot} · {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+                    <div className="galerie-fotograf">📷 {f.pilot || 'Unbekannt'}</div>
+                    {f.beschreibung
+                      ? <div className="galerie-titel">„{f.beschreibung}"</div>
+                      : <div className="galerie-titel" style={{opacity:0.35}}>Kein Titel</div>
+                    }
+                    <div className="galerie-meta">{new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
                   </div>
+                  {(f.stimmen ?? 0) > 0 && <div className="galerie-vote">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</div>}
                 </a>
               ))
             }

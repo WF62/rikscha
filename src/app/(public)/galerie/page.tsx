@@ -391,7 +391,8 @@ export default function GaleriePage() {
                     <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
                     <span className="rang-badge">{medal[i]} Platz {i + 1}</span>
                     <div className="rang-info">
-                      <div className="rang-name">{f.pilot}</div>
+                      <div className="rang-name">📷 {f.pilot}</div>
+                      {f.beschreibung && <div style={{fontSize:'0.75rem',color:'var(--mid)',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>„{f.beschreibung}"</div>}
                       <div className="rang-stimmen">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</div>
                     </div>
                   </div>
