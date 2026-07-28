@@ -46,6 +46,7 @@ async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: s
       .from('galerie')
       .select('id,url,beschreibung,pilot,created_at,stimmen')
       .eq('sichtbar', true)
+      .order('stimmen', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(6);
     return data ?? [];
