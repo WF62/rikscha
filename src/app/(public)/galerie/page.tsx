@@ -93,6 +93,17 @@ export default function GaleriePage() {
     setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
   }
 
+  async function fotoLoeschen(id: string) {
+    if (!confirm('Foto wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
+    await fetch(`/api/galerie/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password }),
+    });
+    setFotos(f => f.filter(x => x.id !== id));
+    setFreigabeQueue(q => q.filter(x => x.id !== id));
+  }
+
   async function ladeGalerie() {
     setGalLaden(true);
     try {
@@ -458,6 +469,15 @@ export default function GaleriePage() {
                 )}
                 <span className="vote-count">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>
               </div>
+              {istPilot && (
+                <button
+                  onClick={() => fotoLoeschen(f.id)}
+                  title="Foto löschen"
+                  style={{ position:'absolute', top:'0.4rem', right:'0.4rem', background:'rgba(0,0,0,0.55)', border:'none', borderRadius:4, color:'#fff', fontSize:'0.75rem', padding:'0.2rem 0.5rem', cursor:'pointer', zIndex:5 }}
+                >
+                  🗑 Löschen
+                </button>
+              )}
             </div>
           ))}
         </div>
