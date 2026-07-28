@@ -565,22 +565,23 @@ export default async function FlyerPage() {
             <div className="spenden-block">
               <div className="sp-eye">Spenden</div>
               <div className="sp-title">Helfen Sie uns, weiterzufahren</div>
+              <div style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.6)',marginBottom:'0.1rem'}}>Förderverein „Miteinander Kloster Merten e. V." · Stichwort: Rikscha</div>
               <div className="konto-table">
                 <div className="konto-row">
-                  <span className="konto-label">Empfänger</span>
-                  <span className="konto-val"><span className="konto-ph">Mertener Rikschakutscher</span></span>
-                </div>
-                <div className="konto-row">
-                  <span className="konto-label">IBAN</span>
-                  <span className="konto-val"><span className="konto-ph">DE__ ____ ____ ____ ____ __</span></span>
+                  <span className="konto-label">KSK Köln</span>
+                  <span className="konto-val">DE79 3705 0299 0049 0050 40</span>
                 </div>
                 <div className="konto-row">
                   <span className="konto-label">BIC</span>
-                  <span className="konto-val"><span className="konto-ph">XXXXDEXX</span></span>
+                  <span className="konto-val">COKSDE33XXX</span>
+                </div>
+                <div className="konto-row" style={{marginTop:'0.15rem'}}>
+                  <span className="konto-label">Volksbank</span>
+                  <span className="konto-val">DE14 3806 0186 0410 0560 11</span>
                 </div>
                 <div className="konto-row">
-                  <span className="konto-label">Zweck</span>
-                  <span className="konto-val">Rikscha Bornheim-Merten</span>
+                  <span className="konto-label">BIC</span>
+                  <span className="konto-val">GENODED1BRS</span>
                 </div>
               </div>
             </div>
