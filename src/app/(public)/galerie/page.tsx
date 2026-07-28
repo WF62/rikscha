@@ -414,7 +414,7 @@ export default function GaleriePage() {
                 <div className="galerie-fotograf">📷 {f.pilot || 'Unbekannt'}</div>
                 {f.beschreibung
                   ? <div className="galerie-titel">„{f.beschreibung}"</div>
-                  : <div className="galerie-titel" style={{opacity:0.4}}>Kein Titel</div>
+                  : null
                 }
                 <div className="galerie-meta">
                   {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}

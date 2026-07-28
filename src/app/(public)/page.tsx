@@ -591,10 +591,7 @@ export default async function WebsitePage() {
                   <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
                   <div className="galerie-info">
                     <div className="galerie-fotograf">📷 {f.pilot || 'Unbekannt'}</div>
-                    {f.beschreibung
-                      ? <div className="galerie-titel">„{f.beschreibung}"</div>
-                      : <div className="galerie-titel" style={{opacity:0.35}}>Kein Titel</div>
-                    }
+                    {f.beschreibung && <div className="galerie-titel">„{f.beschreibung}"</div>}
                     <div className="galerie-meta">{new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
                   </div>
                   {(f.stimmen ?? 0) > 0 && <div className="galerie-vote">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</div>}
