@@ -63,7 +63,8 @@ export default function GaleriePage() {
       if (filterKat)   params.set('kategorie', filterKat);
       if (!istPilot)   params.set('nurSichtbare', '1');
       const res = await fetch('/api/galerie?' + params.toString());
-      setFotos(await res.json());
+      const data = await res.json();
+      setFotos(Array.isArray(data) ? data : []);
     } catch {}
     setGalLaden(false);
   }
