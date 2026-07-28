@@ -6,6 +6,8 @@ import PilotenModal from './PilotenModal';
 import Banner from '../(app)/Banner';
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Mertener Rikschakutscher – Bornheim-Merten',
