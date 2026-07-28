@@ -51,7 +51,7 @@ export default function GaleriePage() {
     await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
     const neu = new Set(gestimmt).add(id);
     setGestimmt(neu);
-    localStorage.setItem('gestimmt', JSON.stringify([...neu]));
+    localStorage.setItem('gestimmt', JSON.stringify(Array.from(neu)));
     setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
   }
 
