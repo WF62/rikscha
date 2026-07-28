@@ -52,6 +52,7 @@ export default function GasteUploadPage() {
   async function hochladen() {
     const offene = dateien.filter(d => d.status === 'warten' || d.status === 'err');
     if (!offene.length) return;
+    if (!gastName.trim()) { alert('Bitte gib deinen Namen ein — er wird für die Gewinner-Ermittlung benötigt.'); return; }
     setUploading(true);
 
     for (let i = 0; i < dateien.length; i++) {
@@ -146,12 +147,13 @@ export default function GasteUploadPage() {
           </div>
         ) : (
           <div className="card">
-            <label className="field-label">Dein Name (optional)</label>
+            <label className="field-label">Dein Name <span style={{color:'#dc2626'}}>*</span> <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'var(--mid)'}}>— für die Gewinner-Ermittlung</span></label>
             <input
               className="field-input"
               value={gastName}
               onChange={e => setGastName(e.target.value)}
-              placeholder="z. B. Maria oder Anonym"
+              placeholder="Vor- und Nachname"
+              required
             />
 
             <div className="btn-row">
@@ -192,7 +194,7 @@ export default function GasteUploadPage() {
                   ))}
                 </div>
 
-                <button className="btn-submit" onClick={hochladen} disabled={uploading || anzahlOffen === 0}>
+                <button className="btn-submit" onClick={hochladen} disabled={uploading || anzahlOffen === 0 || !gastName.trim()}>
                   {uploading ? 'Wird hochgeladen …' : `${anzahlOffen} Foto${anzahlOffen !== 1 ? 's' : ''} einreichen`}
                 </button>
               </>

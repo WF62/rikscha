@@ -78,6 +78,11 @@ export default function GaleriePage() {
     setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
   }
 
+  async function gastStimme(id: string) {
+    await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
+    setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
+  }
+
   async function ladeGalerie() {
     setGalLaden(true);
     try {
@@ -200,6 +205,8 @@ export default function GaleriePage() {
     .btn-vote { background: none; border: 2px solid var(--border); border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.15s; color: var(--ink); }
     .btn-vote:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
     .btn-vote.voted { border-color: var(--gold); background: #fef3c7; color: #92400e; font-weight: 700; cursor: default; }
+    .btn-gast-stimme { border-color: var(--green); color: var(--green); font-size: 0.78rem; padding: 0.3rem 0.65rem; }
+    .btn-gast-stimme:hover { background: var(--green); color: #fff; }
     .vote-count { font-size: 0.8rem; color: var(--mid); }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
     .queue-section { background: #fff8e7; border: 2px solid var(--gold); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
@@ -357,6 +364,15 @@ export default function GaleriePage() {
                 >
                   👍 {gestimmt.has(f.id) ? 'Abgestimmt' : 'Gefällt mir'}
                 </button>
+                {istPilot && (
+                  <button
+                    className="btn-vote btn-gast-stimme"
+                    onClick={() => gastStimme(f.id)}
+                    title="Stimme für einen Gast ohne Smartphone eintragen"
+                  >
+                    +1 Gast
+                  </button>
+                )}
                 {f.stimmen > 0 && <span className="vote-count">{f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>}
               </div>
             </div>
