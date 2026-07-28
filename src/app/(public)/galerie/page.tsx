@@ -70,6 +70,15 @@ export default function GaleriePage() {
     if (ja) ladeGalerie();
   }
 
+  async function titelSpeichern(id: string, titel: string) {
+    await fetch(`/api/galerie/${id}/titel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, beschreibung: titel }),
+    });
+    setFotos(f => f.map(x => x.id === id ? { ...x, beschreibung: titel } : x));
+  }
+
   async function abstimmen(id: string) {
     if (gestimmt.has(id)) return;
     await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
@@ -211,6 +220,8 @@ export default function GaleriePage() {
     .btn-vote:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
     .btn-vote.voted { border-color: var(--gold); background: #fef3c7; color: #92400e; font-weight: 700; cursor: default; }
     .btn-gast-stimme { border-color: var(--green); color: var(--green); font-size: 0.78rem; padding: 0.3rem 0.65rem; }
+    .titel-input { width: 100%; border: 1px dashed var(--border); border-radius: 4px; padding: 0.25rem 0.4rem; font-size: 0.82rem; font-style: italic; color: var(--mid); background: transparent; outline: none; font-family: inherit; }
+    .titel-input:focus { border-color: var(--green); color: var(--ink); }
     .btn-gast-stimme:hover { background: var(--green); color: #fff; }
     .vote-count { font-size: 0.95rem; font-weight: 700; color: var(--gold); margin-left: auto; }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
@@ -414,7 +425,14 @@ export default function GaleriePage() {
                 <div className="galerie-fotograf">📷 {f.pilot || 'Unbekannt'}</div>
                 {f.beschreibung
                   ? <div className="galerie-titel">„{f.beschreibung}"</div>
-                  : null
+                  : istPilot
+                    ? <input
+                        className="titel-input"
+                        placeholder="Titel hinzufügen …"
+                        onBlur={e => { if (e.target.value.trim()) titelSpeichern(f.id, e.target.value.trim()); }}
+                        onKeyDown={e => { if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) titelSpeichern(f.id, (e.target as HTMLInputElement).value.trim()); }}
+                      />
+                    : null
                 }
                 <div className="galerie-meta">
                   {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}
