@@ -198,19 +198,21 @@ export default function GaleriePage() {
     .galerie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 3rem; }
     .galerie-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
     .galerie-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-    .galerie-info { padding: 0.75rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
-    .galerie-beschreibung { font-size: 0.92rem; color: var(--ink); line-height: 1.45; }
-    .galerie-meta { font-size: 0.75rem; color: var(--mid); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .galerie-info { padding: 0.75rem 1rem 0.5rem; flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
+    .galerie-fotograf { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+    .galerie-titel { font-size: 0.85rem; color: var(--mid); font-style: italic; line-height: 1.4; }
+    .galerie-beschreibung { font-size: 0.85rem; color: var(--mid); font-style: italic; line-height: 1.4; }
+    .galerie-meta { font-size: 0.72rem; color: var(--mid); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-top: 0.15rem; }
     .galerie-kat { background: var(--green-soft); color: var(--green); border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .galerie-datum { font-variant-numeric: tabular-nums; }
     .badge-versteckt { position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 3px; }
-    .vote-bar { padding: 0.5rem 1rem 0.75rem; display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--border); margin-top: auto; }
+    .vote-bar { padding: 0.5rem 1rem 0.75rem; display: flex; align-items: center; gap: 0.6rem; border-top: 1px solid var(--border); margin-top: auto; flex-wrap: wrap; }
     .btn-vote { background: none; border: 2px solid var(--border); border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.15s; color: var(--ink); }
     .btn-vote:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
     .btn-vote.voted { border-color: var(--gold); background: #fef3c7; color: #92400e; font-weight: 700; cursor: default; }
     .btn-gast-stimme { border-color: var(--green); color: var(--green); font-size: 0.78rem; padding: 0.3rem 0.65rem; }
     .btn-gast-stimme:hover { background: var(--green); color: #fff; }
-    .vote-count { font-size: 0.8rem; color: var(--mid); }
+    .vote-count { font-size: 0.95rem; font-weight: 700; color: var(--gold); margin-left: auto; }
     .galerie-empty { text-align: center; color: var(--mid); padding: 4rem 2rem; font-size: 0.95rem; grid-column: 1/-1; }
     .queue-section { background: #fff8e7; border: 2px solid var(--gold); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
     .queue-section h2 { font-family: var(--serif); font-size: 1.2rem; color: #92400e; margin-bottom: 1rem; }
@@ -408,11 +410,14 @@ export default function GaleriePage() {
               <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
               {istPilot && !f.sichtbar && <span className="badge-versteckt">🔒 Nur Piloten</span>}
               <div className="galerie-info">
-                {f.beschreibung && <div className="galerie-beschreibung">{f.beschreibung}</div>}
+                <div className="galerie-fotograf">📷 {f.pilot || 'Unbekannt'}</div>
+                {f.beschreibung
+                  ? <div className="galerie-titel">„{f.beschreibung}"</div>
+                  : <div className="galerie-titel" style={{opacity:0.4}}>Kein Titel</div>
+                }
                 <div className="galerie-meta">
-                  <span>{f.pilot}</span>
                   {f.kategorie && <span className="galerie-kat">{f.kategorie}</span>}
-                  <span className="galerie-datum">· {new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                  <span className="galerie-datum">{new Date(f.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 </div>
               </div>
               <div className="vote-bar">
@@ -432,7 +437,7 @@ export default function GaleriePage() {
                     +1 Gast
                   </button>
                 )}
-                {f.stimmen > 0 && <span className="vote-count">{f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>}
+                <span className="vote-count">👍 {f.stimmen} Stimme{f.stimmen !== 1 ? 'n' : ''}</span>
               </div>
             </div>
           ))}
