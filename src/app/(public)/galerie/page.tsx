@@ -4,6 +4,29 @@ import { useState, useEffect, useRef } from 'react';
 type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string; sichtbar: boolean; freigegeben: boolean; stimmen: number };
 type UploadDatei = { datei: File; vorschau: string; beschreibung: string; sichtbar: boolean; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
+async function komprimieren(datei: File, maxPx = 1920, qualitaet = 0.82): Promise<File> {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(datei);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxPx && height <= maxPx) { resolve(datei); return; }
+      const scale = Math.min(maxPx / width, maxPx / height);
+      width  = Math.round(width  * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        resolve(blob ? new File([blob], datei.name, { type: 'image/jpeg' }) : datei);
+      }, 'image/jpeg', qualitaet);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(datei); };
+    img.src = url;
+  });
+}
+
 export default function GaleriePage() {
   const [fotos, setFotos]         = useState<Foto[]>([]);
   const [galLaden, setGalLaden]   = useState(true);
@@ -105,13 +128,14 @@ export default function GaleriePage() {
       if (d.status !== 'warten' && d.status !== 'err') continue;
       setDateien(prev => prev.map((x, j) => j === i ? { ...x, status: 'laden' } : x));
 
+      const komprimiert = await komprimieren(d.datei);
       const form = new FormData();
       form.append('pilot', pilot);
       form.append('password', password || 'skip');
       form.append('beschreibung', d.beschreibung);
       form.append('kategorie', aktiveKat);
       form.append('sichtbar', d.sichtbar ? '1' : '0');
-      form.append('datei', d.datei);
+      form.append('datei', komprimiert);
 
       try {
         const res = await fetch('/api/galerie', { method: 'POST', body: form });

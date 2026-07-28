@@ -3,6 +3,29 @@ import { useState, useRef, useEffect } from 'react';
 
 type UploadDatei = { datei: File; vorschau: string; name: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
+async function komprimieren(datei: File, maxPx = 1920, qualitaet = 0.82): Promise<File> {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(datei);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxPx && height <= maxPx) { resolve(datei); return; }
+      const scale = Math.min(maxPx / width, maxPx / height);
+      width  = Math.round(width  * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        resolve(blob ? new File([blob], datei.name, { type: 'image/jpeg' }) : datei);
+      }, 'image/jpeg', qualitaet);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(datei); };
+    img.src = url;
+  });
+}
+
 export default function GasteUploadPage() {
   const [dateien, setDateien] = useState<UploadDatei[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -36,6 +59,7 @@ export default function GasteUploadPage() {
       if (d.status !== 'warten' && d.status !== 'err') continue;
       setDateien(prev => prev.map((x, j) => j === i ? { ...x, status: 'laden' } : x));
 
+      const komprimiert = await komprimieren(d.datei);
       const form = new FormData();
       form.append('pilot', gastName.trim() || 'Gast');
       form.append('password', '__gast__');
@@ -43,7 +67,7 @@ export default function GasteUploadPage() {
       form.append('kategorie', 'Gäste-Wettbewerb');
       form.append('sichtbar', '0');
       form.append('freigegeben', '0');
-      form.append('datei', d.datei);
+      form.append('datei', komprimiert);
 
       try {
         const res = await fetch('/api/galerie/gast', { method: 'POST', body: form });
