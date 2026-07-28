@@ -362,14 +362,16 @@ export default function GaleriePage() {
           </div>
         </div>
 
-        {/* Wettbewerbs-Banner */}
-        <div className="wettbewerb-banner">
-          <div className="wettbewerb-text">
-            <h3>🏆 Foto-Wettbewerb läuft!</h3>
-            <p>Lade dein Foto hoch, sammle Stimmen — die Top 3 gewinnen ein Exklusiv-Event.</p>
+        {/* Wettbewerbs-Banner — nur für Gäste */}
+        {!istPilot && (
+          <div className="wettbewerb-banner">
+            <div className="wettbewerb-text">
+              <h3>🏆 Foto-Wettbewerb läuft!</h3>
+              <p>Lade dein Foto hoch, sammle Stimmen — die Top 3 gewinnen ein Exklusiv-Event.</p>
+            </div>
+            <a href="/galerie/hochladen" className="btn-mitmachen">Jetzt mitmachen →</a>
           </div>
-          <a href="/galerie/hochladen" className="btn-mitmachen">Jetzt mitmachen →</a>
-        </div>
+        )}
 
         {/* Moderations-Queue für Piloten */}
         {istPilot && freigabeQueue.length > 0 && (
@@ -534,7 +536,7 @@ export default function GaleriePage() {
           <>
             <hr className="divider" />
             <div className="upload-section">
-              <h2>📷 Fotos hochladen</h2>
+              <h2>📷 Fotos als Pilot hochladen</h2>
               <p style={{fontSize:'0.85rem',color:'var(--mid)'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
 
               <div className="kat-row">
