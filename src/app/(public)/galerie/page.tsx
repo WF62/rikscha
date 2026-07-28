@@ -115,11 +115,16 @@ export default function GaleriePage() {
 
   async function fotoLoeschen(id: string) {
     if (!confirm('Foto wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
-    await fetch(`/api/galerie/${id}`, {
+    const res = await fetch(`/api/galerie/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pilot, password }),
     });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      alert('Löschen fehlgeschlagen: ' + (j.error || res.status));
+      return;
+    }
     setFotos(f => f.filter(x => x.id !== id));
     setFreigabeQueue(q => q.filter(x => x.id !== id));
   }
