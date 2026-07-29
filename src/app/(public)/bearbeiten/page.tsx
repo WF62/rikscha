@@ -24,6 +24,53 @@ const WEBSITE_BEZEICHNUNGEN: Record<string, string> = {
 };
 const WEBSITE_REIHENFOLGE = Object.keys(WEBSITE_BEZEICHNUNGEN);
 
+/* ── Handout-Gruppen (Tab 3) ── */
+const HANDOUT_GRUPPEN: Gruppe[] = [
+  {
+    titel: 'Vorderseite', emoji: '🟢',
+    fotos: [
+      { schluessel: 'handout_foto_vorne', emoji: '📸', label: 'Hauptfoto (Vorderseite)', hinweis: 'Foto rechts auf der Vorderseite jedes Handouts' },
+    ],
+    texte: [
+      { schluessel: 'handout_sub',  label: 'Tagline / Unterzeile', hinweis: 'z. B. „Kostenlose Rikschafahrten in Bornheim-Merten · Ehrenamtlich seit 2018"' },
+      { schluessel: 'handout_text', label: 'Beschreibungstext',    hinweis: 'Kurzer Text in der Mitte des Handouts', lang: true },
+    ],
+  },
+  {
+    titel: 'Rückseite · Flotte Lotte', emoji: '🟡',
+    fotos: [
+      { schluessel: 'handout_foto_lotte', emoji: '🟡', label: 'Foto Flotte Lotte', hinweis: 'Fahrzeugfoto auf der Rückseite' },
+    ],
+    texte: [
+      { schluessel: 'handout_r1_name',    label: 'Name',        hinweis: 'z. B. „Flotte Lotte"' },
+      { schluessel: 'handout_r1_typ',     label: 'Typ-Zeile',   hinweis: 'z. B. „Rikscha · bis 2 Gäste"' },
+      { schluessel: 'handout_lotte_kurz', label: 'Kurztext',    hinweis: 'Kurzbeschreibung (2–3 Sätze)', lang: true },
+    ],
+  },
+  {
+    titel: 'Rückseite · Flinker Flitzer', emoji: '🔵',
+    fotos: [
+      { schluessel: 'handout_foto_flitzer', emoji: '🔵', label: 'Foto Flinker Flitzer', hinweis: 'Fahrzeugfoto auf der Rückseite' },
+    ],
+    texte: [
+      { schluessel: 'handout_r2_name',      label: 'Name',      hinweis: 'z. B. „Flinker Flitzer"' },
+      { schluessel: 'handout_r2_typ',       label: 'Typ-Zeile', hinweis: 'z. B. „Liegetandem · 1 Gast"' },
+      { schluessel: 'handout_flitzer_kurz', label: 'Kurztext',  hinweis: 'Kurzbeschreibung (2–3 Sätze)', lang: true },
+    ],
+  },
+  {
+    titel: 'Rückseite · Jruuse Piter', emoji: '🟣',
+    fotos: [
+      { schluessel: 'handout_foto_piter', emoji: '🟣', label: 'Foto Jruuse Piter', hinweis: 'Fahrzeugfoto auf der Rückseite' },
+    ],
+    texte: [
+      { schluessel: 'handout_r3_name',   label: 'Name',      hinweis: 'z. B. „Jruuse Piter"' },
+      { schluessel: 'handout_r3_typ',    label: 'Typ-Zeile', hinweis: 'z. B. „Paralleltandem · 1 Gast"' },
+      { schluessel: 'handout_piter_kurz', label: 'Kurztext', hinweis: 'Kurzbeschreibung (2–3 Sätze)', lang: true },
+    ],
+  },
+];
+
 /* ── Flyer-Gruppen (Tab 2) ── */
 const FLYER_GRUPPEN: Gruppe[] = [
   {
@@ -100,7 +147,7 @@ export default function BearbeitenPage() {
   const [felder, setFelder]   = useState<Inhaltsfeld[]>([]);
   const [fehler, setFehler]   = useState('');
   const [laden, setLaden]     = useState(false);
-  const [tab, setTab]         = useState<'website' | 'flyer'>('website');
+  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout'>('website');
   const [uploadStatus, setUploadStatus]   = useState<Record<string, 'uploading' | 'ok' | 'err' | ''>>({});
   const [speicherStatus, setSpeicherStatus] = useState<Record<string, 'ok' | 'err' | ''>>({});
   const [pilotenDateien, setPilotenDateien] = useState<PilotenDatei[]>([]);
@@ -356,12 +403,14 @@ export default function BearbeitenPage() {
             <div style={{marginBottom:'1.5rem'}}>
               <a href="/" target="_blank" className="preview-link">↗ Website öffnen</a>
               <a href="/flyer" target="_blank" className="preview-link">↗ Flyer öffnen</a>
+              <a href="/handout" target="_blank" className="preview-link">↗ Handout öffnen</a>
             </div>
 
             {/* Tabs */}
             <div className="tabs">
               <button className={`tab${tab==='website'?' active':''}`} onClick={() => setTab('website')}>🌐 Website-Texte</button>
               <button className={`tab${tab==='flyer'?' active':''}`} onClick={() => setTab('flyer')}>📄 Flyer</button>
+              <button className={`tab${tab==='handout'?' active':''}`} onClick={() => setTab('handout')}>📋 Handout</button>
             </div>
 
             {/* ── Tab: Website ── */}
@@ -397,6 +446,55 @@ export default function BearbeitenPage() {
                 })}
               </>
             )}
+
+            {/* ── Tab: Handout ── */}
+            {tab === 'handout' && HANDOUT_GRUPPEN.map(g => (
+              <div key={g.titel}>
+                <div className="gruppe-head">{g.emoji} {g.titel}</div>
+                {g.fotos && g.fotos.length > 0 && (
+                  <div className="foto-grid">
+                    {g.fotos.map(({ schluessel, emoji, label, hinweis }) => {
+                      const url = feldWert(schluessel);
+                      const st  = uploadStatus[schluessel] || '';
+                      const sp  = speicherStatus[schluessel] || '';
+                      return (
+                        <div key={schluessel} className="foto-card">
+                          <div className="foto-card-label">{emoji} {label}</div>
+                          <div className="foto-card-hinweis">{hinweis}</div>
+                          {url ? <img src={url} alt={label} className="foto-preview"/> : <div className="foto-placeholder"><span>📷</span><span>Noch kein Foto</span></div>}
+                          <div className="foto-actions">
+                            <button className="btn-upload" disabled={st==='uploading'} onClick={() => fileRefs.current[schluessel]?.click()}>{st==='uploading'?'Lädt …':'Hochladen'}</button>
+                            <button className="btn-picker" onClick={() => setPickerFeld(schluessel)}>Aus Piloten-Bereich</button>
+                            <input type="file" accept="image/*" style={{display:'none'}} ref={el => { fileRefs.current[schluessel] = el; }} onChange={e => { const f = e.target.files?.[0]; if (f) fotoHochladen(schluessel, f); e.target.value=''; }}/>
+                          </div>
+                          {(st==='ok'||sp==='ok') && <span className="status-ok">Gespeichert ✓</span>}
+                          {(st==='err'||sp==='err') && <span className="status-err">Fehler</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {g.texte && g.texte.map(({ schluessel, label, hinweis, lang }) => {
+                  const wert = feldWert(schluessel);
+                  const st   = speicherStatus[schluessel] || '';
+                  return (
+                    <div key={schluessel} className="text-block">
+                      <div className="text-block-label">{label}</div>
+                      <div className="text-block-hinweis">{hinweis}</div>
+                      {lang
+                        ? <textarea id={`ta-${schluessel}`} defaultValue={wert} rows={3} onKeyDown={e => { if ((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();speichern(schluessel,(e.target as HTMLTextAreaElement).value);}}}/>
+                        : <input type="text" id={`ta-${schluessel}`} defaultValue={wert} onKeyDown={e => { if ((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();speichern(schluessel,(e.target as HTMLInputElement).value);}}}/>
+                      }
+                      <div className="text-block-footer">
+                        {st==='ok' && <span className="status-ok">Gespeichert ✓</span>}
+                        {st==='err' && <span className="status-err">Fehler</span>}
+                        <button className="btn-save" onClick={() => { const el = document.getElementById(`ta-${schluessel}`) as HTMLInputElement; speichern(schluessel, el.value); }}>Speichern</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
 
             {/* ── Tab: Flyer ── */}
             {tab === 'flyer' && FLYER_GRUPPEN.map(g => (
