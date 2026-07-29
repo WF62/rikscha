@@ -350,7 +350,7 @@ export default function BearbeitenPage() {
   `;
 
   /* ── Website-Felder filtern ── */
-  const websiteFelder = felder.filter(f => !f.schluessel.startsWith('flyer_'));
+  const websiteFelder = felder.filter(f => !f.schluessel.startsWith('flyer_') && !f.schluessel.startsWith('handout_'));
   const sortedWebsite = [
     ...WEBSITE_REIHENFOLGE.map(k => websiteFelder.find(f => f.schluessel === k)).filter(Boolean) as Inhaltsfeld[],
     ...websiteFelder.filter(f => !WEBSITE_REIHENFOLGE.includes(f.schluessel)),
