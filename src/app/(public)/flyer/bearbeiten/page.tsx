@@ -1,19 +1,87 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 
-const FOTOS: { schluessel: string; label: string; emoji: string; hinweis: string }[] = [
-  { schluessel: 'flyer_foto_lotte',   emoji: '🟡', label: 'Flotte Lotte',    hinweis: 'Rikscha · bis 2 Gäste · Rückseite oben (oranges Panel)' },
-  { schluessel: 'flyer_foto_piter',   emoji: '🟣', label: 'Jruuse Piter',    hinweis: 'Paralleltandem · 1 Gast · Rückseite Mitte (lila Panel)' },
-  { schluessel: 'flyer_foto_flitzer', emoji: '🔵', label: 'Flinker Flitzer', hinweis: 'Liegetandem · 1 Gast · Rückseite Mitte (blaues Panel)' },
-  { schluessel: 'flyer_foto_fahrt1',  emoji: '📸', label: 'Fahrtfoto 1',     hinweis: 'Vorderseite „Fahrtwind für alle" · linkes Foto' },
-  { schluessel: 'flyer_foto_fahrt2',  emoji: '📸', label: 'Fahrtfoto 2',     hinweis: 'Vorderseite „Fahrtwind für alle" · rechtes Foto' },
-];
+type FotoFeld = { schluessel: string; label: string; emoji: string; hinweis: string };
+type TextFeld = { schluessel: string; label: string; hinweis: string; lang?: boolean };
+type Gruppe   = { titel: string; emoji: string; fotos?: FotoFeld[]; texte?: TextFeld[] };
 
-const TEXTE: { schluessel: string; label: string; hinweis: string }[] = [
-  { schluessel: 'flyer_fahrten_text',  label: 'Text „Fahrtwind für alle"', hinweis: 'Haupttext im grünen Fahrten-Abschnitt (Vorderseite)' },
-  { schluessel: 'flyer_lotte_text',    label: 'Text Flotte Lotte',         hinweis: 'Beschreibungstext auf der Rückseite' },
-  { schluessel: 'flyer_flitzer_text',  label: 'Text Flinker Flitzer',      hinweis: 'Beschreibungstext auf der Rückseite' },
-  { schluessel: 'flyer_piter_text',    label: 'Text Jruuse Piter',         hinweis: 'Beschreibungstext auf der Rückseite' },
+const GRUPPEN: Gruppe[] = [
+  {
+    titel: 'V1 · Gutschein',
+    emoji: '🎁',
+    texte: [
+      { schluessel: 'flyer_gutschein_hinweis', label: 'Hinweiszeile', hinweis: 'Zeile am unteren Rand des Gutscheins' },
+    ],
+  },
+  {
+    titel: 'V2 · Fahrten',
+    emoji: '🚲',
+    fotos: [
+      { schluessel: 'flyer_foto_fahrt1', emoji: '📸', label: 'Fahrtfoto 1', hinweis: 'Vorderseite „Fahrtwind für alle" · linkes Foto' },
+      { schluessel: 'flyer_foto_fahrt2', emoji: '📸', label: 'Fahrtfoto 2', hinweis: 'Vorderseite „Fahrtwind für alle" · rechtes Foto' },
+    ],
+    texte: [
+      { schluessel: 'flyer_v2_eyebrow',   label: 'Augenbraue',   hinweis: 'Kleine Zeile über der Überschrift' },
+      { schluessel: 'flyer_v2_h3',        label: 'Überschrift',  hinweis: 'Hauptüberschrift des Panels' },
+      { schluessel: 'flyer_fahrten_text', label: 'Beschreibungstext', hinweis: 'Haupttext im grünen Fahrten-Abschnitt', lang: true },
+    ],
+  },
+  {
+    titel: 'V3 · Kutscher',
+    emoji: '🚴',
+    texte: [
+      { schluessel: 'flyer_v3_eyebrow',     label: 'Augenbraue',       hinweis: 'z. B. „Rund 10 ehrenamtliche Kutscher"' },
+      { schluessel: 'flyer_v3_h3',          label: 'Überschrift',      hinweis: 'Hauptüberschrift des Panels' },
+      { schluessel: 'flyer_v3_card1_titel', label: 'Karte 1 – Titel',  hinweis: 'z. B. „Wer sind unsere Kutscher?"' },
+      { schluessel: 'flyer_v3_card1_text',  label: 'Karte 1 – Text',   hinweis: 'Beschreibung der Kutscher', lang: true },
+      { schluessel: 'flyer_v3_card2_titel', label: 'Karte 2 – Titel',  hinweis: 'z. B. „Mitmachen?"' },
+      { schluessel: 'flyer_v3_card2_text',  label: 'Karte 2 – Text',   hinweis: 'Mitmach-Aufruf mit Telefonnummer', lang: true },
+    ],
+  },
+  {
+    titel: 'V4 · Cover',
+    emoji: '🌿',
+    texte: [
+      { schluessel: 'flyer_v4_meta',  label: 'Unterzeile',             hinweis: 'z. B. „11 ehrenamtliche Piloten · kostenlose Rikschafahrten"' },
+      { schluessel: 'flyer_v4_badge', label: 'Badge (Pilotenzahl)',     hinweis: 'z. B. „11 Piloten"' },
+    ],
+  },
+  {
+    titel: 'H1 · Flotte Lotte',
+    emoji: '🟡',
+    fotos: [
+      { schluessel: 'flyer_foto_lotte', emoji: '🟡', label: 'Foto Flotte Lotte', hinweis: 'Rückseite oben (oranges Panel)' },
+    ],
+    texte: [
+      { schluessel: 'flyer_r1_label',   label: 'Typ-Zeile',         hinweis: 'z. B. „Rikscha · max. 2 Gäste"' },
+      { schluessel: 'flyer_r1_h3',      label: 'Name / Überschrift', hinweis: 'z. B. „Flotte Lotte"' },
+      { schluessel: 'flyer_lotte_text', label: 'Beschreibungstext',  hinweis: 'Beschreibung auf der Rückseite', lang: true },
+    ],
+  },
+  {
+    titel: 'H2 · Flinker Flitzer',
+    emoji: '🔵',
+    fotos: [
+      { schluessel: 'flyer_foto_flitzer', emoji: '🔵', label: 'Foto Flinker Flitzer', hinweis: 'Rückseite Mitte (blaues Panel)' },
+    ],
+    texte: [
+      { schluessel: 'flyer_r2_label',     label: 'Typ-Zeile',         hinweis: 'z. B. „Liegetandem · 1 Gast"' },
+      { schluessel: 'flyer_r2_h3',        label: 'Name / Überschrift', hinweis: 'z. B. „Flinker Flitzer"' },
+      { schluessel: 'flyer_flitzer_text', label: 'Beschreibungstext',  hinweis: 'Beschreibung auf der Rückseite', lang: true },
+    ],
+  },
+  {
+    titel: 'H3 · Jruuse Piter',
+    emoji: '🟣',
+    fotos: [
+      { schluessel: 'flyer_foto_piter', emoji: '🟣', label: 'Foto Jruuse Piter', hinweis: 'Rückseite unten (lila Panel)' },
+    ],
+    texte: [
+      { schluessel: 'flyer_r3_label',  label: 'Typ-Zeile',         hinweis: 'z. B. „Paralleltandem · 1 Gast"' },
+      { schluessel: 'flyer_r3_h3',     label: 'Name / Überschrift', hinweis: 'z. B. „Jruuse Piter"' },
+      { schluessel: 'flyer_piter_text', label: 'Beschreibungstext', hinweis: 'Beschreibung auf der Rückseite', lang: true },
+    ],
+  },
 ];
 
 type Feld = { schluessel: string; wert: string };
@@ -215,6 +283,9 @@ export default function FlyerBearbeitenPage() {
     .text-block textarea:focus { border-color: var(--green); }
     .text-block-footer { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; margin-top: 0.6rem; flex-wrap: wrap; }
     .btn-save { background: var(--green); color: #fff; border: none; padding: 0.4rem 1.1rem; border-radius: var(--radius); font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .gruppe-head { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--green); margin: 2.5rem 0 0.85rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--green); display: flex; align-items: center; gap: 0.5rem; }
+    .text-block input[type=text] { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 0.55rem 0.8rem; font-size: 0.95rem; font-family: var(--sans); background: var(--ground); color: var(--ink); outline: none; }
+    .text-block input[type=text]:focus { border-color: var(--green); }
     @media (max-width: 600px) { .page-body { padding: 2rem 1rem 4rem; } .foto-grid { grid-template-columns: 1fr; } }
   `;
 
@@ -276,78 +347,68 @@ export default function FlyerBearbeitenPage() {
 
             <a href="/flyer" target="_blank" className="preview-link">↗ Flyer in neuem Tab öffnen</a>
 
-            {/* Fotos */}
-            <h2 className="section-head">📷 Fotos</h2>
-            <div className="foto-grid">
-              {FOTOS.map(({ schluessel, emoji, label, hinweis }) => {
-                const url = feldWert(schluessel);
-                const st  = uploadStatus[schluessel] || '';
-                return (
-                  <div key={schluessel} className="foto-card">
-                    <div className="foto-card-label">{emoji} {label}</div>
-                    <div className="foto-card-hinweis">{hinweis}</div>
-                    {url
-                      ? <img src={url} alt={label} className="foto-preview" />
-                      : <div className="foto-placeholder"><span>📷</span><span>Noch kein Foto</span></div>
-                    }
-                    <div className="foto-actions">
-                      <button
-                        className="btn-upload"
-                        disabled={st === 'uploading'}
-                        onClick={() => fileRefs.current[schluessel]?.click()}
-                      >
-                        {st === 'uploading' ? 'Wird hochgeladen …' : url ? 'Foto ersetzen' : 'Foto hochladen'}
-                      </button>
-                      {st === 'ok'  && <span className="status-ok">Gespeichert ✓</span>}
-                      {st === 'err' && <span className="status-err">Fehler beim Upload</span>}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{display:'none'}}
-                        ref={el => { fileRefs.current[schluessel] = el; }}
-                        onChange={e => {
-                          const f = e.target.files?.[0];
-                          if (f) fotoHochladen(schluessel, f);
-                          e.target.value = '';
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {GRUPPEN.map(g => (
+              <div key={g.titel}>
+                <div className="gruppe-head">{g.emoji} {g.titel}</div>
 
-            {/* Texte */}
-            <h2 className="section-head">✏️ Texte</h2>
-            {TEXTE.map(({ schluessel, label, hinweis }) => {
-              const wert = feldWert(schluessel);
-              const st   = speicherStatus[schluessel] || '';
-              return (
-                <div key={schluessel} className="text-block">
-                  <div className="text-block-label">{label}</div>
-                  <div className="text-block-hinweis">{hinweis}</div>
-                  <textarea
-                    id={`ta-${schluessel}`}
-                    defaultValue={wert}
-                    rows={4}
-                    onKeyDown={e => {
-                      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                        e.preventDefault();
-                        speichern(schluessel, (e.target as HTMLTextAreaElement).value);
-                      }
-                    }}
-                  />
-                  <div className="text-block-footer">
-                    {st === 'ok'  && <span className="status-ok">Gespeichert ✓</span>}
-                    {st === 'err' && <span className="status-err">Fehler</span>}
-                    <button className="btn-save" onClick={() => {
-                      const ta = document.getElementById(`ta-${schluessel}`) as HTMLTextAreaElement;
-                      speichern(schluessel, ta.value);
-                    }}>Speichern</button>
+                {g.fotos && g.fotos.length > 0 && (
+                  <div className="foto-grid">
+                    {g.fotos.map(({ schluessel, emoji, label, hinweis }) => {
+                      const url = feldWert(schluessel);
+                      const st  = uploadStatus[schluessel] || '';
+                      return (
+                        <div key={schluessel} className="foto-card">
+                          <div className="foto-card-label">{emoji} {label}</div>
+                          <div className="foto-card-hinweis">{hinweis}</div>
+                          {url
+                            ? <img src={url} alt={label} className="foto-preview" />
+                            : <div className="foto-placeholder"><span>📷</span><span>Noch kein Foto</span></div>
+                          }
+                          <div className="foto-actions">
+                            <button className="btn-upload" disabled={st === 'uploading'} onClick={() => fileRefs.current[schluessel]?.click()}>
+                              {st === 'uploading' ? 'Wird hochgeladen …' : url ? 'Foto ersetzen' : 'Foto hochladen'}
+                            </button>
+                            {st === 'ok'  && <span className="status-ok">Gespeichert ✓</span>}
+                            {st === 'err' && <span className="status-err">Fehler beim Upload</span>}
+                            <input type="file" accept="image/*" style={{display:'none'}}
+                              ref={el => { fileRefs.current[schluessel] = el; }}
+                              onChange={e => { const f = e.target.files?.[0]; if (f) fotoHochladen(schluessel, f); e.target.value = ''; }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              );
-            })}
+                )}
+
+                {g.texte && g.texte.map(({ schluessel, label, hinweis, lang }) => {
+                  const wert = feldWert(schluessel);
+                  const st   = speicherStatus[schluessel] || '';
+                  return (
+                    <div key={schluessel} className="text-block">
+                      <div className="text-block-label">{label}</div>
+                      <div className="text-block-hinweis">{hinweis}</div>
+                      {lang
+                        ? <textarea id={`ta-${schluessel}`} defaultValue={wert} rows={3}
+                            onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); speichern(schluessel, (e.target as HTMLTextAreaElement).value); } }}
+                          />
+                        : <input type="text" id={`ta-${schluessel}`} defaultValue={wert}
+                            onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); speichern(schluessel, (e.target as HTMLInputElement).value); } }}
+                          />
+                      }
+                      <div className="text-block-footer">
+                        {st === 'ok'  && <span className="status-ok">Gespeichert ✓</span>}
+                        {st === 'err' && <span className="status-err">Fehler</span>}
+                        <button className="btn-save" onClick={() => {
+                          const el = document.getElementById(`ta-${schluessel}`) as HTMLTextAreaElement | HTMLInputElement;
+                          speichern(schluessel, el.value);
+                        }}>Speichern</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </>
         )}
       </div>
