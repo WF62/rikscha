@@ -224,7 +224,7 @@ export default async function WebsitePage() {
         .form-group select option { background: var(--green); color: #fff; }
         .form-group textarea { resize: vertical; min-height: 100px; }
 
-        footer { background: #1a1208; color: rgba(255,255,255,0.75); text-align: center; padding: 2.5rem 1rem; font-size: 0.88rem; line-height: 1.8; }
+        footer { background: #1a1208; color: rgba(255,255,255,0.75); text-align: center; padding: 1.25rem 1rem; font-size: 0.88rem; line-height: 1.8; }
         footer a { color: #C8881A; text-decoration: none; transition: color 0.15s; }
         footer a:hover { color: #e0a030; }
         footer .piloten-link { color: rgba(255,255,255,0.35); font-size: 0.78rem; }
@@ -566,14 +566,17 @@ export default async function WebsitePage() {
 
       {/* Footer */}
       <footer>
-        <p style={{fontWeight:600,color:'#fff',fontSize:'0.95rem',marginBottom:'0.25rem'}}>Mertener Rikschakutscher</p>
-        <p>Ein ehrenamtliches Projekt der <a href="#">Gesellschaft der Franziskanerinnen zu Olpe (GFO)</a></p>
-        <p style={{marginTop:'0.25rem'}}>📞 <a href="tel:022279328383">02227 9328383</a></p>
-        <p style={{marginTop:'1rem',borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:'1rem'}}>
-          <a href="/impressum">Impressum</a> &nbsp;·&nbsp; <a href="/datenschutz">Datenschutz</a>
-          &nbsp;·&nbsp; <a href="#" className="piloten-link" id="piloten-link">Piloten</a>
+        <p style={{color:'rgba(255,255,255,0.6)',fontSize:'0.82rem'}}>
+          <strong style={{color:'#fff'}}>Mertener Rikschakutscher</strong>
+          {' · '}Ehrenamtliches Projekt der <a href="#">GFO</a>
+          {' · '}📞 <a href="tel:022279328383">02227 9328383</a>
         </p>
-        <p style={{marginTop:'0.5rem',fontSize:'0.75rem',color:'rgba(255,255,255,0.3)'}}>© 2025</p>
+        <p style={{marginTop:'0.6rem',fontSize:'0.78rem',color:'rgba(255,255,255,0.4)'}}>
+          <a href="/impressum">Impressum</a> &nbsp;·&nbsp;
+          <a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp;
+          <a href="#" className="piloten-link" id="piloten-link" style={{color:'rgba(255,255,255,0.3)'}}>Piloten</a>
+          &nbsp;·&nbsp; © 2025
+        </p>
       </footer>
 
       {/* Pilot Login Overlay */}
