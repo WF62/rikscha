@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 import type { Metadata } from 'next';
 import PrintButton from './PrintButton';
 import { createServiceClient } from '@/lib/supabase';
