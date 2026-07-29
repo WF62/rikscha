@@ -29,11 +29,12 @@ const HANDOUT_GRUPPEN: Gruppe[] = [
   {
     titel: 'Vorderseite', emoji: '🟢',
     fotos: [
-      { schluessel: 'handout_foto_vorne', emoji: '📸', label: 'Hauptfoto (Vorderseite)', hinweis: 'Foto rechts auf der Vorderseite jedes Handouts' },
+      { schluessel: 'handout_foto_vorne', emoji: '📸', label: 'Hintergrundfoto (Vorderseite)', hinweis: 'Fahrtfoto als Hintergrund – wird groß und dunkel überblendet hinterlegt' },
     ],
     texte: [
-      { schluessel: 'handout_sub',  label: 'Tagline / Unterzeile', hinweis: 'z. B. „Kostenlose Rikschafahrten in Bornheim-Merten · Ehrenamtlich seit 2018"' },
-      { schluessel: 'handout_text', label: 'Beschreibungstext',    hinweis: 'Kurzer Text in der Mitte des Handouts', lang: true },
+      { schluessel: 'handout_slogan', label: 'Slogan / Hauptzeile', hinweis: 'z. B. „Wind im Haar. Herz am rechten Fleck."' },
+      { schluessel: 'handout_sub',    label: 'Tagline / Unterzeile', hinweis: 'z. B. „Kostenlose Rikschafahrten in Bornheim-Merten · Ehrenamtlich seit 2018"' },
+      { schluessel: 'handout_text',   label: 'Beschreibungstext',    hinweis: 'Kurzer Text in der Mitte des Handouts', lang: true },
     ],
   },
   {
