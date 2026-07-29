@@ -1,0 +1,275 @@
+export const dynamic = 'force-dynamic';
+import type { Metadata } from 'next';
+import PrintButton from './PrintButton';
+import { createServiceClient } from '@/lib/supabase';
+
+export const metadata: Metadata = { title: 'Handout – Mertener Rikschakutscher' };
+
+const LOGO = 'https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png';
+
+const SCHLUSSEL = [
+  'handout_sub', 'handout_text',
+  'handout_foto_vorne',
+  'handout_lotte_kurz', 'handout_flitzer_kurz', 'handout_piter_kurz',
+  'handout_foto_lotte', 'handout_foto_flitzer', 'handout_foto_piter',
+  'handout_r1_name', 'handout_r2_name', 'handout_r3_name',
+  'handout_r1_typ', 'handout_r2_typ', 'handout_r3_typ',
+];
+
+const DEFAULT: Record<string, string> = {
+  handout_sub:          'Kostenlose Rikschafahrten in Bornheim-Merten · Ehrenamtlich seit 2018',
+  handout_text:         'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Kutscher bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten kostenlos und für jeden zugänglich.',
+  handout_foto_vorne:   '',
+  handout_lotte_kurz:   'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ideal für Seniorengruppen und Familienausflüge.',
+  handout_flitzer_kurz: 'Liegetandem für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten!',
+  handout_piter_kurz:   'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Nähe und Gespräche auf Augenhöhe.',
+  handout_foto_lotte:   '',
+  handout_foto_flitzer: '',
+  handout_foto_piter:   '',
+  handout_r1_name:      'Flotte Lotte',
+  handout_r2_name:      'Flinker Flitzer',
+  handout_r3_name:      'Jruuse Piter',
+  handout_r1_typ:       'Rikscha · bis 2 Gäste',
+  handout_r2_typ:       'Liegetandem · 1 Gast',
+  handout_r3_typ:       'Paralleltandem · 1 Gast',
+};
+
+async function ladeInhalte(): Promise<Record<string, string>> {
+  try {
+    const db = createServiceClient();
+    const { data } = await db.from('inhalte').select('schluessel, wert').in('schluessel', SCHLUSSEL);
+    const r = { ...DEFAULT };
+    for (const { schluessel, wert } of data ?? []) if (schluessel in r) r[schluessel] = wert;
+    return r;
+  } catch { return DEFAULT; }
+}
+
+export default async function HandoutPage() {
+  const c = await ladeInhalte();
+
+  /* Wiederholter Streifen — Vorder- und Rückseite je 3× */
+  const vorderStreifen = (
+    <div className="strip">
+      <div className="strip-inner">
+
+        {/* Links: Marke */}
+        <div className="brand-col">
+          <img src={LOGO} alt="Logo" className="logo"/>
+          <div className="brand-name">Mertener<br/>Rikschakutscher</div>
+          <div className="brand-sub">{c.handout_sub}</div>
+          <div className="brand-contact">
+            <span>📞 02227 9328383</span>
+            <span>🌐 rikscha-merten.de</span>
+          </div>
+        </div>
+
+        {/* Mitte: Text + Chips */}
+        <div className="text-col">
+          <p className="strip-body">{c.handout_text}</p>
+          <div className="chip-row">
+            <span className="chip chip-green">Kostenlos</span>
+            <span className="chip chip-green">Ehrenamtlich</span>
+            <span className="chip chip-gold">Gutscheine</span>
+            <span className="chip chip-gold">Gruppenfahrten</span>
+          </div>
+          <div className="strip-address">GFO Bornheim-Merten · Kloster Merten · 53332 Bornheim</div>
+        </div>
+
+        {/* Rechts: Foto */}
+        <div className="foto-col">
+          {c.handout_foto_vorne
+            ? <img src={c.handout_foto_vorne} alt="Rikschafahrt" className="strip-foto"/>
+            : <div className="foto-ph"><span>📷</span></div>
+          }
+        </div>
+
+      </div>
+    </div>
+  );
+
+  const rueckStreifen = (
+    <div className="strip strip-back">
+      <div className="strip-inner">
+
+        {/* Fahrzeug-Karten */}
+        {([
+          { name: c.handout_r1_name, typ: c.handout_r1_typ, text: c.handout_lotte_kurz,   foto: c.handout_foto_lotte,   farbe: '#FEF3C7', akzent: '#92400e', badge: '#F59E0B' },
+          { name: c.handout_r2_name, typ: c.handout_r2_typ, text: c.handout_flitzer_kurz, foto: c.handout_foto_flitzer, farbe: '#E0F2FE', akzent: '#075985', badge: '#0EA5E9' },
+          { name: c.handout_r3_name, typ: c.handout_r3_typ, text: c.handout_piter_kurz,   foto: c.handout_foto_piter,  farbe: '#EDE9FE', akzent: '#4c1d95', badge: '#8B5CF6' },
+        ] as const).map((f, i) => (
+          <div key={i} className="fz-card" style={{background:f.farbe}}>
+            {f.foto
+              ? <img src={f.foto} alt={f.name} className="fz-foto"/>
+              : <div className="fz-foto-ph" style={{background:f.badge+'33'}}><span>📷</span></div>
+            }
+            <div className="fz-typ" style={{color:f.akzent}}>{f.typ}</div>
+            <div className="fz-name" style={{color:f.akzent}}>{f.name}</div>
+            <p className="fz-text" style={{color:f.akzent}}>{f.text}</p>
+          </div>
+        ))}
+
+        {/* Spenden-Block */}
+        <div className="spenden-col">
+          <div className="sp-eye">Spenden</div>
+          <div className="sp-title">Helfen Sie uns, weiterzufahren</div>
+          <div className="sp-sub">Förderverein „Miteinander Kloster Merten e. V." · Stichwort: Rikscha</div>
+          <div className="sp-konto">
+            <span className="sp-label">KSK Köln</span>
+            <span className="sp-val">DE79 3705 0299 0049 0050 40</span>
+          </div>
+          <div className="sp-konto">
+            <span className="sp-label">Volksbank</span>
+            <span className="sp-val">DE14 3806 0186 0410 0560 11</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+          --green: #2D6B1E; --gold: #C8881A; --cream: #F5F0E7;
+          --ink: #1C1208; --mid: #5C4E38;
+          --serif: Palatino Linotype, Palatino, Book Antiqua, Georgia, serif;
+          --sans: system-ui, -apple-system, Segoe UI, sans-serif;
+          --w: 560px;
+          --strip-h: 332px;
+          --gap: 26px;
+        }
+        body { font-family: var(--sans); background: #B8B0A4; color: var(--ink); }
+
+        /* ── Druckleiste ── */
+        .print-bar {
+          background: #2D6B1E; color: #fff;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 2rem; height: 52px; gap: 1rem;
+        }
+        .print-bar a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.88rem; }
+        .print-bar a:hover { color: #fff; }
+
+        /* ── Seite ── */
+        .wrap { padding: 1.5rem 1rem 4rem; }
+        .page-title { text-align:center; font-family:var(--serif); font-size:1rem; color:#3a3028; margin-bottom:.2rem; font-weight:normal; }
+        .page-hint  { text-align:center; font-size:.68rem; color:#6a5e50; margin-bottom:2.5rem; }
+        .side-label { font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:#5c4e38; margin-bottom:.5rem; font-weight:600; width:var(--w); margin-left:auto; margin-right:auto; }
+
+        /* ── Bogen ── */
+        .sheet { width:var(--w); margin:0 auto 3.5rem; box-shadow:0 4px 32px rgba(0,0,0,.28); display:flex; flex-direction:column; gap:0; }
+
+        /* ── Streifen ── */
+        .strip {
+          width: var(--w); height: var(--strip-h);
+          position: relative; overflow: hidden;
+          border: 1px solid #c8baa8;
+        }
+        .strip + .strip { border-top: none; }
+
+        /* ── Schnittgasse ── */
+        .gap {
+          width: var(--w); height: var(--gap);
+          display: flex; align-items: center; justify-content: center;
+          position: relative;
+          background:
+            repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 6px, transparent 6px 11px)
+              center / 100% 1.5px no-repeat;
+        }
+        .gap::before, .gap::after {
+          content: '✂';
+          font-size: .75rem; opacity: .45; background: #B8B0A4; padding: 0 4px;
+        }
+        .gap-label { font-size:.42rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(60,40,10,.4); font-family:var(--sans); font-weight:700; position:absolute; right:-58px; }
+
+        /* ── Streifen-Inhalt ── */
+        .strip-inner { display:flex; height:100%; }
+
+        /* Vorderseite */
+        .brand-col { width:175px; flex-shrink:0; background:var(--green); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:.8rem .7rem; gap:.35rem; }
+        .logo { width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.35); }
+        .brand-name { font-family:var(--serif); color:#fff; font-size:.78rem; font-weight:normal; text-align:center; line-height:1.3; }
+        .brand-sub { font-size:.56rem; color:rgba(255,255,255,.68); text-align:center; line-height:1.4; }
+        .brand-contact { display:flex; flex-direction:column; gap:.15rem; margin-top:.15rem; }
+        .brand-contact span { font-size:.6rem; color:rgba(255,255,255,.8); }
+        .text-col { flex:1; background:#fff; padding:.85rem .9rem; display:flex; flex-direction:column; justify-content:center; gap:.4rem; min-width:0; }
+        .strip-body { font-size:.7rem; color:var(--mid); line-height:1.55; }
+        .chip-row { display:flex; gap:.3rem; flex-wrap:wrap; }
+        .chip { font-size:.58rem; font-weight:700; padding:.1rem .45rem; border-radius:999px; }
+        .chip-green { background:#d1fae5; color:#065f46; }
+        .chip-gold  { background:#fef3c7; color:#92400e; }
+        .strip-address { font-size:.58rem; color:#a89070; font-style:italic; margin-top:.1rem; }
+        .foto-col { width:140px; flex-shrink:0; background:var(--cream); }
+        .strip-foto { width:100%; height:100%; object-fit:cover; display:block; }
+        .foto-ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:2rem; opacity:.25; }
+
+        /* Rückseite */
+        .strip-back .strip-inner { background:var(--cream); }
+        .fz-card { flex:1; padding:.7rem .65rem; display:flex; flex-direction:column; gap:.25rem; border-right:1px solid rgba(0,0,0,.07); }
+        .fz-card:last-child { border-right:none; }
+        .fz-foto { width:100%; height:90px; object-fit:cover; border-radius:4px; display:block; }
+        .fz-foto-ph { width:100%; height:90px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; opacity:.35; }
+        .fz-typ  { font-size:.56rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-top:.15rem; }
+        .fz-name { font-family:var(--serif); font-size:.82rem; font-weight:bold; }
+        .fz-text { font-size:.63rem; line-height:1.5; }
+        .spenden-col { width:148px; flex-shrink:0; background:linear-gradient(135deg,#1a4a0e,#2D6B1E); padding:.7rem .75rem; display:flex; flex-direction:column; gap:.22rem; }
+        .sp-eye   { font-size:.52rem; text-transform:uppercase; letter-spacing:.14em; color:var(--gold); font-weight:700; }
+        .sp-title { font-family:var(--serif); font-size:.74rem; color:#fff; line-height:1.3; }
+        .sp-sub   { font-size:.52rem; color:rgba(255,255,255,.6); line-height:1.4; margin-top:.05rem; }
+        .sp-konto { display:flex; flex-direction:column; gap:.05rem; margin-top:.15rem; }
+        .sp-label { color:rgba(255,255,255,.5); font-size:.5rem; }
+        .sp-val   { color:#fff; font-weight:700; font-family:monospace; font-size:.57rem; letter-spacing:.02em; }
+
+        /* ── PRINT ── */
+        * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+        @media print {
+          @page { size: A4 portrait; margin: 5mm 0; }
+          html, body { background:#fff !important; padding:0 !important; margin:0 !important; }
+          .print-bar, .wrap > .page-title, .wrap > .page-hint, .side-label { display:none !important; }
+          .wrap { padding:0 !important; }
+          .sheet { width:148mm; margin:0; box-shadow:none; }
+          .strip { width:148mm; height:88mm; border:none; }
+          .gap { width:148mm; height:6mm; background:none !important; }
+          .gap::before, .gap::after, .gap-label { display:none; }
+          /* Trennlinie im Druck */
+          .gap { border-top:0.4pt dashed rgba(0,0,0,.3); border-bottom:0.4pt dashed rgba(0,0,0,.3); }
+          .back-sheet { page-break-before:always; break-before:page; }
+        }
+      `}</style>
+
+      {/* Druckleiste */}
+      <nav className="print-bar">
+        <a href="/">← Zurück zur Website</a>
+        <span style={{fontSize:'.75rem',color:'#888',marginLeft:'1.5rem'}}>💡 Doppelseitig · lange Kante spiegeln · kein Rand · 3 Handouts pro Seite</span>
+        <a href="/bearbeiten" style={{marginLeft:'auto',marginRight:'1rem'}}>✏️ Inhalte bearbeiten</a>
+        <PrintButton/>
+      </nav>
+
+      <div className="wrap">
+        <h1 className="page-title">Mertener Rikschakutscher · Handout · 3 × DIN A4 quer auf A4 hochkant</h1>
+        <p className="page-hint">Druck: doppelseitig · lange Kante spiegeln · kein Rand · dann 2 × schneiden</p>
+
+        {/* VORDERSEITE */}
+        <p className="side-label">Vorderseite</p>
+        <div className="sheet">
+          {vorderStreifen}
+          <div className="gap"><span className="gap-label">Schnitt 1</span></div>
+          {vorderStreifen}
+          <div className="gap"><span className="gap-label">Schnitt 2</span></div>
+          {vorderStreifen}
+        </div>
+
+        {/* RÜCKSEITE */}
+        <p className="side-label">Rückseite (beim Drucken an langer Kante spiegeln)</p>
+        <div className="sheet back-sheet">
+          {rueckStreifen}
+          <div className="gap"><span className="gap-label">Schnitt 1</span></div>
+          {rueckStreifen}
+          <div className="gap"><span className="gap-label">Schnitt 2</span></div>
+          {rueckStreifen}
+        </div>
+      </div>
+    </>
+  );
+}
