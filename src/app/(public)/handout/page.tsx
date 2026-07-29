@@ -163,24 +163,34 @@ export default async function HandoutPage() {
         .strip {
           width: var(--w); height: var(--strip-h);
           position: relative; overflow: hidden;
-          border: 1px solid #c8baa8;
         }
-        .strip + .strip { border-top: none; }
 
         /* ── Schnittgasse ── */
         .gap {
           width: var(--w); height: var(--gap);
-          display: flex; align-items: center; justify-content: center;
-          position: relative;
-          background:
-            repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 6px, transparent 6px 11px)
-              center / 100% 1.5px no-repeat;
+          position: relative; overflow: visible;
+          /* Farben durchziehen: links Markengrün, rechts dunkle Überlagerung */
+          background: linear-gradient(90deg, #2D6B1E 175px, #3a2c1c 175px);
         }
-        .gap::before, .gap::after {
-          content: '✂';
-          font-size: .75rem; opacity: .45; background: #B8B0A4; padding: 0 4px;
+        /* Schnittmarke links */
+        .gap::before {
+          content: '';
+          position: absolute; top: 50%; transform: translateY(-50%);
+          right: calc(100% + 6px);
+          width: 26px; height: 1px;
+          background: rgba(0,0,0,.65);
+          box-shadow: 0 0 0 .4px rgba(255,255,255,.4);
         }
-        .gap-label { font-size:.42rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(60,40,10,.4); font-family:var(--sans); font-weight:700; position:absolute; right:-58px; }
+        /* Schnittmarke rechts */
+        .gap::after {
+          content: '';
+          position: absolute; top: 50%; transform: translateY(-50%);
+          left: calc(100% + 6px);
+          width: 26px; height: 1px;
+          background: rgba(0,0,0,.65);
+          box-shadow: 0 0 0 .4px rgba(255,255,255,.4);
+        }
+        .gap-label { font-size:.42rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.4); font-family:var(--sans); font-weight:700; position:absolute; right:-58px; top:50%; transform:translateY(-50%); }
 
         /* ── Streifen-Inhalt ── */
         .strip-inner { display:flex; height:100%; }
@@ -228,12 +238,13 @@ export default async function HandoutPage() {
           html, body { background:#fff !important; padding:0 !important; margin:0 !important; }
           .print-bar, .wrap > .page-title, .wrap > .page-hint, .side-label { display:none !important; }
           .wrap { padding:0 !important; }
-          .sheet { width:148mm; margin:0; box-shadow:none; }
-          .strip { width:148mm; height:88mm; border:none; }
-          .gap { width:148mm; height:6mm; background:none !important; }
-          .gap::before, .gap::after, .gap-label { display:none; }
-          /* Trennlinie im Druck */
-          .gap { border-top:0.4pt dashed rgba(0,0,0,.3); border-bottom:0.4pt dashed rgba(0,0,0,.3); }
+          .sheet { width:148mm; margin:0 auto; box-shadow:none; }
+          .strip { width:148mm; height:88mm; }
+          .gap { width:148mm; height:6mm; overflow:visible; }
+          .gap-label { display:none; }
+          /* Schnittmarken im Druck: 10mm lang, 3mm Abstand vom Blattrand */
+          .gap::before { right:calc(100% + 3mm); width:10mm; background:rgba(0,0,0,.6); box-shadow:none; }
+          .gap::after  { left:calc(100% + 3mm);  width:10mm; background:rgba(0,0,0,.6); box-shadow:none; }
           .back-sheet { page-break-before:always; break-before:page; }
         }
       `}</style>
