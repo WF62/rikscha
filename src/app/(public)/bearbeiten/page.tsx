@@ -153,6 +153,7 @@ export default function BearbeitenPage() {
   const [speicherStatus, setSpeicherStatus] = useState<Record<string, 'ok' | 'err' | ''>>({});
   const [pilotenDateien, setPilotenDateien] = useState<PilotenDatei[]>([]);
   const [pickerFeld, setPickerFeld] = useState<string | null>(null);
+  const [sammelStatus, setSammelStatus] = useState<''|'saving'|'ok'|'err'>('');
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
@@ -452,14 +453,23 @@ export default function BearbeitenPage() {
             {tab === 'handout' && (
               <div style={{display:'flex',justifyContent:'flex-end',gap:'.75rem',marginBottom:'1rem'}}>
                 <button className="btn-ghost" style={{fontSize:'.95rem',padding:'.55rem 1.2rem'}} onClick={() => window.history.back()}>← Zurück</button>
-                <button className="btn-save" style={{fontSize:'.95rem',padding:'.55rem 1.6rem'}} onClick={() => {
-                  HANDOUT_GRUPPEN.forEach(g => {
-                    (g.texte ?? []).forEach(({ schluessel }) => {
+                <button className="btn-save" disabled={sammelStatus==='saving'} style={{fontSize:'.95rem',padding:'.55rem 1.6rem',minWidth:'260px'}} onClick={async () => {
+                  setSammelStatus('saving');
+                  const felder = HANDOUT_GRUPPEN.flatMap(g => g.texte ?? []);
+                  try {
+                    await Promise.all(felder.map(({ schluessel }) => {
                       const el = document.getElementById(`ta-${schluessel}`) as HTMLInputElement | HTMLTextAreaElement | null;
-                      if (el) speichern(schluessel, el.value);
-                    });
-                  });
-                }}>💾 Alle Handout-Felder speichern</button>
+                      return el ? speichern(schluessel, el.value) : Promise.resolve();
+                    }));
+                    setSammelStatus('ok');
+                    setTimeout(() => setSammelStatus(''), 3000);
+                  } catch {
+                    setSammelStatus('err');
+                    setTimeout(() => setSammelStatus(''), 3000);
+                  }
+                }}>
+                  {sammelStatus === 'saving' ? '⏳ Wird gespeichert …' : sammelStatus === 'ok' ? '✓ Alle gespeichert' : sammelStatus === 'err' ? '✗ Fehler' : '💾 Alle Handout-Felder speichern'}
+                </button>
               </div>
             )}
             {tab === 'handout' && HANDOUT_GRUPPEN.map(g => (
