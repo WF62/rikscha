@@ -36,10 +36,23 @@ export async function POST(req: NextRequest) {
   }
 
   const db = createServiceClient();
-  const { error } = await db
-    .from('inhalte')
-    .upsert({ schluessel, wert, geaendert_von: pilot, geaendert_am: new Date().toISOString() }, { onConflict: 'schluessel' });
+  const ts = new Date().toISOString();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+  // Erst updaten; wenn keine Zeile getroffen → neu anlegen
+  const { data: updated, error: updateErr } = await db
+    .from('inhalte')
+    .update({ wert, geaendert_von: pilot, geaendert_am: ts })
+    .eq('schluessel', schluessel)
+    .select('schluessel');
+
+  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500, headers: CORS });
+
+  if (!updated || updated.length === 0) {
+    const { error: insertErr } = await db
+      .from('inhalte')
+      .insert({ schluessel, wert, bezeichnung: schluessel, geaendert_von: pilot, geaendert_am: ts });
+    if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500, headers: CORS });
+  }
+
   return NextResponse.json({ ok: true }, { headers: CORS });
 }
