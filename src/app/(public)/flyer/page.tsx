@@ -10,18 +10,49 @@ export const metadata: Metadata = {
 const SCHLUSSEL = [
   'flyer_fahrten_text', 'flyer_lotte_text', 'flyer_flitzer_text', 'flyer_piter_text',
   'flyer_foto_fahrt1', 'flyer_foto_fahrt2', 'flyer_foto_lotte', 'flyer_foto_flitzer', 'flyer_foto_piter',
+  // V2
+  'flyer_v2_eyebrow', 'flyer_v2_h3',
+  // V3
+  'flyer_v3_eyebrow', 'flyer_v3_h3',
+  'flyer_v3_card1_titel', 'flyer_v3_card1_text',
+  'flyer_v3_card2_titel', 'flyer_v3_card2_text',
+  // V4
+  'flyer_v4_meta', 'flyer_v4_badge',
+  // Gutschein
+  'flyer_gutschein_hinweis',
+  // Rückseite Fahrzeuge
+  'flyer_r1_label', 'flyer_r1_h3',
+  'flyer_r2_label', 'flyer_r2_h3',
+  'flyer_r3_label', 'flyer_r3_h3',
 ];
 
 const DEFAULT: Record<string, string> = {
-  flyer_fahrten_text:  'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
-  flyer_lotte_text:    'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung. Ideal für Seniorengruppen und Familienausflüge.',
-  flyer_flitzer_text:  'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.',
-  flyer_piter_text:    'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
-  flyer_foto_fahrt1:   '',
-  flyer_foto_fahrt2:   '',
-  flyer_foto_lotte:    '',
-  flyer_foto_flitzer:  '',
-  flyer_foto_piter:    '',
+  flyer_fahrten_text:   'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
+  flyer_lotte_text:     'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung. Ideal für Seniorengruppen und Familienausflüge.',
+  flyer_flitzer_text:   'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.',
+  flyer_piter_text:     'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
+  flyer_foto_fahrt1:    '',
+  flyer_foto_fahrt2:    '',
+  flyer_foto_lotte:     '',
+  flyer_foto_flitzer:   '',
+  flyer_foto_piter:     '',
+  flyer_v2_eyebrow:     'Kostenlos & Herzlich',
+  flyer_v2_h3:          'Fahrtwind für alle',
+  flyer_v3_eyebrow:     'Rund 10 ehrenamtliche Kutscher',
+  flyer_v3_h3:          'Menschen, die anpacken — mit Freude',
+  flyer_v3_card1_titel: 'Wer sind unsere Kutscher?',
+  flyer_v3_card1_text:  'Rund zehn engagierte Freiwillige aus Bornheim-Merten — unterschiedlichen Alters und aus ganz verschiedenen Berufen. Was sie verbindet: die Freude daran, anderen Menschen einen besonderen Moment zu schenken.',
+  flyer_v3_card2_titel: 'Mitmachen?',
+  flyer_v3_card2_text:  'Fahrradbegeistert & hilfsbereit? Wir freuen uns über jede Verstärkung! 📞 02227 9328383',
+  flyer_v4_meta:        '11 ehrenamtliche Piloten · kostenlose Rikschafahrten',
+  flyer_v4_badge:       '11 Piloten',
+  flyer_gutschein_hinweis: 'Telefonisch einlösen · Alle Fahrten kostenlos · GFO Bornheim-Merten',
+  flyer_r1_label:       'Rikscha · max. 2 Gäste',
+  flyer_r1_h3:          'Flotte Lotte',
+  flyer_r2_label:       'Liegetandem · 1 Gast',
+  flyer_r2_h3:          'Flinker Flitzer',
+  flyer_r3_label:       'Paralleltandem · 1 Gast',
+  flyer_r3_h3:          'Jruuse Piter',
 };
 
 async function ladeFlyerInhalte(): Promise<Record<string, string>> {
@@ -408,7 +439,7 @@ export default async function FlyerPage() {
                 <div className="voucher-validity">gültig bis: ___________</div>
               </div>
             </div>
-            <div className="voucher-note">Telefonisch einlösen · Alle Fahrten kostenlos · GFO Bornheim-Merten</div>
+            <div className="voucher-note">{c.flyer_gutschein_hinweis}</div>
             <div className="voucher-scissors">✂</div>
           </div>
 
@@ -420,8 +451,8 @@ export default async function FlyerPage() {
             </div>
             <div className="v2-stripe"></div>
             <div className="v2-body">
-              <div className="eyebrow">Kostenlos &amp; Herzlich</div>
-              <h3>Fahrtwind für alle</h3>
+              <div className="eyebrow">{c.flyer_v2_eyebrow}</div>
+              <h3>{c.flyer_v2_h3}</h3>
               <p>{c.flyer_fahrten_text}</p>
               <div className="pill-row">
                 <span className="chip chip-green">Kostenlos</span>
@@ -448,20 +479,19 @@ export default async function FlyerPage() {
               <span className="pt-icon">🚴</span>
               <span className="pt-label">Unsere Kutscher · Ehrenamt mit Herz · Jetzt mitmachen!</span>
             </div>
-            <div className="eyebrow">Rund 10 ehrenamtliche Kutscher</div>
-            <h3>Menschen, die anpacken — mit Freude</h3>
+            <div className="eyebrow">{c.flyer_v3_eyebrow}</div>
+            <h3>{c.flyer_v3_h3}</h3>
             <div className="fz-row">
               <div className="fz-card" style={{background:'#DCFCE7',color:'#14532d',flex:2}}>
-                <div className="fz-name" style={{fontSize:'0.75rem'}}>Wer sind unsere Kutscher?</div>
+                <div className="fz-name" style={{fontSize:'0.75rem'}}>{c.flyer_v3_card1_titel}</div>
                 <div style={{fontSize:'0.62rem',lineHeight:1.5,marginTop:'0.15rem',color:'#166534'}}>
-                  Rund zehn engagierte Freiwillige aus Bornheim-Merten — unterschiedlichen Alters und aus ganz verschiedenen Berufen. Was sie verbindet: die Freude daran, anderen Menschen einen besonderen Moment zu schenken.
+                  {c.flyer_v3_card1_text}
                 </div>
               </div>
               <div className="fz-card" style={{background:'#FEF9C3',color:'#713f12',flex:1}}>
-                <div className="fz-name" style={{fontSize:'0.75rem'}}>Mitmachen?</div>
+                <div className="fz-name" style={{fontSize:'0.75rem'}}>{c.flyer_v3_card2_titel}</div>
                 <div style={{fontSize:'0.62rem',lineHeight:1.5,marginTop:'0.15rem',color:'#854d0e'}}>
-                  Fahrradbegeistert &amp; hilfsbereit? Wir freuen uns über jede Verstärkung!<br/>
-                  <strong style={{display:'block',marginTop:'0.25rem'}}>📞 02227 9328383</strong>
+                  {c.flyer_v3_card2_text}
                 </div>
               </div>
             </div>
@@ -474,9 +504,9 @@ export default async function FlyerPage() {
               <div>
                 <div style={{fontSize:'0.54rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.48)',marginBottom:'0.18rem'}}>Bornheim-Merten · seit 2018</div>
                 <div className="cover-title">Mertener Rikschakutscher</div>
-                <div className="cover-meta">11 ehrenamtliche Piloten · kostenlose Rikschafahrten</div>
+                <div className="cover-meta">{c.flyer_v4_meta}</div>
               </div>
-              <div className="cover-badge">11 Piloten</div>
+              <div className="cover-badge">{c.flyer_v4_badge}</div>
             </div>
             <div className="cover-info">
               <span>📞 02227 9328383</span>
@@ -499,8 +529,8 @@ export default async function FlyerPage() {
             </div>
             <div className="fz-accent"></div>
             <div className="fz-panel-body">
-              <div className="fz-label">Rikscha · max. 2 Gäste</div>
-              <h3>Flotte Lotte</h3>
+              <div className="fz-label">{c.flyer_r1_label}</div>
+              <h3>{c.flyer_r1_h3}</h3>
               <p>{c.flyer_lotte_text}</p>
               <span className="fz-badge">👥 bis 2 Gäste</span>
             </div>
@@ -520,8 +550,8 @@ export default async function FlyerPage() {
             </div>
             <div className="fz-accent"></div>
             <div className="fz-panel-body">
-              <div className="fz-label">Liegetandem · 1 Gast</div>
-              <h3>Flinker Flitzer</h3>
+              <div className="fz-label">{c.flyer_r2_label}</div>
+              <h3>{c.flyer_r2_h3}</h3>
               <p>{c.flyer_flitzer_text}</p>
               <span className="fz-badge">👤 1 Gast</span>
             </div>
@@ -541,8 +571,8 @@ export default async function FlyerPage() {
             </div>
             <div className="fz-accent"></div>
             <div className="fz-panel-body">
-              <div className="fz-label">Paralleltandem · 1 Gast</div>
-              <h3>Jruuse Piter</h3>
+              <div className="fz-label">{c.flyer_r3_label}</div>
+              <h3>{c.flyer_r3_h3}</h3>
               <p>{c.flyer_piter_text}</p>
               <span className="fz-badge">👤 1 Gast</span>
             </div>
