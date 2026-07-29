@@ -10,17 +10,24 @@ type Inhaltsfeld  = { schluessel: string; wert: string; bezeichnung?: string; ge
 
 /* ── Website-Felder (Tab 1) ── */
 const WEBSITE_BEZEICHNUNGEN: Record<string, string> = {
-  banner_1:          'Banner 1',
-  banner_2:          'Banner 2',
+  hero_eyebrow:      'Hero – Eyebrow (kleine Zeile oben)',
+  hero_titel:        'Hero – Haupttitel (h1)',
   hero_sub:          'Hero – Untertitel',
+  fahrten_h2:        'Gruppenfahrten – Überschrift',
   gruppenfahrten_1:  'Gruppenfahrten – Absatz 1',
   gruppenfahrten_2:  'Gruppenfahrten – Absatz 2',
+  fahrzeuge_h2:      'Fahrzeuge – Überschrift',
+  fahrzeuge_intro:   'Fahrzeuge – Einleitung',
   lotte_text:        'Flotte Lotte – Beschreibung',
   flitzer_text:      'Flinker Flitzer – Beschreibung',
   piter_text:        'Jruuse Piter – Beschreibung',
+  team_h2:           'Team – Überschrift',
   team_text:         'Team – Beschreibung',
-  kontakt_text:      'Kontakt – Beschreibung',
+  mitmachen_intro:   'Mitmachen – Einleitung',
+  spenden_h2:        'Spenden – Überschrift',
   spenden_text:      'Spenden – Beschreibung',
+  kontakt_h2:        'Kontakt – Überschrift',
+  kontakt_text:      'Kontakt – Beschreibung',
 };
 const WEBSITE_REIHENFOLGE = Object.keys(WEBSITE_BEZEICHNUNGEN);
 
