@@ -52,38 +52,35 @@ export default async function HandoutPage() {
 
   /* Wiederholter Streifen — Vorder- und Rückseite je 3× */
   const vorderStreifen = (
-    <div className="strip" style={c.handout_foto_vorne ? {
-      backgroundImage: `url(${c.handout_foto_vorne})`,
-      backgroundSize: 'cover', backgroundPosition: 'center',
-    } : undefined}>
-      {/* Verdunklungs-Overlay */}
-      <div className="bg-overlay"/>
-      <div className="strip-inner" style={{position:'relative',zIndex:1}}>
+    <div className="strip">
+      {/* Vollbild-Foto */}
+      <div className="bg-foto" style={c.handout_foto_vorne ? {
+        backgroundImage: `url(${c.handout_foto_vorne})`,
+      } : undefined}/>
+      {/* Dunkler Gradient von unten */}
+      <div className="bg-gradient"/>
 
-        {/* Links: Marke */}
-        <div className="brand-col">
-          <img src={LOGO} alt="Logo" className="logo"/>
-          <div className="brand-name">Mertener<br/>Rikschakutscher</div>
-          <div className="brand-sub">{c.handout_sub}</div>
-          <div className="brand-contact">
-            <span>📞 02227 9328383</span>
-            <span>🌐 rikscha-merten.de</span>
-          </div>
+      {/* Logo-Leiste oben */}
+      <div className="brand-bar">
+        <img src={LOGO} alt="Logo" className="logo"/>
+        <div className="brand-name">Mertener<br/>Rikschakutscher</div>
+        <div className="brand-contact">
+          <span>📞 02227 9328383</span>
+          <span>🌐 rikscha-merten.de</span>
         </div>
+      </div>
 
-        {/* Mitte + Rechts: Slogan, Text + Chips */}
-        <div className="text-col text-col-wide">
-          <div className="slogan">{c.handout_slogan}</div>
-          <p className="strip-body">{c.handout_text}</p>
-          <div className="chip-row">
-            <span className="chip chip-green">Kostenlos</span>
-            <span className="chip chip-green">Ehrenamtlich</span>
-            <span className="chip chip-gold">Gutscheine</span>
-            <span className="chip chip-gold">Gruppenfahrten</span>
-          </div>
-          <div className="strip-address">GFO Bornheim-Merten · Kloster Merten · 53332 Bornheim</div>
+      {/* Text unten */}
+      <div className="strip-inner">
+        <div className="slogan">{c.handout_slogan}</div>
+        <p className="strip-body">{c.handout_text}</p>
+        <div className="chip-row">
+          <span className="chip chip-green">Kostenlos</span>
+          <span className="chip chip-green">Ehrenamtlich</span>
+          <span className="chip chip-gold">Gutscheine</span>
+          <span className="chip chip-gold">Gruppenfahrten</span>
         </div>
-
+        <div className="strip-address">GFO Bornheim-Merten · Kloster Merten · 53332 Bornheim</div>
       </div>
     </div>
   );
@@ -171,8 +168,7 @@ export default async function HandoutPage() {
         .gap {
           width: var(--w); height: var(--gap);
           position: relative; overflow: visible;
-          /* Farben durchziehen: links Markengrün, rechts dunkle Überlagerung */
-          background: linear-gradient(90deg, #2D6B1E 175px, #3a2c1c 175px);
+          background: #1a2e14;
         }
         /* Schnittmarke links */
         .gap::before {
@@ -194,27 +190,22 @@ export default async function HandoutPage() {
         }
         .gap-label { font-size:.42rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.4); font-family:var(--sans); font-weight:700; position:absolute; right:-58px; top:50%; transform:translateY(-50%); }
 
-        /* ── Streifen-Inhalt ── */
-        .strip-inner { display:flex; height:100%; }
-
-        /* Vorderseite */
-        .brand-col { width:175px; flex-shrink:0; background:rgba(45,107,30,.88); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:1.1rem .7rem; }
-        .logo { width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); box-shadow:0 0 0 4px rgba(200,136,26,.3); filter:sepia(.25) saturate(1.6) hue-rotate(-8deg) brightness(1.05); }
-        .brand-name { font-family:var(--serif); color:#fff; font-size:.88rem; font-weight:normal; text-align:center; line-height:1.35; margin-top:.4rem; }
-        .brand-sub { font-size:.55rem; color:rgba(255,255,255,.65); text-align:center; line-height:1.5; margin-top:.2rem; flex:1; display:flex; align-items:center; }
-        .brand-contact { display:flex; flex-direction:column; gap:.22rem; width:100%; }
-        .brand-contact span { font-size:.62rem; color:rgba(255,255,255,.85); text-align:center; }
-        .text-col { flex:1; background:rgba(255,255,255,.08); padding:.85rem .9rem; display:flex; flex-direction:column; justify-content:center; gap:.4rem; min-width:0; }
-        .strip-body { font-size:.7rem; color:rgba(255,255,255,.85); line-height:1.55; }
+        /* Vorderseite — Option C: Gradient von unten */
+        .bg-foto { position:absolute; inset:0; background-image:url(''); background-size:cover; background-position:center top; background-color:#2a3a22; }
+        .bg-gradient { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 28%, rgba(10,30,8,.58) 60%, rgba(10,30,8,.92) 100%); }
+        .brand-bar { position:absolute; top:0; left:0; right:0; display:flex; align-items:center; gap:.6rem; padding:.75rem 1rem; background:linear-gradient(to bottom, rgba(45,107,30,.82) 0%, transparent 100%); z-index:2; }
+        .logo { width:44px; height:44px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--gold); box-shadow:0 0 0 3px rgba(200,136,26,.3); filter:sepia(.25) saturate(1.6) hue-rotate(-8deg) brightness(1.05); }
+        .brand-name { font-family:var(--serif); color:#fff; font-size:.82rem; line-height:1.3; text-shadow:0 1px 4px rgba(0,0,0,.5); }
+        .brand-contact { margin-left:auto; display:flex; flex-direction:column; gap:.1rem; text-align:right; }
+        .brand-contact span { font-size:.6rem; color:rgba(255,255,255,.85); }
+        .strip-inner { position:relative; z-index:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; padding:1rem 1.2rem 1rem 1.1rem; gap:.45rem; }
+        .slogan { font-family:var(--serif); font-size:1.15rem; font-weight:bold; color:#fff; line-height:1.25; text-wrap:balance; text-shadow:0 1px 8px rgba(0,0,0,.4); }
+        .strip-body { font-size:.69rem; color:rgba(255,255,255,.88); line-height:1.6; }
         .chip-row { display:flex; gap:.3rem; flex-wrap:wrap; }
         .chip { font-size:.58rem; font-weight:700; padding:.1rem .45rem; border-radius:999px; }
-        .chip-green { background:#d1fae5; color:#065f46; }
-        .chip-gold  { background:#fef3c7; color:#92400e; }
-        .strip-address { font-size:.58rem; color:rgba(255,255,255,.5); font-style:italic; margin-top:.1rem; }
-        .bg-overlay { position:absolute; inset:0; background:rgba(0,0,0,.32); z-index:0; }
-        .strip:not([style]) .bg-overlay { background:rgba(44,24,8,.38); }
-        .slogan { font-family:var(--serif); font-size:1.05rem; font-weight:bold; color:#fff; line-height:1.25; margin-bottom:.35rem; text-wrap:balance; text-shadow:0 1px 6px rgba(0,0,0,.55); }
-        .text-col-wide { flex:1; }
+        .chip-green { background:rgba(209,250,229,.9); color:#065f46; }
+        .chip-gold  { background:rgba(254,243,199,.9); color:#92400e; }
+        .strip-address { font-size:.57rem; color:rgba(255,255,255,.55); font-style:italic; }
 
         /* Rückseite */
         .strip-back .strip-inner { background:var(--cream); }
