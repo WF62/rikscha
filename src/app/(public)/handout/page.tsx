@@ -71,7 +71,7 @@ export default async function HandoutPage() {
       </div>
 
       {/* Text unten */}
-      <div className="strip-inner">
+      <div className="strip-front-inner">
         <div className="slogan">{c.handout_slogan}</div>
         <p className="strip-body">{c.handout_text}</p>
         <div className="chip-row">
@@ -198,7 +198,8 @@ export default async function HandoutPage() {
         .brand-name { font-family:var(--serif); color:#fff; font-size:.82rem; line-height:1.3; text-shadow:0 1px 4px rgba(0,0,0,.5); }
         .brand-contact { margin-left:auto; display:flex; flex-direction:column; gap:.1rem; text-align:right; }
         .brand-contact span { font-size:.6rem; color:rgba(255,255,255,.85); }
-        .strip-inner { position:relative; z-index:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; padding:1rem 1.2rem 1rem 1.1rem; gap:.45rem; }
+        .strip-inner { display:flex; height:100%; }
+        .strip-front-inner { position:relative; z-index:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; padding:1rem 1.2rem 1rem 1.1rem; gap:.45rem; }
         .slogan { font-family:var(--serif); font-size:1.15rem; font-weight:bold; color:#fff; line-height:1.25; text-wrap:balance; text-shadow:0 1px 8px rgba(0,0,0,.4); }
         .strip-body { font-size:.69rem; color:rgba(255,255,255,.88); line-height:1.6; }
         .chip-row { display:flex; gap:.3rem; flex-wrap:wrap; }
