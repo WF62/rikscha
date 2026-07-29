@@ -312,8 +312,8 @@ export default function BearbeitenPage() {
     .foto-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.1rem;display:flex;flex-direction:column;gap:.7rem;}
     .foto-card-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--green);}
     .foto-card-hinweis{font-size:.72rem;color:var(--mid);}
-    .foto-preview{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block;}
-    .foto-placeholder{width:100%;aspect-ratio:4/3;background:var(--ground);border:2px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.4rem;color:var(--mid);font-size:.78rem;}
+    .foto-preview{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block;}
+    .foto-placeholder{width:100%;aspect-ratio:16/9;background:var(--ground);border:2px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.4rem;color:var(--mid);font-size:.78rem;}
     .foto-placeholder span:first-child{font-size:2rem;opacity:.35;}
     .foto-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
     .btn-upload{background:var(--green);color:#fff;border:none;padding:.4rem .9rem;border-radius:var(--r);font-size:.8rem;font-weight:600;cursor:pointer;}
@@ -449,6 +449,19 @@ export default function BearbeitenPage() {
             )}
 
             {/* ── Tab: Handout ── */}
+            {tab === 'handout' && (
+              <div style={{display:'flex',justifyContent:'flex-end',gap:'.75rem',marginBottom:'1rem'}}>
+                <button className="btn-ghost" style={{fontSize:'.95rem',padding:'.55rem 1.2rem'}} onClick={() => window.history.back()}>← Zurück</button>
+                <button className="btn-save" style={{fontSize:'.95rem',padding:'.55rem 1.6rem'}} onClick={() => {
+                  HANDOUT_GRUPPEN.forEach(g => {
+                    (g.texte ?? []).forEach(({ schluessel }) => {
+                      const el = document.getElementById(`ta-${schluessel}`) as HTMLInputElement | HTMLTextAreaElement | null;
+                      if (el) speichern(schluessel, el.value);
+                    });
+                  });
+                }}>💾 Alle Handout-Felder speichern</button>
+              </div>
+            )}
             {tab === 'handout' && HANDOUT_GRUPPEN.map(g => (
               <div key={g.titel}>
                 <div className="gruppe-head">{g.emoji} {g.titel}</div>
