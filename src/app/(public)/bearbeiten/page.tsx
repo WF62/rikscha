@@ -385,12 +385,10 @@ export default function BearbeitenPage() {
     @media(max-width:600px){.body{padding:2rem 1rem 4rem;}.foto-grid{grid-template-columns:1fr;}.tabs{gap:0;}.tab{padding:.55rem .9rem;font-size:.82rem;}}
   `;
 
-  /* ── Website-Felder filtern ── */
-  const websiteFelder = felder.filter(f => !f.schluessel.startsWith('flyer_') && !f.schluessel.startsWith('handout_'));
-  const sortedWebsite = [
-    ...WEBSITE_REIHENFOLGE.map(k => websiteFelder.find(f => f.schluessel === k)).filter(Boolean) as Inhaltsfeld[],
-    ...websiteFelder.filter(f => !WEBSITE_REIHENFOLGE.includes(f.schluessel)),
-  ];
+  /* ── Website-Felder: alle aus WEBSITE_BEZEICHNUNGEN anzeigen, auch wenn noch nicht in DB ── */
+  const websiteAusDB = felder.filter(f => !f.schluessel.startsWith('flyer_') && !f.schluessel.startsWith('handout_'));
+  const dbMap = Object.fromEntries(websiteAusDB.map(f => [f.schluessel, f]));
+  const sortedWebsite: Inhaltsfeld[] = WEBSITE_REIHENFOLGE.map(k => dbMap[k] ?? { schluessel: k, wert: '', bezeichnung: k });
 
   const pickerBilder = pilotenDateien.filter(d => d.url && /\.(jpg|jpeg|png|webp|gif)/i.test(d.name));
 
