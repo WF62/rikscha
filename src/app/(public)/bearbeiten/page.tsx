@@ -450,7 +450,8 @@ export default function BearbeitenPage() {
 
             {/* ── Tab: Handout ── */}
             {tab === 'handout' && (
-              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'1rem'}}>
+              <div style={{display:'flex',justifyContent:'flex-end',gap:'.75rem',marginBottom:'1rem'}}>
+                <button className="btn-ghost" style={{fontSize:'.95rem',padding:'.55rem 1.2rem'}} onClick={() => window.history.back()}>← Zurück</button>
                 <button className="btn-save" style={{fontSize:'.95rem',padding:'.55rem 1.6rem'}} onClick={() => {
                   HANDOUT_GRUPPEN.forEach(g => {
                     (g.texte ?? []).forEach(({ schluessel }) => {
