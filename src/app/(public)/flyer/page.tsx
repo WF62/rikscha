@@ -442,29 +442,27 @@ export default async function FlyerPage() {
             </div>
           </div>
 
-          {/* V3: Fahrzeuge */}
+          {/* V3: Piloten */}
           <div className="panel p3 v3">
             <div className="panel-title-top pt-dark">
-              <span className="pt-icon">🛺</span>
-              <span className="pt-label">Drei Rikschas · Flotte Lotte · Flinker Flitzer · Jruuse Piter</span>
+              <span className="pt-icon">🚴</span>
+              <span className="pt-label">Unsere Kutscher · Ehrenamt mit Herz · Jetzt mitmachen!</span>
             </div>
-            <div className="eyebrow">Drei Rikschas · Drei Charaktere</div>
-            <h3>Für jeden das richtige Fahrzeug</h3>
+            <div className="eyebrow">Rund 10 ehrenamtliche Kutscher</div>
+            <h3>Menschen, die anpacken — mit Freude</h3>
             <div className="fz-row">
-              <div className="fz-card fz-lotte">
-                <div className="fz-name">Flotte Lotte</div>
-                <div className="fz-typ">Rikscha</div>
-                <div className="fz-gaeste">👥 bis 2 Gäste</div>
+              <div className="fz-card" style={{background:'#DCFCE7',color:'#14532d',flex:2}}>
+                <div className="fz-name" style={{fontSize:'0.75rem'}}>Wer sind unsere Kutscher?</div>
+                <div style={{fontSize:'0.62rem',lineHeight:1.5,marginTop:'0.15rem',color:'#166534'}}>
+                  Rund zehn engagierte Freiwillige aus Bornheim-Merten — unterschiedlichen Alters und aus ganz verschiedenen Berufen. Was sie verbindet: die Freude daran, anderen Menschen einen besonderen Moment zu schenken.
+                </div>
               </div>
-              <div className="fz-card fz-flitzer">
-                <div className="fz-name">Flinker Flitzer</div>
-                <div className="fz-typ">Liegetandem</div>
-                <div className="fz-gaeste">👤 1 Gast</div>
-              </div>
-              <div className="fz-card fz-piter">
-                <div className="fz-name">Jruuse Piter</div>
-                <div className="fz-typ">Paralleltandem</div>
-                <div className="fz-gaeste">👤 1 Gast</div>
+              <div className="fz-card" style={{background:'#FEF9C3',color:'#713f12',flex:1}}>
+                <div className="fz-name" style={{fontSize:'0.75rem'}}>Mitmachen?</div>
+                <div style={{fontSize:'0.62rem',lineHeight:1.5,marginTop:'0.15rem',color:'#854d0e'}}>
+                  Fahrradbegeistert &amp; hilfsbereit? Wir freuen uns über jede Verstärkung!<br/>
+                  <strong style={{display:'block',marginTop:'0.25rem'}}>📞 02227 9328383</strong>
+                </div>
               </div>
             </div>
           </div>
