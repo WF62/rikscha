@@ -38,8 +38,7 @@ export async function POST(req: NextRequest) {
   const db = createServiceClient();
   const { error } = await db
     .from('inhalte')
-    .update({ wert, geaendert_von: pilot, geaendert_am: new Date().toISOString() })
-    .eq('schluessel', schluessel);
+    .upsert({ schluessel, wert, geaendert_von: pilot, geaendert_am: new Date().toISOString() }, { onConflict: 'schluessel' });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
   return NextResponse.json({ ok: true }, { headers: CORS });
