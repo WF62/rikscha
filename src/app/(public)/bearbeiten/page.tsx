@@ -449,6 +449,18 @@ export default function BearbeitenPage() {
             )}
 
             {/* ── Tab: Handout ── */}
+            {tab === 'handout' && (
+              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'1rem'}}>
+                <button className="btn-save" style={{fontSize:'.95rem',padding:'.55rem 1.6rem'}} onClick={() => {
+                  HANDOUT_GRUPPEN.forEach(g => {
+                    (g.texte ?? []).forEach(({ schluessel }) => {
+                      const el = document.getElementById(`ta-${schluessel}`) as HTMLInputElement | HTMLTextAreaElement | null;
+                      if (el) speichern(schluessel, el.value);
+                    });
+                  });
+                }}>💾 Alle Handout-Felder speichern</button>
+              </div>
+            )}
             {tab === 'handout' && HANDOUT_GRUPPEN.map(g => (
               <div key={g.titel}>
                 <div className="gruppe-head">{g.emoji} {g.titel}</div>
