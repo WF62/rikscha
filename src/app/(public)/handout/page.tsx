@@ -198,12 +198,12 @@ export default async function HandoutPage() {
         .strip-inner { display:flex; height:100%; }
 
         /* Vorderseite */
-        .brand-col { width:175px; flex-shrink:0; background:rgba(45,107,30,.82); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:.8rem .7rem; gap:.35rem; }
-        .logo { width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); box-shadow:0 0 0 3px rgba(200,136,26,.3); filter:sepia(.25) saturate(1.6) hue-rotate(-8deg) brightness(1.05); }
-        .brand-name { font-family:var(--serif); color:#fff; font-size:.78rem; font-weight:normal; text-align:center; line-height:1.3; }
-        .brand-sub { font-size:.56rem; color:rgba(255,255,255,.68); text-align:center; line-height:1.4; }
-        .brand-contact { display:flex; flex-direction:column; gap:.15rem; margin-top:.15rem; }
-        .brand-contact span { font-size:.6rem; color:rgba(255,255,255,.8); }
+        .brand-col { width:175px; flex-shrink:0; background:rgba(45,107,30,.88); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:1.1rem .7rem; }
+        .logo { width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); box-shadow:0 0 0 4px rgba(200,136,26,.3); filter:sepia(.25) saturate(1.6) hue-rotate(-8deg) brightness(1.05); }
+        .brand-name { font-family:var(--serif); color:#fff; font-size:.88rem; font-weight:normal; text-align:center; line-height:1.35; margin-top:.4rem; }
+        .brand-sub { font-size:.55rem; color:rgba(255,255,255,.65); text-align:center; line-height:1.5; margin-top:.2rem; flex:1; display:flex; align-items:center; }
+        .brand-contact { display:flex; flex-direction:column; gap:.22rem; width:100%; }
+        .brand-contact span { font-size:.62rem; color:rgba(255,255,255,.85); text-align:center; }
         .text-col { flex:1; background:rgba(255,255,255,.08); padding:.85rem .9rem; display:flex; flex-direction:column; justify-content:center; gap:.4rem; min-width:0; }
         .strip-body { font-size:.7rem; color:rgba(255,255,255,.85); line-height:1.55; }
         .chip-row { display:flex; gap:.3rem; flex-wrap:wrap; }
@@ -211,8 +211,8 @@ export default async function HandoutPage() {
         .chip-green { background:#d1fae5; color:#065f46; }
         .chip-gold  { background:#fef3c7; color:#92400e; }
         .strip-address { font-size:.58rem; color:rgba(255,255,255,.5); font-style:italic; margin-top:.1rem; }
-        .bg-overlay { position:absolute; inset:0; background:rgba(0,0,0,.48); z-index:0; }
-        .strip:not([style]) .bg-overlay { background:rgba(44,24,8,.55); }
+        .bg-overlay { position:absolute; inset:0; background:rgba(0,0,0,.32); z-index:0; }
+        .strip:not([style]) .bg-overlay { background:rgba(44,24,8,.38); }
         .slogan { font-family:var(--serif); font-size:1.05rem; font-weight:bold; color:#fff; line-height:1.25; margin-bottom:.35rem; text-wrap:balance; text-shadow:0 1px 6px rgba(0,0,0,.55); }
         .text-col-wide { flex:1; }
 
