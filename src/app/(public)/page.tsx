@@ -129,6 +129,8 @@ export default async function WebsitePage() {
         .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.02em; transition: color 0.15s; white-space: nowrap; }
         .nav-links a:hover { color: #fff; }
         .nav-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 0.25rem 0.7rem; font-weight: 600; }
+        .nav-piloten { opacity: 0.75; cursor: pointer; }
+        .nav-piloten:hover { opacity: 1; }
 
         .hero { background: linear-gradient(160deg, #3A8A26 0%, #2D6B1E 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
         .hero .container { text-align: center; }
@@ -309,6 +311,7 @@ export default async function WebsitePage() {
           <li><a href="#kontakt">Kontakt</a></li>
           <li><a href="/buchen" className="nav-btn">➕ Fahrt buchen</a></li>
           <li><a href="/gutschein" className="nav-btn">🎁 Gutschein</a></li>
+          <li><a href="#" className="nav-piloten" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('open-piloten-modal')); }}>🔑 Piloten</a></li>
         </ul>
         <HamburgerMenu />
       </nav>

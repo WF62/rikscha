@@ -85,6 +85,11 @@ export default function HamburgerMenu() {
             marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
           }}>🖨️ Flyer</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); close(); window.dispatchEvent(new CustomEvent('open-piloten-modal')); }} style={{
+            color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
+            marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
+            padding: '0.85rem 1rem', display: 'block',
+          }}>🔑 Piloten-Login</a>
         </div>
       )}
     </>
