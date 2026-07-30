@@ -1,0 +1,251 @@
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FAHRZEUGE, PILOTEN, GAST_FARBE, PILOT_FARBE, fahrzeugById } from '@/lib/constants';
+
+type TerminTyp = 'normal' | 'offen' | 'gast';
+
+function BuchenFormular() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [form, setForm] = useState({
+    fahrzeug: params.get('fahrzeug') ?? '',
+    pilot:    params.get('pilot')    ?? '',
+    gast1: '',
+    gast2: '',
+    datum:     params.get('datum')   ?? '',
+    startzeit: '10:00',
+    endzeit:   '11:00',
+    notiz: '',
+  });
+  const [speichern, setSpeichern] = useState(false);
+  const [fehler, setFehler]       = useState('');
+  const [sperren, setSperren]     = useState<{ fahrzeug: string }[]>([]);
+  const [istPilot, setIstPilot]   = useState(false);
+
+  useEffect(() => {
+    const rolle = localStorage.getItem('pilot_rolle');
+    setIstPilot(!!localStorage.getItem('pilot_name') && rolle !== 'gast');
+  }, []);
+
+  useEffect(() => {
+    if (form.datum) {
+      fetch(`/api/sperren?von=${form.datum}&bis=${form.datum}`)
+        .then((r) => r.json()).then((d) => setSperren(Array.isArray(d) ? d : []));
+    }
+  }, [form.datum]);
+
+  const fahrzeug = fahrzeugById(form.fahrzeug);
+  const gesperrt = !!fahrzeug && sperren.some((s) => s.fahrzeug === form.fahrzeug);
+  const gaeste   = [form.gast1, form.gast2].filter(Boolean)
+    .slice(0, fahrzeug ? fahrzeug.maxGaeste : 2);
+
+  const terminTyp: TerminTyp = form.pilot && form.fahrzeug ? 'normal'
+    : form.pilot && !form.fahrzeug ? 'offen'
+    : 'gast';
+  const typLabel = terminTyp === 'normal' ? '🟢 Normale Fahrt'
+    : terminTyp === 'offen' ? '🟠 Offener Termin – Fahrzeug folgt'
+    : '🔵 Gastbuchung – Pilot folgt';
+
+  const absenden = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (istPilot && !form.pilot && !form.fahrzeug) { setFehler('Bitte mindestens einen Piloten oder ein Fahrzeug wählen.'); return; }
+    if (!istPilot && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
+    if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
+    if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
+    setSpeichern(true); setFehler('');
+    try {
+      const res = await fetch('/api/buchungen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fahrzeug: form.fahrzeug || '', pilot: form.pilot || '',
+          gaeste, datum: form.datum, startzeit: form.startzeit,
+          endzeit: form.endzeit, notiz: form.notiz,
+        }),
+      });
+      if (res.ok) { router.push('/'); }
+      else { const j = await res.json(); setFehler(j.error ?? 'Fehler beim Speichern.'); setSpeichern(false); }
+    } catch {
+      setFehler('Verbindungsfehler – bitte prüfe deine Internetverbindung und versuche es erneut.');
+      setSpeichern(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f5f2ec' }}>
+      {/* Schlichter Header */}
+      <header style={{ background: '#2D6B1E', padding: '0.9rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <a href="/" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>← Zurück zur Website</a>
+        {istPilot && (
+          <a href="/kalender" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>Kalender</a>
+        )}
+      </header>
+
+      <div className="max-w-lg mx-auto" style={{ padding: '2rem 1rem' }}>
+        <h2 className="text-2xl font-bold text-rikscha-green mb-4">Fahrt buchen</h2>
+
+        <form onSubmit={absenden} className="bg-white rounded-xl shadow p-6 space-y-4">
+
+          {/* Fahrzeug */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Fahrzeug</label>
+            <div className="grid grid-cols-1 gap-2">
+              {FAHRZEUGE.map((f) => (
+                <label key={f.id}
+                  style={form.fahrzeug === f.id ? { backgroundColor: f.bgHex } : {}}
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                    form.fahrzeug === f.id ? 'border-gray-600 shadow' : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}>
+                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id}
+                    onChange={(e) => setForm({ ...form, fahrzeug: e.target.value })} className="sr-only" />
+                  <span style={{ backgroundColor: f.farbeHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
+                  <div><p className="font-semibold">{f.name}</p><p className="text-xs text-gray-500">{f.typ} &middot; max. {f.maxGaeste} Gast{f.maxGaeste > 1 ? 'e' : ''}</p></div>
+                </label>
+              ))}
+              {istPilot && (
+                <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer border-dashed transition-colors ${
+                  !form.fahrzeug ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-orange-300'
+                }`}>
+                  <input type="radio" name="fahrzeug" value="" checked={!form.fahrzeug}
+                    onChange={() => setForm({ ...form, fahrzeug: '' })} className="sr-only" />
+                  <span className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-400" />
+                  <div><p className="font-semibold text-orange-700">Folgt noch</p><p className="text-xs text-gray-500">Fahrzeug wird später zugeteilt</p></div>
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Pilot – nur für eingeloggte Piloten */}
+          {istPilot && (
+          <div>
+            <label className="block text-sm font-semibold mb-1">Pilot</label>
+            <div className="grid grid-cols-2 gap-2">
+              {PILOTEN.map((p) => (
+                <label key={p}
+                  style={form.pilot === p ? { backgroundColor: PILOT_FARBE.bgHex } : {}}
+                  className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-colors ${
+                    form.pilot === p ? `border-gray-600 shadow ${PILOT_FARBE.textClass}` : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}>
+                  <input type="radio" name="pilot" value={p} checked={form.pilot === p}
+                    onChange={(e) => setForm({ ...form, pilot: e.target.value })} className="sr-only" />
+                  <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2.5 h-2.5 rounded-full flex-shrink-0" />
+                  <span className="text-sm font-medium">{p}</span>
+                </label>
+              ))}
+              <label className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer border-dashed transition-colors ${
+                !form.pilot ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 hover:border-cyan-300'
+              }`}>
+                <input type="radio" name="pilot" value="" checked={!form.pilot}
+                  onChange={() => setForm({ ...form, pilot: '' })} className="sr-only" />
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-cyan-500" />
+                <span className="text-sm font-medium text-cyan-700">Folgt noch</span>
+              </label>
+            </div>
+          </div>
+          )}
+
+          {/* Automatisch erkannter Typ */}
+          {istPilot && (form.pilot || form.fahrzeug) && (
+            <p className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">{typLabel}</p>
+          )}
+
+          {/* Gaeste */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Ihr Name & Begleitung (optional)</label>
+            {[{ key: 'gast1', val: form.gast1, ph: 'Ihr Name' }, { key: 'gast2', val: form.gast2, ph: 'Begleitung' }]
+              .filter((_, i) => i === 0 || !fahrzeug || fahrzeug.maxGaeste >= 2)
+              .map(({ key, val, ph }) => (
+                <div key={key} className="flex items-center gap-2 mb-2">
+                  <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-2.5 h-2.5 rounded-full flex-shrink-0" />
+                  <input type="text" placeholder={ph} value={val}
+                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    className="flex-1 border rounded px-3 py-2" />
+                </div>
+              ))}
+          </div>
+
+          {/* Datum */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Datum</label>
+            <input type="date" value={form.datum} onChange={(e) => setForm({ ...form, datum: e.target.value })}
+              required className="w-full border rounded px-3 py-2" />
+            {gesperrt && <p className="text-red-600 text-xs mt-1">&#9888; {fahrzeug?.name} ist an diesem Tag gesperrt!</p>}
+          </div>
+
+          {/* Zeit */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-semibold mb-1">Startzeit</label>
+              <input type="time" value={form.startzeit} onChange={(e) => setForm({ ...form, startzeit: e.target.value })}
+                required className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Endzeit</label>
+              <input type="time" value={form.endzeit} onChange={(e) => setForm({ ...form, endzeit: e.target.value })}
+                required className="w-full border rounded px-3 py-2" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1">Notiz (optional)</label>
+            <textarea value={form.notiz} onChange={(e) => setForm({ ...form, notiz: e.target.value })}
+              rows={2} className="w-full border rounded px-3 py-2 text-sm" placeholder="z.B. Treffpunkt, Anlass..." />
+          </div>
+
+          {fehler && <p className="text-red-600 text-sm">{fehler}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => router.push('/')}
+              className="flex-1 border border-gray-300 rounded px-4 py-2 hover:bg-gray-50">Abbrechen</button>
+            <button type="submit" disabled={speichern || gesperrt}
+              className="flex-1 bg-rikscha-green text-white rounded px-4 py-2 font-semibold hover:bg-rikscha-light disabled:opacity-50">
+              {speichern ? 'Wird gespeichert...' : 'Termin speichern'}
+            </button>
+          </div>
+        </form>
+
+        {/* Sperr-Formular nur für Piloten */}
+        {istPilot && <SperreFormular />}
+      </div>
+    </div>
+  );
+}
+
+function SperreFormular() {
+  const [offen, setOffen] = useState(false);
+  const [form, setForm] = useState({ fahrzeug: 'flotte_lotte', von: '', bis: '', grund: '' });
+  const [gespeichert, setGespeichert] = useState(false);
+  const absenden = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await fetch('/api/sperren', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fahrzeug: form.fahrzeug, von_datum: form.von, bis_datum: form.bis, grund: form.grund }) });
+    setGespeichert(true);
+    setTimeout(() => { setGespeichert(false); setOffen(false); }, 2000);
+  };
+  return (
+    <div className="mt-6 bg-white rounded-xl shadow p-4">
+      <button onClick={() => setOffen(!offen)} className="text-sm text-red-600 font-semibold w-full text-left">
+        &#128274; Fahrzeug sperren {offen ? '▲' : '▼'}
+      </button>
+      {offen && (
+        <form onSubmit={absenden} className="mt-3 space-y-3">
+          <select value={form.fahrzeug} onChange={(e) => setForm({ ...form, fahrzeug: e.target.value })} className="w-full border rounded px-3 py-2 text-sm">
+            {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className="text-xs font-semibold">Von</label><input type="date" required value={form.von} onChange={(e) => setForm({ ...form, von: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>
+            <div><label className="text-xs font-semibold">Bis</label><input type="date" required value={form.bis} onChange={(e) => setForm({ ...form, bis: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>
+          </div>
+          <input type="text" placeholder="Grund" value={form.grund} onChange={(e) => setForm({ ...form, grund: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+          <button type="submit" className="w-full bg-red-600 text-white rounded px-4 py-2 text-sm font-semibold hover:bg-red-700">{gespeichert ? 'Gesperrt!' : 'Sperre eintragen'}</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+export default function BuchenSeite() {
+  return <Suspense><BuchenFormular /></Suspense>;
+}
