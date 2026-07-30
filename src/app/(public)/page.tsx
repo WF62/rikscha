@@ -307,7 +307,7 @@ export default async function WebsitePage() {
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
-          <li><a href="/kalender" className="nav-btn">📅 Termine</a></li>
+          <li><a href="/buchen" className="nav-btn">➕ Fahrt buchen</a></li>
           <li><a href="/gutschein" className="nav-btn">🎁 Gutschein</a></li>
         </ul>
         <HamburgerMenu />
