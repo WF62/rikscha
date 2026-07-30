@@ -1,5 +1,6 @@
 import FlyerNavLink from './FlyerNavLink';
 import Banner from './Banner';
+import AbmeldeButton from './AbmeldeButton';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <a href="/kalender" className="hover:text-green-200 transition-colors">Kalender</a>
             <FlyerNavLink />
             <a href="/buchen" className="bg-white text-rikscha-green font-semibold px-3 py-1 rounded hover:bg-green-50 transition-colors">+ Fahrt buchen</a>
+            <AbmeldeButton />
           </nav>
         </div>
       </header>
