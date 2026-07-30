@@ -70,11 +70,11 @@ export default function HamburgerMenu() {
               padding: '0.85rem 0', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'block',
             }}>{label}</a>
           ))}
-          <a href="/kalender" onClick={close} style={{
+          <a href="/buchen" onClick={close} style={{
             color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
             marginTop: '1rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
-          }}>📅 Termine</a>
+          }}>➕ Fahrt buchen</a>
           <a href="/gutschein" onClick={close} style={{
             color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
             marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',

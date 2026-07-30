@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const sb = createServiceClient();
 
-  // Sperre nur prüfen wenn Fahrzeug gewählt
+  // Sperre und Doppelbuchung nur prüfen wenn Fahrzeug gewählt
   if (fahrzeug) {
     const { data: sperren } = await sb
       .from('rikscha_sperren')
@@ -45,6 +45,19 @@ export async function POST(req: NextRequest) {
       .gte('bis_datum', datum);
     if (sperren && sperren.length > 0) {
       return NextResponse.json({ error: 'Fahrzeug ist an diesem Tag gesperrt.' }, { status: 409 });
+    }
+
+    // Zeitüberschneidung prüfen (nur nicht-stornierte Buchungen)
+    const { data: ueberschneidungen } = await sb
+      .from('rikscha_buchungen')
+      .select('id')
+      .eq('fahrzeug', fahrzeug)
+      .eq('datum', datum)
+      .eq('storniert', false)
+      .lt('startzeit', endzeit)
+      .gt('endzeit', startzeit);
+    if (ueberschneidungen && ueberschneidungen.length > 0) {
+      return NextResponse.json({ error: 'Das Fahrzeug ist in diesem Zeitraum bereits gebucht.' }, { status: 409 });
     }
   }
 
