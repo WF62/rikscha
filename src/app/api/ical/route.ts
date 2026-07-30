@@ -13,8 +13,8 @@ function toIcsDate(iso: string) {
 }
 
 function buchungZuVEvent(b: Buchung): string {
-  const start = `${b.datum.replace(/-/g, '')}T${b.startzeit.replace(/:/g, '')}00`;
-  const end = `${b.datum.replace(/-/g, '')}T${b.endzeit.replace(/:/g, '')}00`;
+  const start = `${b.datum.replace(/-/g, '')}T${b.startzeit.slice(0, 5).replace(/:/g, '')}00`;
+  const end = `${b.datum.replace(/-/g, '')}T${b.endzeit.slice(0, 5).replace(/:/g, '')}00`;
   const dtstamp = toIcsDate(b.erstellt_am);
   const gaeste = b.gaeste.length > 0 ? ` Gaeste: ${b.gaeste.join(', ')}` : '';
   const status = b.storniert ? '[STORNIERT] ' : '';
