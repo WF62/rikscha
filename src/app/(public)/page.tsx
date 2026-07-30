@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { createServiceClient } from '@/lib/supabase';
 import HamburgerMenu from './HamburgerMenu';
 import PilotenFooterLink from './PilotenFooterLink';
+import PilotenNavLink from './PilotenNavLink';
 import PilotenModal from './PilotenModal';
 import Banner from '../(app)/Banner';
 import QrSpenden from './QrSpenden';
@@ -311,7 +312,7 @@ export default async function WebsitePage() {
           <li><a href="#kontakt">Kontakt</a></li>
           <li><a href="/buchen" className="nav-btn">➕ Fahrt buchen</a></li>
           <li><a href="/gutschein" className="nav-btn">🎁 Gutschein</a></li>
-          <li><a href="#" className="nav-piloten" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('open-piloten-modal')); }}>🔑 Piloten</a></li>
+          <li><PilotenNavLink /></li>
         </ul>
         <HamburgerMenu />
       </nav>
