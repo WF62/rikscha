@@ -184,7 +184,9 @@ export default function BearbeitenPage() {
   const [felder, setFelder]   = useState<Inhaltsfeld[]>([]);
   const [fehler, setFehler]   = useState('');
   const [laden, setLaden]     = useState(false);
-  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout'>('website');
+  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner'>('website');
+  const [bannerTexte, setBannerTexte] = useState<string[]>(['']);
+  const [bannerSaving, setBannerSaving] = useState(false);
   const [uploadStatus, setUploadStatus]   = useState<Record<string, 'uploading' | 'ok' | 'err' | ''>>({});
   const [speicherStatus, setSpeicherStatus] = useState<Record<string, 'ok' | 'err' | ''>>({});
   const [pilotenDateien, setPilotenDateien] = useState<PilotenDatei[]>([]);
@@ -202,6 +204,14 @@ export default function BearbeitenPage() {
   }
   async function ladeFelder() {
     try { const r = await fetch('/api/inhalte'); setFelder(await r.json()); } catch {}
+  }
+  async function ladeBanner() {
+    try { const r = await fetch('/api/banner'); const t: string[] = await r.json(); setBannerTexte(t.length ? t : ['']); } catch { setBannerTexte(['']); }
+  }
+  async function bannerSpeichern() {
+    setBannerSaving(true);
+    await fetch('/api/banner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password, texte: bannerTexte }) });
+    setBannerSaving(false);
   }
   async function ladePickerDateien() {
     try { const r = await fetch('/api/piloten-dateien'); setPilotenDateien(await r.json()); } catch {}
@@ -447,6 +457,7 @@ export default function BearbeitenPage() {
               <button className={`tab${tab==='website'?' active':''}`} onClick={() => setTab('website')}>🌐 Website-Texte</button>
               <button className={`tab${tab==='flyer'?' active':''}`} onClick={() => setTab('flyer')}>📄 Flyer</button>
               <button className={`tab${tab==='handout'?' active':''}`} onClick={() => setTab('handout')}>📋 Handout</button>
+              <button className={`tab${tab==='banner'?' active':''}`} onClick={() => { setTab('banner'); ladeBanner(); }}>📢 Banner</button>
             </div>
 
             {/* ── Tab: Website ── */}
@@ -553,6 +564,40 @@ export default function BearbeitenPage() {
                 })}
               </div>
             ))}
+
+            {/* ── Tab: Banner ── */}
+            {tab === 'banner' && (
+              <div style={{maxWidth:560}}>
+                <div className="gruppe-head">📢 Banner-Texte</div>
+                <p style={{fontSize:'.82rem',color:'var(--mid)',marginBottom:'1.25rem',lineHeight:1.6}}>
+                  Bis zu 5 Texte rotieren im Banner oben auf der Website alle 5 Sekunden. Leere Felder werden ignoriert.
+                </p>
+                {bannerTexte.map((t, i) => (
+                  <div key={i} style={{display:'flex',gap:'.5rem',marginBottom:'.6rem',alignItems:'center'}}>
+                    <input
+                      type="text"
+                      value={t}
+                      onChange={e => setBannerTexte(bt => bt.map((x, j) => j === i ? e.target.value : x))}
+                      placeholder={`Banner-Text ${i + 1}`}
+                      style={{flex:1,border:'1.5px solid var(--border)',borderRadius:'var(--r)',padding:'.55rem .75rem',fontSize:'.93rem',fontFamily:'var(--sans)',background:'var(--ground)',color:'var(--ink)',outline:'none'}}
+                    />
+                    <button onClick={() => setBannerTexte(bt => bt.filter((_, j) => j !== i))}
+                      style={{background:'#FEE2E2',color:'#991b1b',border:'none',borderRadius:'var(--r)',padding:'.4rem .65rem',cursor:'pointer',fontWeight:700,fontSize:'.9rem'}}>✕</button>
+                  </div>
+                ))}
+                {bannerTexte.length < 5 && (
+                  <button onClick={() => setBannerTexte(bt => [...bt, ''])}
+                    style={{background:'var(--surface)',border:'1.5px dashed var(--border)',borderRadius:'var(--r)',padding:'.45rem 1rem',fontSize:'.82rem',cursor:'pointer',color:'var(--mid)',width:'100%',marginBottom:'1rem'}}>
+                    + Weiteren Text hinzufügen
+                  </button>
+                )}
+                <div style={{display:'flex',justifyContent:'flex-end',marginTop:'1rem'}}>
+                  <button className="btn-save" disabled={bannerSaving} onClick={bannerSpeichern} style={{fontSize:'.95rem',padding:'.5rem 1.6rem'}}>
+                    {bannerSaving ? '⏳ Speichern…' : '💾 Banner speichern'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* ── Tab: Flyer ── */}
             {tab === 'flyer' && FLYER_GRUPPEN.map(g => (

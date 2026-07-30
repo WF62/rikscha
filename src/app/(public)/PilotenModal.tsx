@@ -364,8 +364,7 @@ export default function PilotenModal() {
               {[
                 { href: '/kalender',   icon: '📅', titel: 'Fahrtenkalender',   sub: 'Termine buchen & verwalten',       border: '#D6CCB8' },
                 { href: '/buchen',     icon: '➕', titel: 'Als Pilot buchen',   sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
-                { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Website-Texte bearbeiten',         border: '#C8881A' },
-                { href: '#banner',     icon: '📢', titel: 'Banner',             sub: 'Ankündigungen bearbeiten',         border: '#D6CCB8' },
+                { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Texte, Flyer & Banner',            border: '#C8881A' },
                 { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
                 { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Piloten & Einstellungen',          border: '#D6CCB8' },
               ].map(k => (
