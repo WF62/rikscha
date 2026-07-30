@@ -11,6 +11,7 @@ import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
 import type { TeamUpEvent } from '@/app/api/teamup/route';
 import { FAHRZEUGE, PILOTEN, PILOT_FARBE, GAST_FARBE, fahrzeugById } from '@/lib/constants';
+import AbmeldeButton from '../AbmeldeButton';
 
 type Ansicht = 'monat' | 'woche' | 'tag';
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -410,6 +411,12 @@ export default function KalenderSeite() {
 
   return (
     <div>
+      {/* Schlichter Header */}
+      <div style={{ background: '#2D6B1E', padding: '0.7rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <a href="/" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontSize: '0.9rem' }}>← Website</a>
+        <a href="/buchen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>+ Fahrt buchen</a>
+        <AbmeldeButton />
+      </div>
       {/* Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
