@@ -82,6 +82,7 @@ export default function PilotenModal() {
       if (res.ok) {
         localStorage.setItem('pilot_name', j.pilot);
         localStorage.setItem('pilot_pw', passwort);
+        localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
         setPilotName(j.pilot);
         setPilotPw(passwort);
         if (j.muss_pw_aendern) {
@@ -236,6 +237,7 @@ export default function PilotenModal() {
   function abmelden() {
     localStorage.removeItem('pilot_name');
     localStorage.removeItem('pilot_pw');
+    localStorage.removeItem('pilot_rolle');
     setPilotName('');
     setPilotPw('');
     setPasswort('');

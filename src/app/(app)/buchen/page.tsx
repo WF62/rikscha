@@ -22,6 +22,12 @@ function BuchenFormular() {
   const [speichern, setSpeichern] = useState(false);
   const [fehler, setFehler]       = useState('');
   const [sperren, setSperren]     = useState<{ fahrzeug: string }[]>([]);
+  const [istPilot, setIstPilot]   = useState(false);
+
+  useEffect(() => {
+    const rolle = localStorage.getItem('pilot_rolle');
+    setIstPilot(!!localStorage.getItem('pilot_name') && rolle !== 'gast');
+  }, []);
 
   useEffect(() => {
     if (form.datum) {
@@ -45,7 +51,8 @@ function BuchenFormular() {
 
   const absenden = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.pilot && !form.fahrzeug) { setFehler('Bitte mindestens einen Piloten oder ein Fahrzeug wählen.'); return; }
+    if (istPilot && !form.pilot && !form.fahrzeug) { setFehler('Bitte mindestens einen Piloten oder ein Fahrzeug wählen.'); return; }
+    if (!istPilot && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
     setSpeichern(true); setFehler('');
@@ -100,7 +107,8 @@ function BuchenFormular() {
           </div>
         </div>
 
-        {/* Pilot */}
+        {/* Pilot – nur für eingeloggte Piloten */}
+        {istPilot && (
         <div>
           <label className="block text-sm font-semibold mb-1">Pilot</label>
           <div className="grid grid-cols-2 gap-2">
@@ -126,6 +134,7 @@ function BuchenFormular() {
             </label>
           </div>
         </div>
+        )}
 
         {/* Automatisch erkannter Typ */}
         {(form.pilot || form.fahrzeug) && (
