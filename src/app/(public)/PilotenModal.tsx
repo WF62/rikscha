@@ -366,6 +366,7 @@ export default function PilotenModal() {
                 { href: '/buchen',     icon: '➕', titel: 'Als Pilot buchen',   sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
                 { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Texte, Flyer & Banner',            border: '#C8881A' },
                 { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
+                { href: '#ablage',     icon: '📂', titel: 'Ablage',             sub: 'Ordner, Dateien & Dokumente',      border: '#D6CCB8' },
                 { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Piloten & Einstellungen',          border: '#D6CCB8' },
               ].map(k => (
                 <a key={k.href + k.titel}
@@ -373,6 +374,7 @@ export default function PilotenModal() {
                   target={k.href.startsWith('/') ? '_blank' : undefined}
                   onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); }
                     : k.href === '#fotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
+                    : k.href === '#ablage' ? (e) => { e.preventDefault(); ladeDokumente(); setAnsicht('dokumente'); }
                     : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
