@@ -362,26 +362,17 @@ export default function PilotenModal() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               {[
-                { href: '/kalender', icon: '📅', titel: 'Fahrtenkalender', sub: 'Termine buchen & verwalten', border: '#D6CCB8' },
-                { href: '/buchen', icon: '➕', titel: 'Fahrt buchen', sub: 'Neuen Termin eintragen', border: '#2D6B1E' },
-{ href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Website & Flyer bearbeiten', border: '#C8881A' },
-                { href: '#dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
-                { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
-                { href: '#banner', icon: '📢', titel: 'Banner', sub: 'Ankündigungen bearbeiten', border: '#D6CCB8' },
-                { href: '#fahrzeugfotos', icon: '🚲', titel: 'Fahrzeugfotos', sub: 'Fotos der Rikschas hochladen', border: '#D6CCB8' },
-                { href: '#mein-foto', icon: '🤳', titel: 'Mein Foto', sub: 'Eigenes Bild für die Teamseite', border: '#D6CCB8' },
-                { href: '#homepage-galerie', icon: '🖼️', titel: 'Galerie-Auswahl', sub: 'Bis zu 8 Fotos für die Homepage', border: '#C8881A' },
-                { href: '/admin', icon: '⚙️', titel: 'Verwaltung', sub: 'Piloten & Einstellungen', border: '#D6CCB8' },
-                { href: 'tel:022279328383', icon: '📞', titel: '02227 9328383', sub: 'Koordination & Anfragen', border: '#D6CCB8' },
+                { href: '/kalender',   icon: '📅', titel: 'Fahrtenkalender',   sub: 'Termine buchen & verwalten',       border: '#D6CCB8' },
+                { href: '/buchen',     icon: '➕', titel: 'Als Pilot buchen',   sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
+                { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Texte, Flyer & Banner',            border: '#C8881A' },
+                { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
+                { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Piloten & Einstellungen',          border: '#D6CCB8' },
               ].map(k => (
                 <a key={k.href + k.titel}
-                  href={k.href === '#banner' ? undefined : k.href}
+                  href={k.href.startsWith('#') ? undefined : k.href}
                   target={k.href.startsWith('/') ? '_blank' : undefined}
                   onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); }
-                    : k.href === '#fahrzeugfotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
-                    : k.href === '#mein-foto' ? (e) => { e.preventDefault(); setAnsicht('mein-foto' as Ansicht); }
-                    : k.href === '#homepage-galerie' ? (e) => { e.preventDefault(); ladeHomepageGalerie(); setAnsicht('homepage-galerie'); }
-                    : k.href === '#dokumente' ? (e) => { e.preventDefault(); ladeDokumente(); setAnsicht('dokumente'); }
+                    : k.href === '#fotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
                     : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
                   <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
@@ -523,6 +514,21 @@ export default function PilotenModal() {
         {ansicht === 'fahrzeugfotos' && (
           <>
             <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              {[
+                { label: '🚲 Fahrzeugfotos', ansicht: 'fahrzeugfotos' },
+                { label: '🤳 Mein Foto', ansicht: 'mein-foto' },
+                { label: '🖼️ Galerie-Auswahl', ansicht: 'homepage-galerie' },
+              ].map(t => (
+                <button key={t.ansicht} onClick={() => { if (t.ansicht === 'homepage-galerie') ladeHomepageGalerie(); setAnsicht(t.ansicht as Ansicht); }}
+                  style={{ flex: 1, padding: '0.4rem 0.3rem', fontSize: '0.72rem', fontWeight: 600, borderRadius: 6, cursor: 'pointer',
+                    background: ansicht === t.ansicht ? '#2D6B1E' : '#F5F0E7',
+                    color: ansicht === t.ansicht ? '#fff' : '#1C1208',
+                    border: `1.5px solid ${ansicht === t.ansicht ? '#2D6B1E' : '#D6CCB8'}` }}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🚲</span>
               <div>
