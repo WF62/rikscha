@@ -363,7 +363,7 @@ export default function PilotenModal() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               {[
                 { href: '/kalender', icon: '📅', titel: 'Fahrtenkalender', sub: 'Termine buchen & verwalten', border: '#D6CCB8' },
-                { href: '/buchen', icon: '➕', titel: 'Fahrt buchen', sub: 'Neuen Termin eintragen', border: '#2D6B1E' },
+                { href: '/buchen', icon: '➕', titel: 'Als Pilot buchen', sub: 'Neuen Termin eintragen', border: '#2D6B1E' },
 { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Website & Flyer bearbeiten', border: '#C8881A' },
                 { href: '#dokumente', icon: '📂', titel: 'Ablage', sub: 'Dokumente & Dateien', border: '#D6CCB8' },
                 { href: '/galerie', icon: '🖼️', titel: 'Fotos', sub: 'Galerie & Fotos hochladen', border: '#D6CCB8' },
