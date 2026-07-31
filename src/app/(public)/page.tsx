@@ -60,7 +60,7 @@ const DEFAULTS: Record<string, string> = {
   zukunft_3_text:    'Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
   zukunft_4_titel:   'Kooperationen',
   zukunft_4_text:    'Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.',
-  kennzahlen_h2:     'Rikscha in Zahlen',
+  kennzahlen_h2:     'Mertener Kutscher in Zahlen',
   stat_1_zahl:       '11',
   stat_1_label:      'Ehrenamtliche Piloten',
   stat_2_zahl:       '3',
