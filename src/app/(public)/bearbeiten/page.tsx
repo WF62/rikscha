@@ -7,6 +7,8 @@ type TextFeld  = { schluessel: string; label: string; hinweis: string; lang?: bo
 type Gruppe    = { titel: string; emoji: string; fotos?: FotoFeld[]; texte?: TextFeld[] };
 type PilotenDatei = { id: string; url: string; name: string; kategorie: string };
 type Inhaltsfeld  = { schluessel: string; wert: string; bezeichnung?: string; geaendert_von?: string; geaendert_am?: string };
+type Entwurf = { id: string; schluessel: string; wert: string; eingereicht_von: string; eingereicht_am: string; status: string; kommentar?: string };
+type Verlaufeintrag = { id: string; schluessel: string; wert: string; geaendert_von: string; geaendert_am: string };
 
 /* ── Website-Felder (Tab 1) ── */
 const WEBSITE_BEZEICHNUNGEN: Record<string, string> = {
@@ -184,7 +186,16 @@ export default function BearbeitenPage() {
   const [felder, setFelder]   = useState<Inhaltsfeld[]>([]);
   const [fehler, setFehler]   = useState('');
   const [laden, setLaden]     = useState(false);
-  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner'>('website');
+  const [pilotRolle, setPilotRolle] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_rolle') ?? 'pilot' : 'pilot');
+  const istAdminUser = pilotRolle === 'gfo' || pilotRolle === 'admin';
+  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner' | 'entwuerfe' | 'verlauf'>('website');
+  const [entwuerfe, setEntwuerfe] = useState<Entwurf[]>([]);
+  const [entwurfLaden, setEntwurfLaden] = useState(false);
+  const [entwurfAktion, setEntwurfAktion] = useState<Record<string, 'loading'|'ok'|'err'>>({});
+  const [verlaufFelder, setVerlaufFelder] = useState<Verlaufeintrag[]>([]);
+  const [verlaufSchluessel, setVerlaufSchluessel] = useState('');
+  const [verlaufLaden, setVerlaufLaden] = useState(false);
+  const [rollbackStatus, setRollbackStatus] = useState<Record<string, 'loading'|'ok'>>({});
   const [bannerTexte, setBannerTexte] = useState<string[]>(['']);
   const [bannerSaving, setBannerSaving] = useState(false);
   const [uploadStatus, setUploadStatus]   = useState<Record<string, 'uploading' | 'ok' | 'err' | ''>>({});
@@ -235,6 +246,10 @@ export default function BearbeitenPage() {
       if (r.ok) {
         localStorage.setItem('pilot_name', pilot);
         localStorage.setItem('pilot_pw', password);
+        const j = await r.json();
+        const rolle = j.rolle ?? 'pilot';
+        localStorage.setItem('pilot_rolle', rolle);
+        setPilotRolle(rolle);
         setEingeloggt(true);
         await ladeFelder();
         await ladePickerDateien();
@@ -258,6 +273,40 @@ export default function BearbeitenPage() {
         setTimeout(() => setSpeicherStatus(s => ({ ...s, [schluessel]: '' })), 3500);
       } else { setSpeicherStatus(s => ({ ...s, [schluessel]: 'err' })); }
     } catch { setSpeicherStatus(s => ({ ...s, [schluessel]: 'err' })); }
+  }
+
+  async function ladeEntwuerfe() {
+    setEntwurfLaden(true);
+    try { const r = await fetch(`/api/inhalte-entwurf?pilot=${encodeURIComponent(pilot)}&password=${encodeURIComponent(password)}`); setEntwuerfe(r.ok ? await r.json() : []); } catch { setEntwuerfe([]); }
+    setEntwurfLaden(false);
+  }
+
+  async function entwurfBearbeiten(id: string, aktion: 'freigeben' | 'ablehnen') {
+    setEntwurfAktion(s => ({ ...s, [id]: 'loading' }));
+    try {
+      const r = await fetch('/api/inhalte-entwurf', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password, id, aktion }) });
+      if (r.ok) {
+        setEntwurfAktion(s => ({ ...s, [id]: 'ok' }));
+        setEntwuerfe(e => e.filter(x => x.id !== id));
+        if (aktion === 'freigeben') ladeFelder();
+      } else { setEntwurfAktion(s => ({ ...s, [id]: 'err' })); }
+    } catch { setEntwurfAktion(s => ({ ...s, [id]: 'err' })); }
+  }
+
+  async function ladeVerlauf(schluessel: string) {
+    setVerlaufSchluessel(schluessel);
+    setVerlaufLaden(true);
+    try { const r = await fetch(`/api/inhalte-entwurf?pilot=${encodeURIComponent(pilot)}&password=${encodeURIComponent(password)}&verlauf=${encodeURIComponent(schluessel)}`); setVerlaufFelder(r.ok ? await r.json() : []); } catch { setVerlaufFelder([]); }
+    setVerlaufLaden(false);
+  }
+
+  async function rollback(eintrag: Verlaufeintrag) {
+    if (!confirm(`Auf Stand vom ${new Date(eintrag.geaendert_am).toLocaleString('de-DE')} zurücksetzen?`)) return;
+    setRollbackStatus(s => ({ ...s, [eintrag.id]: 'loading' }));
+    await fetch('/api/inhalte-entwurf', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password, verlaufId: eintrag.id, schluessel: eintrag.schluessel, wert: eintrag.wert }) });
+    setRollbackStatus(s => ({ ...s, [eintrag.id]: 'ok' }));
+    ladeFelder();
+    setTimeout(() => ladeVerlauf(eintrag.schluessel), 500);
   }
 
   async function bildKomprimieren(datei: File, maxPx = 1400, q = 0.85): Promise<File> {
@@ -413,7 +462,7 @@ export default function BearbeitenPage() {
 
       <div className="body">
         <h1>Inhalte bearbeiten</h1>
-        <p className="lead">Website-Texte und Flyer gemeinsam pflegen — Änderungen sind sofort sichtbar.</p>
+        <p className="lead">{eingeloggt && !istAdminUser ? 'Änderungen werden als Entwurf eingereicht — ein Admin gibt sie frei.' : 'Website-Texte und Flyer gemeinsam pflegen — Änderungen sind sofort sichtbar.'}</p>
 
         {!eingeloggt && (
           <div className="login-box">
@@ -458,6 +507,8 @@ export default function BearbeitenPage() {
               <button className={`tab${tab==='flyer'?' active':''}`} onClick={() => setTab('flyer')}>📄 Flyer</button>
               <button className={`tab${tab==='handout'?' active':''}`} onClick={() => setTab('handout')}>📋 Handout</button>
               <button className={`tab${tab==='banner'?' active':''}`} onClick={() => { setTab('banner'); ladeBanner(); }}>📢 Banner</button>
+              {istAdminUser && <button className={`tab${tab==='entwuerfe'?' active':''}`} onClick={() => { setTab('entwuerfe'); ladeEntwuerfe(); }}>📋 Entwürfe{entwuerfe.length > 0 ? ` (${entwuerfe.length})` : ''}</button>}
+              {istAdminUser && <button className={`tab${tab==='verlauf'?' active':''}`} onClick={() => setTab('verlauf')}>🕐 Verlauf</button>}
             </div>
 
             {/* ── Tab: Website ── */}
@@ -481,12 +532,12 @@ export default function BearbeitenPage() {
                       />
                       <div className="text-block-footer">
                         <span className="text-block-meta">{meta}</span>
-                        {st==='ok' && <span className="status-ok">Gespeichert ✓</span>}
+                        {st==='ok' && <span className="status-ok">{istAdminUser ? 'Gespeichert ✓' : 'Entwurf eingereicht ✓'}</span>}
                         {st==='err' && <span className="status-err">Fehler</span>}
                         <button className="btn-save" onClick={() => {
                           const ta = document.getElementById(`ta-${f.schluessel}`) as HTMLTextAreaElement;
                           speichern(f.schluessel, ta.value);
-                        }}>Speichern</button>
+                        }}>{istAdminUser ? 'Speichern' : 'Entwurf einreichen'}</button>
                       </div>
                     </div>
                   );
@@ -596,6 +647,81 @@ export default function BearbeitenPage() {
                     {bannerSaving ? '⏳ Speichern…' : '💾 Banner speichern'}
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* ── Tab: Entwürfe (Admin) ── */}
+            {tab === 'entwuerfe' && istAdminUser && (
+              <div style={{maxWidth:700}}>
+                <div className="gruppe-head">📋 Offene Entwürfe</div>
+                {entwurfLaden && <p style={{color:'var(--mid)',fontSize:'.88rem'}}>Wird geladen …</p>}
+                {!entwurfLaden && entwuerfe.length === 0 && <p style={{color:'var(--mid)',fontSize:'.88rem',padding:'1.5rem 0'}}>Keine offenen Entwürfe — alles freigegeben.</p>}
+                {entwuerfe.map(e => {
+                  const akt = entwurfAktion[e.id];
+                  const bez = WEBSITE_BEZEICHNUNGEN[e.schluessel] || e.schluessel;
+                  return (
+                    <div key={e.id} className="text-block" style={{marginBottom:'1rem'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'.5rem',marginBottom:'.5rem'}}>
+                        <div>
+                          <div className="text-block-label">{bez}</div>
+                          <div style={{fontSize:'.72rem',color:'var(--mid)'}}>von {e.eingereicht_von} · {new Date(e.eingereicht_am).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+                        </div>
+                        <div style={{display:'flex',gap:'.5rem'}}>
+                          <button disabled={akt==='loading'} onClick={() => entwurfBearbeiten(e.id,'freigeben')}
+                            style={{background:'#15803d',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.35rem .9rem',fontSize:'.8rem',fontWeight:700,cursor:'pointer'}}>
+                            {akt==='loading' ? '…' : '✓ Freigeben'}
+                          </button>
+                          <button disabled={akt==='loading'} onClick={() => entwurfBearbeiten(e.id,'ablehnen')}
+                            style={{background:'#FEE2E2',color:'#991b1b',border:'none',borderRadius:'var(--r)',padding:'.35rem .9rem',fontSize:'.8rem',fontWeight:700,cursor:'pointer'}}>
+                            ✕ Ablehnen
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{background:'var(--ground)',borderRadius:'var(--r)',padding:'.6rem .8rem',fontSize:'.88rem',lineHeight:1.6,border:'1px solid var(--border)',whiteSpace:'pre-wrap'}}>
+                        {e.wert || <span style={{color:'var(--mid)',fontStyle:'italic'}}>(leer)</span>}
+                      </div>
+                      {/* Aktueller Wert zum Vergleich */}
+                      {felder.find(f => f.schluessel === e.schluessel) && (
+                        <div style={{fontSize:'.72rem',color:'var(--mid)',marginTop:'.4rem'}}>
+                          Aktuell live: <em>{felder.find(f => f.schluessel === e.schluessel)?.wert || '(leer)'}</em>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ── Tab: Verlauf / Rollback (Admin) ── */}
+            {tab === 'verlauf' && istAdminUser && (
+              <div style={{maxWidth:700}}>
+                <div className="gruppe-head">🕐 Versionsverlauf & Rollback</div>
+                <div className="field" style={{marginBottom:'1.25rem'}}>
+                  <label>Feld auswählen</label>
+                  <select value={verlaufSchluessel} onChange={e => { if (e.target.value) ladeVerlauf(e.target.value); else setVerlaufSchluessel(''); }}
+                    style={{border:'1.5px solid var(--border)',borderRadius:'var(--r)',padding:'.6rem .8rem',fontSize:'.88rem',background:'var(--ground)',color:'var(--ink)',outline:'none',width:'100%'}}>
+                    <option value="">— Feld wählen —</option>
+                    {WEBSITE_REIHENFOLGE.map(k => <option key={k} value={k}>{WEBSITE_BEZEICHNUNGEN[k] || k}</option>)}
+                  </select>
+                </div>
+                {verlaufLaden && <p style={{color:'var(--mid)',fontSize:'.88rem'}}>Wird geladen …</p>}
+                {!verlaufLaden && verlaufSchluessel && verlaufFelder.length === 0 && <p style={{color:'var(--mid)',fontSize:'.88rem'}}>Kein Verlauf vorhanden — dieses Feld wurde noch nie zurückgesetzt oder überschrieben.</p>}
+                {verlaufFelder.map(v => (
+                  <div key={v.id} className="text-block" style={{marginBottom:'.75rem'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'.5rem',marginBottom:'.4rem'}}>
+                      <div style={{fontSize:'.72rem',color:'var(--mid)'}}>
+                        {new Date(v.geaendert_am).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})} · {v.geaendert_von}
+                      </div>
+                      <button onClick={() => rollback(v)} disabled={rollbackStatus[v.id]==='loading'}
+                        style={{background:'var(--gold)',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .85rem',fontSize:'.78rem',fontWeight:700,cursor:'pointer'}}>
+                        {rollbackStatus[v.id]==='loading' ? '…' : rollbackStatus[v.id]==='ok' ? '✓ Wiederhergestellt' : '↩ Wiederherstellen'}
+                      </button>
+                    </div>
+                    <div style={{background:'var(--ground)',borderRadius:'var(--r)',padding:'.5rem .75rem',fontSize:'.85rem',lineHeight:1.6,border:'1px solid var(--border)',whiteSpace:'pre-wrap',maxHeight:120,overflowY:'auto'}}>
+                      {v.wert || <span style={{color:'var(--mid)',fontStyle:'italic'}}>(leer)</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

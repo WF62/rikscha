@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { checkPilot } from '@/lib/pilotAuth';
+import { getPilotRolle, istAdmin } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -31,14 +31,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400, headers: CORS });
   }
 
-  if (!await checkPilot(pilot, password)) {
-    return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
-  }
+  const rolle = await getPilotRolle(pilot, password);
+  if (!rolle) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
 
   const db = createServiceClient();
   const ts = new Date().toISOString();
 
-  // Erst updaten; wenn keine Zeile getroffen → neu anlegen
+  // Reguläre Piloten → Entwurf einreichen, nicht direkt speichern
+  if (!istAdmin(rolle)) {
+    const { error: draftErr } = await db.from('rikscha_inhalte_entwurf').insert({
+      schluessel, wert, eingereicht_von: pilot, status: 'offen',
+    });
+    if (draftErr) return NextResponse.json({ error: draftErr.message }, { status: 500, headers: CORS });
+    return NextResponse.json({ ok: true, entwurf: true }, { headers: CORS });
+  }
+
+  // Admin → alten Wert in Verlauf sichern, dann direkt speichern
+  const { data: alt } = await db.from('inhalte').select('wert').eq('schluessel', schluessel).maybeSingle();
+  if (alt?.wert !== undefined) {
+    await db.from('rikscha_inhalte_verlauf').insert({ schluessel, wert: alt.wert, geaendert_von: pilot });
+  }
+
   const { data: updated, error: updateErr } = await db
     .from('inhalte')
     .update({ wert, geaendert_von: pilot, geaendert_am: ts })
