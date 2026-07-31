@@ -203,7 +203,7 @@ export default async function WebsitePage() {
 
         .hero { background: linear-gradient(160deg, #3A8A26 0%, #2D6B1E 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden; }
         .hero .container { text-align: center; }
-        .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: #F5F0E7; clip-path: ellipse(55% 100% at 50% 100%); }
+        .hero::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 48px; background: #C8600A; clip-path: ellipse(55% 100% at 50% 100%); }
         .hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
         .hero h1 { font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: normal; line-height: 1.15; text-wrap: balance; margin-bottom: 1.25rem; }
         .hero-sub { font-size: 1.1rem; color: rgba(255,255,255,0.92); max-width: 540px; margin: 0 auto 2rem; text-wrap: balance; }
@@ -231,7 +231,7 @@ export default async function WebsitePage() {
         p { color: var(--mid); margin-bottom: 1rem; }
         p:last-child { margin-bottom: 0; }
 
-        .group-section { background: #1E5210; color: #fff; position: relative; overflow: hidden; }
+        .group-section { background: #C8600A; color: #fff; position: relative; overflow: hidden; }
         .group-section p { color: rgba(255,255,255,0.92); }
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
@@ -263,9 +263,9 @@ export default async function WebsitePage() {
         .gaeste-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .gaeste-piter { background: var(--piter-bg); color: var(--piter-fg); }
 
-        .piloten-section { background: #FDFAF5; }
+        .piloten-section { background: #F5E5D8; }
         .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem; }
-        .pilot-card { background: #F5F0E7; border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 0.75rem; text-align: center; }
+        .pilot-card { background: #fff; border: 1px solid #E0C9B8; border-radius: 10px; padding: 1.1rem 0.75rem; text-align: center; }
         .pilot-foto-wrap { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 0 auto 0.6rem; }
         .pilot-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .pilot-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.6rem; font-weight: bold; border: 2px solid var(--border); }
@@ -336,7 +336,7 @@ export default async function WebsitePage() {
         .upload-status { font-size: 0.82rem; margin-top: 0.5rem; }
 
         /* Kennzahlen */
-        .kennzahlen-section { background: var(--green); }
+        .kennzahlen-section { background: #A63228; color: #fff; }
         .kennzahlen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; }
         .kenn-kachel { text-align: center; padding: 2rem 1rem; border-right: 1px solid rgba(255,255,255,0.15); }
         .kenn-kachel:last-child { border-right: none; }
@@ -344,18 +344,18 @@ export default async function WebsitePage() {
         .kenn-label { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.75); font-weight: 600; }
 
         /* Stimmen */
-        .stimmen-section { background: var(--ground); }
+        .stimmen-section { background: #A63228; color: #fff; }
         .stimmen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
-        .stimme-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .stimme-card { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; color: #fff; }
         .stimme-quote { font-size: 0.97rem; color: var(--mid); line-height: 1.65; font-style: italic; position: relative; padding-left: 1.25rem; }
         .stimme-quote::before { content: '„'; position: absolute; left: 0; top: -0.15rem; font-size: 2rem; color: var(--gold); line-height: 1; font-family: var(--serif); font-style: normal; }
         .stimme-meta { display: flex; align-items: center; gap: 0.6rem; margin-top: auto; }
-        .stimme-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stimme-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); color: #fff; font-family: var(--serif); font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .stimme-name { font-size: 0.88rem; font-weight: 700; color: var(--ink); }
         .stimme-rolle { font-size: 0.75rem; color: var(--mid); }
         .stimme-badge { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
-        .stimme-badge-gast { background: var(--gold-soft); color: #7a4e0a; }
-        .stimme-badge-pilot { background: var(--green-soft); color: var(--green); }
+        .stimme-badge-gast { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3); }
+        .stimme-badge-pilot { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3); }
 
         .hamburger-btn { display: none; }
         @media (max-width: 768px) { .hamburger-btn { display: flex; } }
