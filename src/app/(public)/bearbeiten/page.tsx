@@ -150,6 +150,8 @@ const WEBSITE_DEFAULTS: Record<string, string> = {
   stimme_2_name:     'Guido',           stimme_2_rolle: 'Pilot',
   stimme_3_text:     'Meine Mutter hat Demenz und war zunächst skeptisch. Nach der Fahrt mit dem Jruuse Piter war sie strahlend — das hat uns alle bewegt. Vielen herzlichen Dank!',
   stimme_3_name:     'Tochter eines Gastes', stimme_3_rolle: 'Gast',
+  stimme_4_text:     'Beim Rikschafahren sprechen wir nicht von Win-Win — sondern von vier Mal Win. Die Gäste genießen frische Luft und besondere Momente. Die Piloten erleben Freude und Sinn. Die GFO-Mitarbeiterinnen bekommen gut gelaunte Bewohner zurück. Und die Dorfbewohner freuen sich, wenn wir lachend einen schönen Tag wünschen. Das ist Ehrenamt, das wirklich ankommt.',
+  stimme_4_name:     'Walter — Pilot & Mitgründer', stimme_4_rolle: 'Pilot',
   spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
   kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
@@ -324,7 +326,7 @@ export default function BearbeitenPage() {
 
   function feldWert(schluessel: string) {
     const dbWert = felder.find(f => f.schluessel === schluessel)?.wert;
-    if (dbWert !== undefined) return dbWert;
+    if (dbWert !== undefined && dbWert !== null && dbWert !== '') return dbWert;
     return WEBSITE_DEFAULTS[schluessel] ?? '';
   }
   function setFeldWert(schluessel: string, wert: string) {
@@ -543,7 +545,7 @@ export default function BearbeitenPage() {
   /* ── Website-Felder: alle aus WEBSITE_BEZEICHNUNGEN anzeigen, auch wenn noch nicht in DB ── */
   const websiteAusDB = felder.filter(f => !f.schluessel.startsWith('flyer_') && !f.schluessel.startsWith('handout_'));
   const dbMap = Object.fromEntries(websiteAusDB.map(f => [f.schluessel, f]));
-  const sortedWebsite: Inhaltsfeld[] = WEBSITE_REIHENFOLGE.map(k => dbMap[k] ?? { schluessel: k, wert: '', bezeichnung: k });
+  const sortedWebsite: Inhaltsfeld[] = WEBSITE_REIHENFOLGE.map(k => dbMap[k] ?? { schluessel: k, wert: WEBSITE_DEFAULTS[k] ?? '', bezeichnung: k });
 
   const pickerBilder = pilotenDateien.filter(d => d.url && /\.(jpg|jpeg|png|webp|gif)/i.test(d.name));
 
@@ -617,12 +619,13 @@ export default function BearbeitenPage() {
                     ? `Zuletzt von ${f.geaendert_von} am ${new Date(f.geaendert_am!).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`
                     : '';
                   const st = speicherStatus[f.schluessel] || '';
+                  const anzeigeWert = f.wert || WEBSITE_DEFAULTS[f.schluessel] || '';
                   return (
                     <div key={f.schluessel} className="text-block">
                       <div className="text-block-label">{bezeichnung}</div>
                       <textarea
                         id={`ta-${f.schluessel}`}
-                        defaultValue={f.wert}
+                        defaultValue={anzeigeWert}
                         rows={3}
                         onKeyDown={e => { if ((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();speichern(f.schluessel,(e.target as HTMLTextAreaElement).value);}}}
                       />
