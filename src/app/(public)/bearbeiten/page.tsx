@@ -150,6 +150,8 @@ const WEBSITE_DEFAULTS: Record<string, string> = {
   stimme_2_name:     'Guido',           stimme_2_rolle: 'Pilot',
   stimme_3_text:     'Meine Mutter hat Demenz und war zunächst skeptisch. Nach der Fahrt mit dem Jruuse Piter war sie strahlend — das hat uns alle bewegt. Vielen herzlichen Dank!',
   stimme_3_name:     'Tochter eines Gastes', stimme_3_rolle: 'Gast',
+  stimme_4_text:     'Beim Rikschafahren sprechen wir nicht von Win-Win — sondern von vier Mal Win. Die Gäste genießen frische Luft und besondere Momente. Die Piloten erleben Freude und Sinn. Die GFO-Mitarbeiterinnen bekommen gut gelaunte Bewohner zurück. Und die Dorfbewohner freuen sich, wenn wir lachend einen schönen Tag wünschen. Das ist Ehrenamt, das wirklich ankommt.',
+  stimme_4_name:     'Walter — Pilot & Mitgründer', stimme_4_rolle: 'Pilot',
   spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
   kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
