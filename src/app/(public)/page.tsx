@@ -341,8 +341,8 @@ export default async function WebsitePage() {
         .upload-status { font-size: 0.82rem; margin-top: 0.5rem; }
 
         /* Kennzahlen */
-        .kennzahlen-section { background: #A63228; color: #fff; }
-        .kennzahlen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; padding: 0; }
+        .kennzahlen-section { background: #A63228; color: #fff; padding: 2.5rem 1.5rem; }
+        .kennzahlen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; max-width: 900px; margin: 0 auto; }
         .kenn-kachel { background: #F5E5D8; border-radius: 10px; text-align: center; padding: 1.5rem 0.75rem; }
         .kenn-zahl { font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3rem); font-weight: bold; color: #A63228; line-height: 1; margin-bottom: 0.4rem; }
         .kenn-label { font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--mid); font-weight: 600; }
@@ -455,6 +455,9 @@ export default async function WebsitePage() {
 
       {/* Kennzahlen */}
       <section className="kennzahlen-section" aria-label="Kennzahlen">
+        <div className="container" style={{textAlign:'center',paddingBottom:'1.5rem'}}>
+          <h2 style={{fontFamily:'var(--serif)',fontWeight:'normal',fontSize:'clamp(1.4rem,3vw,2rem)',color:'#fff',marginBottom:'0.25rem'}}>{t.kennzahlen_h2}</h2>
+        </div>
         <div className="kennzahlen-grid">
           {([
             [t.stat_1_zahl, t.stat_1_label],
