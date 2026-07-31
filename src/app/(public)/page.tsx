@@ -346,16 +346,16 @@ export default async function WebsitePage() {
         /* Stimmen */
         .stimmen-section { background: #A63228; color: #fff; }
         .stimmen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
-        .stimme-card { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; color: #fff; }
+        .stimme-card { background: #F5E5D8; border: 1px solid rgba(166,50,40,0.15); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; color: #1C1208; }
         .stimme-quote { font-size: 0.97rem; color: var(--mid); line-height: 1.65; font-style: italic; position: relative; padding-left: 1.25rem; }
         .stimme-quote::before { content: '„'; position: absolute; left: 0; top: -0.15rem; font-size: 2rem; color: var(--gold); line-height: 1; font-family: var(--serif); font-style: normal; }
         .stimme-meta { display: flex; align-items: center; gap: 0.6rem; margin-top: auto; }
-        .stimme-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); color: #fff; font-family: var(--serif); font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stimme-avatar { width: 36px; height: 36px; border-radius: 50%; background: #A63228; color: #fff; font-family: var(--serif); font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .stimme-name { font-size: 0.88rem; font-weight: 700; color: var(--ink); }
         .stimme-rolle { font-size: 0.75rem; color: var(--mid); }
         .stimme-badge { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
-        .stimme-badge-gast { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3); }
-        .stimme-badge-pilot { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3); }
+        .stimme-badge-gast { background: #fff; color: #A63228; border: 1px solid rgba(166,50,40,0.2); }
+        .stimme-badge-pilot { background: #2D6B1E; color: #fff; }
 
         .hamburger-btn { display: none; }
         @media (max-width: 768px) { .hamburger-btn { display: flex; } }
