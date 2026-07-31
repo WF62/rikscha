@@ -92,6 +92,70 @@ const WEBSITE_BEZEICHNUNGEN: Record<string, string> = {
 };
 const WEBSITE_REIHENFOLGE = Object.keys(WEBSITE_BEZEICHNUNGEN);
 
+/* ── Fallback-Texte (identisch mit DEFAULTS in page.tsx) ── */
+const WEBSITE_DEFAULTS: Record<string, string> = {
+  hero_eyebrow:      'Bornheim-Merten · Ehrenamt · seit 2018',
+  hero_titel:        'Mertener Rikschakutscher',
+  hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Piloten.',
+  fahrten_h2:        'Drei Rikschas, ein gemeinsames Erlebnis',
+  gruppenfahrten_1:  'Was 2018 mit ersten Begegnungen und gemeinsamen Ideen begann, ist heute ein fester Bestandteil des sozialen Lebens in Bornheim-Merten.',
+  gruppenfahrten_2:  'Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Piloten, alle gemeinsam unterwegs. Ob Geburtstagskorso, Hochzeitsüberraschung oder Vereinsausflug — im Konvoi wird aus einer Fahrt ein echtes Event.',
+  fahrzeuge_h2:      'Drei Rikschas, drei Charaktere',
+  fahrzeuge_intro:   'Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.',
+  lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
+  flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
+  piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  team_h2:           'Elf Piloten mit Herzblut',
+  team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
+  touren_h2:         'Frischer Wind und wunderbare Ausblicke',
+  touren_intro:      'Ob zur Mertener Heide, durch Gemüsefelder oder zu Alpakas — unsere Ausflüge sind so vielfältig wie die Wünsche unserer Gäste.',
+  tour_1_titel:      'Brühler Schlösserrunde',
+  tour_1_text:       'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg (mit Sondergenehmigung!), Biergarten am Schloss Ludwigslust.',
+  tour_2_titel:      'Mertener Heide & Natur',
+  tour_2_text:       'Vorbei an Pferdekoppeln, Ziegenweiden und Alpakas ins Grüne. Frische Luft, vertraute und neue Lieblingsorte.',
+  tour_3_titel:      'Kirche, Rhein & Repair-Café',
+  tour_3_text:       'Kurze, gemütliche Fahrten zu vertrauten Orten im Quartier. Ideal für Menschen, die einfach mal raus möchten.',
+  tour_4_titel:      'Baggerseen & Gutshöfe',
+  tour_4_text:       'Immer mit dem Ziel, schöne Stunden in der Natur zu verbringen und gemeinsam besondere Momente zu erleben.',
+  mitmachen_h2:      'So wirst du Rikschakutscher',
+  mitmachen_intro:   'Du fährst gerne Fahrrad, magst Menschen und hast Freude daran, anderen etwas Besonderes zu schenken? Dann bist du bei uns genau richtig.',
+  schritt_1_titel:   'Fahrradaffin & offen für Menschen',
+  schritt_1_text:    'Du solltest sicher und gerne Fahrrad fahren und Freude am Umgang mit Menschen haben.',
+  schritt_2_titel:   'Einweisung durch erfahrene Piloten',
+  schritt_2_text:    'Du wirst in Theorie und Praxis eingewiesen. Am Ende steht ein Checkbericht.',
+  schritt_3_titel:   'Polizeiliches Führungszeugnis',
+  schritt_3_text:    'Für den Umgang mit Fahrgästen ist ein polizeiliches Führungszeugnis erforderlich.',
+  schritt_4_titel:   'Ehrenamtlicher Vertrag mit der GFO',
+  schritt_4_text:    'Als Pilot schließt du einen ehrenamtlichen Vertrag mit der GFO ab.',
+  zukunft_h2:        'Was wir noch vorhaben',
+  zukunft_intro:     'Wir haben viel vor — und mit eurer Unterstützung wird noch mehr möglich.',
+  zukunft_1_titel:   'Mehr Fahrzeuge',
+  zukunft_1_text:    'Wir träumen von einer wachsenden Flotte — für mehr Fahrten, mehr Gäste und größere Gruppen.',
+  zukunft_2_titel:   'Feste Touren',
+  zukunft_2_text:    'Ausgeschilderte Routen durch Merten mit interessanten Stationen.',
+  zukunft_3_titel:   'Mehr Piloten',
+  zukunft_3_text:    'Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
+  zukunft_4_titel:   'Kooperationen',
+  zukunft_4_text:    'Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.',
+  kennzahlen_h2:     'Rikscha in Zahlen',
+  stat_1_zahl:       '11',  stat_1_label: 'Ehrenamtliche Piloten',
+  stat_2_zahl:       '3',   stat_2_label: 'Rikschas',
+  stat_3_zahl:       '2018', stat_3_label: 'Gegründet',
+  stat_4_zahl:       '500+', stat_4_label: 'Fahrten',
+  stat_5_zahl:       '6+',  stat_5_label: 'Jahre Erfahrung',
+  stimmen_h2:        'Was Gäste und Piloten sagen',
+  stimme_1_text:     'Eine wunderbare Erfahrung — ich hätte nie gedacht, dass eine Rikschafahrt so besonders sein kann. Das Tempo, die Natur, die nette Unterhaltung. Wir kommen gerne wieder!',
+  stimme_1_name:     'Familie Meier',   stimme_1_rolle: 'Gast',
+  stimme_2_text:     'Als Pilot erlebe ich jede Fahrt neu. Die Dankbarkeit der Gäste und die frische Luft — das ist besser als jedes Fitnessstudio. Ich würde es jederzeit wieder tun.',
+  stimme_2_name:     'Guido',           stimme_2_rolle: 'Pilot',
+  stimme_3_text:     'Meine Mutter hat Demenz und war zunächst skeptisch. Nach der Fahrt mit dem Jruuse Piter war sie strahlend — das hat uns alle bewegt. Vielen herzlichen Dank!',
+  stimme_3_name:     'Tochter eines Gastes', stimme_3_rolle: 'Gast',
+  spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
+  spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
+  kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
+  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
+};
+
 /* ── Handout-Gruppen (Tab 3) ── */
 const HANDOUT_GRUPPEN: Gruppe[] = [
   {
@@ -259,7 +323,9 @@ export default function BearbeitenPage() {
   }
 
   function feldWert(schluessel: string) {
-    return felder.find(f => f.schluessel === schluessel)?.wert ?? '';
+    const dbWert = felder.find(f => f.schluessel === schluessel)?.wert;
+    if (dbWert !== undefined) return dbWert;
+    return WEBSITE_DEFAULTS[schluessel] ?? '';
   }
   function setFeldWert(schluessel: string, wert: string) {
     setFelder(f => {
