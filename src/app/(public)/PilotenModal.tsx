@@ -32,6 +32,7 @@ export default function PilotenModal() {
   const [ordnerUploading, setOrdnerUploading] = useState<string | null>(null);
   const [ordnerMsg, setOrdnerMsg] = useState<Record<string, string>>({});
   const [ordnerBesitzer, setOrdnerBesitzer] = useState('');
+  const [erstanmeldung, setErstanmeldung] = useState(false);
   const [pilotRolle, setPilotRolle] = useState('');
   const [dokumente, setDokumente] = useState<Dokument[]>([]);
   const [dokLaden, setDokLaden] = useState(false);
@@ -101,8 +102,10 @@ export default function PilotenModal() {
         if (j.muss_pw_aendern) {
           setNeuesPw('');
           setNeuesPwWdh('');
+          setErstanmeldung(true);
           setAnsicht('pw-aendern');
         } else {
+          setErstanmeldung(false);
           setAnsicht('bereich');
         }
       } else {
@@ -129,6 +132,7 @@ export default function PilotenModal() {
       if (res.ok) {
         localStorage.setItem('pilot_pw', neuesPw);
         setPilotPw(neuesPw);
+        setErstanmeldung(false);
         setAnsicht('bereich');
       } else {
         setFehler(j.error || 'Fehler beim Speichern.');
@@ -365,16 +369,20 @@ export default function PilotenModal() {
         {/* PASSWORT ÄNDERN */}
         {ansicht === 'pw-aendern' && (
           <>
-            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
+            {!erstanmeldung && (
+              <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🔑</span>
               <div>
-                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Neues Passwort vergeben</div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>{erstanmeldung ? 'Willkommen! Bitte Passwort festlegen' : 'Neues Passwort vergeben'}</div>
                 <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Bitte wähle jetzt dein persönliches Passwort</div>
               </div>
             </div>
             <p style={{ fontSize: '0.83rem', color: '#6B5C44', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-              Hallo <strong>{pilotName}</strong>! Bei deiner ersten Anmeldung musst du ein eigenes Passwort vergeben (mind. 6 Zeichen).
+              {erstanmeldung
+                ? <>Hallo <strong>{pilotName}</strong>! Für deine Sicherheit musst du bei der ersten Anmeldung ein eigenes Passwort vergeben (mind. 6 Zeichen).</>
+                : <>Hallo <strong>{pilotName}</strong>! Bei deiner ersten Anmeldung musst du ein eigenes Passwort vergeben (mind. 6 Zeichen).</>}
             </p>
             <input
               type="password" placeholder="Neues Passwort"
