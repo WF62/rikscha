@@ -1,21 +1,27 @@
 import { createServiceClient } from './supabase';
 
 export async function checkPilot(name: string, password: string): Promise<boolean> {
-  if (!name || !password) return false;
+  return !!(await getPilotRolle(name, password));
+}
 
-  // Admin via Umgebungsvariable
+export async function getPilotRolle(name: string, password: string): Promise<string | null> {
+  if (!name || !password) return null;
+
   const adminName = process.env.ADMIN_NAME || 'Admin';
-  if (name === adminName && password === process.env.ADMIN_PASSWORD) return true;
+  if (name === adminName && password === process.env.ADMIN_PASSWORD) return 'admin';
 
-  // Pilot via Datenbank
   const db = createServiceClient();
   const { data } = await db
     .from('piloten_zugang')
-    .select('id')
+    .select('rolle')
     .eq('name', name)
     .eq('passwort', password)
     .eq('aktiv', true)
     .maybeSingle();
 
-  return !!data;
+  return data?.rolle ?? null;
+}
+
+export function istAdmin(rolle: string | null) {
+  return rolle === 'admin' || rolle === 'gfo';
 }
