@@ -17,12 +17,53 @@ export const metadata: Metadata = {
 };
 
 const DEFAULTS: Record<string, string> = {
+  hero_eyebrow:      'Bornheim-Merten · Ehrenamt · seit 2018',
+  hero_titel:        'Mertener Rikschakutscher',
   hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Piloten.',
+  fahrten_h2:        'Drei Rikschas, ein gemeinsames Erlebnis',
   gruppenfahrten_1:  'Was 2018 mit ersten Begegnungen und gemeinsamen Ideen begann, ist heute ein fester Bestandteil des sozialen Lebens in Bornheim-Merten.',
   gruppenfahrten_2:  'Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Piloten, alle gemeinsam unterwegs. Ob Geburtstagskorso, Hochzeitsüberraschung oder Vereinsausflug — im Konvoi wird aus einer Fahrt ein echtes Event.',
+  fahrzeuge_h2:      'Drei Rikschas, drei Charaktere',
+  fahrzeuge_intro:   'Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.',
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
   piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  team_h2:           'Elf Piloten mit Herzblut',
+  team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
+  touren_h2:         'Frischer Wind und wunderbare Ausblicke',
+  touren_intro:      'Ob zur Mertener Heide, durch Gemüsefelder oder zu Alpakas — unsere Ausflüge sind so vielfältig wie die Wünsche unserer Gäste.',
+  tour_1_titel:      'Brühler Schlösserrunde',
+  tour_1_text:       'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg (mit Sondergenehmigung!), Biergarten am Schloss Ludwigslust.',
+  tour_2_titel:      'Mertener Heide & Natur',
+  tour_2_text:       'Vorbei an Pferdekoppeln, Ziegenweiden und Alpakas ins Grüne. Frische Luft, vertraute und neue Lieblingsorte.',
+  tour_3_titel:      'Kirche, Rhein & Repair-Café',
+  tour_3_text:       'Kurze, gemütliche Fahrten zu vertrauten Orten im Quartier. Ideal für Menschen, die einfach mal raus möchten.',
+  tour_4_titel:      'Baggerseen & Gutshöfe',
+  tour_4_text:       'Immer mit dem Ziel, schöne Stunden in der Natur zu verbringen und gemeinsam besondere Momente zu erleben.',
+  mitmachen_h2:      'So wirst du Rikschakutscher',
+  mitmachen_intro:   'Du fährst gerne Fahrrad, magst Menschen und hast Freude daran, anderen etwas Besonderes zu schenken? Dann bist du bei uns genau richtig.',
+  schritt_1_titel:   'Fahrradaffin & offen für Menschen',
+  schritt_1_text:    'Du solltest sicher und gerne Fahrrad fahren und Freude am Umgang mit Menschen haben.',
+  schritt_2_titel:   'Einweisung durch erfahrene Piloten',
+  schritt_2_text:    'Du wirst in Theorie und Praxis eingewiesen. Am Ende steht ein Checkbericht.',
+  schritt_3_titel:   'Polizeiliches Führungszeugnis',
+  schritt_3_text:    'Für den Umgang mit Fahrgästen ist ein polizeiliches Führungszeugnis erforderlich.',
+  schritt_4_titel:   'Ehrenamtlicher Vertrag mit der GFO',
+  schritt_4_text:    'Als Pilot schließt du einen ehrenamtlichen Vertrag mit der GFO ab.',
+  zukunft_h2:        'Was wir noch vorhaben',
+  zukunft_intro:     'Wir haben viel vor — und mit eurer Unterstützung wird noch mehr möglich.',
+  zukunft_1_titel:   'Mehr Fahrzeuge',
+  zukunft_1_text:    'Wir träumen von einer wachsenden Flotte — für mehr Fahrten, mehr Gäste und größere Gruppen.',
+  zukunft_2_titel:   'Feste Touren',
+  zukunft_2_text:    'Ausgeschilderte Routen durch Merten mit interessanten Stationen.',
+  zukunft_3_titel:   'Mehr Piloten',
+  zukunft_3_text:    'Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
+  zukunft_4_titel:   'Kooperationen',
+  zukunft_4_text:    'Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.',
+  spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
+  spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
+  kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
+  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
   galerie_homepage:  '',
   foto_lotte:        '',
   foto_flitzer:      '',
@@ -38,9 +79,6 @@ const DEFAULTS: Record<string, string> = {
   foto_pilot_sabine:      '',
   foto_pilot_walter:      '',
   foto_pilot_werner:      '',
-  team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
-  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
-  spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
 };
 
 async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: string; pilot: string; created_at: string; stimmen: number }[]> {
@@ -321,8 +359,8 @@ export default async function WebsitePage() {
       {/* Hero */}
       <section className="hero">
         <div className="container">
-          <div className="hero-eyebrow">Bornheim-Merten · Ehrenamt · seit 2018</div>
-          <h1>Mertener<br/>Rikschakutscher</h1>
+          <div className="hero-eyebrow">{t.hero_eyebrow}</div>
+          <h1>{t.hero_titel}</h1>
           <p className="hero-sub">{t.hero_sub}</p>
           <div className="vehicle-pills">
             <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
@@ -344,7 +382,7 @@ export default async function WebsitePage() {
         <div className="container">
           <div className="group-inner">
             <div className="eyebrow">Das besondere Highlight</div>
-            <h2>Drei Rikschas,<br/>ein gemeinsames Erlebnis</h2>
+            <h2>{t.fahrten_h2}</h2>
             <p>{t.gruppenfahrten_1}</p>
             <p>{t.gruppenfahrten_2}</p>
             <div className="anlaesse-grid">
@@ -365,8 +403,8 @@ export default async function WebsitePage() {
       <section className="fahrzeuge-section" id="fahrzeuge">
         <div className="container">
           <div className="eyebrow">Unsere Flotte</div>
-          <h2>Drei Rikschas, drei Charaktere</h2>
-          <p>Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.</p>
+          <h2>{t.fahrzeuge_h2}</h2>
+          <p>{t.fahrzeuge_intro}</p>
           <div className="fahrzeug-list">
             <div className="fahrzeug-row" id="fahrzeug-lotte">
               <div className="fahrzeug-foto-wrap">
@@ -432,7 +470,7 @@ export default async function WebsitePage() {
       <section className="piloten-section" id="team">
         <div className="container">
           <div className="eyebrow">Unser Team</div>
-          <h2>Elf Piloten mit Herzblut</h2>
+          <h2>{t.team_h2}</h2>
           <p>{t.team_text}</p>
           <div className="piloten-grid">
             {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
@@ -459,13 +497,13 @@ export default async function WebsitePage() {
       <section className="fahrzeuge-section" id="touren">
         <div className="container">
           <div className="eyebrow">Unsere Ausflüge</div>
-          <h2>Frischer Wind und wunderbare Ausblicke</h2>
-          <p>Ob zur Mertener Heide, durch Gemüsefelder oder zu Alpakas — unsere Ausflüge sind so vielfältig wie die Wünsche unserer Gäste.</p>
+          <h2>{t.touren_h2}</h2>
+          <p>{t.touren_intro}</p>
           <div className="zukunft-grid" style={{marginTop:'2rem'}}>
-            <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>Brühler Schlösserrunde</h3><p style={{fontSize:'0.9rem'}}>Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg (mit Sondergenehmigung!), Biergarten am Schloss Ludwigslust.</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>Mertener Heide & Natur</h3><p style={{fontSize:'0.9rem'}}>Vorbei an Pferdekoppeln, Ziegenweiden und Alpakas ins Grüne. Frische Luft, vertraute und neue Lieblingsorte.</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>Kirche, Rhein & Repair-Café</h3><p style={{fontSize:'0.9rem'}}>Kurze, gemütliche Fahrten zu vertrauten Orten im Quartier. Ideal für Menschen, die einfach mal raus möchten.</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>Baggerseen & Gutshöfe</h3><p style={{fontSize:'0.9rem'}}>Immer mit dem Ziel, schöne Stunden in der Natur zu verbringen und gemeinsam besondere Momente zu erleben.</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>{t.tour_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_1_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_4_text}</p></div>
           </div>
         </div>
       </section>
@@ -476,13 +514,13 @@ export default async function WebsitePage() {
       <section className="ausbildung-section" id="ausbildung">
         <div className="container">
           <div className="eyebrow">Pilot werden</div>
-          <h2>So wirst du Rikschakutscher</h2>
-          <p>Du fährst gerne Fahrrad, magst Menschen und hast Freude daran, anderen etwas Besonderes zu schenken? Dann bist du bei uns genau richtig.</p>
+          <h2>{t.mitmachen_h2}</h2>
+          <p>{t.mitmachen_intro}</p>
           <div className="steps">
-            <div className="step"><div className="step-dot">1</div><div><h3>Fahrradaffin & offen für Menschen</h3><p>Du solltest sicher und gerne Fahrrad fahren und Freude am Umgang mit Menschen haben.</p></div></div>
-            <div className="step"><div className="step-dot">2</div><div><h3>Einweisung durch erfahrene Piloten</h3><p>Du wirst in Theorie und Praxis eingewiesen. Am Ende steht ein Checkbericht.</p></div></div>
-            <div className="step"><div className="step-dot">3</div><div><h3>Polizeiliches Führungszeugnis</h3><p>Für den Umgang mit Fahrgästen ist ein polizeiliches Führungszeugnis erforderlich.</p></div></div>
-            <div className="step"><div className="step-dot">4</div><div><h3>Ehrenamtlicher Vertrag mit der GFO</h3><p>Als Pilot schließt du einen ehrenamtlichen Vertrag mit der GFO ab.</p></div></div>
+            <div className="step"><div className="step-dot">1</div><div><h3>{t.schritt_1_titel}</h3><p>{t.schritt_1_text}</p></div></div>
+            <div className="step"><div className="step-dot">2</div><div><h3>{t.schritt_2_titel}</h3><p>{t.schritt_2_text}</p></div></div>
+            <div className="step"><div className="step-dot">3</div><div><h3>{t.schritt_3_titel}</h3><p>{t.schritt_3_text}</p></div></div>
+            <div className="step"><div className="step-dot">4</div><div><h3>{t.schritt_4_titel}</h3><p>{t.schritt_4_text}</p></div></div>
           </div>
           <div className="gfo-badge">✦ Ein Projekt der Gesellschaft der Franziskanerinnen zu Olpe (GFO)</div>
           <div className="melde-box">
@@ -498,13 +536,13 @@ export default async function WebsitePage() {
       <section className="zukunft-section">
         <div className="container">
           <div className="eyebrow">Ausblick</div>
-          <h2>Was wir noch vorhaben</h2>
-          <p>Wir haben viel vor — und mit eurer Unterstützung wird noch mehr möglich.</p>
+          <h2>{t.zukunft_h2}</h2>
+          <p>{t.zukunft_intro}</p>
           <div className="zukunft-grid">
-            <div className="zukunft-card"><span className="zukunft-icon">🚲</span><h3>Mehr Fahrzeuge</h3><p style={{fontSize:'0.9rem'}}>Wir träumen von einer wachsenden Flotte — für mehr Fahrten, mehr Gäste und größere Gruppen.</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🗺️</span><h3>Feste Touren</h3><p style={{fontSize:'0.9rem'}}>Ausgeschilderte Routen durch Merten mit interessanten Stationen.</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🤝</span><h3>Mehr Piloten</h3><p style={{fontSize:'0.9rem'}}>Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🌍</span><h3>Kooperationen</h3><p style={{fontSize:'0.9rem'}}>Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🚲</span><h3>{t.zukunft_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_1_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🗺️</span><h3>{t.zukunft_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_2_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🤝</span><h3>{t.zukunft_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_3_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌍</span><h3>{t.zukunft_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_4_text}</p></div>
           </div>
         </div>
       </section>
@@ -515,7 +553,7 @@ export default async function WebsitePage() {
       <section className="spenden-section" id="spenden">
         <div className="container">
           <div className="eyebrow">Unterstützen</div>
-          <h2>Unsere Fahrten sind kostenlos —<br/>aus Freude am Fahren.</h2>
+          <h2>{t.spenden_h2}</h2>
           <p>{t.spenden_text}</p>
           <div className="spenden-grid">
             <div className="spenden-card">
@@ -633,7 +671,7 @@ export default async function WebsitePage() {
       <section className="kontakt-section" id="kontakt">
         <div className="container">
           <div className="eyebrow">Schreib uns</div>
-          <h2>Fahrt anfragen oder Fragen stellen</h2>
+          <h2>{t.kontakt_h2}</h2>
           <p>{t.kontakt_text}</p>
           <form className="kontakt-form">
             <div className="form-row">
