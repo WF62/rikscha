@@ -342,11 +342,10 @@ export default async function WebsitePage() {
 
         /* Kennzahlen */
         .kennzahlen-section { background: #A63228; color: #fff; }
-        .kennzahlen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; }
-        .kenn-kachel { text-align: center; padding: 2rem 1rem; border-right: 1px solid rgba(255,255,255,0.15); }
-        .kenn-kachel:last-child { border-right: none; }
-        .kenn-zahl { font-family: var(--serif); font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: bold; color: #fff; line-height: 1; margin-bottom: 0.4rem; }
-        .kenn-label { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.75); font-weight: 600; }
+        .kennzahlen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; padding: 0; }
+        .kenn-kachel { background: #F5E5D8; border-radius: 10px; text-align: center; padding: 1.5rem 0.75rem; }
+        .kenn-zahl { font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3rem); font-weight: bold; color: #A63228; line-height: 1; margin-bottom: 0.4rem; }
+        .kenn-label { font-size: 0.7rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--mid); font-weight: 600; }
 
         /* Stimmen */
         .stimmen-section { background: #A63228; color: #fff; }
