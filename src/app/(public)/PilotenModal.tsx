@@ -416,6 +416,7 @@ export default function PilotenModal() {
                 { href: '#ordner',     icon: '🗂️', titel: 'Mein Ordner',        sub: 'Führungszeugnis, Vertrag & mehr',  border: '#D6CCB8' },
                 { href: '#ablage',     icon: '📂', titel: 'Ablage',             sub: 'Ordner, Dateien & Dokumente',      border: '#D6CCB8' },
                 { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Piloten & Einstellungen',          border: '#D6CCB8' },
+                { href: '/anleitung',  icon: '📖', titel: 'Pilot-Anleitung',    sub: 'Hilfe & Schritt-für-Schritt',      border: '#D6CCB8' },
               ].map(k => (
                 <a key={k.href + k.titel}
                   href={k.href.startsWith('#') ? undefined : k.href}

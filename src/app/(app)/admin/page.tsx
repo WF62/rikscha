@@ -161,7 +161,10 @@ export default function AdminSeite() {
     <div className="max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-rikscha-green">Zugang verwalten</h2>
-        <span className="text-xs text-gray-400">Piloten &amp; GFO-Mitarbeiterinnen</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400">Piloten &amp; GFO-Mitarbeiterinnen</span>
+          <a href="/anleitung-gfo" target="_blank" className="text-xs text-blue-600 underline">📖 Admin-Anleitung</a>
+        </div>
       </div>
 
       {meldung && (
