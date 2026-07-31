@@ -81,6 +81,15 @@ const DEFAULTS: Record<string, string> = {
   stimme_3_text:     'Meine Mutter hat Demenz und war zunächst skeptisch. Nach der Fahrt mit dem Jruuse Piter war sie strahlend — das hat uns alle bewegt. Vielen herzlichen Dank!',
   stimme_3_name:     'Tochter eines Gastes',
   stimme_3_rolle:    'Gast',
+  stimme_4_text:     '',
+  stimme_4_name:     '',
+  stimme_4_rolle:    'Gast',
+  stimme_5_text:     '',
+  stimme_5_name:     '',
+  stimme_5_rolle:    'Gast',
+  stimme_6_text:     '',
+  stimme_6_name:     '',
+  stimme_6_rolle:    'Gast',
   spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
   kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
@@ -621,6 +630,9 @@ export default async function WebsitePage() {
               [t.stimme_1_text, t.stimme_1_name, t.stimme_1_rolle],
               [t.stimme_2_text, t.stimme_2_name, t.stimme_2_rolle],
               [t.stimme_3_text, t.stimme_3_name, t.stimme_3_rolle],
+              [t.stimme_4_text, t.stimme_4_name, t.stimme_4_rolle],
+              [t.stimme_5_text, t.stimme_5_name, t.stimme_5_rolle],
+              [t.stimme_6_text, t.stimme_6_name, t.stimme_6_rolle],
             ] as [string,string,string][]).filter(([text]) => text).map(([text, name, rolle]) => (
               <div key={name} className="stimme-card">
                 <p className="stimme-quote">{text}"</p>
