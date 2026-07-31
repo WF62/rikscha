@@ -239,7 +239,7 @@ export default async function WebsitePage() {
         .group-inner { position: relative; z-index: 1; text-align: center; }
         .group-inner h2 { margin: 0 auto; }
         .group-inner p { margin-left: auto; margin-right: auto; }
-        .anlaesse-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-top: 1.75rem; }
+        .anlaesse-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-top: 1.75rem; }
         @media (max-width: 700px) { .anlaesse-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 400px) { .anlaesse-grid { grid-template-columns: repeat(2, 1fr); } }
         .anlass { background: #fff; border-radius: var(--radius); padding: 1rem 0.5rem 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; box-shadow: 0 2px 10px rgba(0,0,0,0.12); color: var(--ink); }
@@ -444,7 +444,6 @@ export default async function WebsitePage() {
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
               <div className="anlass"><span className="anlass-icon">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
-              <div className="anlass"><span className="anlass-icon">🏢</span><span className="anlass-label">Firmen & Teamausflüge</span></div>
               <div className="anlass"><span className="anlass-icon">👨‍👩‍👧‍👦</span><span className="anlass-label">Familienausflüge</span></div>
               <div className="anlass"><span className="anlass-icon">🎉</span><span className="anlass-label">Vereinsfeste & Events</span></div>
               <div className="anlass"><span className="anlass-icon">🌳</span><span className="anlass-label">Einfach so — zum Spaß</span></div>
