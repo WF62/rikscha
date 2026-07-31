@@ -235,11 +235,16 @@ export default async function WebsitePage() {
         .group-section p { color: rgba(255,255,255,0.92); }
         .group-section h2 { color: #fff; }
         .group-section .eyebrow { color: var(--gold); }
-        .big-3 { position: absolute; right: -0.1em; top: 50%; transform: translateY(-50%); font-family: var(--serif); font-size: clamp(12rem, 22vw, 22rem); font-weight: bold; color: rgba(255,255,255,0.06); line-height: 1; pointer-events: none; user-select: none; }
-        .group-inner { position: relative; z-index: 1; }
-        .anlaesse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 1.75rem; }
-        .anlass { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 0.95rem; color: rgba(255,255,255,0.95); }
-        .anlass-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
+        .big-3 { display: none; }
+        .group-inner { position: relative; z-index: 1; text-align: center; }
+        .group-inner h2 { margin: 0 auto; }
+        .group-inner p { margin-left: auto; margin-right: auto; }
+        .anlaesse-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; margin-top: 1.75rem; }
+        @media (max-width: 700px) { .anlaesse-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 400px) { .anlaesse-grid { grid-template-columns: repeat(2, 1fr); } }
+        .anlass { background: #fff; border-radius: var(--radius); padding: 1rem 0.5rem 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; box-shadow: 0 2px 10px rgba(0,0,0,0.12); color: var(--ink); }
+        .anlass-icon { font-size: 1.9rem; display: block; }
+        .anlass-label { font-size: 0.72rem; font-weight: 600; text-align: center; line-height: 1.3; color: var(--ink); }
 
         .fahrzeuge-section { background: #F5F0E7; }
         .fahrzeug-list { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
@@ -370,7 +375,7 @@ export default async function WebsitePage() {
           .fahrzeug-foto-wrap { max-width: 320px; }
           .form-row { grid-template-columns: 1fr; }
           .melde-box { flex-direction: column; }
-          .big-3 { font-size: 40vw; opacity: 0.5; }
+          .big-3 { display: none; }
         }
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -431,7 +436,6 @@ export default async function WebsitePage() {
 
       {/* Gruppenfahrten */}
       <section className="group-section" id="fahrten">
-        <div className="big-3">3</div>
         <div className="container">
           <div className="group-inner">
             <div className="eyebrow">Das besondere Highlight</div>
@@ -439,12 +443,12 @@ export default async function WebsitePage() {
             <p>{t.gruppenfahrten_1}</p>
             <p>{t.gruppenfahrten_2}</p>
             <div className="anlaesse-grid">
-              <div className="anlass"><span className="anlass-icon">🎂</span>Geburtstage & Jubiläen</div>
-              <div className="anlass"><span className="anlass-icon">💒</span>Hochzeiten & Polterabend</div>
-              <div className="anlass"><span className="anlass-icon">🏢</span>Firmen & Teamausflüge</div>
-              <div className="anlass"><span className="anlass-icon">👨‍👩‍👧‍👦</span>Familienausflüge</div>
-              <div className="anlass"><span className="anlass-icon">🎉</span>Vereinsfeste & Events</div>
-              <div className="anlass"><span className="anlass-icon">🌳</span>Einfach so — zum Spaß</div>
+              <div className="anlass"><span className="anlass-icon">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
+              <div className="anlass"><span className="anlass-icon">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
+              <div className="anlass"><span className="anlass-icon">🏢</span><span className="anlass-label">Firmen & Teamausflüge</span></div>
+              <div className="anlass"><span className="anlass-icon">👨‍👩‍👧‍👦</span><span className="anlass-label">Familienausflüge</span></div>
+              <div className="anlass"><span className="anlass-icon">🎉</span><span className="anlass-label">Vereinsfeste & Events</span></div>
+              <div className="anlass"><span className="anlass-icon">🌳</span><span className="anlass-label">Einfach so — zum Spaß</span></div>
             </div>
           </div>
         </div>
