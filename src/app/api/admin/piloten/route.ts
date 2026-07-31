@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const db = createServiceClient();
   const { data, error } = await db
     .from('piloten_zugang')
-    .insert({ name, passwort, rolle: rolle ?? 'pilot', aktiv: true })
+    .insert({ name, passwort, rolle: rolle ?? 'pilot', aktiv: true, muss_pw_aendern: true })
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
