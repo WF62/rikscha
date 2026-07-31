@@ -1,7 +1,10 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 
-type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto' | 'homepage-galerie' | 'dokumente';
+type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto' | 'homepage-galerie' | 'dokumente' | 'mein-ordner';
+const ORDNER_KATEGORIEN = ['Polizeiliches Führungszeugnis', 'Einweisungsprotokoll', 'Ehrenamtsvertrag', 'Sonstiges'] as const;
+type OrdnerKategorie = typeof ORDNER_KATEGORIEN[number];
+type OrdnerDatei = { id: string; besitzer: string; kategorie: string; name: string; url: string; groesse: number; typ: string; hochgeladen_von: string; erstellt_am: string };
 type GalerieFoto = { id: string; url: string; beschreibung: string; pilot: string };
 type Dokument = { id: string; name: string; kategorie: string; url: string; groesse: number; typ: string; hochgeladen_von: string; erstellt_am: string };
 
@@ -24,6 +27,12 @@ export default function PilotenModal() {
   const [alleFotos, setAlleFotos] = useState<GalerieFoto[]>([]);
   const [ausgewaehlteIds, setAusgewaehlteIds] = useState<string[]>([]);
   const [galerieSaving, setGalerieSaving] = useState(false);
+  const [ordnerDateien, setOrdnerDateien] = useState<OrdnerDatei[]>([]);
+  const [ordnerLaden, setOrdnerLaden] = useState(false);
+  const [ordnerUploading, setOrdnerUploading] = useState<string | null>(null);
+  const [ordnerMsg, setOrdnerMsg] = useState<Record<string, string>>({});
+  const [ordnerBesitzer, setOrdnerBesitzer] = useState('');
+  const [pilotRolle, setPilotRolle] = useState('');
   const [dokumente, setDokumente] = useState<Dokument[]>([]);
   const [dokLaden, setDokLaden] = useState(false);
   const [dokUploading, setDokUploading] = useState(false);
@@ -39,6 +48,9 @@ export default function PilotenModal() {
       if (gespeichert && gespeichertPw) {
         setPilotName(gespeichert);
         setPilotPw(gespeichertPw);
+        const rolle = localStorage.getItem('pilot_rolle') ?? 'pilot';
+        setPilotRolle(rolle);
+        ladePiloten();
         setAnsicht('bereich');
       } else {
         setAnsicht('login');
@@ -85,6 +97,7 @@ export default function PilotenModal() {
         localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
         setPilotName(j.pilot);
         setPilotPw(passwort);
+        setPilotRolle(j.rolle ?? 'pilot');
         if (j.muss_pw_aendern) {
           setNeuesPw('');
           setNeuesPwWdh('');
@@ -192,6 +205,40 @@ export default function PilotenModal() {
       setFotoMsg(m => ({ ...m, [schluessel]: 'Verbindungsfehler' }));
     }
     setFotoUploading(null);
+  }
+
+  async function ladeOrdner(besitzer?: string) {
+    setOrdnerLaden(true);
+    const ziel = besitzer ?? pilotName;
+    try {
+      const r = await fetch(`/api/pilot-ordner?pilot=${encodeURIComponent(pilotName)}&password=${encodeURIComponent(pilotPw)}&besitzer=${encodeURIComponent(ziel)}`);
+      setOrdnerDateien(r.ok ? await r.json() : []);
+    } catch { setOrdnerDateien([]); }
+    setOrdnerLaden(false);
+  }
+
+  async function ordnerDateiHochladen(kategorie: string, datei: File) {
+    setOrdnerUploading(kategorie);
+    setOrdnerMsg(m => ({ ...m, [kategorie]: '' }));
+    const form = new FormData();
+    form.append('pilot', pilotName);
+    form.append('password', pilotPw);
+    form.append('besitzer', ordnerBesitzer || pilotName);
+    form.append('kategorie', kategorie);
+    form.append('datei', datei);
+    try {
+      const r = await fetch('/api/pilot-ordner', { method: 'POST', body: form });
+      const j = await r.json();
+      if (r.ok) { setOrdnerMsg(m => ({ ...m, [kategorie]: '✓ Hochgeladen' })); ladeOrdner(ordnerBesitzer || pilotName); }
+      else setOrdnerMsg(m => ({ ...m, [kategorie]: j.error || 'Fehler' }));
+    } catch { setOrdnerMsg(m => ({ ...m, [kategorie]: 'Verbindungsfehler' })); }
+    setOrdnerUploading(null);
+  }
+
+  async function ordnerDateiLoeschen(id: string) {
+    if (!confirm('Datei wirklich löschen?')) return;
+    await fetch('/api/pilot-ordner', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, pilot: pilotName, password: pilotPw }) });
+    setOrdnerDateien(d => d.filter(x => x.id !== id));
   }
 
   async function ladeDokumente() {
@@ -366,6 +413,7 @@ export default function PilotenModal() {
                 { href: '/buchen',     icon: '➕', titel: 'Als Pilot buchen',   sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
                 { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Texte, Flyer & Banner',            border: '#C8881A' },
                 { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
+                { href: '#ordner',     icon: '🗂️', titel: 'Mein Ordner',        sub: 'Führungszeugnis, Vertrag & mehr',  border: '#D6CCB8' },
                 { href: '#ablage',     icon: '📂', titel: 'Ablage',             sub: 'Ordner, Dateien & Dokumente',      border: '#D6CCB8' },
                 { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Piloten & Einstellungen',          border: '#D6CCB8' },
               ].map(k => (
@@ -374,6 +422,7 @@ export default function PilotenModal() {
                   target={k.href.startsWith('/') ? '_blank' : undefined}
                   onClick={k.href === '#banner' ? (e) => { e.preventDefault(); ladeBanner(); setAnsicht('banner'); }
                     : k.href === '#fotos' ? (e) => { e.preventDefault(); setAnsicht('fahrzeugfotos'); }
+                    : k.href === '#ordner' ? (e) => { e.preventDefault(); const b = pilotName; setOrdnerBesitzer(b); ladeOrdner(b); setAnsicht('mein-ordner'); }
                     : k.href === '#ablage' ? (e) => { e.preventDefault(); ladeDokumente(); setAnsicht('dokumente'); }
                     : undefined}
                   style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
@@ -432,6 +481,60 @@ export default function PilotenModal() {
                 {bannerSaving ? 'Speichern…' : 'Speichern'}
               </button>
             </div>
+          </>
+        )}
+
+        {/* MEIN ORDNER */}
+        {ansicht === 'mein-ordner' && (
+          <>
+            <button onClick={() => setAnsicht('bereich')} style={{ background: '#F5F0E7', border: '1.5px solid #D6CCB8', borderRadius: 6, color: '#1C1208', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginBottom: '1rem', padding: '0.4rem 0.9rem' }}>← Zurück</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1.8rem' }}>🗂️</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Mein Ordner</div>
+                <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Persönliche Dokumente · nur für dich sichtbar</div>
+              </div>
+            </div>
+
+            {/* Admin: Piloten-Auswahl */}
+            {(pilotRolle === 'admin' || pilotRolle === 'gfo') && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.8rem', color: '#6B5C44', display: 'block', marginBottom: '0.3rem' }}>Ordner anzeigen für:</label>
+                <select value={ordnerBesitzer} onChange={e => { setOrdnerBesitzer(e.target.value); ladeOrdner(e.target.value); }}
+                  style={{ width: '100%', border: '1.5px solid #D6CCB8', borderRadius: 7, padding: '0.5rem 0.75rem', fontSize: '0.9rem', background: '#fff', color: '#1a1208' }}>
+                  {piloten.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
+                </select>
+              </div>
+            )}
+
+            {/* Kategorien mit Upload + Dateiliste */}
+            {ORDNER_KATEGORIEN.map(kat => {
+              const dateien = ordnerDateien.filter(d => d.kategorie === kat);
+              return (
+                <div key={kat} style={{ background: '#F5F0E7', borderRadius: 10, border: '1.5px solid #D6CCB8', padding: '0.9rem 1rem', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: dateien.length ? '0.6rem' : 0 }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#2D6B1E' }}>{kat}</span>
+                    <label style={{ background: '#2D6B1E', color: '#fff', borderRadius: 6, padding: '0.3rem 0.75rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                      {ordnerUploading === kat ? 'Lädt…' : '+ Datei'}
+                      <input type="file" style={{ display: 'none' }} disabled={ordnerUploading !== null}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) ordnerDateiHochladen(kat, f); e.target.value = ''; }} />
+                    </label>
+                  </div>
+                  {ordnerMsg[kat] && <div style={{ fontSize: '0.75rem', color: ordnerMsg[kat].startsWith('✓') ? '#15803d' : '#dc2626', marginBottom: '0.4rem' }}>{ordnerMsg[kat]}</div>}
+                  {dateien.map(d => (
+                    <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0', borderTop: '1px solid #D6CCB8' }}>
+                      <span style={{ fontSize: '1rem' }}>{d.typ?.includes('pdf') ? '📄' : d.typ?.includes('image') ? '🖼️' : '📎'}</span>
+                      <span style={{ flex: 1, fontSize: '0.78rem', color: '#1C1208', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</span>
+                      <span style={{ fontSize: '0.68rem', color: '#9a8a72', flexShrink: 0 }}>{d.groesse < 1048576 ? `${Math.round(d.groesse/1024)} KB` : `${(d.groesse/1048576).toFixed(1)} MB`}</span>
+                      <a href={d.url} target="_blank" rel="noopener noreferrer" style={{ background: '#2D6B1E', color: '#fff', borderRadius: 5, padding: '0.2rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>↓</a>
+                      <button onClick={() => ordnerDateiLoeschen(d.id)} style={{ background: '#FEE2E2', color: '#991b1b', border: 'none', borderRadius: 5, padding: '0.2rem 0.45rem', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>✕</button>
+                    </div>
+                  ))}
+                  {!ordnerLaden && dateien.length === 0 && <div style={{ fontSize: '0.75rem', color: '#b0a090', marginTop: '0.3rem' }}>Noch keine Datei vorhanden.</div>}
+                </div>
+              );
+            })}
+            {ordnerLaden && <div style={{ textAlign: 'center', color: '#6B5C44', fontSize: '0.85rem', padding: '1rem' }}>Wird geladen …</div>}
           </>
         )}
 
