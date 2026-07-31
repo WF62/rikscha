@@ -188,19 +188,26 @@ export default function AnleitungGfoPage() {
               <div className="step-num">3</div>
               <div className="step-body">
                 <h3>Anlegen bestätigen</h3>
-                <p>Der neue Pilot erscheint sofort in der Pilotenliste und kann sich direkt anmelden.</p>
+                <p>Der neue Pilot erscheint sofort in der Pilotenliste. Das System setzt automatisch <strong>„Passwort bei erster Anmeldung ändern"</strong>.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">4</div>
               <div className="step-body">
-                <h3>Ordner für neuen Piloten vorbereiten (optional)</h3>
+                <h3>Start-Passwort mitteilen</h3>
+                <p>Das eingetragene Start-Passwort dem neuen Piloten persönlich oder telefonisch mitteilen. Bei der ersten Anmeldung wird er automatisch aufgefordert, ein eigenes Passwort zu vergeben.</p>
+              </div>
+            </div>
+            <div className="step">
+              <div className="step-num">5</div>
+              <div className="step-body">
+                <h3>Ordner vorbereiten (optional)</h3>
                 <p>In der Pilotenliste auf <strong>🗂️ Ordner</strong> klicken und erste Dokumente (z. B. Einweisungsprotokoll) hochladen.</p>
               </div>
             </div>
           </div>
-          <div className="warn-box">
-            <strong>Passwort:</strong> Aktuell kein automatischer E-Mail-Versand. Das Passwort muss dem neuen Piloten persönlich oder telefonisch mitgeteilt werden.
+          <div className="info-box">
+            <strong>Passwort zurücksetzen:</strong> Wenn ein Pilot sein Passwort vergessen hat, einfach in der Verwaltung ein neues Start-Passwort eintragen (Stift-Symbol). Beim nächsten Login wird er wieder zur Passwort-Vergabe aufgefordert — dazu zusätzlich <code>muss_pw_aendern</code> in Supabase auf <code>true</code> setzen.
           </div>
         </section>
 
