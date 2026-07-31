@@ -129,20 +129,27 @@ export default function AnleitungPage() {
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
-                <h3>Name und Passwort eingeben</h3>
-                <p>Deinen Piloten-Namen (Vorname) und dein persönliches Passwort eingeben. Beides erhältst du beim Einrichten deines Accounts vom GFO-Admin.</p>
+                <h3>Name und Start-Passwort eingeben</h3>
+                <p>Deinen Piloten-Namen (Vorname) und das Start-Passwort eingeben, das dir der GFO-Admin mitgeteilt hat.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">3</div>
               <div className="step-body">
+                <h3>Eigenes Passwort festlegen (nur beim ersten Mal)</h3>
+                <p>Bei der <strong>ersten Anmeldung</strong> erscheint automatisch ein Dialog: „Willkommen! Bitte Passwort festlegen." Gib ein eigenes Passwort ein (mind. 6 Zeichen) und wiederhole es. Dieser Schritt ist Pflicht und kann nicht übersprungen werden.</p>
+              </div>
+            </div>
+            <div className="step">
+              <div className="step-num">4</div>
+              <div className="step-body">
                 <h3>Piloten-Menü öffnet sich</h3>
-                <p>Nach erfolgreicher Anmeldung erscheint das Piloten-Menü mit allen verfügbaren Funktionen. Die Anmeldung bleibt im Browser gespeichert.</p>
+                <p>Nach erfolgreicher Anmeldung (und ggf. Passwort-Vergabe) erscheint das Piloten-Menü mit allen verfügbaren Funktionen. Die Anmeldung bleibt im Browser gespeichert.</p>
               </div>
             </div>
           </div>
           <div className="info-box">
-            <strong>Tipp:</strong> Falls du dein Passwort vergessen hast oder noch keines hast, wende dich an den GFO-Admin (Walter oder Heribert).
+            <strong>Passwort vergessen?</strong> Wende dich an den GFO-Admin (Walter oder Heribert) — er setzt dir ein neues Start-Passwort, und du kannst beim nächsten Login wieder ein eigenes vergeben.
           </div>
         </section>
 

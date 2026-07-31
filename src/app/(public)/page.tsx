@@ -60,6 +60,36 @@ const DEFAULTS: Record<string, string> = {
   zukunft_3_text:    'Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
   zukunft_4_titel:   'Kooperationen',
   zukunft_4_text:    'Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.',
+  kennzahlen_h2:     'Rikscha in Zahlen',
+  stat_1_zahl:       '11',
+  stat_1_label:      'Ehrenamtliche Piloten',
+  stat_2_zahl:       '3',
+  stat_2_label:      'Rikschas',
+  stat_3_zahl:       '2018',
+  stat_3_label:      'Gegründet',
+  stat_4_zahl:       '500+',
+  stat_4_label:      'Fahrten',
+  stat_5_zahl:       '6+',
+  stat_5_label:      'Jahre Erfahrung',
+  stimmen_h2:        'Was Gäste und Piloten sagen',
+  stimme_1_text:     'Eine wunderbare Erfahrung — ich hätte nie gedacht, dass eine Rikschafahrt so besonders sein kann. Das Tempo, die Natur, die nette Unterhaltung. Wir kommen gerne wieder!',
+  stimme_1_name:     'Familie Meier',
+  stimme_1_rolle:    'Gast',
+  stimme_2_text:     'Als Pilot erlebe ich jede Fahrt neu. Die Dankbarkeit der Gäste und die frische Luft — das ist besser als jedes Fitnessstudio. Ich würde es jederzeit wieder tun.',
+  stimme_2_name:     'Guido',
+  stimme_2_rolle:    'Pilot',
+  stimme_3_text:     'Meine Mutter hat Demenz und war zunächst skeptisch. Nach der Fahrt mit dem Jruuse Piter war sie strahlend — das hat uns alle bewegt. Vielen herzlichen Dank!',
+  stimme_3_name:     'Tochter eines Gastes',
+  stimme_3_rolle:    'Gast',
+  stimme_4_text:     '',
+  stimme_4_name:     '',
+  stimme_4_rolle:    'Gast',
+  stimme_5_text:     '',
+  stimme_5_name:     '',
+  stimme_5_rolle:    'Gast',
+  stimme_6_text:     '',
+  stimme_6_name:     '',
+  stimme_6_rolle:    'Gast',
   spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
   kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
@@ -305,6 +335,28 @@ export default async function WebsitePage() {
         .btn-upload:hover { opacity: 0.85; }
         .upload-status { font-size: 0.82rem; margin-top: 0.5rem; }
 
+        /* Kennzahlen */
+        .kennzahlen-section { background: var(--green); }
+        .kennzahlen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; }
+        .kenn-kachel { text-align: center; padding: 2rem 1rem; border-right: 1px solid rgba(255,255,255,0.15); }
+        .kenn-kachel:last-child { border-right: none; }
+        .kenn-zahl { font-family: var(--serif); font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: bold; color: #fff; line-height: 1; margin-bottom: 0.4rem; }
+        .kenn-label { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.75); font-weight: 600; }
+
+        /* Stimmen */
+        .stimmen-section { background: var(--ground); }
+        .stimmen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
+        .stimme-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .stimme-quote { font-size: 0.97rem; color: var(--mid); line-height: 1.65; font-style: italic; position: relative; padding-left: 1.25rem; }
+        .stimme-quote::before { content: '„'; position: absolute; left: 0; top: -0.15rem; font-size: 2rem; color: var(--gold); line-height: 1; font-family: var(--serif); font-style: normal; }
+        .stimme-meta { display: flex; align-items: center; gap: 0.6rem; margin-top: auto; }
+        .stimme-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-family: var(--serif); font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stimme-name { font-size: 0.88rem; font-weight: 700; color: var(--ink); }
+        .stimme-rolle { font-size: 0.75rem; color: var(--mid); }
+        .stimme-badge { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+        .stimme-badge-gast { background: var(--gold-soft); color: #7a4e0a; }
+        .stimme-badge-pilot { background: var(--green-soft); color: var(--green); }
+
         .hamburger-btn { display: none; }
         @media (max-width: 768px) { .hamburger-btn { display: flex; } }
 
@@ -345,6 +397,7 @@ export default async function WebsitePage() {
           <li><a href="#team">Team</a></li>
           <li><a href="#touren">Touren</a></li>
           <li><a href="#ausbildung">Mitmachen</a></li>
+          <li><a href="#stimmen">Stimmen</a></li>
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
@@ -394,6 +447,24 @@ export default async function WebsitePage() {
               <div className="anlass"><span className="anlass-icon">🌳</span>Einfach so — zum Spaß</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Kennzahlen */}
+      <section className="kennzahlen-section" aria-label="Kennzahlen">
+        <div className="kennzahlen-grid">
+          {([
+            [t.stat_1_zahl, t.stat_1_label],
+            [t.stat_2_zahl, t.stat_2_label],
+            [t.stat_3_zahl, t.stat_3_label],
+            [t.stat_4_zahl, t.stat_4_label],
+            [t.stat_5_zahl, t.stat_5_label],
+          ] as [string,string][]).map(([zahl, label]) => (
+            <div key={label} className="kenn-kachel">
+              <div className="kenn-zahl">{zahl}</div>
+              <div className="kenn-label">{label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -543,6 +614,37 @@ export default async function WebsitePage() {
             <div className="zukunft-card"><span className="zukunft-icon">🗺️</span><h3>{t.zukunft_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_2_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🤝</span><h3>{t.zukunft_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_3_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌍</span><h3>{t.zukunft_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_4_text}</p></div>
+          </div>
+        </div>
+      </section>
+
+      <hr className="section-rule"/>
+
+      {/* Stimmen */}
+      <section className="stimmen-section" id="stimmen">
+        <div className="container">
+          <div className="eyebrow">Erfahrungen</div>
+          <h2>{t.stimmen_h2}</h2>
+          <div className="stimmen-grid">
+            {([
+              [t.stimme_1_text, t.stimme_1_name, t.stimme_1_rolle],
+              [t.stimme_2_text, t.stimme_2_name, t.stimme_2_rolle],
+              [t.stimme_3_text, t.stimme_3_name, t.stimme_3_rolle],
+              [t.stimme_4_text, t.stimme_4_name, t.stimme_4_rolle],
+              [t.stimme_5_text, t.stimme_5_name, t.stimme_5_rolle],
+              [t.stimme_6_text, t.stimme_6_name, t.stimme_6_rolle],
+            ] as [string,string,string][]).filter(([text]) => text).map(([text, name, rolle]) => (
+              <div key={name} className="stimme-card">
+                <p className="stimme-quote">{text}"</p>
+                <div className="stimme-meta">
+                  <div className="stimme-avatar">{name.charAt(0)}</div>
+                  <div>
+                    <div className="stimme-name">{name}</div>
+                    <span className={`stimme-badge ${rolle?.toLowerCase() === 'pilot' ? 'stimme-badge-pilot' : 'stimme-badge-gast'}`}>{rolle}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
