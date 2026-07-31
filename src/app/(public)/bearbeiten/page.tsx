@@ -324,7 +324,7 @@ export default function BearbeitenPage() {
 
   function feldWert(schluessel: string) {
     const dbWert = felder.find(f => f.schluessel === schluessel)?.wert;
-    if (dbWert !== undefined) return dbWert;
+    if (dbWert !== undefined && dbWert !== null && dbWert !== '') return dbWert;
     return WEBSITE_DEFAULTS[schluessel] ?? '';
   }
   function setFeldWert(schluessel: string, wert: string) {
@@ -543,7 +543,7 @@ export default function BearbeitenPage() {
   /* ── Website-Felder: alle aus WEBSITE_BEZEICHNUNGEN anzeigen, auch wenn noch nicht in DB ── */
   const websiteAusDB = felder.filter(f => !f.schluessel.startsWith('flyer_') && !f.schluessel.startsWith('handout_'));
   const dbMap = Object.fromEntries(websiteAusDB.map(f => [f.schluessel, f]));
-  const sortedWebsite: Inhaltsfeld[] = WEBSITE_REIHENFOLGE.map(k => dbMap[k] ?? { schluessel: k, wert: '', bezeichnung: k });
+  const sortedWebsite: Inhaltsfeld[] = WEBSITE_REIHENFOLGE.map(k => dbMap[k] ?? { schluessel: k, wert: WEBSITE_DEFAULTS[k] ?? '', bezeichnung: k });
 
   const pickerBilder = pilotenDateien.filter(d => d.url && /\.(jpg|jpeg|png|webp|gif)/i.test(d.name));
 
@@ -617,12 +617,13 @@ export default function BearbeitenPage() {
                     ? `Zuletzt von ${f.geaendert_von} am ${new Date(f.geaendert_am!).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`
                     : '';
                   const st = speicherStatus[f.schluessel] || '';
+                  const anzeigeWert = f.wert || WEBSITE_DEFAULTS[f.schluessel] || '';
                   return (
                     <div key={f.schluessel} className="text-block">
                       <div className="text-block-label">{bezeichnung}</div>
                       <textarea
                         id={`ta-${f.schluessel}`}
-                        defaultValue={f.wert}
+                        defaultValue={anzeigeWert}
                         rows={3}
                         onKeyDown={e => { if ((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();speichern(f.schluessel,(e.target as HTMLTextAreaElement).value);}}}
                       />
