@@ -60,6 +60,9 @@ const DEFAULTS: Record<string, string> = {
   zukunft_3_text:    'Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
   zukunft_4_titel:   'Kooperationen',
   zukunft_4_text:    'Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.',
+  ausleihen_titel:   'Rikscha selbst steuern — für Angehörige',
+  ausleihen_text:    'Du bist Angehörige oder Angehöriger eines unserer Gäste und möchtest öfters gemeinsam auf Ausflug gehen — ganz ohne festen Termin und selbst am Lenker? Das könnte möglich sein. Sprich uns an, wir finden gemeinsam einen Weg, der für alle passt.',
+  ausleihen_cta:     'Jetzt melden',
   kennzahlen_h2:     'Mertener Kutscher in Zahlen',
   stat_1_zahl:       '11',
   stat_1_label:      'Ehrenamtliche Piloten',
@@ -268,6 +271,14 @@ export default async function WebsitePage() {
         .gaeste-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .gaeste-piter { background: var(--piter-bg); color: var(--piter-fg); }
 
+        .ausleihen-section { background: #fff; }
+        .ausleihen-box { display: flex; align-items: flex-start; gap: 1.75rem; background: #F5E5D8; border-left: 5px solid #C8600A; border-radius: var(--radius); padding: 1.75rem 2rem; }
+        .ausleihen-icon { font-size: 2.5rem; flex-shrink: 0; margin-top: 0.1rem; }
+        .ausleihen-text h3 { font-family: var(--serif); font-size: 1.2rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
+        .ausleihen-text p { color: var(--mid); font-size: 0.95rem; margin-bottom: 1rem; }
+        .btn-outline-dark { display: inline-block; border: 2px solid var(--ink); color: var(--ink); border-radius: var(--radius); padding: 0.45rem 1.2rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+        .btn-outline-dark:hover { background: var(--ink); color: #fff; }
+        @media (max-width: 500px) { .ausleihen-box { flex-direction: column; gap: 1rem; } }
         .piloten-section { background: #F5E5D8; }
         .piloten-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem; }
         .pilot-card { background: #fff; border: 1px solid #E0C9B8; border-radius: 10px; padding: 1.1rem 0.75rem; text-align: center; }
@@ -535,6 +546,20 @@ export default async function WebsitePage() {
                 <span className="fahrzeug-gaeste gaeste-piter">👤 1 Gast</span>
                 <p>{t.piter_text}</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rikscha ausleihen */}
+      <section className="ausleihen-section">
+        <div className="container">
+          <div className="ausleihen-box">
+            <div className="ausleihen-icon">🚲</div>
+            <div className="ausleihen-text">
+              <h3>{t.ausleihen_titel}</h3>
+              <p>{t.ausleihen_text}</p>
+              <a href="#kontakt" className="btn btn-outline-dark">{t.ausleihen_cta}</a>
             </div>
           </div>
         </div>
