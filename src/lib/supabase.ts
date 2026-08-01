@@ -27,6 +27,7 @@ export type Buchung = {
   storniert: boolean;
   storniert_am?: string;
   erstellt_am: string;
+  eigenfahrt?: boolean;
 };
 
 export type Sperre = {

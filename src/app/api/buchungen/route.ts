@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { fahrzeug, pilot, gaeste, datum, startzeit, endzeit, notiz } = body;
+  const { fahrzeug, pilot, gaeste, datum, startzeit, endzeit, notiz, eigenfahrt } = body;
 
   if (!datum || !startzeit || !endzeit) {
     return NextResponse.json({ error: 'Datum und Zeiten sind Pflicht.' }, { status: 400 });
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       startzeit,
       endzeit,
       notiz: notiz || null,
+      ...(eigenfahrt ? { eigenfahrt: true } : {}),
     })
     .select()
     .single();

@@ -19,14 +19,21 @@ function BuchenFormular() {
     endzeit:   '11:00',
     notiz: '',
   });
-  const [speichern, setSpeichern] = useState(false);
-  const [fehler, setFehler]       = useState('');
-  const [sperren, setSperren]     = useState<{ fahrzeug: string }[]>([]);
-  const [istPilot, setIstPilot]   = useState(false);
+  const [speichern, setSpeichern]         = useState(false);
+  const [fehler, setFehler]               = useState('');
+  const [sperren, setSperren]             = useState<{ fahrzeug: string }[]>([]);
+  const [istPilot, setIstPilot]           = useState(false);
+  const [istAngehoeriger, setIstAngehoeriger] = useState(false);
 
   useEffect(() => {
+    const name  = localStorage.getItem('pilot_name');
     const rolle = localStorage.getItem('pilot_rolle');
-    setIstPilot(!!localStorage.getItem('pilot_name') && rolle !== 'gast');
+    if (rolle === 'angehoeriger' && name) {
+      setIstAngehoeriger(true);
+      setForm(f => ({ ...f, pilot: name }));
+    } else {
+      setIstPilot(!!name && rolle !== 'gast');
+    }
   }, []);
 
   useEffect(() => {
@@ -51,7 +58,7 @@ function BuchenFormular() {
   const absenden = async (e: React.FormEvent) => {
     e.preventDefault();
     if (istPilot && !form.pilot && !form.fahrzeug) { setFehler('Bitte mindestens einen Piloten oder ein Fahrzeug wählen.'); return; }
-    if (!istPilot && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
+    if ((istAngehoeriger || !istPilot) && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
     setSpeichern(true); setFehler('');
@@ -63,6 +70,7 @@ function BuchenFormular() {
           fahrzeug: form.fahrzeug || '', pilot: form.pilot || '',
           gaeste, datum: form.datum, startzeit: form.startzeit,
           endzeit: form.endzeit, notiz: form.notiz,
+          ...(istAngehoeriger ? { eigenfahrt: true } : {}),
         }),
       });
       if (res.ok) { router.push('/'); }
@@ -78,7 +86,7 @@ function BuchenFormular() {
       {/* Schlichter Header */}
       <header style={{ background: '#2D6B1E', padding: '0.9rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <a href="/" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>← Zurück zur Website</a>
-        {istPilot && (
+        {(istPilot || istAngehoeriger) && (
           <a href="/kalender" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>Kalender</a>
         )}
       </header>
@@ -87,6 +95,14 @@ function BuchenFormular() {
         <h2 className="text-2xl font-bold text-rikscha-green mb-4">Fahrt buchen</h2>
 
         <form onSubmit={absenden} className="bg-white rounded-xl shadow p-6 space-y-4">
+
+          {/* Angehörige-Hinweis */}
+          {istAngehoeriger && (
+            <div style={{ background: '#F5E5D8', border: '1.5px solid #A63228', borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.85rem', color: '#5A4B34', lineHeight: 1.5 }}>
+              <strong style={{ color: '#A63228' }}>Eigenfahrt für Angehörige</strong><br />
+              Du buchst als <strong>{form.pilot}</strong> eine Eigenfahrt mit der Rikscha. Bitte wähle Fahrzeug, Datum und Uhrzeit.
+            </div>
+          )}
 
           {/* Fahrzeug */}
           <div>
@@ -104,7 +120,7 @@ function BuchenFormular() {
                   <div><p className="font-semibold">{f.name}</p><p className="text-xs text-gray-500">{f.typ} &middot; max. {f.maxGaeste} Gast{f.maxGaeste > 1 ? 'e' : ''}</p></div>
                 </label>
               ))}
-              {istPilot && (
+              {istPilot && !istAngehoeriger && (
                 <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer border-dashed transition-colors ${
                   !form.fahrzeug ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-orange-300'
                 }`}>
@@ -117,8 +133,8 @@ function BuchenFormular() {
             </div>
           </div>
 
-          {/* Pilot – nur für eingeloggte Piloten */}
-          {istPilot && (
+          {/* Pilot – nur für eingeloggte Piloten (nicht für Angehörige) */}
+          {istPilot && !istAngehoeriger && (
           <div>
             <label className="block text-sm font-semibold mb-1">Pilot</label>
             <div className="grid grid-cols-2 gap-2">
@@ -147,7 +163,7 @@ function BuchenFormular() {
           )}
 
           {/* Automatisch erkannter Typ */}
-          {istPilot && (form.pilot || form.fahrzeug) && (
+          {istPilot && !istAngehoeriger && (form.pilot || form.fahrzeug) && (
             <p className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">{typLabel}</p>
           )}
 
@@ -207,7 +223,7 @@ function BuchenFormular() {
         </form>
 
         {/* Sperr-Formular nur für Piloten */}
-        {istPilot && <SperreFormular />}
+        {istPilot && !istAngehoeriger && <SperreFormular />}
       </div>
     </div>
   );
