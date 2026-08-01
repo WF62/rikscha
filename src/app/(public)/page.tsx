@@ -551,22 +551,6 @@ export default async function WebsitePage() {
         </div>
       </section>
 
-      {/* Rikscha ausleihen */}
-      <section className="ausleihen-section">
-        <div className="container">
-          <div className="ausleihen-box">
-            <div className="ausleihen-icon">🚲</div>
-            <div className="ausleihen-text">
-              <h3>{t.ausleihen_titel}</h3>
-              <p>{t.ausleihen_text}</p>
-              <a href="#kontakt" className="btn btn-outline-dark">{t.ausleihen_cta}</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <hr className="section-rule"/>
-
       {/* Team */}
       <section className="piloten-section" id="team">
         <div className="container">
@@ -588,6 +572,20 @@ export default async function WebsitePage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Rikscha ausleihen */}
+      <section className="ausleihen-section">
+        <div className="container">
+          <div className="ausleihen-box">
+            <div className="ausleihen-icon">🚲</div>
+            <div className="ausleihen-text">
+              <h3>{t.ausleihen_titel}</h3>
+              <p>{t.ausleihen_text}</p>
+              <a href="#kontakt" className="btn btn-outline-dark">{t.ausleihen_cta}</a>
+            </div>
           </div>
         </div>
       </section>
