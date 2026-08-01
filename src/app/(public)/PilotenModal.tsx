@@ -338,7 +338,7 @@ export default function PilotenModal() {
                 >
                   <option value="">— Name wählen —</option>
                   {piloten.map(p => (
-                    <option key={p.name} value={p.name}>{p.name}{p.rolle === 'gfo' ? ' (GFO)' : ''}</option>
+                    <option key={p.name} value={p.name}>{p.name}{p.rolle === 'gfo' ? ' (GFO)' : p.rolle === 'angehoeriger' ? ' (Angehörige/r)' : ''}</option>
                   ))}
                 </select>
               ) : (
@@ -403,7 +403,49 @@ export default function PilotenModal() {
         )}
 
         {/* PILOTEN-BEREICH */}
-        {ansicht === 'bereich' && (
+        {ansicht === 'bereich' && pilotRolle === 'angehoeriger' && (
+          <div style={{ maxWidth: 400 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.8rem' }}>🚲</span>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#A63228', fontSize: '1.1rem' }}>Hallo, {pilotName}!</div>
+                  <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Rikscha für Angehörige</div>
+                </div>
+              </div>
+              <button onClick={abmelden} style={{ padding: '0.4rem 1rem', border: '1.5px solid #D6CCB8', borderRadius: 8, background: 'transparent', color: '#6B5C44', fontSize: '0.82rem', cursor: 'pointer' }}>Abmelden</button>
+            </div>
+            <div style={{ background: '#F5E5D8', borderRadius: 12, border: '1.5px solid #A63228', padding: '1.1rem 1.25rem', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.85rem', color: '#5A4B34', lineHeight: 1.6 }}>
+                Du kannst als Angehörige/r Eigenfahrten mit der Rikscha buchen — direkt und verbindlich.
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <a href="/buchen" target="_blank"
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5E5D8', borderRadius: 12, border: '1.5px solid #A63228', textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
+                <span style={{ fontSize: '1.4rem' }}>📅</span>
+                <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>Fahrt buchen</span>
+                <span style={{ fontSize: '0.75rem', color: '#6B5C44' }}>Eigenfahrt eintragen</span>
+              </a>
+              <a href="/kalender" target="_blank"
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: '1.5px solid #D6CCB8', textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
+                <span style={{ fontSize: '1.4rem' }}>🗓️</span>
+                <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>Kalender</span>
+                <span style={{ fontSize: '0.75rem', color: '#6B5C44' }}>Termine ansehen</span>
+              </a>
+            </div>
+            <div style={{ background: '#F5F0E7', borderRadius: 12, border: '1.5px solid #D6CCB8', padding: '1rem 1.25rem' }}>
+              <div style={{ fontWeight: 700, marginBottom: '0.6rem', color: '#A63228', fontSize: '0.9rem' }}>📋 Hinweise</div>
+              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem', color: '#6B5C44' }}>
+                <li>· Bitte Fahrt rechtzeitig buchen</li>
+                <li>· Fahrzeug nach der Fahrt reinigen und sichern</li>
+                <li>· Bei Fragen das Rikscha-Team ansprechen</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {ansicht === 'bereich' && pilotRolle !== 'angehoeriger' && (
           <div style={{ maxWidth: 600 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
