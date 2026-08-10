@@ -65,8 +65,21 @@ const TOUR_META: TourMeta[] = [
     ] },
 ];
 
-const START: [number, number] = [50.7762, 6.9212];
+const START_DEFAULT: [number, number] = [50.7762, 6.9212];
 const STORAGE_KEY = 'rikscha_touren_waypoints_v2';
+const START_KEY = 'rikscha_startpunkt_v1';
+
+function loadStart(): [number, number] {
+  if (typeof window === 'undefined') return START_DEFAULT;
+  try {
+    const s = localStorage.getItem(START_KEY);
+    if (s) return JSON.parse(s);
+  } catch {}
+  return START_DEFAULT;
+}
+function saveStart(p: [number, number]) {
+  localStorage.setItem(START_KEY, JSON.stringify(p));
+}
 
 // Routenberechnung via OSRM (OpenStreetMap-basiert, kostenlos, kein API-Key)
 async function berechneRoute(waypoints: [number, number][]): Promise<[number, number][] | null> {
@@ -154,6 +167,11 @@ export default function TourenKarte() {
   const fotoMarkerRefs = useRef<any[]>([]);
 
   const [mounted, setMounted] = useState(false);
+  const [istPilot, setIstPilot] = useState(false);
+  const [startPunkt, setStartPunkt] = useState<[number, number]>(START_DEFAULT);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const startMarkerRef = useRef<any>(null);
+  const startPunktRef = useRef<[number, number]>(START_DEFAULT);
   const [aktiveTour, setAktiveTour] = useState<string | null>(null);
   const [editModus, setEditModus] = useState(false);
   const [editTourId, setEditTourId] = useState<string>(TOUR_META[0].id);
@@ -168,11 +186,32 @@ export default function TourenKarte() {
   const editModusRef = useRef(false);
   const editTourIdRef = useRef(editTourId);
   const waypointsRef = useRef(waypoints);
+  const [startpunktModus, setStartpunktModus] = useState(false);
+  const startpunktModusRef = useRef(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    // Pilotenprüfung: nur Piloten dürfen Routen bearbeiten
+    const name = localStorage.getItem('pilot_name');
+    const pw = localStorage.getItem('pilot_pw');
+    const rolle = localStorage.getItem('pilot_rolle');
+    setIstPilot(!!(name && pw && rolle && rolle !== 'angehoeriger'));
+    // Auf Login-Änderungen reagieren (z.B. Modal schließt nach Anmeldung)
+    function onStorage() {
+      const n = localStorage.getItem('pilot_name');
+      const p = localStorage.getItem('pilot_pw');
+      const r = localStorage.getItem('pilot_rolle');
+      setIstPilot(!!(n && p && r && r !== 'angehoeriger'));
+    }
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('pilot-login', onStorage);
+    return () => { window.removeEventListener('storage', onStorage); window.removeEventListener('pilot-login', onStorage); };
+  }, []);
   useEffect(() => { editModusRef.current = editModus; }, [editModus]);
   useEffect(() => { editTourIdRef.current = editTourId; }, [editTourId]);
   useEffect(() => { waypointsRef.current = waypoints; }, [waypoints]);
+  useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
+  useEffect(() => { startpunktModusRef.current = startpunktModus; }, [startpunktModus]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
     return waypoints[id] ?? TOUR_META.find(t => t.id === id)?.defaultWaypoints ?? [];
@@ -351,13 +390,31 @@ export default function TourenKarte() {
         maxZoom: 18,
       }).addTo(map);
 
-      // Startmarker
-      const startIcon = L.divIcon({
-        html: `<div style="width:18px;height:18px;background:#1a1208;border:3px solid #C8881A;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
-        className: '', iconSize: [18, 18], iconAnchor: [9, 9],
-      });
-      L.marker(START, { icon: startIcon }).addTo(map)
-        .bindPopup('<strong>Start / Ziel</strong><br>GFO Kloster Merten');
+      // Startmarker (aus localStorage oder Standard)
+      const gespeicherterStart = loadStart();
+      setStartPunkt(gespeicherterStart);
+      startPunktRef.current = gespeicherterStart;
+
+      function zeichneStartMarker(pos: [number, number]) {
+        startMarkerRef.current?.remove();
+        const startIcon = L.divIcon({
+          html: `<div style="width:22px;height:22px;background:#1a1208;border:3px solid #C8881A;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><div style="width:6px;height:6px;background:#C8881A;border-radius:50%"></div></div>`,
+          className: '', iconSize: [22, 22], iconAnchor: [11, 11],
+        });
+        startMarkerRef.current = L.marker(pos, { icon: startIcon, draggable: true }).addTo(map)
+          .bindPopup('<strong>Start / Ziel</strong><br>GFO Kloster Merten<br><small>Im Routen-Editor verschiebbar</small>');
+        startMarkerRef.current.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+          const ll = e.target.getLatLng();
+          const neu: [number, number] = [
+            Math.round(ll.lat * 1e6) / 1e6,
+            Math.round(ll.lng * 1e6) / 1e6,
+          ];
+          saveStart(neu);
+          setStartPunkt(neu);
+          startPunktRef.current = neu;
+        });
+      }
+      zeichneStartMarker(gespeicherterStart);
 
       // Gespeicherte Waypoints laden & Routen berechnen
       const saved = loadWaypoints();
@@ -390,15 +447,25 @@ export default function TourenKarte() {
       // Karten-Klick im Edit-Modus
       map.on('click', (e: { latlng: { lat: number; lng: number } }) => {
         if (!editModusRef.current) return;
+        const neu: [number, number] = [
+          Math.round(e.latlng.lat * 1e6) / 1e6,
+          Math.round(e.latlng.lng * 1e6) / 1e6,
+        ];
+
+        if (startpunktModusRef.current) {
+          // Startpunkt setzen
+          saveStart(neu);
+          setStartPunkt(neu);
+          startPunktRef.current = neu;
+          startMarkerRef.current?.setLatLng(neu);
+          return;
+        }
+
         const tourId = editTourIdRef.current;
         const current = waypointsRef.current;
         const meta = TOUR_META.find(t => t.id === tourId);
         const existing: [number, number][] = current[tourId]
           ?? (meta?.defaultWaypoints.length ? [...meta.defaultWaypoints] : []);
-        const neu: [number, number] = [
-          Math.round(e.latlng.lat * 1e6) / 1e6,
-          Math.round(e.latlng.lng * 1e6) / 1e6,
-        ];
         const updated = { ...current, [tourId]: [...existing, neu] };
         saveWaypoints(updated);
         setWaypoints(updated);
@@ -431,6 +498,7 @@ export default function TourenKarte() {
 
   useEffect(() => {
     if (mapRef.current) mapRef.current.style.cursor = editModus ? 'crosshair' : '';
+    if (!editModus) setStartpunktModus(false);
   }, [editModus]);
 
   function letztenPunktLoeschen() {
@@ -544,15 +612,17 @@ export default function TourenKarte() {
             </button>
           );
         })}
-        <button onClick={() => setEditModus(v => !v)} aria-pressed={editModus}
-          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.4rem 0.85rem', borderRadius: 999,
-            border: `2px solid ${editModus ? '#C8881A' : 'var(--border)'}`,
-            background: editModus ? '#C8881A' : 'var(--surface)',
-            color: editModus ? '#fff' : 'var(--mid)',
-            fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
-          ✏️ {editModus ? 'Editor schließen' : 'Routen bearbeiten'}
-        </button>
+        {istPilot && (
+          <button onClick={() => setEditModus(v => !v)} aria-pressed={editModus}
+            style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              padding: '0.4rem 0.85rem', borderRadius: 999,
+              border: `2px solid ${editModus ? '#C8881A' : 'var(--border)'}`,
+              background: editModus ? '#C8881A' : 'var(--surface)',
+              color: editModus ? '#fff' : 'var(--mid)',
+              fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
+            ✏️ {editModus ? 'Editor schließen' : 'Routen bearbeiten'}
+          </button>
+        )}
       </div>
 
       {/* Editor */}
@@ -578,9 +648,21 @@ export default function TourenKarte() {
             {routeBerechnung[editTourId] === 'fallback' && <span style={{ color: '#6B7280' }}> · Gerade Linie (kein Netz)</span>}
             <br />
             <span style={{ color: 'var(--mid)', fontSize: '0.8rem' }}>
-              Klicke auf die Karte um Wegpunkte zu setzen. Die Route folgt automatisch echten Radwegen.
+              {startpunktModus
+                ? '📍 Klicke auf die Karte um den Startpunkt zu setzen — oder den Marker ziehen.'
+                : 'Klicke auf die Karte um Wegpunkte zu setzen. Die Route folgt automatisch echten Radwegen.'}
             </span>
           </p>
+          {/* Startpunkt */}
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.5rem 0.75rem', background: startpunktModus ? '#FEF3C7' : 'rgba(0,0,0,0.04)', borderRadius: 8, border: startpunktModus ? '1.5px solid #C8881A' : '1px solid var(--border)' }}>
+            <span style={{ fontSize: '0.82rem', flex: 1, color: 'var(--ink)' }}>
+              📍 Startpunkt: <strong>{startPunkt[0].toFixed(4)}, {startPunkt[1].toFixed(4)}</strong>
+            </span>
+            <button onClick={() => setStartpunktModus(v => !v)} style={btnStyle('#C8881A', false)}>
+              {startpunktModus ? '✓ Fertig' : 'Startpunkt setzen'}
+            </button>
+            <button onClick={() => { saveStart(START_DEFAULT); setStartPunkt(START_DEFAULT); startMarkerRef.current?.setLatLng(START_DEFAULT); }} title="Zurücksetzen" style={{ padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--mid)', cursor: 'pointer', fontSize: '0.75rem' }}>↺</button>
+          </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button onClick={letztenPunktLoeschen} disabled={!editWps.length} style={btnStyle('#6B7280', !editWps.length)}>↩ Letzten Punkt rückgängig</button>
             <button onClick={routeLeeren} disabled={!editWps.length} style={btnStyle('#DC2626', !editWps.length)}>🗑 Route leeren</button>
@@ -601,22 +683,23 @@ export default function TourenKarte() {
             </span>
           </div>
           {editWps.length > 0 && (
-            <details style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>
-              <summary style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
-                Wegpunkte anzeigen ({editWps.length})
+            <details open style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>
+              <summary style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600, marginBottom: '0.4rem' }}>
+                Wegpunkte ({editWps.length}) — ziehen zum Umsortieren
               </summary>
-              <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                {editWps.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.5rem', background: 'rgba(0,0,0,0.06)', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                    <span style={{ minWidth: 18, fontWeight: 700, color: editMeta?.farbe }}>{i + 1}</span>
-                    <span style={{ flex: 1 }}>{p[0].toFixed(5)}, {p[1].toFixed(5)}</span>
-                    <button onClick={() => deleteWaypointRef.current(editTourId, i)}
-                      style={{ padding: '2px 7px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, lineHeight: 1 }}>
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <WegpunktListe
+                wps={editWps}
+                farbe={editMeta?.farbe ?? '#333'}
+                onDelete={(i) => deleteWaypointRef.current(editTourId, i)}
+                onReorder={(von, nach) => {
+                  const wps = [...editWps];
+                  const [elem] = wps.splice(von, 1);
+                  wps.splice(nach, 0, elem);
+                  const updated = { ...waypoints, [editTourId]: wps };
+                  saveWaypoints(updated);
+                  setWaypoints(updated);
+                }}
+              />
             </details>
           )}
         </div>
@@ -629,7 +712,7 @@ export default function TourenKarte() {
           <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
             background: editMeta?.farbe, color: '#fff', padding: '0.3rem 0.9rem', borderRadius: 999,
             fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.25)', pointerEvents: 'none' }}>
-            ✏️ Klicken = Wegpunkt setzen · {editMeta?.kurzname}
+            {startpunktModus ? '📍 Klicken = Startpunkt setzen' : `✏️ Klicken = Wegpunkt setzen · ${editMeta?.kurzname}`}
           </div>
         )}
         <style>{`
@@ -691,6 +774,47 @@ export default function TourenKarte() {
       <p style={{ fontSize: '0.75rem', color: 'var(--mid)', margin: 0 }}>
         Kartendaten: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style={{ color: 'var(--mid)' }}>OpenStreetMap</a>-Mitwirkende · Routing: OSRM
       </p>
+    </div>
+  );
+}
+
+function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
+  wps: [number, number][];
+  farbe: string;
+  onDelete: (i: number) => void;
+  onReorder: (von: number, nach: number) => void;
+}) {
+  const dragIdx = useRef<number | null>(null);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+      {wps.map((_, i) => {
+        const isFirst = i === 0;
+        const isLast = i === wps.length - 1;
+        const label = isFirst ? 'Start' : isLast ? 'Ziel' : `Wegpunkt ${i}`;
+        return (
+          <div
+            key={i}
+            draggable
+            onDragStart={() => { dragIdx.current = i; }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (dragIdx.current !== null && dragIdx.current !== i) {
+                onReorder(dragIdx.current, i);
+              }
+              dragIdx.current = null;
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.6rem', background: 'rgba(0,0,0,0.05)', borderRadius: 6, cursor: 'grab', userSelect: 'none' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--mid)', flexShrink: 0 }}>⠿</span>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', background: farbe, color: '#fff', fontWeight: 700, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
+            <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</span>
+            <button onClick={() => onDelete(i)}
+              style={{ padding: '2px 8px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
+              ✕
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
