@@ -2,6 +2,13 @@
 import 'leaflet/dist/leaflet.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+interface TourFoto {
+  lat: number;
+  lon: number;
+  titel: string;
+  src: string; // URL oder leer → Platzhalter
+}
+
 interface TourMeta {
   id: string;
   name: string;
@@ -11,6 +18,7 @@ interface TourMeta {
   laenge: string;
   dauer: string;
   defaultWaypoints: [number, number][];
+  fotos?: TourFoto[];
 }
 
 const TOUR_META: TourMeta[] = [
@@ -32,16 +40,29 @@ const TOUR_META: TourMeta[] = [
   },
   { id: 'schloesser', name: 'Brühler Schlösserrunde', kurzname: 'Schlösserrunde', farbe: '#92400E',
     beschreibung: 'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg, Biergarten am Schloss.',
-    laenge: 'ca. 22 km', dauer: 'ca. 2 Std.', defaultWaypoints: [] },
+    laenge: 'ca. 22 km', dauer: 'ca. 2 Std.', defaultWaypoints: [],
+    fotos: [
+      { lat: 50.8281, lon: 6.9006, titel: 'Schloss Augustusburg', src: '' },
+      { lat: 50.8240, lon: 6.9050, titel: 'Schlosspark', src: '' },
+    ] },
   { id: 'rhein', name: 'Fahrt zum Rhein', kurzname: 'Zum Rhein', farbe: '#1D4ED8',
     beschreibung: 'Westlich durch Walberberg und Bornheim bis zum Rheinufer — weite Aussicht und Ruhe am Fluss.',
-    laenge: 'ca. 12 km', dauer: 'ca. 1 Std.', defaultWaypoints: [] },
+    laenge: 'ca. 12 km', dauer: 'ca. 1 Std.', defaultWaypoints: [],
+    fotos: [
+      { lat: 50.7682, lon: 6.8450, titel: 'Rheinufer', src: '' },
+    ] },
   { id: 'swister', name: 'Fahrt zum Swistertürmchen', kurzname: 'Swistertürmchen', farbe: '#B45309',
     beschreibung: 'Entlang der Swister zum historischen Türmchen — ruhige Wege und schöne Aussicht.',
-    laenge: 'ca. 6 km', dauer: 'ca. 35 Min.', defaultWaypoints: [] },
+    laenge: 'ca. 6 km', dauer: 'ca. 35 Min.', defaultWaypoints: [],
+    fotos: [
+      { lat: 50.7640, lon: 6.9450, titel: 'Swistertürmchen', src: '' },
+    ] },
   { id: 'londorf', name: 'Rundfahrt Gut Londorf', kurzname: 'Gut Londorf', farbe: '#6D28D9',
     beschreibung: 'Eine gemütliche Rundfahrt zum Gutshof Londorf — idyllische Feldwege und Panoramablick.',
-    laenge: 'ca. 5 km', dauer: 'ca. 30 Min.', defaultWaypoints: [] },
+    laenge: 'ca. 5 km', dauer: 'ca. 30 Min.', defaultWaypoints: [],
+    fotos: [
+      { lat: 50.7720, lon: 6.9380, titel: 'Gut Londorf', src: '' },
+    ] },
 ];
 
 const START: [number, number] = [50.7762, 6.9212];
@@ -67,6 +88,48 @@ async function berechneRoute(waypoints: [number, number][]): Promise<[number, nu
   }
 }
 
+// GPX exportieren (volle Routengeometrie, kompatibel mit Komoot, OsmAnd, Google Maps …)
+function exportGPX(name: string, punkte: [number, number][]) {
+  const trkpts = punkte
+    .map(([lat, lon]) => `    <trkpt lat="${lat}" lon="${lon}"></trkpt>`)
+    .join('\n');
+  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Mertener Rikschakutscher" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>${name}</name>
+    <trkseg>
+${trkpts}
+    </trkseg>
+  </trk>
+</gpx>`;
+  const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${name.replace(/\s+/g, '_')}.gpx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// GPX importieren → gibt Array von [lat, lon]-Punkten zurück
+function parseGPX(text: string): [number, number][] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, 'application/xml');
+  const punkte: [number, number][] = [];
+  // Trackpunkte (aufgezeichnete Route) oder Wegpunkte
+  const tags = doc.querySelectorAll('trkpt, rtept, wpt');
+  tags.forEach(el => {
+    const lat = parseFloat(el.getAttribute('lat') ?? '');
+    const lon = parseFloat(el.getAttribute('lon') ?? '');
+    if (!isNaN(lat) && !isNaN(lon)) punkte.push([lat, lon]);
+  });
+  return punkte;
+}
+
+// Bei vielen Trackpunkten: als vollständige Geometrie nutzen (kein OSRM nötig)
+// Bei wenigen Punkten (<= 50): als Wegpunkte behandeln und OSRM routen lassen
+const GPX_DIRECT_THRESHOLD = 50;
+
 function loadWaypoints(): Record<string, [number, number][]> {
   if (typeof window === 'undefined') return {};
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'); } catch { return {}; }
@@ -87,6 +150,8 @@ export default function TourenKarte() {
   const wpMarkerRefs = useRef<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const zielMarkerRefs = useRef<Record<string, any>>({});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fotoMarkerRefs = useRef<any[]>([]);
 
   const [mounted, setMounted] = useState(false);
   const [aktiveTour, setAktiveTour] = useState<string | null>(null);
@@ -97,6 +162,8 @@ export default function TourenKarte() {
   const [routeGeom, setRouteGeom] = useState<Record<string, [number, number][]>>({});
   const [routeBerechnung, setRouteBerechnung] = useState<Record<string, 'idle' | 'loading' | 'ok' | 'fallback'>>({});
   const [kopiert, setKopiert] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editModusRef = useRef(false);
   const editTourIdRef = useRef(editTourId);
@@ -294,6 +361,25 @@ export default function TourenKarte() {
         await updateRoute(meta.id, wps);
       }
 
+      // Foto-Marker für alle Touren
+      fotoMarkerRefs.current.forEach(m => m.remove());
+      fotoMarkerRefs.current = [];
+      for (const meta of TOUR_META) {
+        for (const foto of meta.fotos ?? []) {
+          const fotoIcon = L.divIcon({
+            html: `<div style="width:28px;height:28px;background:${meta.farbe};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px">📷</div>`,
+            className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+          });
+          const m = L.marker([foto.lat, foto.lon], { icon: fotoIcon }).addTo(map);
+          const imgHtml = foto.src
+            ? `<img src="${foto.src}" alt="${foto.titel}" style="width:140px;height:90px;object-fit:cover;border-radius:6px;margin-bottom:4px;display:block">`
+            : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
+          m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div></div>`);
+          m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); setAktiveTour(meta.id); });
+          fotoMarkerRefs.current.push(m);
+        }
+      }
+
       // Karten-Klick im Edit-Modus
       map.on('click', (e: { latlng: { lat: number; lng: number } }) => {
         if (!editModusRef.current) return;
@@ -360,6 +446,57 @@ export default function TourenKarte() {
       setKopiert(true);
       setTimeout(() => setKopiert(false), 2000);
     });
+  }
+
+  function gpxExportieren() {
+    const meta = TOUR_META.find(t => t.id === editTourId);
+    const geom = routeGeom[editTourId] ?? getWaypoints(editTourId);
+    if (geom.length < 2 || !meta) return;
+    exportGPX(meta.name, geom);
+  }
+
+  async function gpxImportieren(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportStatus('loading');
+    try {
+      const text = await file.text();
+      const punkte = parseGPX(text);
+      if (punkte.length < 2) { setImportStatus('error'); return; }
+
+      if (punkte.length > GPX_DIRECT_THRESHOLD) {
+        // Viele Punkte → direkt als Routengeometrie übernehmen
+        setRouteGeom(prev => ({ ...prev, [editTourId]: punkte }));
+        setRouteBerechnung(prev => ({ ...prev, [editTourId]: 'ok' }));
+        // Als Waypoints: Anfang, Mitte, Ende speichern
+        const wp: [number, number][] = [
+          punkte[0],
+          punkte[Math.floor(punkte.length / 2)],
+          punkte[punkte.length - 1],
+        ];
+        const updated = { ...waypointsRef.current, [editTourId]: wp };
+        saveWaypoints(updated);
+        setWaypoints(updated);
+        // Polyline manuell aktualisieren
+        await updateRoute(editTourId, wp);
+        // Überschreibe mit voller Geometrie
+        setRouteGeom(prev => ({ ...prev, [editTourId]: punkte }));
+      } else {
+        // Wenige Punkte → als Wegpunkte + OSRM-Routing
+        const updated = { ...waypointsRef.current, [editTourId]: punkte };
+        saveWaypoints(updated);
+        setWaypoints(updated);
+        waypointsRef.current = updated;
+        await updateRoute(editTourId, punkte);
+      }
+      setImportStatus('ok');
+      setTimeout(() => setImportStatus('idle'), 3000);
+    } catch {
+      setImportStatus('error');
+      setTimeout(() => setImportStatus('idle'), 3000);
+    }
+    // Input zurücksetzen damit dieselbe Datei nochmal gewählt werden kann
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   const editMeta = TOUR_META.find(t => t.id === editTourId);
@@ -444,6 +581,18 @@ export default function TourenKarte() {
               {kopiert ? '✓ Kopiert!' : '📋 Wegpunkte kopieren'}
             </button>
           </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.25rem', borderTop: '1px solid var(--border)' }}>
+            <input ref={fileInputRef} type="file" accept=".gpx" onChange={gpxImportieren} style={{ display: 'none' }} />
+            <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#1D4ED8', false)}>
+              {importStatus === 'loading' ? '⟳ Lädt…' : importStatus === 'ok' ? '✓ Importiert!' : importStatus === 'error' ? '✗ Fehler beim Import' : '📥 GPX importieren'}
+            </button>
+            <button onClick={gpxExportieren} disabled={editWps.length < 2} style={btnStyle('#6D28D9', editWps.length < 2)}>
+              📤 GPX herunterladen
+            </button>
+            <span style={{ fontSize: '0.75rem', color: 'var(--mid)', alignSelf: 'center' }}>
+              GPX-Dateien laufen auf OsmAnd, Komoot & Google Maps
+            </span>
+          </div>
           {editWps.length > 0 && (
             <details style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>
               <summary style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
@@ -475,21 +624,51 @@ export default function TourenKarte() {
 
       {/* Tour-Detail */}
       {aktiveTourData && !editModus && (
-        <div style={{ padding: '1rem 1.25rem', borderRadius: 12, border: `2px solid ${aktiveTourData.farbe}`, background: 'var(--surface)', display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: aktiveTourData.farbe, marginBottom: '0.3rem' }}>{aktiveTourData.name}</div>
-            <p style={{ fontSize: '0.88rem', color: 'var(--ink)', margin: 0 }}>{aktiveTourData.beschreibung}</p>
-          </div>
-          <div style={{ display: 'flex', gap: '1.5rem', flexShrink: 0 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.laenge}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--mid)' }}>Strecke</div>
+        <div style={{ borderRadius: 12, border: `2px solid ${aktiveTourData.farbe}`, background: 'var(--surface)', overflow: 'hidden' }}>
+          <div style={{ padding: '1rem 1.25rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: aktiveTourData.farbe, marginBottom: '0.3rem' }}>{aktiveTourData.name}</div>
+              <p style={{ fontSize: '0.88rem', color: 'var(--ink)', margin: 0 }}>{aktiveTourData.beschreibung}</p>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.dauer}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--mid)' }}>Dauer</div>
+            <div style={{ display: 'flex', gap: '1.5rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.laenge}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--mid)' }}>Strecke</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.dauer}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--mid)' }}>Dauer</div>
+              </div>
+              <button
+                onClick={() => {
+                  const geom = routeGeom[aktiveTourData.id] ?? getWaypoints(aktiveTourData.id);
+                  if (geom.length >= 2) exportGPX(aktiveTourData.name, geom);
+                }}
+                disabled={(routeGeom[aktiveTourData.id] ?? getWaypoints(aktiveTourData.id)).length < 2}
+                style={btnStyle(aktiveTourData.farbe, (routeGeom[aktiveTourData.id] ?? getWaypoints(aktiveTourData.id)).length < 2)}>
+                📤 Tour laden (GPX)
+              </button>
             </div>
           </div>
+          {/* Foto-Galerie */}
+          {(aktiveTourData.fotos?.length ?? 0) > 0 && (
+            <div style={{ padding: '0 1.25rem 1rem', display: 'flex', gap: '0.75rem', overflowX: 'auto' }}>
+              {aktiveTourData.fotos!.map((foto, i) => (
+                <div key={i} style={{ flexShrink: 0, textAlign: 'center' }}>
+                  {foto.src ? (
+                    <img src={foto.src} alt={foto.titel}
+                      style={{ width: 140, height: 100, objectFit: 'cover', borderRadius: 8, display: 'block', border: `2px solid ${aktiveTourData.farbe}` }} />
+                  ) : (
+                    <div style={{ width: 140, height: 100, background: `${aktiveTourData.farbe}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `2px dashed ${aktiveTourData.farbe}66` }}>
+                      <span style={{ fontSize: '1.75rem' }}>📷</span>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--mid)', marginTop: 4 }}>Foto folgt</span>
+                    </div>
+                  )}
+                  <div style={{ fontSize: '0.72rem', color: 'var(--mid)', marginTop: '0.3rem', maxWidth: 140 }}>{foto.titel}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
