@@ -168,7 +168,7 @@ export default async function WebsitePage() {
           --border:     #D6CCB8;
           --lotte-fg:   #15803d; --lotte-bg:   #dcfce7;
           --flitzer-fg: #1d4ed8; --flitzer-bg: #dbeafe;
-          --piter-fg:   #ea580c; --piter-bg:   #ffedd5;
+          --piter-fg:   #9c3a07; --piter-bg:   #ffedd5;
           --radius: 4px;
           --serif: Palatino Linotype, Palatino, Book Antiqua, Georgia, serif;
           --sans:  system-ui, -apple-system, Segoe UI, sans-serif;
@@ -223,7 +223,7 @@ export default async function WebsitePage() {
 
         .btn { display: inline-block; padding: 0.75rem 2rem; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s; }
         .btn:hover { opacity: 0.88; transform: translateY(-1px); }
-        .btn-gold { background: var(--gold); color: #fff; }
+        .btn-gold { background: var(--gold); color: #1a1208; }
         .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.6); color: #fff; }
         .btn-green { background: var(--green); color: #fff; }
         .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
@@ -232,16 +232,16 @@ export default async function WebsitePage() {
         .container { max-width: 1080px; margin: 0 auto; }
         .container-wide { max-width: 1080px; margin: 0 auto; }
         .section-rule { border: none; border-top: 1px solid var(--border); margin: 0; }
-        .eyebrow { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 0.6rem; }
+        .eyebrow { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: #8B5C0D; font-weight: 600; margin-bottom: 0.6rem; }
         h2 { font-family: var(--serif); font-size: clamp(1.7rem, 3.5vw, 2.4rem); font-weight: normal; line-height: 1.2; text-wrap: balance; color: var(--ink); margin-bottom: 1rem; }
         h3 { font-family: var(--serif); font-size: 1.3rem; font-weight: normal; color: var(--ink); margin-bottom: 0.5rem; }
         p { color: var(--mid); margin-bottom: 1rem; }
         p:last-child { margin-bottom: 0; }
 
-        .group-section { background: #C8600A; color: #fff; position: relative; overflow: hidden; }
-        .group-section p { color: rgba(255,255,255,0.92); }
+        .group-section { background: #B05208; color: #fff; position: relative; overflow: hidden; }
+        .group-section p { color: #fff; }
         .group-section h2 { color: #fff; }
-        .group-section .eyebrow { color: var(--gold); }
+        .group-section .eyebrow { color: #fff; }
         .big-3 { display: none; }
         .group-inner { position: relative; z-index: 1; text-align: center; }
         .group-inner h2 { margin: 0 auto; }
@@ -295,7 +295,7 @@ export default async function WebsitePage() {
         .steps { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 2rem; }
         .step { display: flex; gap: 1.25rem; align-items: flex-start; }
         .step-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
-        .gfo-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--gold-soft); border: 1px solid var(--gold); color: var(--gold); font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem; border-radius: var(--radius); margin-top: 1.5rem; }
+        .gfo-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--gold-soft); border: 1px solid var(--gold); color: #6B4009; font-size: 0.82rem; font-weight: 600; padding: 0.4rem 1rem; border-radius: var(--radius); margin-top: 1.5rem; }
         .melde-box { margin-top: 2.5rem; background: var(--green-soft); border-left: 4px solid var(--green); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
         .melde-box h3 { margin-bottom: 0.25rem; }
         .melde-box p { margin: 0; font-size: 0.92rem; }
@@ -314,7 +314,7 @@ export default async function WebsitePage() {
 
         .kontakt-section { background: #1C4A10; color: #fff; }
         .kontakt-section h2 { color: #fff; }
-        .kontakt-section .eyebrow { color: var(--gold); }
+        .kontakt-section .eyebrow { color: #E8C070; }
         .kontakt-section p { color: rgba(255,255,255,0.92); }
         .kontakt-form { margin-top: 2rem; display: grid; gap: 1rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -327,7 +327,7 @@ export default async function WebsitePage() {
         .form-group textarea { resize: vertical; min-height: 100px; }
 
         footer { background: #1a1208; color: rgba(255,255,255,0.75); text-align: center; padding: 1.25rem 1rem; font-size: 0.88rem; line-height: 1.8; }
-        footer a { color: #C8881A; text-decoration: none; transition: color 0.15s; }
+        footer a { color: #C8881A; text-decoration: underline; transition: color 0.15s; }
         footer a:hover { color: #e0a030; }
         footer .piloten-link { color: rgba(255,255,255,0.5); font-size: 0.78rem; }
         footer .piloten-link:hover { color: rgba(255,255,255,0.8); }
@@ -364,6 +364,8 @@ export default async function WebsitePage() {
 
         /* Stimmen */
         .stimmen-section { background: #A63228; color: #fff; }
+        .stimmen-section .eyebrow { color: rgba(255,255,255,0.9); }
+        .stimmen-section h2 { color: #fff; }
         .stimmen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
         .stimme-card { background: #F5E5D8; border: 1px solid rgba(166,50,40,0.15); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; color: #1C1208; }
         .stimme-quote { font-size: 0.97rem; color: var(--mid); line-height: 1.65; font-style: italic; position: relative; padding-left: 1.25rem; }
@@ -532,7 +534,7 @@ export default async function WebsitePage() {
                   : <div className="fahrzeug-placeholder placeholder-lotte">
                       <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
                       Rikscha
-                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                      <span style={{fontSize:'0.65rem',color:'#6B5A3A'}}>Foto folgt</span>
                     </div>
                 }
               </div>
@@ -553,7 +555,7 @@ export default async function WebsitePage() {
                   : <div className="fahrzeug-placeholder placeholder-flitzer">
                       <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
                       Liegetandem
-                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                      <span style={{fontSize:'0.65rem',color:'#6B5A3A'}}>Foto folgt</span>
                     </div>
                 }
               </div>
@@ -574,7 +576,7 @@ export default async function WebsitePage() {
                   : <div className="fahrzeug-placeholder placeholder-piter">
                       <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
                       Paralleltandem
-                      <span style={{fontSize:'0.65rem',opacity:0.6}}>Foto folgt</span>
+                      <span style={{fontSize:'0.65rem',color:'#6B5A3A'}}>Foto folgt</span>
                     </div>
                 }
               </div>
@@ -783,7 +785,7 @@ export default async function WebsitePage() {
             <a href="/buchen" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid #C8881A',textDecoration:'none',color:'inherit'}}>
               <span style={{fontSize:'2.5rem'}}>🚲</span>
               <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Fahrt anfragen</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>Wunschdatum direkt eintragen</div></div>
-              <span style={{padding:'0.5rem 1.25rem',background:'#C8881A',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Jetzt buchen ↗</span>
+              <span style={{padding:'0.5rem 1.25rem',background:'#7A4F0B',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Jetzt buchen ↗</span>
             </a>
             <a href="/api/ical" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
               <span style={{fontSize:'2.5rem'}}>📆</span>
@@ -811,7 +813,7 @@ export default async function WebsitePage() {
             </div>
             <div style={{display:'flex',gap:'0.6rem',flexWrap:'wrap'}}>
               <a href="/galerie" style={{display:'inline-block',padding:'0.55rem 1rem',background:'#fff',color:'var(--green)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>👍 Jetzt abstimmen →</a>
-              <a href="/galerie/hochladen" style={{display:'inline-block',padding:'0.55rem 1rem',background:'rgba(255,255,255,0.2)',color:'#fff',border:'1px solid rgba(255,255,255,0.4)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>📸 Foto einreichen</a>
+              <a href="/galerie/hochladen" style={{display:'inline-block',padding:'0.55rem 1rem',background:'rgba(255,255,255,0.2)',color:'#000',border:'1px solid rgba(255,255,255,0.4)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>📸 Foto einreichen</a>
             </div>
           </div>
 
@@ -863,7 +865,7 @@ export default async function WebsitePage() {
           {' · '}Ehrenamtliches Projekt der <a href="#">GFO</a>
           {' · '}📞 <a href="tel:022279328383">02227 9328383</a>
         </p>
-        <p style={{marginTop:'0.6rem',fontSize:'0.78rem',color:'rgba(255,255,255,0.4)'}}>
+        <p style={{marginTop:'0.6rem',fontSize:'0.78rem',color:'rgba(255,255,255,0.65)'}}>
           <a href="/impressum">Impressum</a> &nbsp;·&nbsp;
           <a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp;
           <PilotenFooterLink /> &nbsp;·&nbsp; © 2025
