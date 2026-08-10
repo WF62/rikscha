@@ -82,7 +82,7 @@ function saveStart(p: [number, number]) {
 }
 
 // Routenberechnung via OSRM (OpenStreetMap-basiert, kostenlos, kein API-Key)
-async function berechneRoute(waypoints: [number, number][]): Promise<[number, number][] | null> {
+async function berechneRoute(waypoints: [number, number][]): Promise<{ geom: [number, number][]; distanzKm: number } | null> {
   if (waypoints.length < 2) return null;
   const coords = waypoints.map(([lat, lon]) => `${lon},${lat}`).join(';');
   try {
@@ -92,12 +92,41 @@ async function berechneRoute(waypoints: [number, number][]): Promise<[number, nu
     );
     if (!res.ok) return null;
     const data = await res.json();
-    const geom = data?.routes?.[0]?.geometry?.coordinates;
-    if (!geom) return null;
-    // OSRM gibt [lon, lat] zurück — wir brauchen [lat, lon] für Leaflet
-    return geom.map(([lon, lat]: [number, number]) => [lat, lon] as [number, number]);
+    const route = data?.routes?.[0];
+    if (!route?.geometry?.coordinates) return null;
+    const geom: [number, number][] = route.geometry.coordinates.map(
+      ([lon, lat]: [number, number]) => [lat, lon] as [number, number]
+    );
+    const distanzKm = Math.round((route.distance / 1000) * 10) / 10;
+    return { geom, distanzKm };
   } catch {
-    return null; // Fallback: gerade Linien
+    return null;
+  }
+}
+
+// Höhendaten für eine Route (OpenTopoData, kostenlos, kein API-Key)
+// Maximal 100 Punkte pro Anfrage → gleichmäßig samplen
+async function fetchHoehenprofil(punkte: [number, number][]): Promise<number[] | null> {
+  if (punkte.length < 2) return null;
+  const MAX = 80;
+  const step = Math.max(1, Math.floor(punkte.length / MAX));
+  const sample: [number, number][] = [];
+  for (let i = 0; i < punkte.length; i += step) sample.push(punkte[i]);
+  if (sample[sample.length - 1] !== punkte[punkte.length - 1])
+    sample.push(punkte[punkte.length - 1]);
+
+  try {
+    const locations = sample.map(([lat, lon]) => `${lat},${lon}`).join('|');
+    const res = await fetch(
+      `https://api.opentopodata.org/v1/srtm30m?locations=${locations}`,
+      { signal: AbortSignal.timeout(12000) }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.status !== 'OK') return null;
+    return data.results.map((r: { elevation: number }) => Math.round(r.elevation));
+  } catch {
+    return null;
   }
 }
 
@@ -179,6 +208,9 @@ export default function TourenKarte() {
   // Berechnete Routengeometrien (entlang echter Wege)
   const [routeGeom, setRouteGeom] = useState<Record<string, [number, number][]>>({});
   const [routeBerechnung, setRouteBerechnung] = useState<Record<string, 'idle' | 'loading' | 'ok' | 'fallback'>>({});
+  const [routeDistanz, setRouteDistanz] = useState<Record<string, number>>({});
+  const [hoehenProfile, setHoehenProfile] = useState<Record<string, number[]>>({});
+  const [hoehenLaden, setHoehenLaden] = useState<Record<string, boolean>>({});
   const [kopiert, setKopiert] = useState(false);
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -244,11 +276,14 @@ export default function TourenKarte() {
 
     setRouteBerechnung(prev => ({ ...prev, [tourId]: 'loading' }));
 
-    const geom = await berechneRoute(wps);
-    const punkte = geom ?? wps; // Fallback: gerade Linien
+    const result = await berechneRoute(wps);
+    const punkte = result?.geom ?? wps; // Fallback: gerade Linien
 
     setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
-    setRouteBerechnung(prev => ({ ...prev, [tourId]: geom ? 'ok' : 'fallback' }));
+    setRouteBerechnung(prev => ({ ...prev, [tourId]: result ? 'ok' : 'fallback' }));
+    if (result?.distanzKm) {
+      setRouteDistanz(prev => ({ ...prev, [tourId]: result.distanzKm }));
+    }
 
     // Polyline neu zeichnen
     polylineRefs.current[tourId]?.remove();
@@ -272,6 +307,13 @@ export default function TourenKarte() {
     zielMarkerRefs.current[tourId] = L.marker(ziel, { icon: zielIcon })
       .addTo(map)
       .bindPopup(`<strong>${meta.name}</strong><br>${meta.laenge} · ${meta.dauer}`);
+
+    // Höhenprofil im Hintergrund laden
+    setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
+    fetchHoehenprofil(punkte).then(profil => {
+      if (profil) setHoehenProfile(prev => ({ ...prev, [tourId]: profil }));
+      setHoehenLaden(prev => ({ ...prev, [tourId]: false }));
+    });
   }, []);
 
   // Ref damit Marker-Handler immer aktuelle waypoints+setter sehen
@@ -727,58 +769,147 @@ export default function TourenKarte() {
       </div>
 
       {/* Tour-Detail */}
-      {aktiveTourData && !editModus && (
-        <div style={{ borderRadius: 12, border: `2px solid ${aktiveTourData.farbe}`, background: 'var(--surface)', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem 1.25rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 180 }}>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: aktiveTourData.farbe, marginBottom: '0.3rem' }}>{aktiveTourData.name}</div>
-              <p style={{ fontSize: '0.88rem', color: 'var(--ink)', margin: 0 }}>{aktiveTourData.beschreibung}</p>
-            </div>
-            <div style={{ display: 'flex', gap: '1.5rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.laenge}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--mid)' }}>Strecke</div>
+      {aktiveTourData && !editModus && (() => {
+        const tid = aktiveTourData.id;
+        const distanz = routeDistanz[tid];
+        const profil = hoehenProfile[tid];
+        const profilLaedt = hoehenLaden[tid];
+        const anstieg = profil ? profil.reduce((s, h, i) => i > 0 && h > profil[i-1] ? s + (h - profil[i-1]) : s, 0) : null;
+        const abstieg = profil ? profil.reduce((s, h, i) => i > 0 && h < profil[i-1] ? s + (profil[i-1] - h) : s, 0) : null;
+        const hoehMin = profil ? Math.min(...profil) : null;
+        const hoehMax = profil ? Math.max(...profil) : null;
+        return (
+          <div style={{ borderRadius: 12, border: `2px solid ${aktiveTourData.farbe}`, background: 'var(--surface)', overflow: 'hidden' }}>
+            {/* Kopfzeile */}
+            <div style={{ padding: '1rem 1.25rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontWeight: 700, fontSize: '1rem', color: aktiveTourData.farbe, marginBottom: '0.3rem' }}>{aktiveTourData.name}</div>
+                <p style={{ fontSize: '0.88rem', color: 'var(--ink)', margin: 0 }}>{aktiveTourData.beschreibung}</p>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.dauer}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--mid)' }}>Dauer</div>
-              </div>
-              <button
-                onClick={() => {
-                  const geom = routeGeom[aktiveTourData.id] ?? getWaypoints(aktiveTourData.id);
-                  if (geom.length >= 2) exportGPX(aktiveTourData.name, geom);
-                }}
-                disabled={(routeGeom[aktiveTourData.id] ?? getWaypoints(aktiveTourData.id)).length < 2}
-                style={btnStyle(aktiveTourData.farbe, (routeGeom[aktiveTourData.id] ?? getWaypoints(aktiveTourData.id)).length < 2)}>
-                📤 Tour laden (GPX)
-              </button>
-            </div>
-          </div>
-          {/* Foto-Galerie */}
-          {(aktiveTourData.fotos?.length ?? 0) > 0 && (
-            <div style={{ padding: '0 1.25rem 1rem', display: 'flex', gap: '0.75rem', overflowX: 'auto' }}>
-              {aktiveTourData.fotos!.map((foto, i) => (
-                <div key={i} style={{ flexShrink: 0, textAlign: 'center' }}>
-                  {foto.src ? (
-                    <img src={foto.src} alt={foto.titel}
-                      style={{ width: 140, height: 100, objectFit: 'cover', borderRadius: 8, display: 'block', border: `2px solid ${aktiveTourData.farbe}` }} />
-                  ) : (
-                    <div style={{ width: 140, height: 100, background: `${aktiveTourData.farbe}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `2px dashed ${aktiveTourData.farbe}66` }}>
-                      <span style={{ fontSize: '1.75rem' }}>📷</span>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--mid)', marginTop: 4 }}>Foto folgt</span>
-                    </div>
-                  )}
-                  <div style={{ fontSize: '0.72rem', color: 'var(--mid)', marginTop: '0.3rem', maxWidth: 140 }}>{foto.titel}</div>
+              {/* Kennzahlen */}
+              <div style={{ display: 'flex', gap: '1rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>
+                    {distanz ? `${distanz} km` : aktiveTourData.laenge}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Strecke</div>
                 </div>
-              ))}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>{aktiveTourData.dauer}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Dauer</div>
+                </div>
+                {anstieg !== null && (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#2D6B1E' }}>↑ {anstieg} m</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Anstieg</div>
+                  </div>
+                )}
+                {abstieg !== null && (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#B45309' }}>↓ {abstieg} m</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Abstieg</div>
+                  </div>
+                )}
+                <button
+                  onClick={() => { const g = routeGeom[tid] ?? getWaypoints(tid); if (g.length >= 2) exportGPX(aktiveTourData.name, g); }}
+                  disabled={(routeGeom[tid] ?? getWaypoints(tid)).length < 2}
+                  style={btnStyle(aktiveTourData.farbe, (routeGeom[tid] ?? getWaypoints(tid)).length < 2)}>
+                  📤 Tour laden (GPX)
+                </button>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Höhenprofil */}
+            {(profil || profilLaedt) && (
+              <div style={{ padding: '0 1.25rem 1rem' }}>
+                {profilLaedt && !profil && (
+                  <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mid)', fontSize: '0.8rem' }}>
+                    Höhenprofil wird geladen…
+                  </div>
+                )}
+                {profil && <HoehenProfilChart profil={profil} farbe={aktiveTourData.farbe} hoehMin={hoehMin!} hoehMax={hoehMax!} />}
+              </div>
+            )}
+
+            {/* Foto-Galerie */}
+            {(aktiveTourData.fotos?.length ?? 0) > 0 && (
+              <div style={{ padding: '0 1.25rem 1rem', display: 'flex', gap: '0.75rem', overflowX: 'auto' }}>
+                {aktiveTourData.fotos!.map((foto, i) => (
+                  <div key={i} style={{ flexShrink: 0, textAlign: 'center' }}>
+                    {foto.src ? (
+                      <img src={foto.src} alt={foto.titel}
+                        style={{ width: 140, height: 100, objectFit: 'cover', borderRadius: 8, display: 'block', border: `2px solid ${aktiveTourData.farbe}` }} />
+                    ) : (
+                      <div style={{ width: 140, height: 100, background: `${aktiveTourData.farbe}22`, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `2px dashed ${aktiveTourData.farbe}66` }}>
+                        <span style={{ fontSize: '1.75rem' }}>📷</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--mid)', marginTop: 4 }}>Foto folgt</span>
+                      </div>
+                    )}
+                    <div style={{ fontSize: '0.72rem', color: 'var(--mid)', marginTop: '0.3rem', maxWidth: 140 }}>{foto.titel}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <p style={{ fontSize: '0.75rem', color: 'var(--mid)', margin: 0 }}>
         Kartendaten: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style={{ color: 'var(--mid)' }}>OpenStreetMap</a>-Mitwirkende · Routing: OSRM
       </p>
+    </div>
+  );
+}
+
+function HoehenProfilChart({ profil, farbe, hoehMin, hoehMax }: {
+  profil: number[];
+  farbe: string;
+  hoehMin: number;
+  hoehMax: number;
+}) {
+  const W = 600;
+  const H = 90;
+  const PAD = { top: 8, bottom: 20, left: 36, right: 8 };
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+  const spanne = Math.max(hoehMax - hoehMin, 5);
+
+  const punkte = profil.map((h, i) => {
+    const x = PAD.left + (i / (profil.length - 1)) * innerW;
+    const y = PAD.top + innerH - ((h - hoehMin) / spanne) * innerH;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  const flaecheUnten = H - PAD.bottom;
+  const pfad = `M${punkte[0]} ${punkte.slice(1).map(p => `L${p}`).join(' ')} L${PAD.left + innerW},${flaecheUnten} L${PAD.left},${flaecheUnten} Z`;
+  const linie = `M${punkte.join(' L')}`;
+
+  // Y-Achse: 3 Marken
+  const yMarken = [hoehMin, Math.round((hoehMin + hoehMax) / 2), hoehMax];
+
+  return (
+    <div>
+      <div style={{ fontSize: '0.75rem', color: 'var(--mid)', marginBottom: '0.25rem', fontWeight: 600 }}>Höhenprofil</div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }} aria-label="Höhenprofil der Tour">
+        {/* Füllbereich */}
+        <path d={pfad} fill={farbe} fillOpacity={0.18} />
+        {/* Linie */}
+        <path d={linie} fill="none" stroke={farbe} strokeWidth={2} strokeLinejoin="round" />
+        {/* Y-Marken */}
+        {yMarken.map((m, i) => {
+          const y = PAD.top + innerH - ((m - hoehMin) / spanne) * innerH;
+          return (
+            <g key={i}>
+              <line x1={PAD.left - 3} y1={y} x2={PAD.left + innerW} y2={y} stroke="var(--border)" strokeWidth={0.5} strokeDasharray="3 3" />
+              <text x={PAD.left - 5} y={y + 4} textAnchor="end" fontSize={9} fill="var(--mid)">{m}m</text>
+            </g>
+          );
+        })}
+        {/* X-Achse */}
+        <line x1={PAD.left} y1={H - PAD.bottom} x2={PAD.left + innerW} y2={H - PAD.bottom} stroke="var(--border)" strokeWidth={1} />
+        <text x={PAD.left} y={H - 4} fontSize={9} fill="var(--mid)">Start</text>
+        <text x={PAD.left + innerW} y={H - 4} fontSize={9} fill="var(--mid)" textAnchor="end">Ziel</text>
+      </svg>
     </div>
   );
 }
