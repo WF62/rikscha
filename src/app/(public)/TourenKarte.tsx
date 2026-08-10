@@ -284,22 +284,29 @@ export default function TourenKarte() {
 
       const marker = L.marker(p, { icon, draggable: true }).addTo(map);
 
-      // Popup mit Löschen-Button
+      // Rechtsklick / Kontextmenü → sofort löschen
+      marker.on('contextmenu', (e: { originalEvent: Event }) => {
+        e.originalEvent.preventDefault();
+        e.originalEvent.stopPropagation();
+        deleteWaypointRef.current(tourId, i);
+      });
+
+      // Linksklick → Popup mit Löschen-Button (auch für Touch ohne Rechtsklick)
       marker.bindPopup(`
-        <div style="text-align:center;min-width:120px">
-          <div style="font-size:0.8rem;font-weight:700;margin-bottom:6px">Wegpunkt ${i + 1}</div>
-          <div style="font-size:0.72rem;color:#666;margin-bottom:8px">${p[0].toFixed(5)}, ${p[1].toFixed(5)}</div>
-          <button id="del-wp-${i}"
-            style="padding:4px 12px;background:#DC2626;color:#fff;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;font-weight:600">
-            ✕ Löschen
+        <div style="text-align:center;min-width:130px">
+          <div style="font-size:0.8rem;font-weight:700;margin-bottom:4px">Wegpunkt ${i + 1}</div>
+          <div style="font-size:0.7rem;color:#666;margin-bottom:8px">${p[0].toFixed(5)}, ${p[1].toFixed(5)}</div>
+          <button id="del-wp-${tourId}-${i}"
+            style="padding:5px 14px;background:#DC2626;color:#fff;border:none;border-radius:6px;font-size:0.82rem;cursor:pointer;font-weight:700;width:100%">
+            ✕ Wegpunkt löschen
           </button>
         </div>
       `);
 
       marker.on('popupopen', () => {
-        const btn = document.getElementById(`del-wp-${i}`);
-        if (btn) btn.onclick = (e) => {
-          e.stopPropagation();
+        const btn = document.getElementById(`del-wp-${tourId}-${i}`);
+        if (btn) btn.onclick = (ev) => {
+          ev.stopPropagation();
           marker.closePopup();
           deleteWaypointRef.current(tourId, i);
         };
@@ -598,9 +605,18 @@ export default function TourenKarte() {
               <summary style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
                 Wegpunkte anzeigen ({editWps.length})
               </summary>
-              <pre style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: 'rgba(0,0,0,0.06)', borderRadius: 6, fontSize: '0.72rem', overflowX: 'auto', lineHeight: 1.6 }}>
-                {editWps.map((p, i) => `[${p[0]}, ${p[1]}]${i < editWps.length - 1 ? ',' : ''}`).join('\n')}
-              </pre>
+              <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {editWps.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.5rem', background: 'rgba(0,0,0,0.06)', borderRadius: 6, fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                    <span style={{ minWidth: 18, fontWeight: 700, color: editMeta?.farbe }}>{i + 1}</span>
+                    <span style={{ flex: 1 }}>{p[0].toFixed(5)}, {p[1].toFixed(5)}</span>
+                    <button onClick={() => deleteWaypointRef.current(editTourId, i)}
+                      style={{ padding: '2px 7px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700, lineHeight: 1 }}>
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </details>
           )}
         </div>
