@@ -34,7 +34,6 @@ export default function PilotenModal() {
   const [ordnerMsg, setOrdnerMsg] = useState<Record<string, string>>({});
   const [ordnerBesitzer, setOrdnerBesitzer] = useState('');
   const [erstanmeldung, setErstanmeldung] = useState(false);
-  const [pilotRolle, setPilotRolle] = useState('');
   const [dokumente, setDokumente] = useState<Dokument[]>([]);
   const [dokLaden, setDokLaden] = useState(false);
   const [dokUploading, setDokUploading] = useState(false);

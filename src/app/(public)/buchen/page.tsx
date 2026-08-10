@@ -105,8 +105,8 @@ function BuchenFormular() {
           )}
 
           {/* Fahrzeug */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Fahrzeug</label>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className="block text-sm font-semibold mb-1">Fahrzeug</legend>
             <div className="grid grid-cols-1 gap-2">
               {FAHRZEUGE.map((f) => (
                 <label key={f.id}
@@ -131,12 +131,12 @@ function BuchenFormular() {
                 </label>
               )}
             </div>
-          </div>
+          </fieldset>
 
           {/* Pilot – nur für eingeloggte Piloten (nicht für Angehörige) */}
           {istPilot && !istAngehoeriger && (
-          <div>
-            <label className="block text-sm font-semibold mb-1">Pilot</label>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className="block text-sm font-semibold mb-1">Pilot</legend>
             <div className="grid grid-cols-2 gap-2">
               {PILOTEN.map((p) => (
                 <label key={p}
@@ -159,7 +159,7 @@ function BuchenFormular() {
                 <span className="text-sm font-medium text-cyan-700">Folgt noch</span>
               </label>
             </div>
-          </div>
+          </fieldset>
           )}
 
           {/* Automatisch erkannter Typ */}
@@ -184,33 +184,33 @@ function BuchenFormular() {
 
           {/* Datum */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Datum</label>
-            <input type="date" value={form.datum} onChange={(e) => setForm({ ...form, datum: e.target.value })}
+            <label htmlFor="buchen-datum" className="block text-sm font-semibold mb-1">Datum</label>
+            <input id="buchen-datum" type="date" value={form.datum} onChange={(e) => setForm({ ...form, datum: e.target.value })}
               required className="w-full border rounded px-3 py-2" />
-            {gesperrt && <p className="text-red-600 text-xs mt-1">&#9888; {fahrzeug?.name} ist an diesem Tag gesperrt!</p>}
+            {gesperrt && <p role="alert" className="text-red-600 text-xs mt-1">&#9888; {fahrzeug?.name} ist an diesem Tag gesperrt!</p>}
           </div>
 
           {/* Zeit */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold mb-1">Startzeit</label>
-              <input type="time" value={form.startzeit} onChange={(e) => setForm({ ...form, startzeit: e.target.value })}
+              <label htmlFor="buchen-startzeit" className="block text-sm font-semibold mb-1">Startzeit</label>
+              <input id="buchen-startzeit" type="time" value={form.startzeit} onChange={(e) => setForm({ ...form, startzeit: e.target.value })}
                 required className="w-full border rounded px-3 py-2" />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Endzeit</label>
-              <input type="time" value={form.endzeit} onChange={(e) => setForm({ ...form, endzeit: e.target.value })}
+              <label htmlFor="buchen-endzeit" className="block text-sm font-semibold mb-1">Endzeit</label>
+              <input id="buchen-endzeit" type="time" value={form.endzeit} onChange={(e) => setForm({ ...form, endzeit: e.target.value })}
                 required className="w-full border rounded px-3 py-2" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-1">Notiz (optional)</label>
-            <textarea value={form.notiz} onChange={(e) => setForm({ ...form, notiz: e.target.value })}
+            <label htmlFor="buchen-notiz" className="block text-sm font-semibold mb-1">Notiz (optional)</label>
+            <textarea id="buchen-notiz" value={form.notiz} onChange={(e) => setForm({ ...form, notiz: e.target.value })}
               rows={2} className="w-full border rounded px-3 py-2 text-sm" placeholder="z.B. Treffpunkt, Anlass..." />
           </div>
 
-          {fehler && <p className="text-red-600 text-sm">{fehler}</p>}
+          {fehler && <p role="alert" className="text-red-600 text-sm">{fehler}</p>}
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={() => router.push('/')}

@@ -1,25 +1,54 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const close = () => {
     setOpen(false);
     document.body.style.overflow = '';
+    setTimeout(() => btnRef.current?.focus(), 10);
   };
 
   const toggle = () => {
     const next = !open;
     setOpen(next);
     document.body.style.overflow = next ? 'hidden' : '';
+    if (next) {
+      setTimeout(() => menuRef.current?.querySelector<HTMLElement>('a')?.focus(), 50);
+    }
   };
+
+  // Fokusfalle & Escape-Taste
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key !== 'Tab') return;
+      const focusable = menuRef.current?.querySelectorAll<HTMLElement>('a, button');
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open]);
 
   return (
     <>
       <button
+        ref={btnRef}
         onClick={toggle}
-        aria-label="Menü öffnen"
+        aria-label={open ? 'Menü schließen' : 'Menü öffnen'}
+        aria-expanded={open}
+        aria-controls="mobile-menu"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -49,18 +78,25 @@ export default function HamburgerMenu() {
       </button>
 
       {open && (
-        <div style={{
-          display: 'flex', flexDirection: 'column',
-          position: 'fixed', top: '52px', left: 0, right: 0, bottom: 0,
-          background: '#2D6B1E', zIndex: 999, overflowY: 'auto',
-          padding: '1.5rem 2rem 3rem',
-        }}>
+        <div
+          ref={menuRef}
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+          style={{
+            display: 'flex', flexDirection: 'column',
+            position: 'fixed', top: '52px', left: 0, right: 0, bottom: 0,
+            background: '#2D6B1E', zIndex: 999, overflowY: 'auto',
+            padding: '1.5rem 2rem 3rem',
+          }}>
           {[
             { href: '#fahrten', label: 'Fahrten' },
             { href: '#fahrzeuge', label: 'Fahrzeuge' },
             { href: '#team', label: 'Team' },
             { href: '#touren', label: 'Touren' },
             { href: '#ausbildung', label: 'Mitmachen' },
+            { href: '#stimmen', label: 'Stimmen' },
             { href: '#spenden', label: 'Spenden' },
             { href: '/galerie', label: 'Galerie' },
             { href: '#kontakt', label: 'Kontakt' },
@@ -74,17 +110,17 @@ export default function HamburgerMenu() {
             color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
             marginTop: '1rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
-          }}>➕ Fahrt buchen</a>
+          }}>Fahrt buchen</a>
           <a href="/gutschein" onClick={close} style={{
             color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
             marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
-          }}>🎁 Gutschein</a>
+          }}>Gutschein</a>
           <a href="#" onClick={(e) => { e.preventDefault(); close(); window.dispatchEvent(new CustomEvent('open-piloten-modal')); }} style={{
             color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
             marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
-          }}>🔑 Piloten-Login</a>
+          }}>Piloten-Login</a>
         </div>
       )}
     </>

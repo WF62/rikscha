@@ -7,6 +7,8 @@ import PilotenModal from './PilotenModal';
 import Banner from '../(app)/Banner';
 import QrSpenden from './QrSpenden';
 import AusleihenButton from './AusleihenButton';
+import ThemeToggle from './ThemeToggle';
+import EinfacheSpracheToggle from './EinfacheSpracheToggle';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -171,12 +173,12 @@ export default async function WebsitePage() {
           --sans:  system-ui, -apple-system, Segoe UI, sans-serif;
         }
         @media (prefers-color-scheme: dark) {
-          :root {
+          :root:not([data-theme="light"]) {
             --green: #5DB84A; --green-mid: #4EA33A; --green-soft: #1A2E16;
             --gold: #E8A030; --gold-soft: #2A1E08;
             --ink: #F0EBE0; --mid: #A89880;
             --ground: #141008; --surface: #1C1610; --border: #3A3020;
-            --lotte-bg: #052e16; --flitzer-bg: #1e3a5f; --piter-bg: #431407;
+            --lotte-fg: #4ade80; --lotte-bg: #064e27; --flitzer-bg: #1e3a5f; --piter-bg: #431407;
           }
         }
         :root[data-theme="dark"] {
@@ -184,7 +186,7 @@ export default async function WebsitePage() {
           --gold: #E8A030; --gold-soft: #2A1E08;
           --ink: #F0EBE0; --mid: #A89880;
           --ground: #141008; --surface: #1C1610; --border: #3A3020;
-          --lotte-bg: #052e16; --flitzer-bg: #1e3a5f; --piter-bg: #431407;
+          --lotte-fg: #4ade80; --lotte-bg: #064e27; --flitzer-bg: #1e3a5f; --piter-bg: #431407;
         }
         :root[data-theme="light"] {
           --green: #1B4A12; --green-mid: #2E7A1F; --green-soft: #EBF3E7;
@@ -391,12 +393,31 @@ export default async function WebsitePage() {
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after { transition: none !important; animation: none !important; }
         }
+
+        /* Barrierefreiheit */
+        .skip-link { position: absolute; top: -48px; left: 0; background: var(--green); color: #fff; padding: 0.6rem 1.2rem; z-index: 10001; border-radius: 0 0 6px 0; font-weight: 600; text-decoration: none; transition: top 0.15s; }
+        .skip-link:focus { top: 0; }
+        :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 2px; }
+        a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+        input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-color: var(--gold); }
+
+        /* Einfache Sprache */
+        .einfach-alt { display: inline; }
+        .einfach-neu { display: none; }
+        html.einfache-sprache .einfach-alt { display: none; }
+        html.einfache-sprache .einfach-neu { display: inline; }
+        .einfach-alt-block { display: block; }
+        .einfach-neu-block { display: none; }
+        html.einfache-sprache .einfach-alt-block { display: none; }
+        html.einfache-sprache .einfach-neu-block { display: block; }
       `}</style>
+
+      <a href="#main-content" className="skip-link">Zum Hauptinhalt springen</a>
 
       {/* Navigation */}
       <nav aria-label="Hauptnavigation">
-        <a href="/" className="nav-logo">
-          <svg width="28" height="28" viewBox="0 0 100 100" style={{verticalAlign:'middle',marginRight:'0.5rem'}} fill="none">
+        <a href="/" className="nav-logo" aria-label="Mertener Rikschakutscher – Startseite">
+          <svg aria-hidden="true" focusable="false" width="28" height="28" viewBox="0 0 100 100" style={{verticalAlign:'middle',marginRight:'0.5rem'}} fill="none">
             <circle cx="50" cy="50" r="48" fill="#3A7A28"/>
             <circle cx="28" cy="68" r="10" stroke="white" strokeWidth="4"/>
             <circle cx="72" cy="68" r="10" stroke="white" strokeWidth="4"/>
@@ -417,20 +438,26 @@ export default async function WebsitePage() {
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
-          <li><a href="/buchen" className="nav-btn">➕ Fahrt buchen</a></li>
-          <li><a href="/gutschein" className="nav-btn">🎁 Gutschein</a></li>
+          <li><a href="/buchen" className="nav-btn">Fahrt buchen</a></li>
+          <li><a href="/gutschein" className="nav-btn">Gutschein</a></li>
           <li><PilotenNavLink /></li>
+          <li style={{display:'flex',gap:'0.4rem',alignItems:'center'}}><EinfacheSpracheToggle /><ThemeToggle /></li>
         </ul>
         <HamburgerMenu />
       </nav>
       <Banner />
+
+      <main id="main-content">
 
       {/* Hero */}
       <section className="hero">
         <div className="container">
           <div className="hero-eyebrow">{t.hero_eyebrow}</div>
           <h1>{t.hero_titel}</h1>
-          <p className="hero-sub">{t.hero_sub}</p>
+          <p className="hero-sub">
+            <span className="einfach-alt-block">{t.hero_sub}</span>
+            <span className="einfach-neu-block">Wir fahren Menschen durch Merten. Mit einem Fahrrad-Taxi. Das nennt man Rikscha. Die Fahrten kosten nichts. Alle sind willkommen.</span>
+          </p>
           <div className="vehicle-pills">
             <a href="#fahrzeug-lotte" className="pill pill-lotte">Flotte Lotte</a>
             <a href="#fahrzeug-flitzer" className="pill pill-flitzer">Flinker Flitzer</a>
@@ -451,14 +478,17 @@ export default async function WebsitePage() {
           <div className="group-inner">
             <div className="eyebrow">Das besondere Highlight</div>
             <h2>{t.fahrten_h2}</h2>
-            <p>{t.gruppenfahrten_1}</p>
+            <p>
+              <span className="einfach-alt-block">{t.gruppenfahrten_1}</span>
+              <span className="einfach-neu-block">Wir fahren gerne Menschen mit, die nicht gut laufen können. Auch Begleitpersonen dürfen mitfahren.</span>
+            </p>
             <p>{t.gruppenfahrten_2}</p>
             <div className="anlaesse-grid">
-              <div className="anlass"><span className="anlass-icon">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
-              <div className="anlass"><span className="anlass-icon">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
-              <div className="anlass"><span className="anlass-icon">👨‍👩‍👧‍👦</span><span className="anlass-label">Familienausflüge</span></div>
-              <div className="anlass"><span className="anlass-icon">🎉</span><span className="anlass-label">Vereinsfeste & Events</span></div>
-              <div className="anlass"><span className="anlass-icon">🌳</span><span className="anlass-label">Einfach so — zum Spaß</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">👨‍👩‍👧‍👦</span><span className="anlass-label">Familienausflüge</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎉</span><span className="anlass-label">Vereinsfeste & Events</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">🌳</span><span className="anlass-label">Einfach so — zum Spaß</span></div>
             </div>
           </div>
         </div>
@@ -508,8 +538,11 @@ export default async function WebsitePage() {
               <div>
                 <div className="fahrzeug-name">Flotte Lotte</div>
                 <div className="fahrzeug-typ">Rikscha</div>
-                <span className="fahrzeug-gaeste gaeste-lotte">👥 bis 2 Gäste</span>
-                <p>{t.lotte_text}</p>
+                <span className="fahrzeug-gaeste gaeste-lotte"><span aria-hidden="true">👥</span> bis 2 Gäste</span>
+                <p>
+                  <span className="einfach-alt-block">{t.lotte_text}</span>
+                  <span className="einfach-neu-block">Flotte Lotte ist unsere größte Rikscha. Es passen 2 Personen hinten rein. Die Fahrt ist bequem. Der Blick nach draußen ist schön.</span>
+                </p>
               </div>
             </div>
             <div className="fahrzeug-row" id="fahrzeug-flitzer">
@@ -526,8 +559,11 @@ export default async function WebsitePage() {
               <div>
                 <div className="fahrzeug-name">Flinker Flitzer</div>
                 <div className="fahrzeug-typ">Liegetandem</div>
-                <span className="fahrzeug-gaeste gaeste-flitzer">👤 1 Gast</span>
-                <p>{t.flitzer_text}</p>
+                <span className="fahrzeug-gaeste gaeste-flitzer"><span aria-hidden="true">👤</span> 1 Gast</span>
+                <p>
+                  <span className="einfach-alt-block">{t.flitzer_text}</span>
+                  <span className="einfach-neu-block">Der Flinke Flitzer ist ein Liegetandem. Die Person vorne liegt fast flach. Das ist anders als ein normaler Stuhl. Man kann von unten die Welt sehen. Man kann auch mittreten, wenn man möchte.</span>
+                </p>
               </div>
             </div>
             <div className="fahrzeug-row" id="fahrzeug-piter">
@@ -544,8 +580,11 @@ export default async function WebsitePage() {
               <div>
                 <div className="fahrzeug-name">Jruuse Piter</div>
                 <div className="fahrzeug-typ">Paralleltandem</div>
-                <span className="fahrzeug-gaeste gaeste-piter">👤 1 Gast</span>
-                <p>{t.piter_text}</p>
+                <span className="fahrzeug-gaeste gaeste-piter"><span aria-hidden="true">👤</span> 1 Gast</span>
+                <p>
+                  <span className="einfach-alt-block">{t.piter_text}</span>
+                  <span className="einfach-neu-block">Jruuse Piter ist ein Tandem. Gast und Pilot sitzen nebeneinander. Man fährt zusammen. Das macht das Gespräch leicht.</span>
+                </p>
               </div>
             </div>
           </div>
@@ -584,7 +623,10 @@ export default async function WebsitePage() {
             <div className="ausleihen-icon">🚲</div>
             <div className="ausleihen-text">
               <h3>{t.ausleihen_titel}</h3>
-              <p>{t.ausleihen_text}</p>
+              <p>
+                <span className="einfach-alt-block">{t.ausleihen_text}</span>
+                <span className="einfach-neu-block">Bist du ein Familien-Mitglied von einem unserer Gäste? Möchtest du öfter mit der Rikscha fahren? Dann melde dich bei uns. Wir erklären dir, wie das geht.</span>
+              </p>
               <AusleihenButton label={t.ausleihen_cta} />
             </div>
           </div>
@@ -690,7 +732,7 @@ export default async function WebsitePage() {
             <div className="spenden-card">
               <h3>🏦 Kreissparkasse Köln</h3>
               <p style={{fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.75rem'}}>QR-Code scannen — Daten werden automatisch eingetragen</p>
-              <canvas id="qr-ksk" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
+              <canvas id="qr-ksk" role="img" aria-label="QR-Code für Spende an Kreissparkasse Köln — scannt automatisch IBAN DE79 3705 0299 0049 0050 40" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
               <p style={{fontSize:'0.82rem',marginBottom:'0.25rem'}}>Kontoinhaber:</p>
               <span className="iban">Förderverein „Miteinander Kloster Merten e. V."</span>
               <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>IBAN:</p>
@@ -703,7 +745,7 @@ export default async function WebsitePage() {
             <div className="spenden-card">
               <h3>🏦 Volksbank Bonn Rhein-Sieg</h3>
               <p style={{fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.75rem'}}>QR-Code scannen — Daten werden automatisch eingetragen</p>
-              <canvas id="qr-vb" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
+              <canvas id="qr-vb" role="img" aria-label="QR-Code für Spende an Volksbank Bonn Rhein-Sieg — scannt automatisch IBAN DE14 3806 0186 0410 0560 11" width="160" height="160" style={{display:'block',margin:'0 auto 1rem',border:'1px solid var(--border)',borderRadius:4}}/>
               <p style={{fontSize:'0.82rem',marginBottom:'0.25rem'}}>Kontoinhaber:</p>
               <span className="iban">Förderverein „Miteinander Kloster Merten e. V."</span>
               <p style={{fontSize:'0.82rem',marginTop:'0.6rem',marginBottom:'0.25rem'}}>IBAN:</p>
@@ -803,15 +845,18 @@ export default async function WebsitePage() {
         <div className="container">
           <div className="eyebrow">Schreib uns</div>
           <h2>{t.kontakt_h2}</h2>
-          <p>{t.kontakt_text}</p>
-          <form className="kontakt-form">
+          <p>
+            <span className="einfach-alt-block">{t.kontakt_text}</span>
+            <span className="einfach-neu-block">Schreib uns eine Nachricht. Wir antworten dir bald. Du kannst auch anrufen: <a href="tel:022279328383">02227 9328383</a></span>
+          </p>
+          <form className="kontakt-form" aria-label="Kontaktformular">
             <div className="form-row">
-              <div className="form-group"><label>Name</label><input type="text" placeholder="Dein Name" required/></div>
-              <div className="form-group"><label>E-Mail</label><input type="email" placeholder="deine@email.de" required/></div>
+              <div className="form-group"><label htmlFor="kontakt-name">Name</label><input id="kontakt-name" type="text" placeholder="Dein Name" required/></div>
+              <div className="form-group"><label htmlFor="kontakt-email">E-Mail</label><input id="kontakt-email" type="email" placeholder="deine@email.de" required/></div>
             </div>
             <div className="form-group">
-              <label>Anliegen</label>
-              <select>
+              <label htmlFor="kontakt-anliegen">Anliegen</label>
+              <select id="kontakt-anliegen">
                 <option value="fahrt">Fahrt anfragen</option>
                 <option value="gruppe">Gruppenfahrt mit allen Rikschas</option>
                 <option value="pilot">Als Pilot mitmachen</option>
@@ -819,11 +864,13 @@ export default async function WebsitePage() {
                 <option value="frage">Allgemeine Frage</option>
               </select>
             </div>
-            <div className="form-group"><label>Nachricht</label><textarea placeholder="Wann, wie viele Personen, besondere Wünsche..."></textarea></div>
+            <div className="form-group"><label htmlFor="kontakt-nachricht">Nachricht</label><textarea id="kontakt-nachricht" placeholder="Wann, wie viele Personen, besondere Wünsche..."></textarea></div>
             <div><button type="submit" className="btn btn-gold">Nachricht senden</button></div>
           </form>
         </div>
       </section>
+
+      </main>
 
       {/* Footer */}
       <footer>
