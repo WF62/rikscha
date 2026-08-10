@@ -205,7 +205,12 @@ export default function TourenKarte() {
     }
     window.addEventListener('storage', onStorage);
     window.addEventListener('pilot-login', onStorage);
-    return () => { window.removeEventListener('storage', onStorage); window.removeEventListener('pilot-login', onStorage); };
+    document.addEventListener('visibilitychange', onStorage);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('pilot-login', onStorage);
+      document.removeEventListener('visibilitychange', onStorage);
+    };
   }, []);
   useEffect(() => { editModusRef.current = editModus; }, [editModus]);
   useEffect(() => { editTourIdRef.current = editTourId; }, [editTourId]);
