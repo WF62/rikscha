@@ -545,12 +545,18 @@ export default async function WebsitePage() {
         <div className="container">
           <div className="group-inner">
             <div className="eyebrow">Das besondere Highlight</div>
-            <h2>{t.fahrten_h2}</h2>
+            <h2>
+              <span className="einfach-alt-block">{t.fahrten_h2}</span>
+              <span className="einfach-neu-block">Drei Rikschas fahren zusammen. Das ist besonders schön.</span>
+            </h2>
             <p>
               <span className="einfach-alt-block">{t.gruppenfahrten_1}</span>
               <span className="einfach-neu-block">Wir fahren gerne Menschen mit, die nicht gut laufen können. Auch Begleitpersonen dürfen mitfahren.</span>
             </p>
-            <p>{t.gruppenfahrten_2}</p>
+            <p>
+              <span className="einfach-alt-block">{t.gruppenfahrten_2}</span>
+              <span className="einfach-neu-block">Ihr könnt alle drei Rikschas auf einmal buchen. Dann fahren alle zusammen. Das ist toll für Geburtstage oder Ausflüge aus dem Pflegeheim.</span>
+            </p>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
@@ -589,8 +595,14 @@ export default async function WebsitePage() {
       <section className="fahrzeuge-section" id="fahrzeuge">
         <div className="container">
           <div className="eyebrow">Unsere Flotte</div>
-          <h2>{t.fahrzeuge_h2}</h2>
-          <p>{t.fahrzeuge_intro}</p>
+          <h2>
+            <span className="einfach-alt-block">{t.fahrzeuge_h2}</span>
+            <span className="einfach-neu-block">Drei Rikschas — jede ist anders.</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.fahrzeuge_intro}</span>
+            <span className="einfach-neu-block">Jede Rikscha sieht anders aus und ist für andere Menschen gut geeignet.</span>
+          </p>
           <div className="fahrzeug-list">
             <div className="fahrzeug-row" id="fahrzeug-lotte">
               <div className="fahrzeug-foto-wrap">
@@ -663,8 +675,14 @@ export default async function WebsitePage() {
       <section className="piloten-section" id="team">
         <div className="container">
           <div className="eyebrow">Unser Team</div>
-          <h2>{t.team_h2}</h2>
-          <p>{t.team_text}</p>
+          <h2>
+            <span className="einfach-alt-block">{t.team_h2}</span>
+            <span className="einfach-neu-block">Elf Personen fahren freiwillig Rikscha.</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.team_text}</span>
+            <span className="einfach-neu-block">Alle machen das freiwillig und ohne Bezahlung. Sie fahren gerne Fahrrad und haben Freude daran, Menschen zu helfen.</span>
+          </p>
           <div className="piloten-grid">
             {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
               const [initials, name] = p.split('|');
@@ -690,7 +708,10 @@ export default async function WebsitePage() {
           <div className="ausleihen-box">
             <div className="ausleihen-icon">🚲</div>
             <div className="ausleihen-text">
-              <h3>{t.ausleihen_titel}</h3>
+              <h3>
+                <span className="einfach-alt-block">{t.ausleihen_titel}</span>
+                <span className="einfach-neu-block">Rikscha selbst fahren — für Familien-Mitglieder</span>
+              </h3>
               <p>
                 <span className="einfach-alt-block">{t.ausleihen_text}</span>
                 <span className="einfach-neu-block">Bist du ein Familien-Mitglied von einem unserer Gäste? Möchtest du öfter mit der Rikscha fahren? Dann melde dich bei uns. Wir erklären dir, wie das geht.</span>
@@ -707,8 +728,14 @@ export default async function WebsitePage() {
       <section className="fahrzeuge-section" id="touren">
         <div className="container">
           <div className="eyebrow">Unsere Ausflüge</div>
-          <h2>{t.touren_h2}</h2>
-          <p>{t.touren_intro}</p>
+          <h2>
+            <span className="einfach-alt-block">{t.touren_h2}</span>
+            <span className="einfach-neu-block">Schöne Orte in der Natur</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.touren_intro}</span>
+            <span className="einfach-neu-block">Wir fahren zu vielen schönen Orten. Zum Beispiel in die Heide, zu Tieren oder an den Rhein.</span>
+          </p>
           <div className="zukunft-grid" style={{marginTop:'2rem'}}>
             <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>{t.tour_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_1_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
@@ -724,8 +751,14 @@ export default async function WebsitePage() {
       <section className="ausbildung-section" id="ausbildung">
         <div className="container">
           <div className="eyebrow">Pilot werden</div>
-          <h2>{t.mitmachen_h2}</h2>
-          <p>{t.mitmachen_intro}</p>
+          <h2>
+            <span className="einfach-alt-block">{t.mitmachen_h2}</span>
+            <span className="einfach-neu-block">So kannst du Rikscha-Pilot werden</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.mitmachen_intro}</span>
+            <span className="einfach-neu-block">Du fährst gerne Fahrrad? Du magst Menschen? Dann komm zu uns!</span>
+          </p>
           <div className="steps">
             <div className="step"><div className="step-dot">1</div><div><h3>{t.schritt_1_titel}</h3><p>{t.schritt_1_text}</p></div></div>
             <div className="step"><div className="step-dot">2</div><div><h3>{t.schritt_2_titel}</h3><p>{t.schritt_2_text}</p></div></div>
@@ -746,8 +779,14 @@ export default async function WebsitePage() {
       <section className="zukunft-section">
         <div className="container">
           <div className="eyebrow">Ausblick</div>
-          <h2>{t.zukunft_h2}</h2>
-          <p>{t.zukunft_intro}</p>
+          <h2>
+            <span className="einfach-alt-block">{t.zukunft_h2}</span>
+            <span className="einfach-neu-block">Was wir noch planen</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.zukunft_intro}</span>
+            <span className="einfach-neu-block">Wir möchten noch mehr machen. Mit eurer Hilfe geht das leichter.</span>
+          </p>
           <div className="zukunft-grid">
             <div className="zukunft-card"><span className="zukunft-icon">🚲</span><h3>{t.zukunft_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_1_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🗺️</span><h3>{t.zukunft_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_2_text}</p></div>
@@ -794,8 +833,14 @@ export default async function WebsitePage() {
       <section className="spenden-section" id="spenden">
         <div className="container">
           <div className="eyebrow">Unterstützen</div>
-          <h2>{t.spenden_h2}</h2>
-          <p>{t.spenden_text}</p>
+          <h2>
+            <span className="einfach-alt-block">{t.spenden_h2}</span>
+            <span className="einfach-neu-block">Unsere Fahrten kosten nichts. Spenden sind willkommen.</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.spenden_text}</span>
+            <span className="einfach-neu-block">Wer möchte, kann uns Geld geben. Das Geld hilft uns, die Rikschas zu pflegen. Aber es ist freiwillig.</span>
+          </p>
           <div className="spenden-grid">
             <div className="spenden-card">
               <h3>🏦 Kreissparkasse Köln</h3>
@@ -839,8 +884,14 @@ export default async function WebsitePage() {
       <section className="fahrzeuge-section" id="kalender">
         <div className="container-wide">
           <div className="eyebrow">Termine</div>
-          <h2>Wann sind wir unterwegs?</h2>
-          <p>Schaut im Fahrtenkalender nach, wann wir unterwegs sind — oder bucht direkt eine eigene Fahrt.</p>
+          <h2>
+            <span className="einfach-alt-block">Wann sind wir unterwegs?</span>
+            <span className="einfach-neu-block">Wann fahren wir?</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">Schaut im Fahrtenkalender nach, wann wir unterwegs sind — oder bucht direkt eine eigene Fahrt.</span>
+            <span className="einfach-neu-block">Im Kalender seht ihr, wann wir fahren. Ihr könnt auch eine eigene Fahrt buchen.</span>
+          </p>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:'1.5rem',marginTop:'2rem'}}>
             <a href="/kalender" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
               <span style={{fontSize:'2.5rem'}}>📅</span>
