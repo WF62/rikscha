@@ -447,7 +447,7 @@ export default async function WebsitePage() {
       </nav>
       <Banner />
 
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
 
       {/* Hero */}
       <section className="hero">
