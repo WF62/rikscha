@@ -186,7 +186,7 @@ function BuchenFormular() {
           <div>
             <label htmlFor="buchen-datum" className="block text-sm font-semibold mb-1">Datum</label>
             <input id="buchen-datum" type="date" value={form.datum} onChange={(e) => setForm({ ...form, datum: e.target.value })}
-              required className="w-full border rounded px-3 py-2" />
+              className="w-full border rounded px-3 py-2" />
             {gesperrt && <p role="alert" className="text-red-600 text-xs mt-1">&#9888; {fahrzeug?.name} ist an diesem Tag gesperrt!</p>}
           </div>
 
@@ -195,12 +195,12 @@ function BuchenFormular() {
             <div>
               <label htmlFor="buchen-startzeit" className="block text-sm font-semibold mb-1">Startzeit</label>
               <input id="buchen-startzeit" type="time" value={form.startzeit} onChange={(e) => setForm({ ...form, startzeit: e.target.value })}
-                required className="w-full border rounded px-3 py-2" />
+                className="w-full border rounded px-3 py-2" />
             </div>
             <div>
               <label htmlFor="buchen-endzeit" className="block text-sm font-semibold mb-1">Endzeit</label>
               <input id="buchen-endzeit" type="time" value={form.endzeit} onChange={(e) => setForm({ ...form, endzeit: e.target.value })}
-                required className="w-full border rounded px-3 py-2" />
+                className="w-full border rounded px-3 py-2" />
             </div>
           </div>
 
