@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
+import nextDynamic from 'next/dynamic';
 import { createServiceClient } from '@/lib/supabase';
 import HamburgerMenu from './HamburgerMenu';
+
+const TourenKarte = nextDynamic(() => import('./TourenKarte'), { ssr: false });
 import PilotenFooterLink from './PilotenFooterLink';
 import PilotenNavLink from './PilotenNavLink';
 import PilotenModal from './PilotenModal';
@@ -741,6 +744,13 @@ export default async function WebsitePage() {
             <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_4_text}</p></div>
+          </div>
+
+          <div style={{marginTop:'2.5rem'}}>
+            <h3 style={{fontFamily:'var(--serif)',fontWeight:'normal',fontSize:'clamp(1.1rem,2vw,1.4rem)',marginBottom:'1rem',color:'var(--ink)'}}>
+              Alle Touren auf der Karte
+            </h3>
+            <TourenKarte />
           </div>
         </div>
       </section>
