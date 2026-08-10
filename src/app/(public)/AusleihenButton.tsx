@@ -10,10 +10,8 @@ export default function AusleihenButton({ label }: { label: string }) {
 
   function handleClick(e: React.MouseEvent) {
     if (rolle === 'angehoeriger') {
-      // bereits eingeloggt → direkt zur Buchung
       window.location.href = '/buchen';
     } else {
-      // nicht eingeloggt → Login-Modal öffnen
       e.preventDefault();
       window.dispatchEvent(new Event('open-piloten-modal'));
     }

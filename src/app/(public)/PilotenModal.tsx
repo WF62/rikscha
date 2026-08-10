@@ -20,6 +20,7 @@ export default function PilotenModal() {
   const [laden, setLaden] = useState(false);
   const [pilotName, setPilotName] = useState('');
   const [pilotPw, setPilotPw] = useState('');
+  const [pilotRolle, setPilotRolle] = useState('');
   const [bannerTexte, setBannerTexte] = useState<string[]>(['']);
   const [bannerSaving, setBannerSaving] = useState(false);
   const [fotoUploading, setFotoUploading] = useState<string | null>(null);
@@ -400,6 +401,35 @@ export default function PilotenModal() {
               {laden ? '…' : 'Passwort speichern & weiter'}
             </button>
           </>
+        )}
+
+        {/* ANGEHÖRIGEN-BEREICH */}
+        {ansicht === 'bereich' && pilotRolle === 'angehoeriger' && (
+          <div style={{ maxWidth: 420 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.8rem' }}>🚲</span>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#A63228', fontSize: '1.1rem' }}>Hallo, {pilotName}!</div>
+                  <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Bereich für Angehörige</div>
+                </div>
+              </div>
+              <button onClick={abmelden} style={{ padding: '0.4rem 1rem', border: '1.5px solid #D6CCB8', borderRadius: 8, background: 'transparent', color: '#6B5C44', fontSize: '0.82rem', cursor: 'pointer' }}>Abmelden</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              {[
+                { href: '/buchen',   icon: '➕', titel: 'Fahrt buchen',    sub: 'Rikscha reservieren',   border: '#A63228' },
+                { href: '/kalender', icon: '📅', titel: 'Kalender ansehen', sub: 'Gebuchte Termine',      border: '#D6CCB8' },
+              ].map(k => (
+                <a key={k.href} href={k.href} target="_blank"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5E5D8', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
+                  <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{k.titel}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#6B5C44' }}>{k.sub}</span>
+                </a>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* PILOTEN-BEREICH */}
