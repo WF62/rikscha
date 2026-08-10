@@ -163,7 +163,31 @@ export default function TourenKarte() {
       .bindPopup(`<strong>${meta.name}</strong><br>${meta.laenge} · ${meta.dauer}`);
   }, []);
 
-  // Waypoint-Marker der Edit-Tour zeichnen
+  // Ref damit Marker-Handler immer aktuelle waypoints+setter sehen
+  const deleteWaypointRef = useRef<(tourId: string, idx: number) => void>(() => {});
+  const moveWaypointRef = useRef<(tourId: string, idx: number, pos: [number, number]) => void>(() => {});
+
+  useEffect(() => {
+    deleteWaypointRef.current = (tourId: string, idx: number) => {
+      const wps = waypointsRef.current[tourId]
+        ?? TOUR_META.find(t => t.id === tourId)?.defaultWaypoints ?? [];
+      const updated = { ...waypointsRef.current, [tourId]: wps.filter((_, i) => i !== idx) };
+      saveWaypoints(updated);
+      setWaypoints(updated);
+      waypointsRef.current = updated;
+    };
+    moveWaypointRef.current = (tourId: string, idx: number, pos: [number, number]) => {
+      const wps = [...(waypointsRef.current[tourId]
+        ?? TOUR_META.find(t => t.id === tourId)?.defaultWaypoints ?? [])];
+      wps[idx] = pos;
+      const updated = { ...waypointsRef.current, [tourId]: wps };
+      saveWaypoints(updated);
+      setWaypoints(updated);
+      waypointsRef.current = updated;
+    };
+  });
+
+  // Waypoint-Marker der Edit-Tour zeichnen (draggable + einzeln löschbar)
   const redrawWpMarkers = useCallback((tourId: string, wps: [number, number][]) => {
     const L = LRef.current;
     const map = mapInstance.current;
@@ -171,13 +195,65 @@ export default function TourenKarte() {
     wpMarkerRefs.current.forEach(m => m.remove());
     wpMarkerRefs.current = [];
     const farbe = TOUR_META.find(t => t.id === tourId)?.farbe ?? '#333';
+
     wps.forEach((p, i) => {
-      const m = L.circleMarker(p, {
-        radius: i === 0 || i === wps.length - 1 ? 9 : 6,
-        color: '#fff', weight: 2, fillColor: farbe, fillOpacity: 1,
-      }).addTo(map);
-      m.bindTooltip(`Punkt ${i + 1}: ${p[0].toFixed(5)}, ${p[1].toFixed(5)}`, { direction: 'top' });
-      wpMarkerRefs.current.push(m);
+      const isEndpoint = i === 0 || i === wps.length - 1;
+      const icon = L.divIcon({
+        html: `<div style="
+          width:${isEndpoint ? 20 : 14}px;
+          height:${isEndpoint ? 20 : 14}px;
+          background:${farbe};
+          border:3px solid #fff;
+          border-radius:50%;
+          box-shadow:0 2px 6px rgba(0,0,0,0.4);
+          cursor:move;
+          display:flex;align-items:center;justify-content:center;
+          font-size:9px;color:#fff;font-weight:700;
+        ">${i + 1}</div>`,
+        className: '',
+        iconSize: [isEndpoint ? 20 : 14, isEndpoint ? 20 : 14],
+        iconAnchor: [isEndpoint ? 10 : 7, isEndpoint ? 10 : 7],
+      });
+
+      const marker = L.marker(p, { icon, draggable: true }).addTo(map);
+
+      // Popup mit Löschen-Button
+      marker.bindPopup(`
+        <div style="text-align:center;min-width:120px">
+          <div style="font-size:0.8rem;font-weight:700;margin-bottom:6px">Wegpunkt ${i + 1}</div>
+          <div style="font-size:0.72rem;color:#666;margin-bottom:8px">${p[0].toFixed(5)}, ${p[1].toFixed(5)}</div>
+          <button id="del-wp-${i}"
+            style="padding:4px 12px;background:#DC2626;color:#fff;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;font-weight:600">
+            ✕ Löschen
+          </button>
+        </div>
+      `);
+
+      marker.on('popupopen', () => {
+        const btn = document.getElementById(`del-wp-${i}`);
+        if (btn) btn.onclick = (e) => {
+          e.stopPropagation();
+          marker.closePopup();
+          deleteWaypointRef.current(tourId, i);
+        };
+      });
+
+      // Verschieben per Drag
+      marker.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+        const ll = e.target.getLatLng();
+        const pos: [number, number] = [
+          Math.round(ll.lat * 1e6) / 1e6,
+          Math.round(ll.lng * 1e6) / 1e6,
+        ];
+        moveWaypointRef.current(tourId, i, pos);
+      });
+
+      // Klick auf Marker soll nicht neuen Punkt setzen
+      marker.on('click', (e: { originalEvent: Event }) => {
+        e.originalEvent.stopPropagation();
+      });
+
+      wpMarkerRefs.current.push(marker);
     });
   }, []);
 
@@ -192,7 +268,7 @@ export default function TourenKarte() {
 
       const map = L.map(mapRef.current, {
         center: [50.763, 6.930], zoom: 13,
-        zoomControl: true, scrollWheelZoom: false,
+        zoomControl: true, scrollWheelZoom: true,
       });
       mapInstance.current = map;
 
