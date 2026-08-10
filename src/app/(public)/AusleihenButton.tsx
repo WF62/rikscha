@@ -2,16 +2,24 @@
 import { useEffect, useState } from 'react';
 
 export default function AusleihenButton({ label }: { label: string }) {
-  const [href, setHref] = useState('#kontakt');
+  const [rolle, setRolle] = useState<string | null>(null);
 
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle');
-    if (rolle === 'angehoeriger') {
-      setHref('/buchen');
-    }
+    setRolle(localStorage.getItem('pilot_rolle'));
   }, []);
 
+  function handleClick(e: React.MouseEvent) {
+    if (rolle === 'angehoeriger') {
+      // bereits eingeloggt → direkt zur Buchung
+      window.location.href = '/buchen';
+    } else {
+      // nicht eingeloggt → Login-Modal öffnen
+      e.preventDefault();
+      window.dispatchEvent(new Event('open-piloten-modal'));
+    }
+  }
+
   return (
-    <a href={href} className="btn btn-outline-dark">{label}</a>
+    <a href="/buchen" onClick={handleClick} className="btn btn-outline-dark">{label}</a>
   );
 }
