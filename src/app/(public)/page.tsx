@@ -7,6 +7,7 @@ import PilotenModal from './PilotenModal';
 import Banner from '../(app)/Banner';
 import QrSpenden from './QrSpenden';
 import AusleihenButton from './AusleihenButton';
+import KontaktFormular from './KontaktFormular';
 import ThemeToggle from './ThemeToggle';
 import EinfacheSpracheToggle from './EinfacheSpracheToggle';
 
@@ -849,24 +850,7 @@ export default async function WebsitePage() {
             <span className="einfach-alt-block">{t.kontakt_text}</span>
             <span className="einfach-neu-block">Schreib uns eine Nachricht. Wir antworten dir bald. Du kannst auch anrufen: <a href="tel:022279328383">02227 9328383</a></span>
           </p>
-          <form className="kontakt-form" aria-label="Kontaktformular">
-            <div className="form-row">
-              <div className="form-group"><label htmlFor="kontakt-name">Name</label><input id="kontakt-name" type="text" placeholder="Dein Name" required/></div>
-              <div className="form-group"><label htmlFor="kontakt-email">E-Mail</label><input id="kontakt-email" type="email" placeholder="deine@email.de" required/></div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="kontakt-anliegen">Anliegen</label>
-              <select id="kontakt-anliegen">
-                <option value="fahrt">Fahrt anfragen</option>
-                <option value="gruppe">Gruppenfahrt mit allen Rikschas</option>
-                <option value="pilot">Als Pilot mitmachen</option>
-                <option value="angehoeriger">Rikscha selbst steuern — für Angehörige</option>
-                <option value="frage">Allgemeine Frage</option>
-              </select>
-            </div>
-            <div className="form-group"><label htmlFor="kontakt-nachricht">Nachricht</label><textarea id="kontakt-nachricht" placeholder="Wann, wie viele Personen, besondere Wünsche..."></textarea></div>
-            <div><button type="submit" className="btn btn-gold">Nachricht senden</button></div>
-          </form>
+          <KontaktFormular />
         </div>
       </section>
 
