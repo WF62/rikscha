@@ -96,6 +96,7 @@ export default function PilotenModal() {
         localStorage.setItem('pilot_name', j.pilot);
         localStorage.setItem('pilot_pw', passwort);
         localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
+        window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw(passwort);
         setPilotRolle(j.rolle ?? 'pilot');
@@ -289,6 +290,7 @@ export default function PilotenModal() {
     localStorage.removeItem('pilot_name');
     localStorage.removeItem('pilot_pw');
     localStorage.removeItem('pilot_rolle');
+    window.dispatchEvent(new CustomEvent('pilot-login'));
     setPilotName('');
     setPilotPw('');
     setPasswort('');
