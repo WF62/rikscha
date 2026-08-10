@@ -6,6 +6,7 @@ import PilotenNavLink from './PilotenNavLink';
 import PilotenModal from './PilotenModal';
 import Banner from '../(app)/Banner';
 import QrSpenden from './QrSpenden';
+import AusleihenButton from './AusleihenButton';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -584,7 +585,7 @@ export default async function WebsitePage() {
             <div className="ausleihen-text">
               <h3>{t.ausleihen_titel}</h3>
               <p>{t.ausleihen_text}</p>
-              <a href="#kontakt" className="btn btn-outline-dark">{t.ausleihen_cta}</a>
+              <AusleihenButton label={t.ausleihen_cta} />
             </div>
           </div>
         </div>
