@@ -815,6 +815,7 @@ export default async function WebsitePage() {
                 <option value="fahrt">Fahrt anfragen</option>
                 <option value="gruppe">Gruppenfahrt mit allen Rikschas</option>
                 <option value="pilot">Als Pilot mitmachen</option>
+                <option value="angehoeriger">Rikscha selbst steuern — für Angehörige</option>
                 <option value="frage">Allgemeine Frage</option>
               </select>
             </div>
