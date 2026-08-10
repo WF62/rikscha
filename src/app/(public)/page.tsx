@@ -179,7 +179,9 @@ export default async function WebsitePage() {
             --gold: #E8A030; --gold-soft: #2A1E08;
             --ink: #F0EBE0; --mid: #A89880;
             --ground: #141008; --surface: #1C1610; --border: #3A3020;
-            --lotte-fg: #4ade80; --lotte-bg: #064e27; --flitzer-bg: #1e3a5f; --piter-bg: #431407;
+            --lotte-fg: #4ade80; --lotte-bg: #064e27;
+            --flitzer-fg: #93c5fd; --flitzer-bg: #1e3a5f;
+            --piter-fg: #fb923c; --piter-bg: #431407;
           }
         }
         :root[data-theme="dark"] {
@@ -187,7 +189,9 @@ export default async function WebsitePage() {
           --gold: #E8A030; --gold-soft: #2A1E08;
           --ink: #F0EBE0; --mid: #A89880;
           --ground: #141008; --surface: #1C1610; --border: #3A3020;
-          --lotte-fg: #4ade80; --lotte-bg: #064e27; --flitzer-bg: #1e3a5f; --piter-bg: #431407;
+          --lotte-fg: #4ade80; --lotte-bg: #064e27;
+          --flitzer-fg: #93c5fd; --flitzer-bg: #1e3a5f;
+          --piter-fg: #fb923c; --piter-bg: #431407;
         }
         :root[data-theme="light"] {
           --green: #1B4A12; --green-mid: #2E7A1F; --green-soft: #EBF3E7;
@@ -228,7 +232,7 @@ export default async function WebsitePage() {
         .btn-green { background: var(--green); color: #fff; }
         .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
-        section { padding: 4.5rem 2rem; }
+        section { padding: 4.5rem 2rem; background: var(--ground); }
         .container { max-width: 1080px; margin: 0 auto; }
         .container-wide { max-width: 1080px; margin: 0 auto; }
         .section-rule { border: none; border-top: 1px solid var(--border); margin: 0; }
@@ -264,6 +268,11 @@ export default async function WebsitePage() {
         .placeholder-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
         .placeholder-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
         .placeholder-piter { background: var(--piter-bg); color: var(--piter-fg); }
+        .foto-folgt { font-size: 0.65rem; color: #6B5A3A; }
+        @media (prefers-color-scheme: dark) {
+          :root:not([data-theme="light"]) .foto-folgt { color: rgba(255,255,255,0.7); }
+        }
+        :root[data-theme="dark"] .foto-folgt { color: rgba(255,255,255,0.7); }
         .foto-hinweis { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.85); font-size: 0.68rem; text-align: center; padding: 0.3rem; }
         .badge-lotte { background: var(--lotte-bg); color: var(--lotte-fg); }
         .badge-flitzer { background: var(--flitzer-bg); color: var(--flitzer-fg); }
@@ -404,6 +413,62 @@ export default async function WebsitePage() {
         a:focus-visible, button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
         input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-color: var(--gold); }
 
+        /* Dark-Mode Overrides für hardcodierte Farben */
+        @media (prefers-color-scheme: dark) {
+          :root:not([data-theme="light"]) .eyebrow { color: var(--gold); }
+          :root:not([data-theme="light"]) .group-section .eyebrow { color: #fff; }
+          :root:not([data-theme="light"]) .galerie-section { background: var(--ground); }
+          :root:not([data-theme="light"]) .fahrzeuge-section { background: var(--ground); }
+          :root:not([data-theme="light"]) .piloten-section { background: var(--surface); }
+          :root:not([data-theme="light"]) .ausbildung-section { background: var(--ground); }
+          :root:not([data-theme="light"]) .zukunft-section { background: var(--surface); }
+          :root:not([data-theme="light"]) .ausleihen-section { background: var(--ground); }
+          :root:not([data-theme="light"]) .ausleihen-box { background: rgba(200,96,10,0.15); }
+          :root:not([data-theme="light"]) .gfo-badge { color: var(--gold); }
+          :root:not([data-theme="light"]) .wettbewerb-banner { background: #1C4A10 !important; }
+          :root:not([data-theme="light"]) .wettbewerb-link { color: #1C4A10 !important; }
+          :root:not([data-theme="light"]) .galerie-alle-link { background: #1C4A10 !important; }
+          :root:not([data-theme="light"]) .wettbewerb-banner a[href$="hochladen"] { color: #fff !important; }
+          :root:not([data-theme="light"]) .btn-green { color: #1C1208; }
+          :root:not([data-theme="light"]) .stimmen-section .eyebrow { color: rgba(255,255,255,0.9); }
+          :root:not([data-theme="light"]) .kennzahlen-section .eyebrow { color: rgba(255,255,255,0.9); }
+          :root:not([data-theme="light"]) .group-section .eyebrow { color: #fff; }
+          :root:not([data-theme="light"]) .anlass { background: var(--surface); }
+          :root:not([data-theme="light"]) .kenn-kachel { background: var(--surface); }
+          :root:not([data-theme="light"]) .kenn-zahl { color: #E07060; }
+          :root:not([data-theme="light"]) .stimme-card { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #F0EBE0; }
+          :root:not([data-theme="light"]) .stimme-quote { color: #F0EBE0; }
+          :root:not([data-theme="light"]) .pilot-card { background: var(--surface); border-color: var(--border); }
+          :root:not([data-theme="light"]) .pilot-card h3 { color: var(--ink); }
+          :root:not([data-theme="light"]) .pilot-card p { color: var(--mid); }
+        }
+        :root[data-theme="dark"] .eyebrow { color: var(--gold); }
+        :root[data-theme="dark"] .group-section .eyebrow { color: #fff; }
+        :root[data-theme="dark"] .galerie-section { background: var(--ground); }
+        :root[data-theme="dark"] .fahrzeuge-section { background: var(--ground); }
+        :root[data-theme="dark"] .piloten-section { background: var(--surface); }
+        :root[data-theme="dark"] .ausbildung-section { background: var(--ground); }
+        :root[data-theme="dark"] .zukunft-section { background: var(--surface); }
+        :root[data-theme="dark"] .ausleihen-section { background: var(--ground); }
+        :root[data-theme="dark"] .ausleihen-box { background: rgba(200,96,10,0.15); }
+        :root[data-theme="dark"] .gfo-badge { color: var(--gold); }
+        :root[data-theme="dark"] .wettbewerb-banner { background: #1C4A10 !important; }
+        :root[data-theme="dark"] .wettbewerb-link { color: #1C4A10 !important; }
+        :root[data-theme="dark"] .galerie-alle-link { background: #1C4A10 !important; }
+        :root[data-theme="dark"] .wettbewerb-banner a[href$="hochladen"] { color: #fff !important; }
+        :root[data-theme="dark"] .btn-green { color: #1C1208; }
+        :root[data-theme="dark"] .stimmen-section .eyebrow { color: rgba(255,255,255,0.9); }
+        :root[data-theme="dark"] .kennzahlen-section .eyebrow { color: rgba(255,255,255,0.9); }
+        :root[data-theme="dark"] .group-section .eyebrow { color: #fff; }
+        :root[data-theme="dark"] .anlass { background: var(--surface); }
+        :root[data-theme="dark"] .kenn-kachel { background: var(--surface); }
+        :root[data-theme="dark"] .kenn-zahl { color: #E07060; }
+        :root[data-theme="dark"] .stimme-card { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #F0EBE0; }
+        :root[data-theme="dark"] .stimme-quote { color: #F0EBE0; }
+        :root[data-theme="dark"] .pilot-card { background: var(--surface); border-color: var(--border); }
+        :root[data-theme="dark"] .pilot-card h3 { color: var(--ink); }
+        :root[data-theme="dark"] .pilot-card p { color: var(--mid); }
+
         /* Einfache Sprache */
         .einfach-alt { display: inline; }
         .einfach-neu { display: none; }
@@ -534,7 +599,7 @@ export default async function WebsitePage() {
                   : <div className="fahrzeug-placeholder placeholder-lotte">
                       <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="12" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="52" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="10" width="28" height="18" rx="3" stroke="currentColor" strokeWidth="2"/><line x1="12" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="44" y1="14" x2="52" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
                       Rikscha
-                      <span style={{fontSize:'0.65rem',color:'#6B5A3A'}}>Foto folgt</span>
+                      <span className="foto-folgt">Foto folgt</span>
                     </div>
                 }
               </div>
@@ -555,7 +620,7 @@ export default async function WebsitePage() {
                   : <div className="fahrzeug-placeholder placeholder-flitzer">
                       <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><ellipse cx="32" cy="22" rx="20" ry="9" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="12" y2="32" stroke="currentColor" strokeWidth="2"/><line x1="52" y1="22" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/></svg>
                       Liegetandem
-                      <span style={{fontSize:'0.65rem',color:'#6B5A3A'}}>Foto folgt</span>
+                      <span className="foto-folgt">Foto folgt</span>
                     </div>
                 }
               </div>
@@ -576,7 +641,7 @@ export default async function WebsitePage() {
                   : <div className="fahrzeug-placeholder placeholder-piter">
                       <svg viewBox="0 0 64 40" fill="none" width="52" height="52"><circle cx="10" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><circle cx="54" cy="32" r="7" stroke="currentColor" strokeWidth="2.5"/><rect x="16" y="14" width="32" height="14" rx="2" stroke="currentColor" strokeWidth="2"/><line x1="10" y1="25" x2="16" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="48" y1="21" x2="54" y2="25" stroke="currentColor" strokeWidth="2"/><line x1="28" y1="14" x2="28" y2="28" stroke="currentColor" strokeWidth="1.5"/></svg>
                       Paralleltandem
-                      <span style={{fontSize:'0.65rem',color:'#6B5A3A'}}>Foto folgt</span>
+                      <span className="foto-folgt">Foto folgt</span>
                     </div>
                 }
               </div>
@@ -806,13 +871,13 @@ export default async function WebsitePage() {
           <p>Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
 
           {/* Wettbewerbs-Banner */}
-          <div style={{background:'var(--green)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',marginBottom:'1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap'}}>
+          <div className="wettbewerb-banner" style={{background:'var(--green)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',marginBottom:'1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap'}}>
             <div style={{color:'#fff'}}>
               <div style={{fontWeight:700,fontSize:'1rem'}}>🏆 Foto-Wettbewerb läuft!</div>
               <div style={{fontSize:'0.85rem',opacity:0.85,marginTop:'0.2rem'}}>Stimme für dein Lieblingsfoto — oder lade dein eigenes hoch!</div>
             </div>
             <div style={{display:'flex',gap:'0.6rem',flexWrap:'wrap'}}>
-              <a href="/galerie" style={{display:'inline-block',padding:'0.55rem 1rem',background:'#fff',color:'var(--green)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>👍 Jetzt abstimmen →</a>
+              <a href="/galerie" className="wettbewerb-link" style={{display:'inline-block',padding:'0.55rem 1rem',background:'#fff',color:'var(--green)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>👍 Jetzt abstimmen →</a>
               <a href="/galerie/hochladen" style={{display:'inline-block',padding:'0.55rem 1rem',background:'rgba(255,255,255,0.2)',color:'#000',border:'1px solid rgba(255,255,255,0.4)',borderRadius:'var(--radius)',fontSize:'0.85rem',fontWeight:700,textDecoration:'none',whiteSpace:'nowrap'}}>📸 Foto einreichen</a>
             </div>
           </div>
@@ -835,7 +900,7 @@ export default async function WebsitePage() {
           </div>
           {galerie.length > 0 && (
             <div style={{textAlign:'center',marginTop:'1.5rem'}}>
-              <a href="/galerie" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen &amp; abstimmen ↗</a>
+              <a href="/galerie" className="galerie-alle-link" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen &amp; abstimmen ↗</a>
             </div>
           )}
         </div>
