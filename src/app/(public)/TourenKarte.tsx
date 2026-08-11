@@ -921,6 +921,18 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
   onReorder: (von: number, nach: number) => void;
 }) {
   const dragIdx = useRef<number | null>(null);
+  const touchIdx = useRef<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+
+  // Touch-Drag: Ziel-Index anhand der Y-Position berechnen
+  function touchZiel(clientY: number, container: HTMLElement): number | null {
+    const kinder = Array.from(container.children) as HTMLElement[];
+    for (let i = 0; i < kinder.length; i++) {
+      const r = kinder[i].getBoundingClientRect();
+      if (clientY < r.top + r.height / 2) return i;
+    }
+    return kinder.length - 1;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -928,24 +940,51 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
         const isFirst = i === 0;
         const isLast = i === wps.length - 1;
         const label = isFirst ? 'Start' : isLast ? 'Ziel' : `Wegpunkt ${i}`;
+        const istZiel = dragOver === i;
         return (
           <div
             key={i}
             draggable
             onDragStart={() => { dragIdx.current = i; }}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(i); }}
+            onDragLeave={() => setDragOver(null)}
             onDrop={() => {
-              if (dragIdx.current !== null && dragIdx.current !== i) {
-                onReorder(dragIdx.current, i);
-              }
-              dragIdx.current = null;
+              if (dragIdx.current !== null && dragIdx.current !== i) onReorder(dragIdx.current, i);
+              dragIdx.current = null; setDragOver(null);
             }}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.6rem', background: 'rgba(0,0,0,0.05)', borderRadius: 6, cursor: 'grab', userSelect: 'none' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--mid)', flexShrink: 0 }}>⠿</span>
+            onDragEnd={() => { dragIdx.current = null; setDragOver(null); }}
+            onTouchStart={(e) => { touchIdx.current = i; e.currentTarget.style.opacity = '0.5'; }}
+            onTouchMove={(e) => {
+              e.preventDefault();
+              const t = e.touches[0];
+              const container = e.currentTarget.parentElement;
+              if (!container) return;
+              const ziel = touchZiel(t.clientY, container);
+              setDragOver(ziel);
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.opacity = '1';
+              if (touchIdx.current !== null && dragOver !== null && touchIdx.current !== dragOver) {
+                onReorder(touchIdx.current, dragOver);
+              }
+              touchIdx.current = null; setDragOver(null);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.4rem 0.6rem',
+              background: istZiel ? `${farbe}22` : 'rgba(0,0,0,0.05)',
+              borderRadius: 6, cursor: 'grab', userSelect: 'none',
+              border: istZiel ? `1.5px dashed ${farbe}` : '1.5px solid transparent',
+              transition: 'background 0.1s',
+              touchAction: 'none',
+            }}>
+            <span style={{ fontSize: '1rem', color: 'var(--mid)', flexShrink: 0, lineHeight: 1 }}>⠿</span>
             <span style={{ width: 22, height: 22, borderRadius: '50%', background: farbe, color: '#fff', fontWeight: 700, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
             <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</span>
-            <button onClick={() => onDelete(i)}
-              style={{ padding: '2px 8px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
+            <button
+              onTouchEnd={(e) => { e.stopPropagation(); onDelete(i); }}
+              onClick={() => onDelete(i)}
+              style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
               ✕
             </button>
           </div>
