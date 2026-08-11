@@ -199,6 +199,15 @@ async function fetchHoehenprofil(punkte: [number, number][]): Promise<number[] |
   }
 }
 
+// Luftlinien-Distanz in Metern
+function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // GPX exportieren (volle Routengeometrie, kompatibel mit Komoot, OsmAnd, Google Maps …)
 function exportGPX(name: string, punkte: [number, number][]) {
   const trkpts = punkte
@@ -306,6 +315,19 @@ export default function TourenKarte() {
   const fotoPositionModusRef = useRef<{ tourId: string; fotoIdx: number } | null>(null);
   const [fotoMarkerSichtbar, setFotoMarkerSichtbar] = useState(true);
   const fotoMarkerSichtbarRef = useRef(true);
+  // GPS-Navigation
+  const [gpsAktiv, setGpsAktiv] = useState(false);
+  const [gpsNavTourId, setGpsNavTourId] = useState<string | null>(null);
+  const [gpsPosition, setGpsPosition] = useState<{ lat: number; lon: number; genauigkeit: number } | null>(null);
+  const [gpsFehler, setGpsFehler] = useState<string | null>(null);
+  const [gpsNavAuswahl, setGpsNavAuswahl] = useState(false);
+  const gpsWatchIdRef = useRef<number | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const gpsMarkerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const gpsCircleRef = useRef<any>(null);
+  const gpsNavTourIdRef = useRef<string | null>(null);
+  const routeGeomRef = useRef<Record<string, [number, number][]>>({});
   // Custom Touren (von Piloten angelegt, in localStorage gespeichert)
   const [customTouren, setCustomTouren] = useState<TourMeta[]>([]);
   const [neuerTourName, setNeuerTourName] = useState('');
@@ -345,6 +367,8 @@ export default function TourenKarte() {
   useEffect(() => { fotoPositionModusRef.current = fotoPositionModus; }, [fotoPositionModus]);
   useEffect(() => { fotoMarkerSichtbarRef.current = fotoMarkerSichtbar; }, [fotoMarkerSichtbar]);
   useEffect(() => { direktSegmenteRef.current = direktSegmente; }, [direktSegmente]);
+  useEffect(() => { gpsNavTourIdRef.current = gpsNavTourId; }, [gpsNavTourId]);
+  useEffect(() => { routeGeomRef.current = routeGeom; }, [routeGeom]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
     return waypoints[id] ?? [...TOUR_META, ...customTouren].find((t: TourMeta) => t.id === id)?.defaultWaypoints ?? [];
@@ -722,7 +746,10 @@ export default function TourenKarte() {
     }
 
     init();
-    return () => { mapInstance.current?.remove(); mapInstance.current = null; LRef.current = null; };
+    return () => {
+      if (gpsWatchIdRef.current !== null) navigator.geolocation.clearWatch(gpsWatchIdRef.current);
+      mapInstance.current?.remove(); mapInstance.current = null; LRef.current = null;
+    };
   }, [mounted, updateRoute]);
 
   // Wenn Waypoints sich ändern → Route neu berechnen
@@ -824,6 +851,76 @@ export default function TourenKarte() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
+  function navigationStarten(tourId: string) {
+    if (!('geolocation' in navigator)) {
+      setGpsFehler('Dein Gerät unterstützt kein GPS.');
+      return;
+    }
+    setGpsFehler(null);
+    setGpsNavTourId(tourId);
+    gpsNavTourIdRef.current = tourId;
+    setGpsAktiv(true);
+    setGpsNavAuswahl(false);
+
+    const L = LRef.current;
+    const map = mapInstance.current;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        setGpsPosition({ lat, lon, genauigkeit: Math.round(accuracy) });
+        setGpsFehler(null);
+
+        if (!L || !map) return;
+
+        // GPS-Marker (blauer Punkt)
+        if (!gpsMarkerRef.current) {
+          const icon = L.divIcon({
+            html: `<div style="width:18px;height:18px;background:#2563EB;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 3px rgba(37,99,235,0.35)"></div>`,
+            className: '', iconSize: [18, 18], iconAnchor: [9, 9],
+          });
+          gpsMarkerRef.current = L.marker([lat, lon], { icon, zIndexOffset: 500 })
+            .addTo(map)
+            .bindPopup('<strong>Dein Standort</strong>');
+        } else {
+          gpsMarkerRef.current.setLatLng([lat, lon]);
+        }
+
+        // Genauigkeitskreis
+        if (gpsCircleRef.current) gpsCircleRef.current.remove();
+        gpsCircleRef.current = L.circle([lat, lon], {
+          radius: accuracy, color: '#2563EB', fillColor: '#2563EB',
+          fillOpacity: 0.08, weight: 1, opacity: 0.3,
+        }).addTo(map);
+
+        // Karte folgen
+        map.panTo([lat, lon], { animate: true, duration: 0.5 });
+      },
+      (err) => {
+        if (err.code === 1) setGpsFehler('GPS-Zugriff verweigert. Bitte in den Browser-Einstellungen erlauben.');
+        else if (err.code === 2) setGpsFehler('Standort konnte nicht ermittelt werden.');
+        else setGpsFehler('GPS-Timeout. Bitte im Freien versuchen.');
+      },
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+    );
+    gpsWatchIdRef.current = watchId;
+  }
+
+  function navigationBeenden() {
+    if (gpsWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(gpsWatchIdRef.current);
+      gpsWatchIdRef.current = null;
+    }
+    gpsMarkerRef.current?.remove();
+    gpsMarkerRef.current = null;
+    gpsCircleRef.current?.remove();
+    gpsCircleRef.current = null;
+    setGpsAktiv(false);
+    setGpsNavTourId(null);
+    setGpsPosition(null);
+    setGpsFehler(null);
+  }
+
   const allTouren = [...TOUR_META, ...customTouren];
   const editMeta = allTouren.find(t => t.id === editTourId);
   const editWps = getWaypoints(editTourId);
@@ -863,6 +960,41 @@ export default function TourenKarte() {
             </button>
           );
         })}
+        {/* GPS Navigation */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => {
+              if (gpsAktiv) { navigationBeenden(); return; }
+              if (aktiveTour) { navigationStarten(aktiveTour); }
+              else { setGpsNavAuswahl(v => !v); }
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              padding: '0.4rem 0.85rem', borderRadius: 999,
+              border: `2px solid ${gpsAktiv ? '#2563EB' : 'var(--border)'}`,
+              background: gpsAktiv ? '#2563EB' : 'var(--surface)',
+              color: gpsAktiv ? '#fff' : 'var(--mid)',
+              fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+            }}>
+            🧭 {gpsAktiv ? 'Navigation läuft…' : 'Navigation starten'}
+          </button>
+          {gpsNavAuswahl && !gpsAktiv && (
+            <div style={{ position: 'absolute', top: '110%', left: 0, zIndex: 2000, background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 10, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: 180, boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--mid)', padding: '0.2rem 0.4rem', fontWeight: 600 }}>Tour für Navigation wählen:</div>
+              {allTouren.map(t => (
+                <button key={t.id} onClick={() => navigationStarten(t.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem', borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 2, background: t.farbe, flexShrink: 0, display: 'inline-block' }} />
+                  <span style={{ fontSize: '0.82rem', color: 'var(--ink)', fontWeight: 600 }}>{t.kurzname}</span>
+                </button>
+              ))}
+              <button onClick={() => setGpsNavAuswahl(false)}
+                style={{ padding: '0.25rem', fontSize: '0.72rem', color: 'var(--mid)', border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                Abbrechen
+              </button>
+            </div>
+          )}
+        </div>
         {/* Foto-Marker toggle */}
         <button onClick={() => {
             const neu = !fotoMarkerSichtbar;
@@ -1136,6 +1268,96 @@ export default function TourenKarte() {
           .leaflet-tour-tooltip::before { display: none; }
         `}</style>
       </div>
+
+      {/* GPS Navigations-Panel */}
+      {gpsAktiv && (() => {
+        const navTour = allTouren.find(t => t.id === gpsNavTourId);
+        const routePunkte = routeGeom[gpsNavTourId ?? ''] ?? (navTour ? getWaypoints(navTour.id) : []);
+
+        // Nächsten Wegpunkt berechnen
+        let naechsterWpDist: number | null = null;
+        let naechsterWpIdx: number | null = null;
+        if (gpsPosition && routePunkte.length > 0) {
+          let minDist = Infinity;
+          let closestIdx = 0;
+          routePunkte.forEach(([lat, lon], i) => {
+            const d = haversineM(gpsPosition.lat, gpsPosition.lon, lat, lon);
+            if (d < minDist) { minDist = d; closestIdx = i; }
+          });
+          // Ziel: nächster Punkt NACH dem nächsten
+          const zielIdx = Math.min(closestIdx + 1, routePunkte.length - 1);
+          const zielPunkt = routePunkte[zielIdx];
+          naechsterWpDist = Math.round(haversineM(gpsPosition.lat, gpsPosition.lon, zielPunkt[0], zielPunkt[1]));
+          naechsterWpIdx = zielIdx;
+        }
+
+        const amZiel = naechsterWpDist !== null && naechsterWpIdx === routePunkte.length - 1 && naechsterWpDist < 60;
+
+        return (
+          <div style={{ borderRadius: 12, border: '2px solid #2563EB', background: 'var(--surface)', padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                <span style={{ width: 14, height: 14, borderRadius: '50%', background: '#2563EB', border: '3px solid #fff', boxShadow: '0 0 0 3px rgba(37,99,235,0.3)', display: 'inline-block', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#2563EB' }}>
+                    🧭 Navigation aktiv — {navTour?.kurzname ?? ''}
+                  </div>
+                  {gpsPosition && (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>
+                      GPS-Genauigkeit: ±{gpsPosition.genauigkeit} m
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button onClick={navigationBeenden}
+                style={{ padding: '0.4rem 0.9rem', borderRadius: 8, background: '#DC2626', color: '#fff', border: 'none', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                ✕ Navigation beenden
+              </button>
+            </div>
+
+            {gpsFehler && (
+              <div style={{ padding: '0.6rem 0.9rem', borderRadius: 8, background: '#FEE2E2', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: '0.85rem', fontWeight: 600 }}>
+                ⚠️ {gpsFehler}
+              </div>
+            )}
+
+            {!gpsPosition && !gpsFehler && (
+              <div style={{ padding: '0.6rem 0.9rem', borderRadius: 8, background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#2563EB', fontSize: '0.85rem' }}>
+                GPS wird gesucht… Bitte im Freien warten.
+              </div>
+            )}
+
+            {gpsPosition && !amZiel && naechsterWpDist !== null && (
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: 8, background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#2563EB', fontWeight: 600, marginBottom: '0.2rem' }}>
+                    {naechsterWpIdx === routePunkte.length - 1 ? 'Entfernung zum Ziel' : `Nächster Strecken­punkt (${naechsterWpIdx! + 1}/${routePunkte.length})`}
+                  </div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1D4ED8' }}>
+                    {naechsterWpDist! >= 1000
+                      ? `${(naechsterWpDist! / 1000).toFixed(1)} km`
+                      : `${naechsterWpDist} m`}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center', color: 'var(--mid)', fontSize: '0.75rem' }}>
+                  <div style={{ fontSize: '1.5rem' }}>{navTour ? <span style={{ color: navTour.farbe }}>●</span> : '●'}</div>
+                  <div>Route: {navTour?.kurzname}</div>
+                </div>
+              </div>
+            )}
+
+            {amZiel && (
+              <div style={{ padding: '0.9rem 1rem', borderRadius: 8, background: '#DCFCE7', border: '2px solid #86EFAC', color: '#15803D', fontWeight: 700, fontSize: '1rem', textAlign: 'center' }}>
+                🎉 Ziel erreicht! Gut gemacht!
+              </div>
+            )}
+
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--mid)' }}>
+              Die blaue Karte folgt deinem Standort. Die Tour-Route bleibt als Orientierung sichtbar.
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Tour-Detail */}
       {aktiveTourData && !editModus && (() => {
