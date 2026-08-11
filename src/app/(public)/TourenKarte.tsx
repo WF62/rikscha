@@ -101,10 +101,20 @@ const TOUR_META: TourMeta[] = [
 const START_DEFAULT: [number, number] = [50.7762, 6.9212];
 const STORAGE_KEY = 'rikscha_touren_waypoints_v2';
 const START_KEY = 'rikscha_startpunkt_v1';
-// direktSegmente[tourId] = Set von Segment-Indices die als Direktlinie geführt werden
-// Segment i = zwischen Wegpunkt[i] und Wegpunkt[i+1]
 const DIREKT_KEY = 'rikscha_direkt_segmente_v2';
 const FOTO_POS_KEY = 'rikscha_foto_positionen_v1';
+const CUSTOM_TOUREN_KEY = 'rikscha_custom_touren_v1';
+
+const FARB_PALETTE = ['#2D6B1E', '#1D4ED8', '#DC2626', '#B45309', '#6D28D9', '#0F766E', '#BE185D', '#92400E'];
+
+function loadCustomTouren(): TourMeta[] {
+  if (typeof window === 'undefined') return [];
+  try { const s = localStorage.getItem(CUSTOM_TOUREN_KEY); if (s) return JSON.parse(s); } catch {}
+  return [];
+}
+function saveCustomTouren(t: TourMeta[]) {
+  localStorage.setItem(CUSTOM_TOUREN_KEY, JSON.stringify(t));
+}
 
 function loadFotoPositionen(): Record<string, { lat: number; lon: number }[]> {
   if (typeof window === 'undefined') return {};
@@ -294,6 +304,13 @@ export default function TourenKarte() {
   // fotoPositionModus: { tourId, fotoIdx } wenn aktiv, sonst null
   const [fotoPositionModus, setFotoPositionModus] = useState<{ tourId: string; fotoIdx: number } | null>(null);
   const fotoPositionModusRef = useRef<{ tourId: string; fotoIdx: number } | null>(null);
+  const [fotoMarkerSichtbar, setFotoMarkerSichtbar] = useState(true);
+  const fotoMarkerSichtbarRef = useRef(true);
+  // Custom Touren (von Piloten angelegt, in localStorage gespeichert)
+  const [customTouren, setCustomTouren] = useState<TourMeta[]>([]);
+  const [neuerTourName, setNeuerTourName] = useState('');
+  const [neuerTourFarbe, setNeuerTourFarbe] = useState(FARB_PALETTE[0]);
+  const [neuerTourFormular, setNeuerTourFormular] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -302,6 +319,7 @@ export default function TourenKarte() {
     const pw = localStorage.getItem('pilot_pw');
     const rolle = localStorage.getItem('pilot_rolle');
     setIstPilot(!!(name && pw && rolle && rolle !== 'angehoeriger'));
+    setCustomTouren(loadCustomTouren());
     // Auf Login-Änderungen reagieren (z.B. Modal schließt nach Anmeldung)
     function onStorage() {
       const n = localStorage.getItem('pilot_name');
@@ -325,11 +343,12 @@ export default function TourenKarte() {
   useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
   useEffect(() => { startpunktModusRef.current = startpunktModus; }, [startpunktModus]);
   useEffect(() => { fotoPositionModusRef.current = fotoPositionModus; }, [fotoPositionModus]);
+  useEffect(() => { fotoMarkerSichtbarRef.current = fotoMarkerSichtbar; }, [fotoMarkerSichtbar]);
   useEffect(() => { direktSegmenteRef.current = direktSegmente; }, [direktSegmente]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
-    return waypoints[id] ?? TOUR_META.find(t => t.id === id)?.defaultWaypoints ?? [];
-  }, [waypoints]);
+    return waypoints[id] ?? [...TOUR_META, ...customTouren].find((t: TourMeta) => t.id === id)?.defaultWaypoints ?? [];
+  }, [waypoints, customTouren]);
 
   const getRouteGeom = useCallback((id: string): [number, number][] => {
     return routeGeom[id] ?? getWaypoints(id);
@@ -340,7 +359,7 @@ export default function TourenKarte() {
     const L = LRef.current;
     const map = mapInstance.current;
     if (!L || !map) return;
-    const meta = TOUR_META.find(t => t.id === tourId);
+    const meta = [...TOUR_META, ...loadCustomTouren()].find(t => t.id === tourId);
     if (!meta) return;
 
     if (wps.length < 2) {
@@ -473,16 +492,18 @@ export default function TourenKarte() {
 
   useEffect(() => {
     deleteWaypointRef.current = (tourId: string, idx: number) => {
+      const allT = [...TOUR_META, ...loadCustomTouren()];
       const wps = waypointsRef.current[tourId]
-        ?? TOUR_META.find(t => t.id === tourId)?.defaultWaypoints ?? [];
+        ?? allT.find(t => t.id === tourId)?.defaultWaypoints ?? [];
       const updated = { ...waypointsRef.current, [tourId]: wps.filter((_, i) => i !== idx) };
       saveWaypoints(updated);
       setWaypoints(updated);
       waypointsRef.current = updated;
     };
     moveWaypointRef.current = (tourId: string, idx: number, pos: [number, number]) => {
+      const allT = [...TOUR_META, ...loadCustomTouren()];
       const wps = [...(waypointsRef.current[tourId]
-        ?? TOUR_META.find(t => t.id === tourId)?.defaultWaypoints ?? [])];
+        ?? allT.find(t => t.id === tourId)?.defaultWaypoints ?? [])];
       wps[idx] = pos;
       const updated = { ...waypointsRef.current, [tourId]: wps };
       saveWaypoints(updated);
@@ -498,7 +519,7 @@ export default function TourenKarte() {
     if (!L || !map) return;
     wpMarkerRefs.current.forEach(m => m.remove());
     wpMarkerRefs.current = [];
-    const farbe = TOUR_META.find(t => t.id === tourId)?.farbe ?? '#333';
+    const farbe = [...TOUR_META, ...loadCustomTouren()].find(t => t.id === tourId)?.farbe ?? '#333';
 
     wps.forEach((p, i) => {
       const isEndpoint = i === 0 || i === wps.length - 1;
@@ -621,7 +642,8 @@ export default function TourenKarte() {
       setDirektSegmente(savedDirekt);
       direktSegmenteRef.current = savedDirekt;
 
-      for (const meta of TOUR_META) {
+      const alleTouren = [...TOUR_META, ...loadCustomTouren()];
+      for (const meta of alleTouren) {
         const wps = saved[meta.id] ?? meta.defaultWaypoints;
         await updateRoute(meta.id, wps);
       }
@@ -630,8 +652,10 @@ export default function TourenKarte() {
       function zeichneFotoMarker(draggable: boolean) {
         fotoMarkerRefs.current.forEach(m => m.remove());
         fotoMarkerRefs.current = [];
+        if (!fotoMarkerSichtbarRef.current) return;
         const gespeicherteFotos = fotoPositionenRef.current;
-        for (const meta of TOUR_META) {
+        const aktuelleTouren = [...TOUR_META, ...loadCustomTouren()];
+        for (const meta of aktuelleTouren) {
           const fotos = meta.fotos ?? [];
           const savedPos = gespeicherteFotos[meta.id] ?? [];
           fotos.forEach((foto, fotoIdx) => {
@@ -687,7 +711,7 @@ export default function TourenKarte() {
 
         const tourId = editTourIdRef.current;
         const current = waypointsRef.current;
-        const meta = TOUR_META.find(t => t.id === tourId);
+        const meta = [...TOUR_META, ...loadCustomTouren()].find(t => t.id === tourId);
         const existing: [number, number][] = current[tourId]
           ?? (meta?.defaultWaypoints.length ? [...meta.defaultWaypoints] : []);
         const updated = { ...current, [tourId]: [...existing, neu] };
@@ -704,11 +728,11 @@ export default function TourenKarte() {
   // Wenn Waypoints sich ändern → Route neu berechnen
   useEffect(() => {
     if (!mapInstance.current) return;
-    TOUR_META.forEach(meta => {
+    [...TOUR_META, ...customTouren].forEach(meta => {
       const wps = waypoints[meta.id] ?? meta.defaultWaypoints;
       updateRoute(meta.id, wps);
     });
-  }, [waypoints, updateRoute]);
+  }, [waypoints, customTouren, updateRoute]);
 
   // Waypoint-Marker im Edit-Modus
   useEffect(() => {
@@ -728,7 +752,7 @@ export default function TourenKarte() {
   }, [editModus]);
 
   function letztenPunktLoeschen() {
-    const wps = waypoints[editTourId] ?? TOUR_META.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
+    const wps = waypoints[editTourId] ?? allTouren.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
     if (!wps.length) return;
     const updated = { ...waypoints, [editTourId]: wps.slice(0, -1) };
     saveWaypoints(updated);
@@ -750,7 +774,7 @@ export default function TourenKarte() {
   }
 
   function gpxExportieren() {
-    const meta = TOUR_META.find(t => t.id === editTourId);
+    const meta = allTouren.find(t => t.id === editTourId);
     const geom = routeGeom[editTourId] ?? getWaypoints(editTourId);
     if (geom.length < 2 || !meta) return;
     exportGPX(meta.name, geom);
@@ -800,9 +824,10 @@ export default function TourenKarte() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
-  const editMeta = TOUR_META.find(t => t.id === editTourId);
+  const allTouren = [...TOUR_META, ...customTouren];
+  const editMeta = allTouren.find(t => t.id === editTourId);
   const editWps = getWaypoints(editTourId);
-  const aktiveTourData = TOUR_META.find(t => t.id === aktiveTour);
+  const aktiveTourData = allTouren.find(t => t.id === aktiveTour);
 
   if (!mounted) return (
     <div style={{ height: 500, background: 'var(--surface)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mid)', fontSize: '0.9rem' }}>
@@ -815,7 +840,7 @@ export default function TourenKarte() {
 
       {/* Legende */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-        {TOUR_META.map(tour => {
+        {allTouren.map(tour => {
           const wps = waypoints[tour.id] ?? tour.defaultWaypoints;
           const status = routeBerechnung[tour.id];
           return (
@@ -838,6 +863,19 @@ export default function TourenKarte() {
             </button>
           );
         })}
+        {/* Foto-Marker toggle */}
+        <button onClick={() => {
+            const neu = !fotoMarkerSichtbar;
+            setFotoMarkerSichtbar(neu);
+            fotoMarkerSichtbarRef.current = neu;
+            fotoMarkerRefs.current.forEach(m => neu ? m.addTo(mapInstance.current) : m.remove());
+          }}
+          title={fotoMarkerSichtbar ? 'Foto-Marker ausblenden' : 'Foto-Marker einblenden'}
+          style={{ padding: '0.4rem 0.75rem', borderRadius: 999, border: `2px solid ${fotoMarkerSichtbar ? '#F59E0B' : 'var(--border)'}`,
+            background: fotoMarkerSichtbar ? '#FEF3C7' : 'var(--surface)', color: fotoMarkerSichtbar ? '#92400E' : 'var(--mid)',
+            fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
+          📷 {fotoMarkerSichtbar ? 'Fotos' : 'Fotos'}
+        </button>
         {istPilot && (
           <button onClick={() => setEditModus(v => !v)} aria-pressed={editModus}
             style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem',
@@ -855,24 +893,82 @@ export default function TourenKarte() {
       {editModus && (
         <div style={{ padding: '1rem 1.25rem', borderRadius: 12, border: '2px solid #C8881A', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#92400E' }}>✏️ Routen-Editor</div>
-          {/* Tour-Auswahl + Foto-Marker-Button in einer Zeile */}
+          {/* Tour-Auswahl */}
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {TOUR_META.map(t => (
-              <button key={t.id} onClick={() => setEditTourId(t.id)}
-                style={{ padding: '0.3rem 0.75rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 600,
-                  border: `2px solid ${t.farbe}`,
-                  background: editTourId === t.id ? t.farbe : 'transparent',
-                  color: editTourId === t.id ? '#fff' : t.farbe, cursor: 'pointer' }}>
-                {t.kurzname}
-              </button>
+            {allTouren.map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <button onClick={() => setEditTourId(t.id)}
+                  style={{ padding: '0.3rem 0.75rem', borderRadius: customTouren.some(c => c.id === t.id) ? '999px 0 0 999px' : 999, fontSize: '0.8rem', fontWeight: 600,
+                    border: `2px solid ${t.farbe}`,
+                    background: editTourId === t.id ? t.farbe : 'transparent',
+                    color: editTourId === t.id ? '#fff' : t.farbe, cursor: 'pointer' }}>
+                  {t.kurzname}
+                </button>
+                {customTouren.some(c => c.id === t.id) && (
+                  <button onClick={() => {
+                      const neu = customTouren.filter(c => c.id !== t.id);
+                      setCustomTouren(neu);
+                      saveCustomTouren(neu);
+                      if (editTourId === t.id) setEditTourId(TOUR_META[0].id);
+                    }}
+                    title={`Tour "${t.kurzname}" löschen`}
+                    style={{ padding: '0.3rem 0.5rem', borderRadius: '0 999px 999px 0', fontSize: '0.75rem', border: `2px solid ${t.farbe}`, borderLeft: 'none',
+                      background: editTourId === t.id ? t.farbe : 'transparent', color: editTourId === t.id ? '#fff' : t.farbe, cursor: 'pointer' }}>
+                    ✕
+                  </button>
+                )}
+              </div>
             ))}
+            {/* Neue Tour */}
+            <button onClick={() => setNeuerTourFormular(v => !v)}
+              style={{ padding: '0.3rem 0.75rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 700,
+                border: '2px dashed var(--border)', background: 'transparent', color: 'var(--mid)', cursor: 'pointer' }}>
+              + Neue Tour
+            </button>
           </div>
+          {neuerTourFormular && (
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.75rem', background: 'rgba(0,0,0,0.04)', borderRadius: 8, border: '1px solid var(--border)' }}>
+              <input
+                value={neuerTourName}
+                onChange={e => setNeuerTourName(e.target.value)}
+                placeholder="Name der Tour"
+                style={{ flex: 1, minWidth: 160, padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--ink)', fontSize: '0.85rem' }}
+              />
+              <div style={{ display: 'flex', gap: 4 }}>
+                {FARB_PALETTE.map(f => (
+                  <button key={f} onClick={() => setNeuerTourFarbe(f)}
+                    style={{ width: 22, height: 22, borderRadius: '50%', background: f, border: neuerTourFarbe === f ? '3px solid var(--ink)' : '2px solid transparent', cursor: 'pointer', padding: 0 }} />
+                ))}
+              </div>
+              <button onClick={() => {
+                  const name = neuerTourName.trim();
+                  if (!name) return;
+                  const id = `custom_${Date.now()}`;
+                  const neu: TourMeta = { id, name, kurzname: name, farbe: neuerTourFarbe,
+                    beschreibung: '', laenge: '', dauer: '', defaultWaypoints: [] };
+                  const updated = [...customTouren, neu];
+                  setCustomTouren(updated);
+                  saveCustomTouren(updated);
+                  setEditTourId(id);
+                  setNeuerTourName('');
+                  setNeuerTourFormular(false);
+                }}
+                disabled={!neuerTourName.trim()}
+                style={btnStyle('#2D6B1E', !neuerTourName.trim())}>
+                Anlegen
+              </button>
+              <button onClick={() => setNeuerTourFormular(false)}
+                style={{ padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--mid)', cursor: 'pointer', fontSize: '0.8rem' }}>
+                Abbrechen
+              </button>
+            </div>
+          )}
           {/* Foto-Marker — alle Touren, immer sichtbar */}
           <div style={{ border: '3px solid #F59E0B', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ background: '#F59E0B', padding: '0.5rem 1rem', fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>
               📷 Foto-Marker positionieren
             </div>
-            {TOUR_META.filter(t => (t.fotos?.length ?? 0) > 0).map(tourMeta =>
+            {allTouren.filter(t => (t.fotos?.length ?? 0) > 0).map(tourMeta =>
               (tourMeta.fotos ?? []).map((foto, fotoIdx) => {
                 const aktiv = fotoPositionModus?.tourId === tourMeta.id && fotoPositionModus?.fotoIdx === fotoIdx;
                 const gespeichert = (fotoPositionenRef.current[tourMeta.id] ?? [])[fotoIdx];
@@ -967,7 +1063,7 @@ export default function TourenKarte() {
                   setDirektSegmente(updated);
                   direktSegmenteRef.current = updated;
                   saveDirektSegmente(updated);
-                  const wps2 = waypointsRef.current[editTourId] ?? TOUR_META.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
+                  const wps2 = waypointsRef.current[editTourId] ?? allTouren.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
                   updateRoute(editTourId, wps2);
                 }}
               />
