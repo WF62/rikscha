@@ -296,16 +296,6 @@ export default function TourenKarte() {
       setRouteDistanz(prev => ({ ...prev, [tourId]: result.distanzKm }));
     }
 
-    // Snapped Positionen → Marker im Edit-Modus verschieben
-    if (result?.snapped?.length && editModusRef.current && editTourIdRef.current === tourId) {
-      result.snapped.forEach((pos, i) => {
-        wpMarkerRefs.current[i]?.setLatLng(pos);
-      });
-      // Gespeicherte Wegpunkte auf eingerastete Positionen aktualisieren (kein setWaypoints → kein Loop)
-      const updated = { ...waypointsRef.current, [tourId]: result.snapped };
-      saveWaypoints(updated);
-      waypointsRef.current = updated;
-    }
 
     // Polyline endgültig zeichnen
     polylineRefs.current[tourId]?.remove();
@@ -754,7 +744,7 @@ export default function TourenKarte() {
           {editWps.length > 0 && (
             <details open style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>
               <summary style={{ cursor: 'pointer', userSelect: 'none', fontWeight: 600, marginBottom: '0.4rem' }}>
-                Wegpunkte ({editWps.length}) — ziehen zum Umsortieren
+                Wegpunkte ({editWps.length}) — ▲▼ zum Umsortieren, Marker auf Karte ziehen zum Verschieben
               </summary>
               <WegpunktListe
                 wps={editWps}
@@ -965,7 +955,10 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
                 ▼
               </button>
             </div>
-            <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--mid)', fontFamily: 'monospace' }}>{wps[i][0].toFixed(4)}, {wps[i][1].toFixed(4)}</div>
+            </div>
             <button onClick={() => onDelete(i)}
               style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
               ✕
