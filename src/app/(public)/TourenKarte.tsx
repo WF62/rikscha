@@ -920,22 +920,67 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
   onDelete: (i: number) => void;
   onReorder: (von: number, nach: number) => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const dragIdx = useRef<number | null>(null);
-  const touchIdx = useRef<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
 
-  // Touch-Drag: Ziel-Index anhand der Y-Position berechnen
-  function touchZiel(clientY: number, container: HTMLElement): number | null {
-    const kinder = Array.from(container.children) as HTMLElement[];
-    for (let i = 0; i < kinder.length; i++) {
-      const r = kinder[i].getBoundingClientRect();
-      if (clientY < r.top + r.height / 2) return i;
+  // Touch-Drag: passive:false direkt am DOM registrieren
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let von: number | null = null;
+    let nach: number | null = null;
+
+    function zielIdx(clientY: number): number {
+      const kinder = Array.from(el!.children) as HTMLElement[];
+      for (let i = 0; i < kinder.length; i++) {
+        const r = kinder[i].getBoundingClientRect();
+        if (clientY < r.top + r.height / 2) return i;
+      }
+      return kinder.length - 1;
     }
-    return kinder.length - 1;
-  }
+
+    function onStart(e: TouchEvent) {
+      const grip = (e.target as HTMLElement).closest('[data-grip]');
+      if (!grip) return;
+      const row = grip.closest('[data-idx]') as HTMLElement;
+      if (!row) return;
+      von = parseInt(row.dataset.idx!);
+      nach = von;
+      (row as HTMLElement).style.opacity = '0.5';
+    }
+
+    function onMove(e: TouchEvent) {
+      if (von === null) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      nach = zielIdx(t.clientY);
+      setDragOver(nach);
+    }
+
+    function onEnd(e: TouchEvent) {
+      if (von === null) return;
+      // Opacity zurücksetzen
+      (Array.from(el!.querySelectorAll('[data-idx]')) as HTMLElement[])
+        .forEach(r => (r.style.opacity = '1'));
+      if (nach !== null && von !== nach) onReorder(von, nach);
+      von = null; nach = null;
+      setDragOver(null);
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [onReorder]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+    <div ref={containerRef} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
       {wps.map((_, i) => {
         const isFirst = i === 0;
         const isLast = i === wps.length - 1;
@@ -944,6 +989,7 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
         return (
           <div
             key={i}
+            data-idx={i}
             draggable
             onDragStart={() => { dragIdx.current = i; }}
             onDragOver={(e) => { e.preventDefault(); setDragOver(i); }}
@@ -953,37 +999,18 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
               dragIdx.current = null; setDragOver(null);
             }}
             onDragEnd={() => { dragIdx.current = null; setDragOver(null); }}
-            onTouchStart={(e) => { touchIdx.current = i; e.currentTarget.style.opacity = '0.5'; }}
-            onTouchMove={(e) => {
-              e.preventDefault();
-              const t = e.touches[0];
-              const container = e.currentTarget.parentElement;
-              if (!container) return;
-              const ziel = touchZiel(t.clientY, container);
-              setDragOver(ziel);
-            }}
-            onTouchEnd={(e) => {
-              e.currentTarget.style.opacity = '1';
-              if (touchIdx.current !== null && dragOver !== null && touchIdx.current !== dragOver) {
-                onReorder(touchIdx.current, dragOver);
-              }
-              touchIdx.current = null; setDragOver(null);
-            }}
             style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.4rem 0.6rem',
               background: istZiel ? `${farbe}22` : 'rgba(0,0,0,0.05)',
-              borderRadius: 6, cursor: 'grab', userSelect: 'none',
+              borderRadius: 6, userSelect: 'none',
               border: istZiel ? `1.5px dashed ${farbe}` : '1.5px solid transparent',
               transition: 'background 0.1s',
-              touchAction: 'none',
             }}>
-            <span style={{ fontSize: '1rem', color: 'var(--mid)', flexShrink: 0, lineHeight: 1 }}>⠿</span>
+            <span data-grip="1" style={{ fontSize: '1.1rem', color: 'var(--mid)', flexShrink: 0, lineHeight: 1, cursor: 'grab', padding: '0 4px' }}>⠿</span>
             <span style={{ width: 22, height: 22, borderRadius: '50%', background: farbe, color: '#fff', fontWeight: 700, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
             <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</span>
-            <button
-              onTouchEnd={(e) => { e.stopPropagation(); onDelete(i); }}
-              onClick={() => onDelete(i)}
+            <button onClick={() => onDelete(i)}
               style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
               ✕
             </button>
