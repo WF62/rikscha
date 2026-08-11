@@ -193,7 +193,7 @@ export default async function HandoutPage() {
         /* Vorderseite — Option C: Gradient von unten */
         .bg-foto { position:absolute; inset:0; background-image:url(''); background-size:cover; background-position:center top; background-color:#2a3a22; }
         .bg-gradient { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 28%, rgba(10,30,8,.58) 60%, rgba(10,30,8,.92) 100%); }
-        .brand-bar { position:absolute; top:0; left:0; right:0; display:flex; align-items:center; gap:.6rem; padding:.75rem 1rem; background:linear-gradient(to bottom, rgba(45,107,30,.82) 0%, transparent 100%); z-index:2; }
+        .brand-bar { position:absolute; top:0; left:0; right:0; display:flex; align-items:center; gap:.6rem; padding:.75rem 1rem; background:linear-gradient(to bottom, rgba(20,60,10,.97) 0%, rgba(30,70,15,.85) 55%, transparent 100%); z-index:2; }
         .logo { width:44px; height:44px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--gold); box-shadow:0 0 0 3px rgba(200,136,26,.3); filter:sepia(.25) saturate(1.6) hue-rotate(-8deg) brightness(1.05); }
         .brand-name { font-family:var(--serif); color:#fff; font-size:.82rem; line-height:1.3; text-shadow:0 1px 4px rgba(0,0,0,.5); }
         .brand-contact { margin-left:auto; display:flex; flex-direction:column; gap:.1rem; text-align:right; }
