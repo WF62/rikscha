@@ -855,7 +855,8 @@ export default function TourenKarte() {
       {editModus && (
         <div style={{ padding: '1rem 1.25rem', borderRadius: 12, border: '2px solid #C8881A', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#92400E' }}>✏️ Routen-Editor</div>
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {/* Tour-Auswahl + Foto-Marker-Button in einer Zeile */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
             {TOUR_META.map(t => (
               <button key={t.id} onClick={() => setEditTourId(t.id)}
                 style={{ padding: '0.3rem 0.75rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 600,
@@ -866,6 +867,30 @@ export default function TourenKarte() {
               </button>
             ))}
           </div>
+          {/* Foto-Marker — große auffällige Zeile, als erstes nach Tour-Wahl */}
+          {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
+            const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
+            const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
+            const pos = gespeichert ?? foto;
+            return (
+              <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', borderRadius: 10, background: aktiv ? '#FEF3C7' : '#FFF7ED', border: `3px solid ${aktiv ? '#C8881A' : '#F59E0B'}` }}>
+                <span style={{ fontSize: '1.5rem' }}>📷</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#92400E' }}>{foto.titel}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Foto-Marker auf Karte positionieren</div>
+                </div>
+                <button
+                  onClick={() => {
+                    if (aktiv) { setFotoPositionModus(null); return; }
+                    setFotoPositionModus({ tourId: editTourId, fotoIdx });
+                    mapInstance.current?.panTo([pos.lat, pos.lon]);
+                  }}
+                  style={{ padding: '0.5rem 1rem', borderRadius: 8, background: aktiv ? '#2D6B1E' : '#C8881A', color: '#fff', border: 'none', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {aktiv ? '✓ Fertig' : 'Verschieben'}
+                </button>
+              </div>
+            );
+          })}
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--ink)', lineHeight: 1.5 }}>
             Tour: <strong style={{ color: editMeta?.farbe }}>{editMeta?.name}</strong>
             {' · '}{editWps.length} Wegpunkt{editWps.length !== 1 ? 'e' : ''}
@@ -876,32 +901,10 @@ export default function TourenKarte() {
             <span style={{ color: 'var(--mid)', fontSize: '0.8rem' }}>
               {startpunktModus
                 ? '📍 Klicke auf die Karte um den Startpunkt zu setzen — oder den Marker ziehen.'
+                : fotoPositionModus ? '📷 Karte verschieben bis 📷 an der richtigen Stelle steht → dann „Hier platzieren" tippen.'
                 : 'Klicke auf die Karte um Wegpunkte zu setzen. Die Route folgt automatisch echten Radwegen.'}
             </span>
           </p>
-          {/* Foto-Marker — direkt nach Tour-Infos, immer sichtbar */}
-          {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
-            const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
-            const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
-            const pos = gespeichert ?? foto;
-            return (
-              <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: 8, background: aktiv ? '#FEF3C7' : '#FFF7ED', border: `2px solid ${aktiv ? '#C8881A' : '#F59E0B'}` }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#92400E' }}>📷 Foto-Marker: {foto.titel}</div>
-                  <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'var(--mid)' }}>{pos.lat.toFixed(4)}, {pos.lon.toFixed(4)}</div>
-                </div>
-                <button
-                  onClick={() => {
-                    if (aktiv) { setFotoPositionModus(null); return; }
-                    setFotoPositionModus({ tourId: editTourId, fotoIdx });
-                    mapInstance.current?.panTo([pos.lat, pos.lon]);
-                  }}
-                  style={{ padding: '0.4rem 0.8rem', borderRadius: 8, background: aktiv ? '#2D6B1E' : '#C8881A', color: '#fff', border: 'none', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  {aktiv ? '✓ Fertig' : '📍 Verschieben'}
-                </button>
-              </div>
-            );
-          })}
           {/* Startpunkt */}
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.5rem 0.75rem', background: startpunktModus ? '#FEF3C7' : 'rgba(0,0,0,0.04)', borderRadius: 8, border: startpunktModus ? '1.5px solid #C8881A' : '1px solid var(--border)' }}>
             <span style={{ fontSize: '0.82rem', flex: 1, color: 'var(--ink)' }}>
