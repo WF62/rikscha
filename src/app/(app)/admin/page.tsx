@@ -77,6 +77,14 @@ export default function AdminSeite() {
     setTimeout(() => setMeldung(''), 2000);
   };
 
+  const rolleÄndern = async (p: Person, neueRolle: string) => {
+    await fetch('/api/admin/piloten', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: p.id, rolle: neueRolle }),
+    });
+    laden_();
+  };
+
   const aktivToggle = async (p: Person) => {
     await fetch('/api/admin/piloten', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -210,9 +218,17 @@ export default function AdminSeite() {
         <div className="space-y-2">
           {aktive.map((p) => (
             <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg border border-gray-100">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                p.rolle === 'gfo' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-              }`}>{p.rolle === 'gfo' ? 'GFO' : 'Pilot'}</span>
+              <select
+                value={p.rolle}
+                onChange={(e) => rolleÄndern(p, e.target.value)}
+                title="Rolle ändern"
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold border-0 cursor-pointer appearance-none ${
+                  p.rolle === 'gfo' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                }`}>
+                <option value="pilot">Pilot</option>
+                <option value="gfo">GFO</option>
+                <option value="angehoeriger">Angehörige/r</option>
+              </select>
               <span className="flex-1 font-medium text-sm">{p.name}</span>
 
               {editId === p.id ? (
@@ -247,9 +263,15 @@ export default function AdminSeite() {
           <div className="space-y-2">
             {inaktive.map((p) => (
               <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg border border-gray-100">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">
-                  {p.rolle === 'gfo' ? 'GFO' : 'Pilot'}
-                </span>
+                <select
+                  value={p.rolle}
+                  onChange={(e) => rolleÄndern(p, e.target.value)}
+                  title="Rolle ändern"
+                  className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold border-0 cursor-pointer appearance-none">
+                  <option value="pilot">Pilot</option>
+                  <option value="gfo">GFO</option>
+                  <option value="angehoeriger">Angehörige/r</option>
+                </select>
                 <span className="flex-1 text-sm text-gray-400 line-through">{p.name}</span>
                 <button onClick={() => ordnerOeffnen(p.name)} className="text-xs text-purple-400 hover:underline">🗂️ Ordner</button>
                 <button onClick={() => aktivToggle(p)} className="text-xs text-green-600 hover:underline">Reaktivieren</button>
