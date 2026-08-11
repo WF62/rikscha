@@ -68,14 +68,16 @@ const TOUR_META: TourMeta[] = [
 const START_DEFAULT: [number, number] = [50.7762, 6.9212];
 const STORAGE_KEY = 'rikscha_touren_waypoints_v2';
 const START_KEY = 'rikscha_startpunkt_v1';
-const DIREKT_KEY = 'rikscha_direkt_modus_v1';
+// direktSegmente[tourId] = Set von Segment-Indices die als Direktlinie geführt werden
+// Segment i = zwischen Wegpunkt[i] und Wegpunkt[i+1]
+const DIREKT_KEY = 'rikscha_direkt_segmente_v2';
 
-function loadDirektModus(): Record<string, boolean> {
+function loadDirektSegmente(): Record<string, number[]> {
   if (typeof window === 'undefined') return {};
   try { const s = localStorage.getItem(DIREKT_KEY); if (s) return JSON.parse(s); } catch {}
   return {};
 }
-function saveDirektModus(d: Record<string, boolean>) {
+function saveDirektSegmente(d: Record<string, number[]>) {
   localStorage.setItem(DIREKT_KEY, JSON.stringify(d));
 }
 
@@ -228,8 +230,9 @@ export default function TourenKarte() {
   const [kopiert, setKopiert] = useState(false);
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [direktModus, setDirektModus] = useState<Record<string, boolean>>({});
-  const direktModusRef = useRef<Record<string, boolean>>({});
+  // direktSegmente[tourId] = Array mit Segment-Indices die als Direktlinie geführt werden
+  const [direktSegmente, setDirektSegmente] = useState<Record<string, number[]>>({});
+  const direktSegmenteRef = useRef<Record<string, number[]>>({});
 
   const editModusRef = useRef(false);
   const editTourIdRef = useRef(editTourId);
@@ -265,7 +268,7 @@ export default function TourenKarte() {
   useEffect(() => { waypointsRef.current = waypoints; }, [waypoints]);
   useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
   useEffect(() => { startpunktModusRef.current = startpunktModus; }, [startpunktModus]);
-  useEffect(() => { direktModusRef.current = direktModus; }, [direktModus]);
+  useEffect(() => { direktSegmenteRef.current = direktSegmente; }, [direktSegmente]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
     return waypoints[id] ?? TOUR_META.find(t => t.id === id)?.defaultWaypoints ?? [];
@@ -291,54 +294,109 @@ export default function TourenKarte() {
       return;
     }
 
-    const istDirekt = direktModusRef.current[tourId] ?? false;
-    let punkte: [number, number][];
+    const direktSet = new Set(direktSegmenteRef.current[tourId] ?? []);
+    const hatDirekt = direktSet.size > 0;
 
-    if (istDirekt) {
-      // Direkt-Modus: gerade Linien, kein OSRM
-      punkte = wps;
-      setRouteGeom(prev => ({ ...prev, [tourId]: wps }));
-      setRouteBerechnung(prev => ({ ...prev, [tourId]: 'fallback' }));
-      // Luftlinien-Distanz
-      let d = 0;
-      for (let i = 1; i < wps.length; i++) {
-        const [la1, lo1] = wps[i - 1]; const [la2, lo2] = wps[i];
+    // Vorschaulinie (gestrichelt) während Routing läuft
+    setRouteBerechnung(prev => ({ ...prev, [tourId]: 'loading' }));
+    polylineRefs.current[tourId]?.remove();
+    const tempLine = L.polyline(wps, { color: meta.farbe, weight: 4, opacity: 0.5, dashArray: '8,6' }).addTo(map);
+    polylineRefs.current[tourId] = tempLine;
+
+    // Segmentweises Routing: OSRM-Gruppen und Direkt-Segmente abwechselnd
+    // Gruppen bilden: [{type:'osrm'|'direct', wps:[...]}]
+    type Gruppe = { type: 'osrm'; wps: [number,number][] } | { type: 'direct'; von: [number,number]; nach: [number,number] };
+    const gruppen: Gruppe[] = [];
+    let osrmBatch: [number,number][] = [wps[0]];
+    for (let i = 0; i < wps.length - 1; i++) {
+      if (direktSet.has(i)) {
+        if (osrmBatch.length >= 2) gruppen.push({ type: 'osrm', wps: [...osrmBatch] });
+        gruppen.push({ type: 'direct', von: wps[i], nach: wps[i + 1] });
+        osrmBatch = [wps[i + 1]];
+      } else {
+        osrmBatch.push(wps[i + 1]);
+      }
+    }
+    if (osrmBatch.length >= 2) gruppen.push({ type: 'osrm', wps: osrmBatch });
+
+    // Alle Gruppen parallel berechnen
+    const ergebnisse = await Promise.all(gruppen.map(g =>
+      g.type === 'osrm' ? berechneRoute(g.wps) : Promise.resolve(null)
+    ));
+
+    // Gesamtgeometrie zusammensetzen
+    const gesamtPunkte: [number,number][] = [];
+    let gesamtDistanz = 0;
+    let alleOsrmOk = true;
+    gruppen.forEach((g, idx) => {
+      if (g.type === 'direct') {
+        if (gesamtPunkte.length === 0 || gesamtPunkte[gesamtPunkte.length - 1].join() !== g.von.join()) gesamtPunkte.push(g.von);
+        gesamtPunkte.push(g.nach);
+        // Luftlinien-Distanz für dieses Segment
+        const [la1, lo1] = g.von; const [la2, lo2] = g.nach;
         const R = 6371; const dLa = (la2 - la1) * Math.PI / 180; const dLo = (lo2 - lo1) * Math.PI / 180;
         const a = Math.sin(dLa / 2) ** 2 + Math.cos(la1 * Math.PI / 180) * Math.cos(la2 * Math.PI / 180) * Math.sin(dLo / 2) ** 2;
-        d += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        gesamtDistanz += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      } else {
+        const res = ergebnisse[idx];
+        const segPunkte = res?.geom ?? (g as { wps: [number,number][] }).wps;
+        if (!res) alleOsrmOk = false;
+        if (gesamtDistanz !== undefined && res?.distanzKm) gesamtDistanz += res.distanzKm;
+        segPunkte.forEach((p, pi) => {
+          if (pi === 0 && gesamtPunkte.length > 0) return; // Duplikat vermeiden
+          gesamtPunkte.push(p);
+        });
       }
-      setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(d * 10) / 10 }));
-    } else {
-      // OSRM-Routing mit gestrichelter Vorschaulinie
-      setRouteBerechnung(prev => ({ ...prev, [tourId]: 'loading' }));
-      polylineRefs.current[tourId]?.remove();
-      const tempLine = L.polyline(wps, { color: meta.farbe, weight: 4, opacity: 0.5, dashArray: '8,6' }).addTo(map);
-      polylineRefs.current[tourId] = tempLine;
+    });
 
-      const result = await berechneRoute(wps);
-      punkte = result?.geom ?? wps;
-      setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
-      setRouteBerechnung(prev => ({ ...prev, [tourId]: result ? 'ok' : 'fallback' }));
-      if (result?.distanzKm) setRouteDistanz(prev => ({ ...prev, [tourId]: result.distanzKm }));
+    const punkte = gesamtPunkte.length >= 2 ? gesamtPunkte : wps;
+    setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
+    setRouteBerechnung(prev => ({ ...prev, [tourId]: alleOsrmOk && !hatDirekt ? 'ok' : hatDirekt ? 'ok' : 'fallback' }));
+    setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(gesamtDistanz * 10) / 10 }));
 
-      // Höhenprofil im Hintergrund
-      setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
-      fetchHoehenprofil(punkte).then(profil => {
-        if (profil) setHoehenProfile(prev => ({ ...prev, [tourId]: profil }));
-        setHoehenLaden(prev => ({ ...prev, [tourId]: false }));
-      });
-    }
+    // Höhenprofil im Hintergrund
+    setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
+    fetchHoehenprofil(punkte).then(profil => {
+      if (profil) setHoehenProfile(prev => ({ ...prev, [tourId]: profil }));
+      setHoehenLaden(prev => ({ ...prev, [tourId]: false }));
+    });
 
-    // Polyline zeichnen
+    // Polyline zeichnen — Direkt-Segmente gestrichelt, OSRM-Teile durchgezogen
     polylineRefs.current[tourId]?.remove();
-    const line = L.polyline(punkte, {
-      color: meta.farbe, weight: 5, opacity: 0.9,
-      ...(istDirekt ? { dashArray: '10,6' } : {}),
-      lineCap: 'round', lineJoin: 'round',
-    }).addTo(map);
-    line.on('click', () => setAktiveTour(tourId));
-    line.bindTooltip(meta.kurzname, { permanent: false, direction: 'center', className: 'leaflet-tour-tooltip' });
-    polylineRefs.current[tourId] = line;
+    if (hatDirekt) {
+      // Mehrfarbige Darstellung: pro Gruppe eine eigene Polyline
+      // Alle unter demselben Ref als LayerGroup
+      const group = L.layerGroup().addTo(map);
+      let pIdx = 0;
+      gruppen.forEach((g, idx) => {
+        const segPunkte: [number,number][] = [];
+        if (g.type === 'direct') {
+          segPunkte.push(g.von, g.nach);
+          pIdx += 2;
+        } else {
+          const res = ergebnisse[idx];
+          const sp = res?.geom ?? (g as { wps: [number,number][] }).wps;
+          sp.forEach(p => segPunkte.push(p));
+          pIdx += sp.length;
+        }
+        const isDirSeg = g.type === 'direct';
+        L.polyline(segPunkte, {
+          color: meta.farbe, weight: 5, opacity: 0.9,
+          ...(isDirSeg ? { dashArray: '10,6' } : {}),
+          lineCap: 'round', lineJoin: 'round',
+        }).addTo(group).on('click', () => setAktiveTour(tourId));
+      });
+      group.on('click', () => setAktiveTour(tourId));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (polylineRefs.current as any)[tourId] = { remove: () => group.remove() };
+    } else {
+      const line = L.polyline(punkte, {
+        color: meta.farbe, weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round',
+      }).addTo(map);
+      line.on('click', () => setAktiveTour(tourId));
+      line.bindTooltip(meta.kurzname, { permanent: false, direction: 'center', className: 'leaflet-tour-tooltip' });
+      polylineRefs.current[tourId] = line;
+    }
 
     // Zielmarker
     zielMarkerRefs.current[tourId]?.remove();
@@ -502,9 +560,9 @@ export default function TourenKarte() {
       // Gespeicherte Waypoints laden & Routen berechnen
       const saved = loadWaypoints();
       setWaypoints(saved);
-      const savedDirekt = loadDirektModus();
-      setDirektModus(savedDirekt);
-      direktModusRef.current = savedDirekt;
+      const savedDirekt = loadDirektSegmente();
+      setDirektSegmente(savedDirekt);
+      direktSegmenteRef.current = savedDirekt;
 
       for (const meta of TOUR_META) {
         const wps = saved[meta.id] ?? meta.defaultWaypoints;
@@ -756,26 +814,6 @@ export default function TourenKarte() {
               {kopiert ? '✓ Kopiert!' : '📋 Wegpunkte kopieren'}
             </button>
           </div>
-          {/* Direkt-Modus Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.75rem', background: direktModus[editTourId] ? '#FEF3C7' : 'rgba(0,0,0,0.04)', borderRadius: 8, border: direktModus[editTourId] ? '1.5px solid #B45309' : '1px solid var(--border)' }}>
-            <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--ink)' }}>
-              {direktModus[editTourId]
-                ? '🔓 Direkte Linie aktiv — Route folgt exakt den Wegpunkten (Sondergenehmigung)'
-                : '🗺 OSRM-Routing aktiv — Route folgt echten Radwegen'}
-            </span>
-            <button
-              onClick={() => {
-                const neu = { ...direktModus, [editTourId]: !direktModus[editTourId] };
-                setDirektModus(neu);
-                direktModusRef.current = neu;
-                saveDirektModus(neu);
-                const wps = waypointsRef.current[editTourId] ?? TOUR_META.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
-                updateRoute(editTourId, wps);
-              }}
-              style={btnStyle('#B45309', false)}>
-              {direktModus[editTourId] ? 'Routing einschalten' : 'Direktlinie (Sondergenehmigung)'}
-            </button>
-          </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.25rem', borderTop: '1px solid var(--border)' }}>
             <input ref={fileInputRef} type="file" accept=".gpx" onChange={gpxImportieren} style={{ display: 'none' }} />
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#1D4ED8', false)}>
@@ -796,6 +834,7 @@ export default function TourenKarte() {
               <WegpunktListe
                 wps={editWps}
                 farbe={editMeta?.farbe ?? '#333'}
+                direktSegmente={direktSegmente[editTourId] ?? []}
                 onDelete={(i) => deleteWaypointRef.current(editTourId, i)}
                 onReorder={(von, nach) => {
                   const wps = [...editWps];
@@ -804,6 +843,18 @@ export default function TourenKarte() {
                   const updated = { ...waypoints, [editTourId]: wps };
                   saveWaypoints(updated);
                   setWaypoints(updated);
+                }}
+                onSegmentToggle={(segIdx) => {
+                  const aktuell = direktSegmente[editTourId] ?? [];
+                  const neu = aktuell.includes(segIdx)
+                    ? aktuell.filter(s => s !== segIdx)
+                    : [...aktuell, segIdx];
+                  const updated = { ...direktSegmente, [editTourId]: neu };
+                  setDirektSegmente(updated);
+                  direktSegmenteRef.current = updated;
+                  saveDirektSegmente(updated);
+                  const wps2 = waypointsRef.current[editTourId] ?? TOUR_META.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
+                  updateRoute(editTourId, wps2);
                 }}
               />
             </details>
@@ -973,11 +1024,13 @@ function HoehenProfilChart({ profil, farbe, hoehMin, hoehMax }: {
   );
 }
 
-function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
+function WegpunktListe({ wps, farbe, direktSegmente, onDelete, onReorder, onSegmentToggle }: {
   wps: [number, number][];
   farbe: string;
+  direktSegmente: number[];
   onDelete: (i: number) => void;
   onReorder: (von: number, nach: number) => void;
+  onSegmentToggle: (segIdx: number) => void;
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -985,31 +1038,53 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
         const isFirst = i === 0;
         const isLast = i === wps.length - 1;
         const label = isFirst ? `${i + 1} · Start` : isLast ? `${i + 1} · Ziel` : `${i + 1}`;
+        const segIstDirekt = direktSegmente.includes(i); // Segment i → i+1
         return (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.5rem', background: 'rgba(0,0,0,0.05)', borderRadius: 6 }}>
-            {/* Hoch/Runter */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-              <button
-                onClick={() => !isFirst && onReorder(i, i - 1)}
-                disabled={isFirst}
-                style={{ padding: '2px 6px', fontSize: '0.65rem', lineHeight: 1, border: '1px solid var(--border)', borderRadius: 3, background: isFirst ? 'transparent' : 'var(--surface)', color: isFirst ? 'var(--border)' : 'var(--ink)', cursor: isFirst ? 'default' : 'pointer' }}>
-                ▲
-              </button>
-              <button
-                onClick={() => !isLast && onReorder(i, i + 1)}
-                disabled={isLast}
-                style={{ padding: '2px 6px', fontSize: '0.65rem', lineHeight: 1, border: '1px solid var(--border)', borderRadius: 3, background: isLast ? 'transparent' : 'var(--surface)', color: isLast ? 'var(--border)' : 'var(--ink)', cursor: isLast ? 'default' : 'pointer' }}>
-                ▼
+          <div key={i}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.5rem', background: 'rgba(0,0,0,0.05)', borderRadius: 6 }}>
+              {/* Hoch/Runter */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+                <button
+                  onClick={() => !isFirst && onReorder(i, i - 1)}
+                  disabled={isFirst}
+                  style={{ padding: '2px 6px', fontSize: '0.65rem', lineHeight: 1, border: '1px solid var(--border)', borderRadius: 3, background: isFirst ? 'transparent' : 'var(--surface)', color: isFirst ? 'var(--border)' : 'var(--ink)', cursor: isFirst ? 'default' : 'pointer' }}>
+                  ▲
+                </button>
+                <button
+                  onClick={() => !isLast && onReorder(i, i + 1)}
+                  disabled={isLast}
+                  style={{ padding: '2px 6px', fontSize: '0.65rem', lineHeight: 1, border: '1px solid var(--border)', borderRadius: 3, background: isLast ? 'transparent' : 'var(--surface)', color: isLast ? 'var(--border)' : 'var(--ink)', cursor: isLast ? 'default' : 'pointer' }}>
+                  ▼
+                </button>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--mid)', fontFamily: 'monospace' }}>{wps[i][0].toFixed(4)}, {wps[i][1].toFixed(4)}</div>
+              </div>
+              <button onClick={() => onDelete(i)}
+                style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
+                ✕
               </button>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--mid)', fontFamily: 'monospace' }}>{wps[i][0].toFixed(4)}, {wps[i][1].toFixed(4)}</div>
-            </div>
-            <button onClick={() => onDelete(i)}
-              style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
-              ✕
-            </button>
+            {/* Segment-Toggle zwischen diesem und nächstem Wegpunkt */}
+            {!isLast && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0 0.5rem', margin: '1px 0' }}>
+                <div style={{ flex: 1, height: 1, background: segIstDirekt ? '#B45309' : 'var(--border)', opacity: 0.5 }} />
+                <button
+                  onClick={() => onSegmentToggle(i)}
+                  title={segIstDirekt ? 'Zurück zu OSRM-Routing' : 'Direktlinie (Sondergenehmigung)'}
+                  style={{
+                    padding: '1px 7px', fontSize: '0.6rem', lineHeight: 1.4, borderRadius: 3,
+                    border: `1px solid ${segIstDirekt ? '#B45309' : 'var(--border)'}`,
+                    background: segIstDirekt ? '#FEF3C7' : 'transparent',
+                    color: segIstDirekt ? '#92400E' : 'var(--mid)',
+                    cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}>
+                  {segIstDirekt ? '🔓 Direktlinie' : '〰 Straße'}
+                </button>
+                <div style={{ flex: 1, height: 1, background: segIstDirekt ? '#B45309' : 'var(--border)', opacity: 0.5 }} />
+              </div>
+            )}
           </div>
         );
       })}
