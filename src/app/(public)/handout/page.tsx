@@ -226,27 +226,42 @@ export default async function HandoutPage() {
         .sp-val   { color:#fff; font-weight:700; font-family:monospace; font-size:.57rem; letter-spacing:.02em; }
 
         /* ── PRINT ── */
+        html { -webkit-print-color-adjust:exact; color-adjust:exact; print-color-adjust:exact; }
         * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
         @media print {
-          @page { size: A4 portrait; margin: 5mm 0; }
-          html, body { background:#fff !important; padding:0 !important; margin:0 !important; }
+          @page { size: 148mm 210mm; margin: 0; }
+          @page :first { margin-top: 3mm; }
+          html, body { background:#fff !important; padding:0 !important; margin:0 !important; width:148mm !important; }
           .print-bar, .wrap > .page-title, .wrap > .page-hint, .side-label { display:none !important; }
-          .wrap { padding:0 !important; }
-          .sheet { width:148mm; margin:0 auto; box-shadow:none; }
-          .strip { width:148mm; height:88mm; }
-          .gap { width:148mm; height:6mm; overflow:visible; }
-          .gap-label { display:none; }
-          /* Schnittmarken im Druck: 10mm lang, 3mm Abstand vom Blattrand */
-          .gap::before { right:calc(100% + 3mm); width:10mm; background:rgba(0,0,0,.6); box-shadow:none; }
-          .gap::after  { left:calc(100% + 3mm);  width:10mm; background:rgba(0,0,0,.6); box-shadow:none; }
-          .back-sheet { page-break-before:always; break-before:page; }
+          .wrap { padding:0 !important; margin:0 !important; }
+          .sheet { width:148mm !important; margin:0 auto !important; box-shadow:none !important; border-radius:0 !important; }
+          .strip { width:148mm !important; height:65mm !important; }
+          .gap { width:148mm !important; height:7mm !important; overflow:visible !important; background:#1a2e14 !important; }
+          .gap-label { display:none !important; }
+          /* Schnittmarken 8mm breit, 3mm Abstand vom Bogen */
+          .gap::before { right:calc(100% + 3mm) !important; width:8mm !important; height:0.3mm !important; background:#000 !important; box-shadow:none !important; }
+          .gap::after  { left:calc(100% + 3mm) !important;  width:8mm !important; height:0.3mm !important; background:#000 !important; box-shadow:none !important; }
+          /* Vorderseite: letzter Streifen braucht keinen Schnittrand unten */
+          .sheet > .strip:last-child { height:72mm !important; }
+          /* Hintergrundbilder erzwingen */
+          .bg-foto { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+          .bg-gradient { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+          .brand-bar { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+          .spenden-col { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+          .strip-back .strip-inner { background:#F5F0E7 !important; }
+          .back-sheet { page-break-before:always; break-before:page; margin-top:3mm !important; }
+          /* Schrift etwas größer im Druck */
+          .slogan { font-size:1rem !important; }
+          .strip-body { font-size:.65rem !important; }
+          .chip { font-size:.56rem !important; padding:.12rem .5rem !important; }
+          .fz-text { font-size:.62rem !important; line-height:1.45 !important; }
         }
       `}</style>
 
       {/* Druckleiste */}
       <nav className="print-bar">
         <a href="/">← Zurück zur Website</a>
-        <span style={{fontSize:'.75rem',color:'#888',marginLeft:'1.5rem'}}>💡 Doppelseitig · lange Kante spiegeln · kein Rand · 3 Handouts pro Seite</span>
+        <span style={{fontSize:'.75rem',color:'rgba(255,255,255,.65)',marginLeft:'1.5rem'}}>💡 Doppelseitig · Lange Kante · Randlos · 3 Handouts pro A4</span>
         <a href="/bearbeiten" style={{marginLeft:'auto',marginRight:'1rem'}}>✏️ Inhalte bearbeiten</a>
         <PrintButton/>
       </nav>
