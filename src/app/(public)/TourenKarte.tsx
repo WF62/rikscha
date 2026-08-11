@@ -867,30 +867,36 @@ export default function TourenKarte() {
               </button>
             ))}
           </div>
-          {/* Foto-Marker — große auffällige Zeile, als erstes nach Tour-Wahl */}
-          {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
-            const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
-            const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
-            const pos = gespeichert ?? foto;
-            return (
-              <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', borderRadius: 10, background: aktiv ? '#FEF3C7' : '#FFF7ED', border: `3px solid ${aktiv ? '#C8881A' : '#F59E0B'}` }}>
-                <span style={{ fontSize: '1.5rem' }}>📷</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#92400E' }}>{foto.titel}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Foto-Marker auf Karte positionieren</div>
-                </div>
-                <button
-                  onClick={() => {
-                    if (aktiv) { setFotoPositionModus(null); return; }
-                    setFotoPositionModus({ tourId: editTourId, fotoIdx });
-                    mapInstance.current?.panTo([pos.lat, pos.lon]);
-                  }}
-                  style={{ padding: '0.5rem 1rem', borderRadius: 8, background: aktiv ? '#2D6B1E' : '#C8881A', color: '#fff', border: 'none', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  {aktiv ? '✓ Fertig' : 'Verschieben'}
-                </button>
-              </div>
-            );
-          })}
+          {/* Foto-Marker — alle Touren, immer sichtbar */}
+          <div style={{ border: '3px solid #F59E0B', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ background: '#F59E0B', padding: '0.5rem 1rem', fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>
+              📷 Foto-Marker positionieren
+            </div>
+            {TOUR_META.filter(t => (t.fotos?.length ?? 0) > 0).map(tourMeta =>
+              (tourMeta.fotos ?? []).map((foto, fotoIdx) => {
+                const aktiv = fotoPositionModus?.tourId === tourMeta.id && fotoPositionModus?.fotoIdx === fotoIdx;
+                const gespeichert = (fotoPositionenRef.current[tourMeta.id] ?? [])[fotoIdx];
+                const pos = gespeichert ?? foto;
+                return (
+                  <div key={`${tourMeta.id}-${fotoIdx}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: aktiv ? '#FEF3C7' : '#FFFBEB', borderTop: '1px solid #FDE68A' }}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: tourMeta.farbe, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#92400E' }}>{tourMeta.kurzname} · {foto.titel}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (aktiv) { setFotoPositionModus(null); return; }
+                        setFotoPositionModus({ tourId: tourMeta.id, fotoIdx });
+                        mapInstance.current?.panTo([pos.lat, pos.lon]);
+                      }}
+                      style={{ padding: '0.45rem 0.9rem', borderRadius: 8, background: aktiv ? '#2D6B1E' : '#C8881A', color: '#fff', border: 'none', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {aktiv ? '✓ Fertig' : 'Verschieben'}
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--ink)', lineHeight: 1.5 }}>
             Tour: <strong style={{ color: editMeta?.farbe }}>{editMeta?.name}</strong>
             {' · '}{editWps.length} Wegpunkt{editWps.length !== 1 ? 'e' : ''}
