@@ -989,7 +989,22 @@ export default function TourenKarte() {
               <div style={{ width: 2, height: 20, background: '#C8881A' }} />
             </div>
             {/* Knopf unten */}
-            <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1001, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1001, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 'calc(100% - 32px)', maxWidth: 420 }}>
+              {/* Wegpunkt-Sprung-Buttons */}
+              {(() => {
+                const snapWps = getWaypoints(fotoPositionModus.tourId);
+                if (snapWps.length === 0) return null;
+                return (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {snapWps.map(([lat, lon], i) => (
+                      <button key={i} onClick={() => mapInstance.current?.panTo([lat, lon])}
+                        style={{ padding: '0.3rem 0.7rem', borderRadius: 999, background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        → Wp {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
               <button
                 onClick={() => {
                   const center = mapInstance.current?.getCenter();
@@ -1004,7 +1019,7 @@ export default function TourenKarte() {
                   zeichneFotoMarkerRef.current(true);
                   setFotoPositionModus(null);
                 }}
-                style={{ padding: '0.6rem 1.4rem', borderRadius: 999, background: '#C8881A', color: '#fff', border: 'none', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 12px rgba(0,0,0,0.35)' }}>
+                style={{ padding: '0.6rem 1.4rem', borderRadius: 999, background: '#C8881A', color: '#fff', border: 'none', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 12px rgba(0,0,0,0.35)', width: '100%' }}>
                 📷 Hier platzieren — {fotoTitel}
               </button>
               <button onClick={() => setFotoPositionModus(null)}
