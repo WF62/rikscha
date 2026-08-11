@@ -902,32 +902,33 @@ export default function TourenKarte() {
             </button>
             <button onClick={() => { saveStart(START_DEFAULT); setStartPunkt(START_DEFAULT); startMarkerRef.current?.setLatLng(START_DEFAULT); }} title="Zurücksetzen" style={{ padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--mid)', cursor: 'pointer', fontSize: '0.75rem' }}>↺</button>
           </div>
-          {/* Foto-Marker positionieren — direkt unter Startpunkt */}
-          {(editMeta?.fotos?.length ?? 0) > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--mid)' }}>📷 Foto-Marker auf Karte positionieren:</div>
-              {editMeta!.fotos!.map((foto, fotoIdx) => {
-                const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
-                const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
-                const pos = gespeichert ?? foto;
-                return (
-                  <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.75rem', borderRadius: 8, background: aktiv ? '#FEF3C7' : 'rgba(0,0,0,0.04)', border: `1.5px solid ${aktiv ? '#C8881A' : 'var(--border)'}` }}>
-                    <span style={{ fontSize: '0.82rem', flex: 1, color: 'var(--ink)' }}>
-                      📷 <strong>{foto.titel}</strong>
-                      <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: 'var(--mid)', marginLeft: '0.5rem' }}>
-                        {pos.lat.toFixed(4)}, {pos.lon.toFixed(4)}
-                      </span>
+          {/* Foto-Marker positionieren */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--mid)', marginBottom: '0.2rem' }}>📷 Foto-Marker</div>
+            {(editMeta?.fotos ?? []).length === 0 && (
+              <div style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>Keine Foto-Marker für diese Tour hinterlegt.</div>
+            )}
+            {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
+              const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
+              const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
+              const pos = gespeichert ?? foto;
+              return (
+                <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: 6, background: aktiv ? '#FEF3C7' : '#fff', border: `1.5px solid ${aktiv ? '#C8881A' : 'var(--border)'}` }}>
+                  <span style={{ fontSize: '0.82rem', flex: 1, color: 'var(--ink)' }}>
+                    📷 <strong>{foto.titel}</strong>
+                    <span style={{ display: 'block', fontSize: '0.68rem', fontFamily: 'monospace', color: 'var(--mid)' }}>
+                      {pos.lat.toFixed(4)}, {pos.lon.toFixed(4)}
                     </span>
-                    <button
-                      onClick={() => setFotoPositionModus(aktiv ? null : { tourId: editTourId, fotoIdx })}
-                      style={btnStyle('#C8881A', false, aktiv)}>
-                      {aktiv ? '✓ Fertig' : '📍 Position setzen'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  </span>
+                  <button
+                    onClick={() => setFotoPositionModus(aktiv ? null : { tourId: editTourId, fotoIdx })}
+                    style={btnStyle('#C8881A', false)}>
+                    {aktiv ? '✓ Fertig' : '📍 Position setzen'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button onClick={letztenPunktLoeschen} disabled={!editWps.length} style={btnStyle('#6B7280', !editWps.length)}>↩ Letzten Punkt rückgängig</button>
             <button onClick={routeLeeren} disabled={!editWps.length} style={btnStyle('#DC2626', !editWps.length)}>🗑 Route leeren</button>
