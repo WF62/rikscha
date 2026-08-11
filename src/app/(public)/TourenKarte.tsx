@@ -68,6 +68,16 @@ const TOUR_META: TourMeta[] = [
 const START_DEFAULT: [number, number] = [50.7762, 6.9212];
 const STORAGE_KEY = 'rikscha_touren_waypoints_v2';
 const START_KEY = 'rikscha_startpunkt_v1';
+const DIREKT_KEY = 'rikscha_direkt_modus_v1';
+
+function loadDirektModus(): Record<string, boolean> {
+  if (typeof window === 'undefined') return {};
+  try { const s = localStorage.getItem(DIREKT_KEY); if (s) return JSON.parse(s); } catch {}
+  return {};
+}
+function saveDirektModus(d: Record<string, boolean>) {
+  localStorage.setItem(DIREKT_KEY, JSON.stringify(d));
+}
 
 function loadStart(): [number, number] {
   if (typeof window === 'undefined') return START_DEFAULT;
@@ -218,6 +228,8 @@ export default function TourenKarte() {
   const [kopiert, setKopiert] = useState(false);
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [direktModus, setDirektModus] = useState<Record<string, boolean>>({});
+  const direktModusRef = useRef<Record<string, boolean>>({});
 
   const editModusRef = useRef(false);
   const editTourIdRef = useRef(editTourId);
@@ -253,6 +265,7 @@ export default function TourenKarte() {
   useEffect(() => { waypointsRef.current = waypoints; }, [waypoints]);
   useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
   useEffect(() => { startpunktModusRef.current = startpunktModus; }, [startpunktModus]);
+  useEffect(() => { direktModusRef.current = direktModus; }, [direktModus]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
     return waypoints[id] ?? TOUR_META.find(t => t.id === id)?.defaultWaypoints ?? [];
@@ -262,7 +275,7 @@ export default function TourenKarte() {
     return routeGeom[id] ?? getWaypoints(id);
   }, [routeGeom, getWaypoints]);
 
-  // Route über OSRM berechnen und Polyline aktualisieren
+  // Route berechnen und Polyline aktualisieren
   const updateRoute = useCallback(async (tourId: string, wps: [number, number][]) => {
     const L = LRef.current;
     const map = mapInstance.current;
@@ -278,40 +291,58 @@ export default function TourenKarte() {
       return;
     }
 
-    setRouteBerechnung(prev => ({ ...prev, [tourId]: 'loading' }));
+    const istDirekt = direktModusRef.current[tourId] ?? false;
+    let punkte: [number, number][];
 
-    // Sofort gestrichelte Vorschaulinie (während OSRM rechnet)
-    polylineRefs.current[tourId]?.remove();
-    const tempLine = L.polyline(wps, {
-      color: meta.farbe, weight: 4, opacity: 0.5, dashArray: '8,6',
-    }).addTo(map);
-    polylineRefs.current[tourId] = tempLine;
+    if (istDirekt) {
+      // Direkt-Modus: gerade Linien, kein OSRM
+      punkte = wps;
+      setRouteGeom(prev => ({ ...prev, [tourId]: wps }));
+      setRouteBerechnung(prev => ({ ...prev, [tourId]: 'fallback' }));
+      // Luftlinien-Distanz
+      let d = 0;
+      for (let i = 1; i < wps.length; i++) {
+        const [la1, lo1] = wps[i - 1]; const [la2, lo2] = wps[i];
+        const R = 6371; const dLa = (la2 - la1) * Math.PI / 180; const dLo = (lo2 - lo1) * Math.PI / 180;
+        const a = Math.sin(dLa / 2) ** 2 + Math.cos(la1 * Math.PI / 180) * Math.cos(la2 * Math.PI / 180) * Math.sin(dLo / 2) ** 2;
+        d += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      }
+      setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(d * 10) / 10 }));
+    } else {
+      // OSRM-Routing mit gestrichelter Vorschaulinie
+      setRouteBerechnung(prev => ({ ...prev, [tourId]: 'loading' }));
+      polylineRefs.current[tourId]?.remove();
+      const tempLine = L.polyline(wps, { color: meta.farbe, weight: 4, opacity: 0.5, dashArray: '8,6' }).addTo(map);
+      polylineRefs.current[tourId] = tempLine;
 
-    const result = await berechneRoute(wps);
-    const punkte = result?.geom ?? wps; // Fallback: gerade Linien
+      const result = await berechneRoute(wps);
+      punkte = result?.geom ?? wps;
+      setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
+      setRouteBerechnung(prev => ({ ...prev, [tourId]: result ? 'ok' : 'fallback' }));
+      if (result?.distanzKm) setRouteDistanz(prev => ({ ...prev, [tourId]: result.distanzKm }));
 
-    setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
-    setRouteBerechnung(prev => ({ ...prev, [tourId]: result ? 'ok' : 'fallback' }));
-    if (result?.distanzKm) {
-      setRouteDistanz(prev => ({ ...prev, [tourId]: result.distanzKm }));
+      // Höhenprofil im Hintergrund
+      setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
+      fetchHoehenprofil(punkte).then(profil => {
+        if (profil) setHoehenProfile(prev => ({ ...prev, [tourId]: profil }));
+        setHoehenLaden(prev => ({ ...prev, [tourId]: false }));
+      });
     }
 
-
-    // Polyline endgültig zeichnen
+    // Polyline zeichnen
     polylineRefs.current[tourId]?.remove();
     const line = L.polyline(punkte, {
       color: meta.farbe, weight: 5, opacity: 0.9,
+      ...(istDirekt ? { dashArray: '10,6' } : {}),
       lineCap: 'round', lineJoin: 'round',
     }).addTo(map);
     line.on('click', () => setAktiveTour(tourId));
-    line.bindTooltip(meta.kurzname, {
-      permanent: false, direction: 'center', className: 'leaflet-tour-tooltip',
-    });
+    line.bindTooltip(meta.kurzname, { permanent: false, direction: 'center', className: 'leaflet-tour-tooltip' });
     polylineRefs.current[tourId] = line;
 
     // Zielmarker
     zielMarkerRefs.current[tourId]?.remove();
-    const ziel = (result?.snapped ?? wps)[wps.length - 1];
+    const ziel = wps[wps.length - 1];
     const zielIcon = L.divIcon({
       html: `<div style="width:12px;height:12px;background:${meta.farbe};border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
       className: '', iconSize: [12, 12], iconAnchor: [6, 6],
@@ -319,13 +350,6 @@ export default function TourenKarte() {
     zielMarkerRefs.current[tourId] = L.marker(ziel, { icon: zielIcon })
       .addTo(map)
       .bindPopup(`<strong>${meta.name}</strong><br>${meta.laenge} · ${meta.dauer}`);
-
-    // Höhenprofil im Hintergrund laden
-    setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
-    fetchHoehenprofil(punkte).then(profil => {
-      if (profil) setHoehenProfile(prev => ({ ...prev, [tourId]: profil }));
-      setHoehenLaden(prev => ({ ...prev, [tourId]: false }));
-    });
   }, []);
 
   // Ref damit Marker-Handler immer aktuelle waypoints+setter sehen
@@ -478,6 +502,9 @@ export default function TourenKarte() {
       // Gespeicherte Waypoints laden & Routen berechnen
       const saved = loadWaypoints();
       setWaypoints(saved);
+      const savedDirekt = loadDirektModus();
+      setDirektModus(savedDirekt);
+      direktModusRef.current = savedDirekt;
 
       for (const meta of TOUR_META) {
         const wps = saved[meta.id] ?? meta.defaultWaypoints;
@@ -727,6 +754,26 @@ export default function TourenKarte() {
             <button onClick={routeLeeren} disabled={!editWps.length} style={btnStyle('#DC2626', !editWps.length)}>🗑 Route leeren</button>
             <button onClick={koordinatenKopieren} disabled={!editWps.length} style={btnStyle('#2D6B1E', !editWps.length)}>
               {kopiert ? '✓ Kopiert!' : '📋 Wegpunkte kopieren'}
+            </button>
+          </div>
+          {/* Direkt-Modus Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.75rem', background: direktModus[editTourId] ? '#FEF3C7' : 'rgba(0,0,0,0.04)', borderRadius: 8, border: direktModus[editTourId] ? '1.5px solid #B45309' : '1px solid var(--border)' }}>
+            <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--ink)' }}>
+              {direktModus[editTourId]
+                ? '🔓 Direkte Linie aktiv — Route folgt exakt den Wegpunkten (Sondergenehmigung)'
+                : '🗺 OSRM-Routing aktiv — Route folgt echten Radwegen'}
+            </span>
+            <button
+              onClick={() => {
+                const neu = { ...direktModus, [editTourId]: !direktModus[editTourId] };
+                setDirektModus(neu);
+                direktModusRef.current = neu;
+                saveDirektModus(neu);
+                const wps = waypointsRef.current[editTourId] ?? TOUR_META.find(t => t.id === editTourId)?.defaultWaypoints ?? [];
+                updateRoute(editTourId, wps);
+              }}
+              style={btnStyle('#B45309', false)}>
+              {direktModus[editTourId] ? 'Routing einschalten' : 'Direktlinie (Sondergenehmigung)'}
             </button>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.25rem', borderTop: '1px solid var(--border)' }}>
