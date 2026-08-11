@@ -984,7 +984,7 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
       {wps.map((_, i) => {
         const isFirst = i === 0;
         const isLast = i === wps.length - 1;
-        const label = isFirst ? 'Start' : isLast ? 'Ziel' : `Wegpunkt ${i}`;
+        const label = isFirst ? `${i + 1}  · Start` : isLast ? `${i + 1}  · Ziel` : `${i + 1}`;
         const istZiel = dragOver === i;
         return (
           <div
@@ -1008,7 +1008,6 @@ function WegpunktListe({ wps, farbe, onDelete, onReorder }: {
               transition: 'background 0.1s',
             }}>
             <span data-grip="1" style={{ fontSize: '1.1rem', color: 'var(--mid)', flexShrink: 0, lineHeight: 1, cursor: 'grab', padding: '0 4px' }}>⠿</span>
-            <span style={{ width: 22, height: 22, borderRadius: '50%', background: farbe, color: '#fff', fontWeight: 700, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>
             <span style={{ flex: 1, fontSize: '0.82rem', color: 'var(--ink)', fontWeight: isFirst || isLast ? 700 : 400 }}>{label}</span>
             <button onClick={() => onDelete(i)}
               style={{ padding: '4px 10px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, flexShrink: 0 }}>
