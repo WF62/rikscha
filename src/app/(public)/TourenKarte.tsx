@@ -261,6 +261,7 @@ export default function TourenKarte() {
   const fotoMarkerRefs = useRef<any[]>([]);
   const fotoPositionenRef = useRef<Record<string, { lat: number; lon: number }[]>>({});
   const istPilotRef = useRef(false);
+  const zeichneFotoMarkerRef = useRef<(draggable: boolean) => void>(() => {});
 
   const [mounted, setMounted] = useState(false);
   const [istPilot, setIstPilot] = useState(false);
@@ -621,39 +622,45 @@ export default function TourenKarte() {
         await updateRoute(meta.id, wps);
       }
 
-      // Foto-Marker für alle Touren (draggable für Piloten)
+      // Foto-Marker zeichnen (als Funktion, damit sie bei editModus-Wechsel neu gezeichnet werden)
+      function zeichneFotoMarker(draggable: boolean) {
+        fotoMarkerRefs.current.forEach(m => m.remove());
+        fotoMarkerRefs.current = [];
+        const gespeicherteFotos = fotoPositionenRef.current;
+        for (const meta of TOUR_META) {
+          const fotos = meta.fotos ?? [];
+          const savedPos = gespeicherteFotos[meta.id] ?? [];
+          fotos.forEach((foto, fotoIdx) => {
+            const pos = savedPos[fotoIdx] ?? foto;
+            const fotoIcon = L.divIcon({
+              html: `<div style="width:28px;height:28px;background:${meta.farbe};border:2px solid #fff;border-radius:${draggable ? '6px' : '50%'};box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:${draggable ? 'move' : 'pointer'}">📷</div>`,
+              className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+            });
+            const m = L.marker([pos.lat, pos.lon], { icon: fotoIcon, draggable }).addTo(map);
+            const imgHtml = foto.src
+              ? `<img src="${foto.src}" alt="${foto.titel}" style="width:140px;height:90px;object-fit:cover;border-radius:6px;margin-bottom:4px;display:block">`
+              : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
+            const pilotHinweis = draggable ? `<div style="font-size:0.65rem;color:#92400E;margin-top:4px">✋ Marker ziehen zum Verschieben</div>` : '';
+            m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div>${pilotHinweis}</div>`);
+            m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); setAktiveTour(meta.id); });
+            m.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+              const ll = e.target.getLatLng();
+              const neuPos = { lat: Math.round(ll.lat * 1e6) / 1e6, lon: Math.round(ll.lng * 1e6) / 1e6 };
+              const aktFotos = [...(fotoPositionenRef.current[meta.id] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
+              aktFotos[fotoIdx] = neuPos;
+              const updated = { ...fotoPositionenRef.current, [meta.id]: aktFotos };
+              fotoPositionenRef.current = updated;
+              saveFotoPositionen(updated);
+            });
+            fotoMarkerRefs.current.push(m);
+          });
+        }
+      }
+
       const gespeicherteFotos = loadFotoPositionen();
       fotoPositionenRef.current = gespeicherteFotos;
-      fotoMarkerRefs.current.forEach(m => m.remove());
-      fotoMarkerRefs.current = [];
-      for (const meta of TOUR_META) {
-        const fotos = meta.fotos ?? [];
-        const savedPos = gespeicherteFotos[meta.id] ?? [];
-        fotos.forEach((foto, fotoIdx) => {
-          const pos = savedPos[fotoIdx] ?? foto;
-          const fotoIcon = L.divIcon({
-            html: `<div style="width:28px;height:28px;background:${meta.farbe};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px">📷</div>`,
-            className: '', iconSize: [28, 28], iconAnchor: [14, 14],
-          });
-          const m = L.marker([pos.lat, pos.lon], { icon: fotoIcon, draggable: istPilotRef.current }).addTo(map);
-          const imgHtml = foto.src
-            ? `<img src="${foto.src}" alt="${foto.titel}" style="width:140px;height:90px;object-fit:cover;border-radius:6px;margin-bottom:4px;display:block">`
-            : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
-          const pilotHinweis = istPilotRef.current ? `<div style="font-size:0.65rem;color:#92400E;margin-top:4px">✋ Marker ziehen zum Verschieben</div>` : '';
-          m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div>${pilotHinweis}</div>`);
-          m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); setAktiveTour(meta.id); });
-          m.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
-            const ll = e.target.getLatLng();
-            const neuPos = { lat: Math.round(ll.lat * 1e6) / 1e6, lon: Math.round(ll.lng * 1e6) / 1e6 };
-            const aktFotos = [...(fotoPositionenRef.current[meta.id] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
-            aktFotos[fotoIdx] = neuPos;
-            const updated = { ...fotoPositionenRef.current, [meta.id]: aktFotos };
-            fotoPositionenRef.current = updated;
-            saveFotoPositionen(updated);
-          });
-          fotoMarkerRefs.current.push(m);
-        });
-      }
+      zeichneFotoMarker(istPilotRef.current);
+      zeichneFotoMarkerRef.current = zeichneFotoMarker;
 
       // Karten-Klick im Edit-Modus
       map.on('click', (e: { latlng: { lat: number; lng: number } }) => {
@@ -705,6 +712,8 @@ export default function TourenKarte() {
       wpMarkerRefs.current.forEach(m => m.remove());
       wpMarkerRefs.current = [];
     }
+    // Foto-Marker: draggable nur im Editor (Pilot bereits eingeloggt)
+    zeichneFotoMarkerRef.current(editModus && istPilotRef.current);
   }, [editModus, editTourId, waypoints, redrawWpMarkers, getWaypoints]);
 
   useEffect(() => {
