@@ -684,19 +684,6 @@ export default function TourenKarte() {
           return;
         }
 
-        if (fotoPositionModusRef.current) {
-          const { tourId: fTourId, fotoIdx } = fotoPositionModusRef.current;
-          const neuPos = { lat: neu[0], lon: neu[1] };
-          const fotos = TOUR_META.find(t => t.id === fTourId)?.fotos ?? [];
-          const aktFotos = [...(fotoPositionenRef.current[fTourId] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
-          aktFotos[fotoIdx] = neuPos;
-          const updated = { ...fotoPositionenRef.current, [fTourId]: aktFotos };
-          fotoPositionenRef.current = updated;
-          saveFotoPositionen(updated);
-          zeichneFotoMarkerRef.current(true);
-          setFotoPositionModus(null);
-          return;
-        }
 
         const tourId = editTourIdRef.current;
         const current = waypointsRef.current;
@@ -903,32 +890,44 @@ export default function TourenKarte() {
             <button onClick={() => { saveStart(START_DEFAULT); setStartPunkt(START_DEFAULT); startMarkerRef.current?.setLatLng(START_DEFAULT); }} title="Zurücksetzen" style={{ padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--mid)', cursor: 'pointer', fontSize: '0.75rem' }}>↺</button>
           </div>
           {/* Foto-Marker positionieren */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', padding: '0.6rem 0.75rem', borderRadius: 8, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--mid)', marginBottom: '0.2rem' }}>📷 Foto-Marker</div>
-            {(editMeta?.fotos ?? []).length === 0 && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>Keine Foto-Marker für diese Tour hinterlegt.</div>
-            )}
-            {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
-              const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
-              const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
-              const pos = gespeichert ?? foto;
-              return (
-                <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: 6, background: aktiv ? '#FEF3C7' : '#fff', border: `1.5px solid ${aktiv ? '#C8881A' : 'var(--border)'}` }}>
-                  <span style={{ fontSize: '0.82rem', flex: 1, color: 'var(--ink)' }}>
-                    📷 <strong>{foto.titel}</strong>
-                    <span style={{ display: 'block', fontSize: '0.68rem', fontFamily: 'monospace', color: 'var(--mid)' }}>
-                      {pos.lat.toFixed(4)}, {pos.lon.toFixed(4)}
+          {(editMeta?.fotos ?? []).length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.6rem 0.75rem', borderRadius: 8, background: fotoPositionModus ? '#FEF3C7' : 'rgba(0,0,0,0.03)', border: `1.5px solid ${fotoPositionModus ? '#C8881A' : 'var(--border)'}` }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: fotoPositionModus ? '#92400E' : 'var(--mid)' }}>
+                📷 Foto-Marker verschieben
+              </div>
+              {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
+                const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
+                const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
+                const pos = gespeichert ?? foto;
+                return (
+                  <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.82rem', flex: 1, color: 'var(--ink)' }}>
+                      📷 <strong>{foto.titel}</strong>
+                      <span style={{ display: 'block', fontSize: '0.68rem', fontFamily: 'monospace', color: 'var(--mid)' }}>
+                        {pos.lat.toFixed(4)}, {pos.lon.toFixed(4)}
+                      </span>
                     </span>
-                  </span>
-                  <button
-                    onClick={() => setFotoPositionModus(aktiv ? null : { tourId: editTourId, fotoIdx })}
-                    style={btnStyle('#C8881A', false)}>
-                    {aktiv ? '✓ Fertig' : '📍 Position setzen'}
-                  </button>
+                    {aktiv ? (
+                      <button onClick={() => setFotoPositionModus(null)} style={btnStyle('#2D6B1E', false)}>✓ Fertig</button>
+                    ) : (
+                      <button onClick={() => {
+                        setFotoPositionModus({ tourId: editTourId, fotoIdx });
+                        // Karte zur aktuellen Marker-Position scrollen
+                        mapInstance.current?.panTo([pos.lat, pos.lon]);
+                      }} style={btnStyle('#C8881A', false)}>
+                        Verschieben
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {fotoPositionModus && (
+                <div style={{ fontSize: '0.8rem', color: '#92400E', fontWeight: 600, padding: '0.4rem 0', borderTop: '1px solid #F59E0B' }}>
+                  👇 Karte verschieben bis 📷 an der richtigen Stelle steht → dann „Hier platzieren" tippen
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button onClick={letztenPunktLoeschen} disabled={!editWps.length} style={btnStyle('#6B7280', !editWps.length)}>↩ Letzten Punkt rückgängig</button>
             <button onClick={routeLeeren} disabled={!editWps.length} style={btnStyle('#DC2626', !editWps.length)}>🗑 Route leeren</button>
@@ -987,13 +986,47 @@ export default function TourenKarte() {
       {/* Karte */}
       <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1.5px solid var(--border)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
         <div ref={mapRef} style={{ height: 500, width: '100%' }} />
-        {editModus && (
+        {editModus && !fotoPositionModus && (
           <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
             background: editMeta?.farbe, color: '#fff', padding: '0.3rem 0.9rem', borderRadius: 999,
             fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.25)', pointerEvents: 'none' }}>
-            {startpunktModus ? '📍 Klicken = Startpunkt setzen' : fotoPositionModus ? `📷 Klicken = Foto-Marker setzen · ${editMeta?.fotos?.[fotoPositionModus.fotoIdx]?.titel ?? ''}` : `✏️ Klicken = Wegpunkt setzen · ${editMeta?.kurzname}`}
+            {startpunktModus ? '📍 Klicken = Startpunkt setzen' : `✏️ Klicken = Wegpunkt setzen · ${editMeta?.kurzname}`}
           </div>
         )}
+        {fotoPositionModus && (() => {
+          const fotoTitel = editMeta?.fotos?.[fotoPositionModus.fotoIdx]?.titel ?? 'Foto';
+          return <>
+            {/* Fadenkreuz in der Mitte */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1001, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <div style={{ fontSize: 32, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>📷</div>
+              <div style={{ width: 2, height: 20, background: '#C8881A' }} />
+            </div>
+            {/* Knopf unten */}
+            <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1001, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => {
+                  const center = mapInstance.current?.getCenter();
+                  if (!center) return;
+                  const neuPos = { lat: Math.round(center.lat * 1e6) / 1e6, lon: Math.round(center.lng * 1e6) / 1e6 };
+                  const fotos = TOUR_META.find(t => t.id === fotoPositionModus.tourId)?.fotos ?? [];
+                  const aktFotos = [...(fotoPositionenRef.current[fotoPositionModus.tourId] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
+                  aktFotos[fotoPositionModus.fotoIdx] = neuPos;
+                  const updated = { ...fotoPositionenRef.current, [fotoPositionModus.tourId]: aktFotos };
+                  fotoPositionenRef.current = updated;
+                  saveFotoPositionen(updated);
+                  zeichneFotoMarkerRef.current(true);
+                  setFotoPositionModus(null);
+                }}
+                style={{ padding: '0.6rem 1.4rem', borderRadius: 999, background: '#C8881A', color: '#fff', border: 'none', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 12px rgba(0,0,0,0.35)' }}>
+                📷 Hier platzieren — {fotoTitel}
+              </button>
+              <button onClick={() => setFotoPositionModus(null)}
+                style={{ padding: '0.3rem 0.9rem', borderRadius: 999, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', fontSize: '0.78rem', cursor: 'pointer' }}>
+                Abbrechen
+              </button>
+            </div>
+          </>;
+        })()}
         <style>{`
           .leaflet-tour-tooltip { background: rgba(20,15,8,0.85); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; padding: 4px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
           .leaflet-tour-tooltip::before { display: none; }
