@@ -642,7 +642,9 @@ export default function TourenKarte() {
               : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
             const pilotHinweis = draggable ? `<div style="font-size:0.65rem;color:#92400E;margin-top:4px">✋ Marker ziehen zum Verschieben</div>` : '';
             m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div>${pilotHinweis}</div>`);
-            m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); setAktiveTour(meta.id); });
+            m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); if (!draggable) setAktiveTour(meta.id); });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (draggable) { m.on('mousedown', (e: any) => e.originalEvent?.stopPropagation()); m.on('touchstart', (e: any) => e.originalEvent?.stopPropagation()); }
             m.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
               const ll = e.target.getLatLng();
               const neuPos = { lat: Math.round(ll.lat * 1e6) / 1e6, lon: Math.round(ll.lng * 1e6) / 1e6 };
@@ -712,8 +714,8 @@ export default function TourenKarte() {
       wpMarkerRefs.current.forEach(m => m.remove());
       wpMarkerRefs.current = [];
     }
-    // Foto-Marker: draggable nur im Editor (Pilot bereits eingeloggt)
-    zeichneFotoMarkerRef.current(editModus && istPilotRef.current);
+    // Foto-Marker: draggable wenn Editor offen (Button nur für Piloten sichtbar)
+    zeichneFotoMarkerRef.current(editModus);
   }, [editModus, editTourId, waypoints, redrawWpMarkers, getWaypoints]);
 
   useEffect(() => {
