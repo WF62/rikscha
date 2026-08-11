@@ -104,6 +104,16 @@ const START_KEY = 'rikscha_startpunkt_v1';
 // direktSegmente[tourId] = Set von Segment-Indices die als Direktlinie geführt werden
 // Segment i = zwischen Wegpunkt[i] und Wegpunkt[i+1]
 const DIREKT_KEY = 'rikscha_direkt_segmente_v2';
+const FOTO_POS_KEY = 'rikscha_foto_positionen_v1';
+
+function loadFotoPositionen(): Record<string, { lat: number; lon: number }[]> {
+  if (typeof window === 'undefined') return {};
+  try { const s = localStorage.getItem(FOTO_POS_KEY); if (s) return JSON.parse(s); } catch {}
+  return {};
+}
+function saveFotoPositionen(d: Record<string, { lat: number; lon: number }[]>) {
+  localStorage.setItem(FOTO_POS_KEY, JSON.stringify(d));
+}
 
 function loadDirektSegmente(): Record<string, number[]> {
   if (typeof window === 'undefined') return {};
@@ -223,7 +233,13 @@ const GPX_DIRECT_THRESHOLD = 50;
 
 function loadWaypoints(): Record<string, [number, number][]> {
   if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'); } catch { return {}; }
+  try {
+    const raw: Record<string, [number, number][]> = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    // Leere Arrays verwerfen → defaultWaypoints greifen dann im Code
+    const filtered: Record<string, [number, number][]> = {};
+    for (const [k, v] of Object.entries(raw)) { if (v.length > 0) filtered[k] = v; }
+    return filtered;
+  } catch { return {}; }
 }
 function saveWaypoints(wp: Record<string, [number, number][]>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(wp));
@@ -243,6 +259,8 @@ export default function TourenKarte() {
   const zielMarkerRefs = useRef<Record<string, any>>({});
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fotoMarkerRefs = useRef<any[]>([]);
+  const fotoPositionenRef = useRef<Record<string, { lat: number; lon: number }[]>>({});
+  const istPilotRef = useRef(false);
 
   const [mounted, setMounted] = useState(false);
   const [istPilot, setIstPilot] = useState(false);
@@ -297,6 +315,7 @@ export default function TourenKarte() {
     };
   }, []);
   useEffect(() => { editModusRef.current = editModus; }, [editModus]);
+  useEffect(() => { istPilotRef.current = istPilot; }, [istPilot]);
   useEffect(() => { editTourIdRef.current = editTourId; }, [editTourId]);
   useEffect(() => { waypointsRef.current = waypoints; }, [waypoints]);
   useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
@@ -602,23 +621,38 @@ export default function TourenKarte() {
         await updateRoute(meta.id, wps);
       }
 
-      // Foto-Marker für alle Touren
+      // Foto-Marker für alle Touren (draggable für Piloten)
+      const gespeicherteFotos = loadFotoPositionen();
+      fotoPositionenRef.current = gespeicherteFotos;
       fotoMarkerRefs.current.forEach(m => m.remove());
       fotoMarkerRefs.current = [];
       for (const meta of TOUR_META) {
-        for (const foto of meta.fotos ?? []) {
+        const fotos = meta.fotos ?? [];
+        const savedPos = gespeicherteFotos[meta.id] ?? [];
+        fotos.forEach((foto, fotoIdx) => {
+          const pos = savedPos[fotoIdx] ?? foto;
           const fotoIcon = L.divIcon({
             html: `<div style="width:28px;height:28px;background:${meta.farbe};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px">📷</div>`,
             className: '', iconSize: [28, 28], iconAnchor: [14, 14],
           });
-          const m = L.marker([foto.lat, foto.lon], { icon: fotoIcon }).addTo(map);
+          const m = L.marker([pos.lat, pos.lon], { icon: fotoIcon, draggable: istPilotRef.current }).addTo(map);
           const imgHtml = foto.src
             ? `<img src="${foto.src}" alt="${foto.titel}" style="width:140px;height:90px;object-fit:cover;border-radius:6px;margin-bottom:4px;display:block">`
             : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
-          m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div></div>`);
+          const pilotHinweis = istPilotRef.current ? `<div style="font-size:0.65rem;color:#92400E;margin-top:4px">✋ Marker ziehen zum Verschieben</div>` : '';
+          m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div>${pilotHinweis}</div>`);
           m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); setAktiveTour(meta.id); });
+          m.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+            const ll = e.target.getLatLng();
+            const neuPos = { lat: Math.round(ll.lat * 1e6) / 1e6, lon: Math.round(ll.lng * 1e6) / 1e6 };
+            const aktFotos = [...(fotoPositionenRef.current[meta.id] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
+            aktFotos[fotoIdx] = neuPos;
+            const updated = { ...fotoPositionenRef.current, [meta.id]: aktFotos };
+            fotoPositionenRef.current = updated;
+            saveFotoPositionen(updated);
+          });
           fotoMarkerRefs.current.push(m);
-        }
+        });
       }
 
       // Karten-Klick im Edit-Modus
