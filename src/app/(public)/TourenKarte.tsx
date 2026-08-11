@@ -291,6 +291,9 @@ export default function TourenKarte() {
   const waypointsRef = useRef(waypoints);
   const [startpunktModus, setStartpunktModus] = useState(false);
   const startpunktModusRef = useRef(false);
+  // fotoPositionModus: { tourId, fotoIdx } wenn aktiv, sonst null
+  const [fotoPositionModus, setFotoPositionModus] = useState<{ tourId: string; fotoIdx: number } | null>(null);
+  const fotoPositionModusRef = useRef<{ tourId: string; fotoIdx: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -321,6 +324,7 @@ export default function TourenKarte() {
   useEffect(() => { waypointsRef.current = waypoints; }, [waypoints]);
   useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
   useEffect(() => { startpunktModusRef.current = startpunktModus; }, [startpunktModus]);
+  useEffect(() => { fotoPositionModusRef.current = fotoPositionModus; }, [fotoPositionModus]);
   useEffect(() => { direktSegmenteRef.current = direktSegmente; }, [direktSegmente]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
@@ -673,11 +677,24 @@ export default function TourenKarte() {
         ];
 
         if (startpunktModusRef.current) {
-          // Startpunkt setzen
           saveStart(neu);
           setStartPunkt(neu);
           startPunktRef.current = neu;
           startMarkerRef.current?.setLatLng(neu);
+          return;
+        }
+
+        if (fotoPositionModusRef.current) {
+          const { tourId: fTourId, fotoIdx } = fotoPositionModusRef.current;
+          const neuPos = { lat: neu[0], lon: neu[1] };
+          const fotos = TOUR_META.find(t => t.id === fTourId)?.fotos ?? [];
+          const aktFotos = [...(fotoPositionenRef.current[fTourId] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
+          aktFotos[fotoIdx] = neuPos;
+          const updated = { ...fotoPositionenRef.current, [fTourId]: aktFotos };
+          fotoPositionenRef.current = updated;
+          saveFotoPositionen(updated);
+          zeichneFotoMarkerRef.current(true);
+          setFotoPositionModus(null);
           return;
         }
 
@@ -937,6 +954,34 @@ export default function TourenKarte() {
               />
             </details>
           )}
+          {/* Foto-Marker positionieren */}
+          {(editMeta?.fotos?.length ?? 0) > 0 && (
+            <div style={{ paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--mid)', marginBottom: '0.4rem' }}>📷 Foto-Marker</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {editMeta!.fotos!.map((foto, fotoIdx) => {
+                  const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
+                  const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
+                  const pos = gespeichert ?? foto;
+                  return (
+                    <div key={fotoIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.5rem', borderRadius: 6, background: aktiv ? '#FEF3C7' : 'rgba(0,0,0,0.03)', border: `1px solid ${aktiv ? '#C8881A' : 'var(--border)'}` }}>
+                      <span style={{ fontSize: '0.8rem', flex: 1, color: 'var(--ink)' }}>
+                        {foto.titel}
+                        <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: 'var(--mid)', marginLeft: '0.4rem' }}>
+                          {pos.lat.toFixed(4)}, {pos.lon.toFixed(4)}
+                        </span>
+                      </span>
+                      <button
+                        onClick={() => setFotoPositionModus(aktiv ? null : { tourId: editTourId, fotoIdx })}
+                        style={{ padding: '0.25rem 0.6rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', border: `1px solid ${aktiv ? '#C8881A' : 'var(--border)'}`, background: aktiv ? '#C8881A' : 'transparent', color: aktiv ? '#fff' : 'var(--mid)' }}>
+                        {aktiv ? '✓ Fertig' : '📍 Position setzen'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -947,7 +992,7 @@ export default function TourenKarte() {
           <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
             background: editMeta?.farbe, color: '#fff', padding: '0.3rem 0.9rem', borderRadius: 999,
             fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.25)', pointerEvents: 'none' }}>
-            {startpunktModus ? '📍 Klicken = Startpunkt setzen' : `✏️ Klicken = Wegpunkt setzen · ${editMeta?.kurzname}`}
+            {startpunktModus ? '📍 Klicken = Startpunkt setzen' : fotoPositionModus ? `📷 Klicken = Foto-Marker setzen · ${editMeta?.fotos?.[fotoPositionModus.fotoIdx]?.titel ?? ''}` : `✏️ Klicken = Wegpunkt setzen · ${editMeta?.kurzname}`}
           </div>
         )}
         <style>{`
