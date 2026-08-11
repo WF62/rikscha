@@ -40,26 +40,59 @@ const TOUR_META: TourMeta[] = [
   },
   { id: 'schloesser', name: 'Brühler Schlösserrunde', kurzname: 'Schlösserrunde', farbe: '#92400E',
     beschreibung: 'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg, Biergarten am Schloss.',
-    laenge: 'ca. 22 km', dauer: 'ca. 2 Std.', defaultWaypoints: [],
+    laenge: 'ca. 22 km', dauer: 'ca. 2 Std.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7870, 6.9100], // Richtung Walberberg
+      [50.8010, 6.8960], // Walberberg
+      [50.8120, 6.9000], // Richtung Brühl
+      [50.8281, 6.9006], // Schloss Augustusburg
+      [50.8240, 6.9050], // Schlosspark
+      [50.8180, 6.9150], // Brühl Innenstadt
+      [50.8020, 6.9250], // Rückweg
+      [50.7900, 6.9280], // Richtung Merten
+      [50.7762, 6.9212], // Zurück Kloster Merten
+    ],
     fotos: [
       { lat: 50.8281, lon: 6.9006, titel: 'Schloss Augustusburg', src: '' },
       { lat: 50.8240, lon: 6.9050, titel: 'Schlosspark', src: '' },
     ] },
   { id: 'rhein', name: 'Fahrt zum Rhein', kurzname: 'Zum Rhein', farbe: '#1D4ED8',
     beschreibung: 'Westlich durch Walberberg und Bornheim bis zum Rheinufer — weite Aussicht und Ruhe am Fluss.',
-    laenge: 'ca. 12 km', dauer: 'ca. 1 Std.', defaultWaypoints: [],
+    laenge: 'ca. 12 km', dauer: 'ca. 1 Std.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7850, 6.9050], // Richtung Walberberg
+      [50.7920, 6.8880], // Walberberg
+      [50.7800, 6.8700], // Richtung Bornheim
+      [50.7680, 6.8540], // Bornheim
+      [50.7682, 6.8450], // Rheinufer
+    ],
     fotos: [
       { lat: 50.7682, lon: 6.8450, titel: 'Rheinufer', src: '' },
     ] },
   { id: 'swister', name: 'Fahrt zum Swistertürmchen', kurzname: 'Swistertürmchen', farbe: '#B45309',
     beschreibung: 'Entlang der Swister zum historischen Türmchen — ruhige Wege und schöne Aussicht.',
-    laenge: 'ca. 6 km', dauer: 'ca. 35 Min.', defaultWaypoints: [],
+    laenge: 'ca. 6 km', dauer: 'ca. 35 Min.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7720, 6.9300], // Richtung Osten
+      [50.7680, 6.9380], // Entlang Swister
+      [50.7640, 6.9450], // Swistertürmchen
+    ],
     fotos: [
       { lat: 50.7640, lon: 6.9450, titel: 'Swistertürmchen', src: '' },
     ] },
   { id: 'londorf', name: 'Rundfahrt Gut Londorf', kurzname: 'Gut Londorf', farbe: '#6D28D9',
     beschreibung: 'Eine gemütliche Rundfahrt zum Gutshof Londorf — idyllische Feldwege und Panoramablick.',
-    laenge: 'ca. 5 km', dauer: 'ca. 30 Min.', defaultWaypoints: [],
+    laenge: 'ca. 5 km', dauer: 'ca. 30 Min.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7750, 6.9300], // Feldweg Richtung Londorf
+      [50.7720, 6.9380], // Gut Londorf
+      [50.7700, 6.9280], // Rückweg
+      [50.7762, 6.9212], // Zurück Kloster Merten
+    ],
     fotos: [
       { lat: 50.7720, lon: 6.9380, titel: 'Gut Londorf', src: '' },
     ] },
@@ -71,6 +104,16 @@ const START_KEY = 'rikscha_startpunkt_v1';
 // direktSegmente[tourId] = Set von Segment-Indices die als Direktlinie geführt werden
 // Segment i = zwischen Wegpunkt[i] und Wegpunkt[i+1]
 const DIREKT_KEY = 'rikscha_direkt_segmente_v2';
+const FOTO_POS_KEY = 'rikscha_foto_positionen_v1';
+
+function loadFotoPositionen(): Record<string, { lat: number; lon: number }[]> {
+  if (typeof window === 'undefined') return {};
+  try { const s = localStorage.getItem(FOTO_POS_KEY); if (s) return JSON.parse(s); } catch {}
+  return {};
+}
+function saveFotoPositionen(d: Record<string, { lat: number; lon: number }[]>) {
+  localStorage.setItem(FOTO_POS_KEY, JSON.stringify(d));
+}
 
 function loadDirektSegmente(): Record<string, number[]> {
   if (typeof window === 'undefined') return {};
@@ -190,7 +233,13 @@ const GPX_DIRECT_THRESHOLD = 50;
 
 function loadWaypoints(): Record<string, [number, number][]> {
   if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'); } catch { return {}; }
+  try {
+    const raw: Record<string, [number, number][]> = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    // Leere Arrays verwerfen → defaultWaypoints greifen dann im Code
+    const filtered: Record<string, [number, number][]> = {};
+    for (const [k, v] of Object.entries(raw)) { if (v.length > 0) filtered[k] = v; }
+    return filtered;
+  } catch { return {}; }
 }
 function saveWaypoints(wp: Record<string, [number, number][]>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(wp));
@@ -210,6 +259,9 @@ export default function TourenKarte() {
   const zielMarkerRefs = useRef<Record<string, any>>({});
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fotoMarkerRefs = useRef<any[]>([]);
+  const fotoPositionenRef = useRef<Record<string, { lat: number; lon: number }[]>>({});
+  const istPilotRef = useRef(false);
+  const zeichneFotoMarkerRef = useRef<(draggable: boolean) => void>(() => {});
 
   const [mounted, setMounted] = useState(false);
   const [istPilot, setIstPilot] = useState(false);
@@ -239,6 +291,9 @@ export default function TourenKarte() {
   const waypointsRef = useRef(waypoints);
   const [startpunktModus, setStartpunktModus] = useState(false);
   const startpunktModusRef = useRef(false);
+  // fotoPositionModus: { tourId, fotoIdx } wenn aktiv, sonst null
+  const [fotoPositionModus, setFotoPositionModus] = useState<{ tourId: string; fotoIdx: number } | null>(null);
+  const fotoPositionModusRef = useRef<{ tourId: string; fotoIdx: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -264,10 +319,12 @@ export default function TourenKarte() {
     };
   }, []);
   useEffect(() => { editModusRef.current = editModus; }, [editModus]);
+  useEffect(() => { istPilotRef.current = istPilot; }, [istPilot]);
   useEffect(() => { editTourIdRef.current = editTourId; }, [editTourId]);
   useEffect(() => { waypointsRef.current = waypoints; }, [waypoints]);
   useEffect(() => { startPunktRef.current = startPunkt; }, [startPunkt]);
   useEffect(() => { startpunktModusRef.current = startpunktModus; }, [startpunktModus]);
+  useEffect(() => { fotoPositionModusRef.current = fotoPositionModus; }, [fotoPositionModus]);
   useEffect(() => { direktSegmenteRef.current = direktSegmente; }, [direktSegmente]);
 
   const getWaypoints = useCallback((id: string): [number, number][] => {
@@ -352,7 +409,7 @@ export default function TourenKarte() {
     const punkte = gesamtPunkte.length >= 2 ? gesamtPunkte : wps;
     setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
     setRouteBerechnung(prev => ({ ...prev, [tourId]: alleOsrmOk && !hatDirekt ? 'ok' : hatDirekt ? 'ok' : 'fallback' }));
-    setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(gesamtDistanz * 10) / 10 }));
+    setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(gesamtDistanz * 100) / 100 }));
 
     // Höhenprofil im Hintergrund
     setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
@@ -569,24 +626,47 @@ export default function TourenKarte() {
         await updateRoute(meta.id, wps);
       }
 
-      // Foto-Marker für alle Touren
-      fotoMarkerRefs.current.forEach(m => m.remove());
-      fotoMarkerRefs.current = [];
-      for (const meta of TOUR_META) {
-        for (const foto of meta.fotos ?? []) {
-          const fotoIcon = L.divIcon({
-            html: `<div style="width:28px;height:28px;background:${meta.farbe};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px">📷</div>`,
-            className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+      // Foto-Marker zeichnen (als Funktion, damit sie bei editModus-Wechsel neu gezeichnet werden)
+      function zeichneFotoMarker(draggable: boolean) {
+        fotoMarkerRefs.current.forEach(m => m.remove());
+        fotoMarkerRefs.current = [];
+        const gespeicherteFotos = fotoPositionenRef.current;
+        for (const meta of TOUR_META) {
+          const fotos = meta.fotos ?? [];
+          const savedPos = gespeicherteFotos[meta.id] ?? [];
+          fotos.forEach((foto, fotoIdx) => {
+            const pos = savedPos[fotoIdx] ?? foto;
+            const fotoIcon = L.divIcon({
+              html: `<div style="width:28px;height:28px;background:${meta.farbe};border:2px solid #fff;border-radius:${draggable ? '6px' : '50%'};box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:${draggable ? 'move' : 'pointer'}">📷</div>`,
+              className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+            });
+            const m = L.marker([pos.lat, pos.lon], { icon: fotoIcon, draggable }).addTo(map);
+            const imgHtml = foto.src
+              ? `<img src="${foto.src}" alt="${foto.titel}" style="width:140px;height:90px;object-fit:cover;border-radius:6px;margin-bottom:4px;display:block">`
+              : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
+            const pilotHinweis = draggable ? `<div style="font-size:0.65rem;color:#92400E;margin-top:4px">✋ Marker ziehen zum Verschieben</div>` : '';
+            m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div>${pilotHinweis}</div>`);
+            m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); if (!draggable) setAktiveTour(meta.id); });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (draggable) { m.on('mousedown', (e: any) => e.originalEvent?.stopPropagation()); m.on('touchstart', (e: any) => e.originalEvent?.stopPropagation()); }
+            m.on('dragend', (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+              const ll = e.target.getLatLng();
+              const neuPos = { lat: Math.round(ll.lat * 1e6) / 1e6, lon: Math.round(ll.lng * 1e6) / 1e6 };
+              const aktFotos = [...(fotoPositionenRef.current[meta.id] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
+              aktFotos[fotoIdx] = neuPos;
+              const updated = { ...fotoPositionenRef.current, [meta.id]: aktFotos };
+              fotoPositionenRef.current = updated;
+              saveFotoPositionen(updated);
+            });
+            fotoMarkerRefs.current.push(m);
           });
-          const m = L.marker([foto.lat, foto.lon], { icon: fotoIcon }).addTo(map);
-          const imgHtml = foto.src
-            ? `<img src="${foto.src}" alt="${foto.titel}" style="width:140px;height:90px;object-fit:cover;border-radius:6px;margin-bottom:4px;display:block">`
-            : `<div style="width:140px;height:80px;background:${meta.farbe}22;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:1.5rem">📷</div>`;
-          m.bindPopup(`<div style="text-align:center;min-width:150px">${imgHtml}<div style="font-size:0.78rem;font-weight:700;color:${meta.farbe}">${foto.titel}</div><div style="font-size:0.72rem;color:#666">${meta.kurzname}</div></div>`);
-          m.on('click', (e: { originalEvent: Event }) => { e.originalEvent.stopPropagation(); setAktiveTour(meta.id); });
-          fotoMarkerRefs.current.push(m);
         }
       }
+
+      const gespeicherteFotos = loadFotoPositionen();
+      fotoPositionenRef.current = gespeicherteFotos;
+      zeichneFotoMarker(istPilotRef.current);
+      zeichneFotoMarkerRef.current = zeichneFotoMarker;
 
       // Karten-Klick im Edit-Modus
       map.on('click', (e: { latlng: { lat: number; lng: number } }) => {
@@ -597,13 +677,13 @@ export default function TourenKarte() {
         ];
 
         if (startpunktModusRef.current) {
-          // Startpunkt setzen
           saveStart(neu);
           setStartPunkt(neu);
           startPunktRef.current = neu;
           startMarkerRef.current?.setLatLng(neu);
           return;
         }
+
 
         const tourId = editTourIdRef.current;
         const current = waypointsRef.current;
@@ -638,6 +718,8 @@ export default function TourenKarte() {
       wpMarkerRefs.current.forEach(m => m.remove());
       wpMarkerRefs.current = [];
     }
+    // Foto-Marker: draggable wenn Editor offen (Button nur für Piloten sichtbar)
+    zeichneFotoMarkerRef.current(editModus);
   }, [editModus, editTourId, waypoints, redrawWpMarkers, getWaypoints]);
 
   useEffect(() => {
@@ -773,7 +855,8 @@ export default function TourenKarte() {
       {editModus && (
         <div style={{ padding: '1rem 1.25rem', borderRadius: 12, border: '2px solid #C8881A', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#92400E' }}>✏️ Routen-Editor</div>
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {/* Tour-Auswahl + Foto-Marker-Button in einer Zeile */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
             {TOUR_META.map(t => (
               <button key={t.id} onClick={() => setEditTourId(t.id)}
                 style={{ padding: '0.3rem 0.75rem', borderRadius: 999, fontSize: '0.8rem', fontWeight: 600,
@@ -783,6 +866,36 @@ export default function TourenKarte() {
                 {t.kurzname}
               </button>
             ))}
+          </div>
+          {/* Foto-Marker — alle Touren, immer sichtbar */}
+          <div style={{ border: '3px solid #F59E0B', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ background: '#F59E0B', padding: '0.5rem 1rem', fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>
+              📷 Foto-Marker positionieren
+            </div>
+            {TOUR_META.filter(t => (t.fotos?.length ?? 0) > 0).map(tourMeta =>
+              (tourMeta.fotos ?? []).map((foto, fotoIdx) => {
+                const aktiv = fotoPositionModus?.tourId === tourMeta.id && fotoPositionModus?.fotoIdx === fotoIdx;
+                const gespeichert = (fotoPositionenRef.current[tourMeta.id] ?? [])[fotoIdx];
+                const pos = gespeichert ?? foto;
+                return (
+                  <div key={`${tourMeta.id}-${fotoIdx}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: aktiv ? '#FEF3C7' : '#FFFBEB', borderTop: '1px solid #FDE68A' }}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: tourMeta.farbe, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#92400E' }}>{tourMeta.kurzname} · {foto.titel}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (aktiv) { setFotoPositionModus(null); return; }
+                        setFotoPositionModus({ tourId: tourMeta.id, fotoIdx });
+                        mapInstance.current?.panTo([pos.lat, pos.lon]);
+                      }}
+                      style={{ padding: '0.45rem 0.9rem', borderRadius: 8, background: aktiv ? '#2D6B1E' : '#C8881A', color: '#fff', border: 'none', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {aktiv ? '✓ Fertig' : 'Verschieben'}
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--ink)', lineHeight: 1.5 }}>
             Tour: <strong style={{ color: editMeta?.farbe }}>{editMeta?.name}</strong>
@@ -794,6 +907,7 @@ export default function TourenKarte() {
             <span style={{ color: 'var(--mid)', fontSize: '0.8rem' }}>
               {startpunktModus
                 ? '📍 Klicke auf die Karte um den Startpunkt zu setzen — oder den Marker ziehen.'
+                : fotoPositionModus ? '📷 Karte verschieben bis 📷 an der richtigen Stelle steht → dann „Hier platzieren" tippen.'
                 : 'Klicke auf die Karte um Wegpunkte zu setzen. Die Route folgt automatisch echten Radwegen.'}
             </span>
           </p>
@@ -865,13 +979,62 @@ export default function TourenKarte() {
       {/* Karte */}
       <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1.5px solid var(--border)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
         <div ref={mapRef} style={{ height: 500, width: '100%' }} />
-        {editModus && (
+        {editModus && !fotoPositionModus && (
           <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
             background: editMeta?.farbe, color: '#fff', padding: '0.3rem 0.9rem', borderRadius: 999,
             fontSize: '0.78rem', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.25)', pointerEvents: 'none' }}>
             {startpunktModus ? '📍 Klicken = Startpunkt setzen' : `✏️ Klicken = Wegpunkt setzen · ${editMeta?.kurzname}`}
           </div>
         )}
+        {fotoPositionModus && (() => {
+          const fotoTitel = editMeta?.fotos?.[fotoPositionModus.fotoIdx]?.titel ?? 'Foto';
+          return <>
+            {/* Fadenkreuz in der Mitte */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 1001, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <div style={{ fontSize: 32, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>📷</div>
+              <div style={{ width: 2, height: 20, background: '#C8881A' }} />
+            </div>
+            {/* Knopf unten */}
+            <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1001, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 'calc(100% - 32px)', maxWidth: 420 }}>
+              {/* Wegpunkt-Sprung-Buttons */}
+              {(() => {
+                const snapWps = getWaypoints(fotoPositionModus.tourId);
+                if (snapWps.length === 0) return null;
+                return (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {snapWps.map(([lat, lon], i) => (
+                      <button key={i} onClick={() => mapInstance.current?.panTo([lat, lon])}
+                        style={{ padding: '0.3rem 0.7rem', borderRadius: 999, background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        → Wp {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+              <button
+                onClick={() => {
+                  const center = mapInstance.current?.getCenter();
+                  if (!center) return;
+                  const neuPos = { lat: Math.round(center.lat * 1e6) / 1e6, lon: Math.round(center.lng * 1e6) / 1e6 };
+                  const fotos = TOUR_META.find(t => t.id === fotoPositionModus.tourId)?.fotos ?? [];
+                  const aktFotos = [...(fotoPositionenRef.current[fotoPositionModus.tourId] ?? fotos.map(f => ({ lat: f.lat, lon: f.lon })))];
+                  aktFotos[fotoPositionModus.fotoIdx] = neuPos;
+                  const updated = { ...fotoPositionenRef.current, [fotoPositionModus.tourId]: aktFotos };
+                  fotoPositionenRef.current = updated;
+                  saveFotoPositionen(updated);
+                  zeichneFotoMarkerRef.current(true);
+                  setFotoPositionModus(null);
+                }}
+                style={{ padding: '0.6rem 1.4rem', borderRadius: 999, background: '#C8881A', color: '#fff', border: 'none', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 12px rgba(0,0,0,0.35)', width: '100%' }}>
+                📷 Hier platzieren — {fotoTitel}
+              </button>
+              <button onClick={() => setFotoPositionModus(null)}
+                style={{ padding: '0.3rem 0.9rem', borderRadius: 999, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', fontSize: '0.78rem', cursor: 'pointer' }}>
+                Abbrechen
+              </button>
+            </div>
+          </>;
+        })()}
         <style>{`
           .leaflet-tour-tooltip { background: rgba(20,15,8,0.85); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; padding: 4px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
           .leaflet-tour-tooltip::before { display: none; }
@@ -900,7 +1063,7 @@ export default function TourenKarte() {
               <div style={{ display: 'flex', gap: '1rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>
-                    {distanz ? `${distanz} km` : aktiveTourData.laenge}
+                    {distanz != null ? `${distanz} km` : aktiveTourData.laenge}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Strecke</div>
                 </div>
@@ -930,11 +1093,16 @@ export default function TourenKarte() {
             </div>
 
             {/* Höhenprofil */}
-            {(profil || profilLaedt) && (
+            {(profil || profilLaedt || routeBerechnung[tid] === 'ok' || routeBerechnung[tid] === 'fallback') && (
               <div style={{ padding: '0 1.25rem 1rem' }}>
                 {profilLaedt && !profil && (
                   <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mid)', fontSize: '0.8rem' }}>
                     Höhenprofil wird geladen…
+                  </div>
+                )}
+                {!profilLaedt && !profil && (routeBerechnung[tid] === 'ok' || routeBerechnung[tid] === 'fallback') && (
+                  <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mid)', fontSize: '0.8rem' }}>
+                    Höhenprofil nicht verfügbar
                   </div>
                 )}
                 {profil && <HoehenProfilChart profil={profil} farbe={aktiveTourData.farbe} hoehMin={hoehMin!} hoehMax={hoehMax!} />}
@@ -1092,8 +1260,8 @@ function WegpunktListe({ wps, farbe, direktSegmente, onDelete, onReorder, onSegm
   );
 }
 
-function btnStyle(color: string, disabled: boolean): React.CSSProperties {
+function btnStyle(color: string, disabled: boolean, aktiv?: boolean): React.CSSProperties {
   return { padding: '0.35rem 0.85rem', borderRadius: 8, border: `1.5px solid ${color}`,
-    background: disabled ? 'transparent' : color, color: disabled ? 'var(--mid)' : '#fff',
+    background: disabled ? 'transparent' : aktiv ? color : color, color: disabled ? 'var(--mid)' : '#fff',
     fontSize: '0.8rem', fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 };
 }
