@@ -40,26 +40,59 @@ const TOUR_META: TourMeta[] = [
   },
   { id: 'schloesser', name: 'Brühler Schlösserrunde', kurzname: 'Schlösserrunde', farbe: '#92400E',
     beschreibung: 'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg, Biergarten am Schloss.',
-    laenge: 'ca. 22 km', dauer: 'ca. 2 Std.', defaultWaypoints: [],
+    laenge: 'ca. 22 km', dauer: 'ca. 2 Std.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7870, 6.9100], // Richtung Walberberg
+      [50.8010, 6.8960], // Walberberg
+      [50.8120, 6.9000], // Richtung Brühl
+      [50.8281, 6.9006], // Schloss Augustusburg
+      [50.8240, 6.9050], // Schlosspark
+      [50.8180, 6.9150], // Brühl Innenstadt
+      [50.8020, 6.9250], // Rückweg
+      [50.7900, 6.9280], // Richtung Merten
+      [50.7762, 6.9212], // Zurück Kloster Merten
+    ],
     fotos: [
       { lat: 50.8281, lon: 6.9006, titel: 'Schloss Augustusburg', src: '' },
       { lat: 50.8240, lon: 6.9050, titel: 'Schlosspark', src: '' },
     ] },
   { id: 'rhein', name: 'Fahrt zum Rhein', kurzname: 'Zum Rhein', farbe: '#1D4ED8',
     beschreibung: 'Westlich durch Walberberg und Bornheim bis zum Rheinufer — weite Aussicht und Ruhe am Fluss.',
-    laenge: 'ca. 12 km', dauer: 'ca. 1 Std.', defaultWaypoints: [],
+    laenge: 'ca. 12 km', dauer: 'ca. 1 Std.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7850, 6.9050], // Richtung Walberberg
+      [50.7920, 6.8880], // Walberberg
+      [50.7800, 6.8700], // Richtung Bornheim
+      [50.7680, 6.8540], // Bornheim
+      [50.7682, 6.8450], // Rheinufer
+    ],
     fotos: [
       { lat: 50.7682, lon: 6.8450, titel: 'Rheinufer', src: '' },
     ] },
   { id: 'swister', name: 'Fahrt zum Swistertürmchen', kurzname: 'Swistertürmchen', farbe: '#B45309',
     beschreibung: 'Entlang der Swister zum historischen Türmchen — ruhige Wege und schöne Aussicht.',
-    laenge: 'ca. 6 km', dauer: 'ca. 35 Min.', defaultWaypoints: [],
+    laenge: 'ca. 6 km', dauer: 'ca. 35 Min.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7720, 6.9300], // Richtung Osten
+      [50.7680, 6.9380], // Entlang Swister
+      [50.7640, 6.9450], // Swistertürmchen
+    ],
     fotos: [
       { lat: 50.7640, lon: 6.9450, titel: 'Swistertürmchen', src: '' },
     ] },
   { id: 'londorf', name: 'Rundfahrt Gut Londorf', kurzname: 'Gut Londorf', farbe: '#6D28D9',
     beschreibung: 'Eine gemütliche Rundfahrt zum Gutshof Londorf — idyllische Feldwege und Panoramablick.',
-    laenge: 'ca. 5 km', dauer: 'ca. 30 Min.', defaultWaypoints: [],
+    laenge: 'ca. 5 km', dauer: 'ca. 30 Min.',
+    defaultWaypoints: [
+      [50.7762, 6.9212], // Start Kloster Merten
+      [50.7750, 6.9300], // Feldweg Richtung Londorf
+      [50.7720, 6.9380], // Gut Londorf
+      [50.7700, 6.9280], // Rückweg
+      [50.7762, 6.9212], // Zurück Kloster Merten
+    ],
     fotos: [
       { lat: 50.7720, lon: 6.9380, titel: 'Gut Londorf', src: '' },
     ] },
