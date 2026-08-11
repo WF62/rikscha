@@ -1080,7 +1080,7 @@ function WegpunktListe({ wps, farbe, direktSegmente, onDelete, onReorder, onSegm
                     color: segIstDirekt ? '#92400E' : 'var(--mid)',
                     cursor: 'pointer', whiteSpace: 'nowrap',
                   }}>
-                  {segIstDirekt ? '🔓 Direktlinie' : '〰 Straße'}
+                  {segIstDirekt ? '✓ Direktlinie aktiv' : '→ Direktlinie'}
                 </button>
                 <div style={{ flex: 1, height: 1, background: segIstDirekt ? '#B45309' : 'var(--border)', opacity: 0.5 }} />
               </div>
