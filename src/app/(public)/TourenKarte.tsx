@@ -889,12 +889,13 @@ export default function TourenKarte() {
             </button>
             <button onClick={() => { saveStart(START_DEFAULT); setStartPunkt(START_DEFAULT); startMarkerRef.current?.setLatLng(START_DEFAULT); }} title="Zurücksetzen" style={{ padding: '0.35rem 0.6rem', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--mid)', cursor: 'pointer', fontSize: '0.75rem' }}>↺</button>
           </div>
-          {/* Foto-Marker positionieren */}
-          {(editMeta?.fotos ?? []).length > 0 && (
+          {/* Foto-Marker positionieren — immer sichtbar */}
+          {true && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.6rem 0.75rem', borderRadius: 8, background: fotoPositionModus ? '#FEF3C7' : 'rgba(0,0,0,0.03)', border: `1.5px solid ${fotoPositionModus ? '#C8881A' : 'var(--border)'}` }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 700, color: fotoPositionModus ? '#92400E' : 'var(--mid)' }}>
                 📷 Foto-Marker verschieben
               </div>
+              {(editMeta?.fotos ?? []).length === 0 && <div style={{ fontSize: '0.78rem', color: 'var(--mid)' }}>Keine Fotos für diese Tour.</div>}
               {(editMeta?.fotos ?? []).map((foto, fotoIdx) => {
                 const aktiv = fotoPositionModus?.tourId === editTourId && fotoPositionModus?.fotoIdx === fotoIdx;
                 const gespeichert = (fotoPositionenRef.current[editTourId] ?? [])[fotoIdx];
