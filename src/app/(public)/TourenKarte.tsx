@@ -82,7 +82,7 @@ function saveStart(p: [number, number]) {
 }
 
 // Routenberechnung via OSRM (OpenStreetMap-basiert, kostenlos, kein API-Key)
-async function berechneRoute(waypoints: [number, number][]): Promise<{ geom: [number, number][]; distanzKm: number } | null> {
+async function berechneRoute(waypoints: [number, number][]): Promise<{ geom: [number, number][]; distanzKm: number; snapped: [number, number][] } | null> {
   if (waypoints.length < 2) return null;
   const coords = waypoints.map(([lat, lon]) => `${lon},${lat}`).join(';');
   try {
@@ -98,7 +98,11 @@ async function berechneRoute(waypoints: [number, number][]): Promise<{ geom: [nu
       ([lon, lat]: [number, number]) => [lat, lon] as [number, number]
     );
     const distanzKm = Math.round((route.distance / 1000) * 10) / 10;
-    return { geom, distanzKm };
+    // Eingerastete Straßenpositionen aus OSRM-Antwort (waypoints[i].location = [lon, lat])
+    const snapped: [number, number][] = (data.waypoints ?? []).map(
+      (wp: { location: [number, number] }) => [wp.location[1], wp.location[0]] as [number, number]
+    );
+    return { geom, distanzKm, snapped };
   } catch {
     return null;
   }
@@ -276,6 +280,13 @@ export default function TourenKarte() {
 
     setRouteBerechnung(prev => ({ ...prev, [tourId]: 'loading' }));
 
+    // Sofort gestrichelte Vorschaulinie (während OSRM rechnet)
+    polylineRefs.current[tourId]?.remove();
+    const tempLine = L.polyline(wps, {
+      color: meta.farbe, weight: 4, opacity: 0.5, dashArray: '8,6',
+    }).addTo(map);
+    polylineRefs.current[tourId] = tempLine;
+
     const result = await berechneRoute(wps);
     const punkte = result?.geom ?? wps; // Fallback: gerade Linien
 
@@ -285,7 +296,18 @@ export default function TourenKarte() {
       setRouteDistanz(prev => ({ ...prev, [tourId]: result.distanzKm }));
     }
 
-    // Polyline neu zeichnen
+    // Snapped Positionen → Marker im Edit-Modus verschieben
+    if (result?.snapped?.length && editModusRef.current && editTourIdRef.current === tourId) {
+      result.snapped.forEach((pos, i) => {
+        wpMarkerRefs.current[i]?.setLatLng(pos);
+      });
+      // Gespeicherte Wegpunkte auf eingerastete Positionen aktualisieren (kein setWaypoints → kein Loop)
+      const updated = { ...waypointsRef.current, [tourId]: result.snapped };
+      saveWaypoints(updated);
+      waypointsRef.current = updated;
+    }
+
+    // Polyline endgültig zeichnen
     polylineRefs.current[tourId]?.remove();
     const line = L.polyline(punkte, {
       color: meta.farbe, weight: 5, opacity: 0.9,
@@ -299,7 +321,7 @@ export default function TourenKarte() {
 
     // Zielmarker
     zielMarkerRefs.current[tourId]?.remove();
-    const ziel = wps[wps.length - 1];
+    const ziel = (result?.snapped ?? wps)[wps.length - 1];
     const zielIcon = L.divIcon({
       html: `<div style="width:12px;height:12px;background:${meta.farbe};border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
       className: '', iconSize: [12, 12], iconAnchor: [6, 6],
