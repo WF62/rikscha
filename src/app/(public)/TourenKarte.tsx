@@ -352,7 +352,7 @@ export default function TourenKarte() {
     const punkte = gesamtPunkte.length >= 2 ? gesamtPunkte : wps;
     setRouteGeom(prev => ({ ...prev, [tourId]: punkte }));
     setRouteBerechnung(prev => ({ ...prev, [tourId]: alleOsrmOk && !hatDirekt ? 'ok' : hatDirekt ? 'ok' : 'fallback' }));
-    setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(gesamtDistanz * 10) / 10 }));
+    setRouteDistanz(prev => ({ ...prev, [tourId]: Math.round(gesamtDistanz * 100) / 100 }));
 
     // Höhenprofil im Hintergrund
     setHoehenLaden(prev => ({ ...prev, [tourId]: true }));
@@ -900,7 +900,7 @@ export default function TourenKarte() {
               <div style={{ display: 'flex', gap: '1rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: aktiveTourData.farbe }}>
-                    {distanz ? `${distanz} km` : aktiveTourData.laenge}
+                    {distanz != null ? `${distanz} km` : aktiveTourData.laenge}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--mid)' }}>Strecke</div>
                 </div>
@@ -930,11 +930,16 @@ export default function TourenKarte() {
             </div>
 
             {/* Höhenprofil */}
-            {(profil || profilLaedt) && (
+            {(profil || profilLaedt || routeBerechnung[tid] === 'ok' || routeBerechnung[tid] === 'fallback') && (
               <div style={{ padding: '0 1.25rem 1rem' }}>
                 {profilLaedt && !profil && (
                   <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mid)', fontSize: '0.8rem' }}>
                     Höhenprofil wird geladen…
+                  </div>
+                )}
+                {!profilLaedt && !profil && (routeBerechnung[tid] === 'ok' || routeBerechnung[tid] === 'fallback') && (
+                  <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mid)', fontSize: '0.8rem' }}>
+                    Höhenprofil nicht verfügbar
                   </div>
                 )}
                 {profil && <HoehenProfilChart profil={profil} farbe={aktiveTourData.farbe} hoehMin={hoehMin!} hoehMax={hoehMax!} />}
