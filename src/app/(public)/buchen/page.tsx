@@ -168,19 +168,20 @@ function BuchenFormular() {
           )}
 
           {/* Gaeste */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">Ihr Name & Begleitung (optional)</label>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className="block text-sm font-semibold mb-1">Ihr Name & Begleitung (optional)</legend>
             {[{ key: 'gast1', val: form.gast1, ph: 'Ihr Name' }, { key: 'gast2', val: form.gast2, ph: 'Begleitung' }]
               .filter((_, i) => i === 0 || !fahrzeug || fahrzeug.maxGaeste >= 2)
               .map(({ key, val, ph }) => (
                 <div key={key} className="flex items-center gap-2 mb-2">
                   <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-2.5 h-2.5 rounded-full flex-shrink-0" />
-                  <input type="text" placeholder={ph} value={val}
+                  <label htmlFor={`buchen-${key}`} className="sr-only">{ph}</label>
+                  <input id={`buchen-${key}`} type="text" placeholder={ph} value={val}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                     className="flex-1 border rounded px-3 py-2" />
                 </div>
               ))}
-          </div>
+          </fieldset>
 
           {/* Datum */}
           <div>
@@ -251,8 +252,8 @@ function SperreFormular() {
             {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
           <div className="grid grid-cols-2 gap-2">
-            <div><label className="text-xs font-semibold">Von</label><input type="date" required value={form.von} onChange={(e) => setForm({ ...form, von: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>
-            <div><label className="text-xs font-semibold">Bis</label><input type="date" required value={form.bis} onChange={(e) => setForm({ ...form, bis: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>
+            <div><label htmlFor="sperre-von" className="text-xs font-semibold">Von</label><input id="sperre-von" type="date" required value={form.von} onChange={(e) => setForm({ ...form, von: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>
+            <div><label htmlFor="sperre-bis" className="text-xs font-semibold">Bis</label><input id="sperre-bis" type="date" required value={form.bis} onChange={(e) => setForm({ ...form, bis: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>
           </div>
           <input type="text" placeholder="Grund" value={form.grund} onChange={(e) => setForm({ ...form, grund: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
           <button type="submit" className="w-full bg-red-600 text-white rounded px-4 py-2 text-sm font-semibold hover:bg-red-700">{gespeichert ? 'Gesperrt!' : 'Sperre eintragen'}</button>
