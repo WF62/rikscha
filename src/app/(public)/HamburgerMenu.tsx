@@ -3,8 +3,15 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 120);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const close = () => {
     setOpen(false);
@@ -43,6 +50,40 @@ export default function HamburgerMenu() {
 
   return (
     <>
+      {/* Floating Menu Button — nur Desktop, erscheint nach Scrollen */}
+      <button
+        onClick={toggle}
+        aria-label="Menü öffnen"
+        style={{
+          position: 'fixed',
+          right: '1.25rem',
+          bottom: '1.5rem',
+          zIndex: 998,
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          background: 'rgba(45,107,30,0.92)',
+          backdropFilter: 'blur(6px)',
+          border: '1.5px solid rgba(255,255,255,0.2)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.22)',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '4px',
+          transition: 'opacity 0.25s, transform 0.25s',
+          opacity: scrolled && !open ? 1 : 0,
+          pointerEvents: scrolled && !open ? 'auto' : 'none',
+          transform: scrolled && !open ? 'translateY(0)' : 'translateY(12px)',
+        }}
+        className="floating-menu-btn"
+      >
+        <span style={{ display:'block', width:'18px', height:'2px', background:'#fff', borderRadius:'2px' }}/>
+        <span style={{ display:'block', width:'18px', height:'2px', background:'#fff', borderRadius:'2px' }}/>
+        <span style={{ display:'block', width:'18px', height:'2px', background:'#fff', borderRadius:'2px' }}/>
+      </button>
+
       <button
         ref={btnRef}
         onClick={toggle}
