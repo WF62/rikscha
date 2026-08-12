@@ -284,7 +284,45 @@ export default function BearbeitenPage() {
   const [laden, setLaden]     = useState(false);
   const [pilotRolle, setPilotRolle] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_rolle') ?? 'pilot' : 'pilot');
   const istAdminUser = pilotRolle === 'gfo' || pilotRolle === 'admin';
-  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner' | 'entwuerfe' | 'verlauf'>('website');
+  const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner' | 'aktuelles' | 'entwuerfe' | 'verlauf'>('website');
+  type AktuellEintrag = { id: string; datum: string; titel: string; text: string; aktiv: boolean; erstellt_von: string };
+  const [aktuellesListe, setAktuellesListe] = useState<AktuellEintrag[]>([]);
+  const [aktuellesLaden, setAktuellesLaden] = useState(false);
+  const [neuerEintrag, setNeuerEintrag] = useState({ datum: new Date().toISOString().slice(0,10), titel: '', text: '' });
+  const [aktuellesSpeichern, setAktuellesSpeichern] = useState(false);
+
+  async function ladeAktuellesAdmin() {
+    setAktuellesLaden(true);
+    try {
+      const r = await fetch('/api/aktuelles');
+      const data = await r.json();
+      setAktuellesListe(Array.isArray(data) ? data : []);
+    } catch {}
+    setAktuellesLaden(false);
+  }
+
+  async function aktuellesHinzufuegen() {
+    if (!neuerEintrag.titel || !neuerEintrag.text) return;
+    setAktuellesSpeichern(true);
+    await fetch('/api/aktuelles', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, ...neuerEintrag }) });
+    setNeuerEintrag({ datum: new Date().toISOString().slice(0,10), titel: '', text: '' });
+    await ladeAktuellesAdmin();
+    setAktuellesSpeichern(false);
+  }
+
+  async function aktuellesToggle(id: string, aktiv: boolean) {
+    await fetch('/api/aktuelles', { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, id, aktiv: !aktiv }) });
+    await ladeAktuellesAdmin();
+  }
+
+  async function aktuellesLoeschen(id: string) {
+    if (!confirm('Eintrag löschen?')) return;
+    await fetch('/api/aktuelles', { method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, id }) });
+    await ladeAktuellesAdmin();
+  }
   const [entwuerfe, setEntwuerfe] = useState<Entwurf[]>([]);
   const [entwurfLaden, setEntwurfLaden] = useState(false);
   const [entwurfAktion, setEntwurfAktion] = useState<Record<string, 'loading'|'ok'|'err'>>({});
@@ -605,6 +643,7 @@ export default function BearbeitenPage() {
               <button className={`tab${tab==='flyer'?' active':''}`} onClick={() => setTab('flyer')}>📄 Flyer</button>
               <button className={`tab${tab==='handout'?' active':''}`} onClick={() => setTab('handout')}>📋 Handout</button>
               <button className={`tab${tab==='banner'?' active':''}`} onClick={() => { setTab('banner'); ladeBanner(); }}>📢 Banner</button>
+              <button className={`tab${tab==='aktuelles'?' active':''}`} onClick={() => { setTab('aktuelles'); ladeAktuellesAdmin(); }}>📰 Aktuelles</button>
               {istAdminUser && <button className={`tab${tab==='entwuerfe'?' active':''}`} onClick={() => { setTab('entwuerfe'); ladeEntwuerfe(); }}>📋 Entwürfe{entwuerfe.length > 0 ? ` (${entwuerfe.length})` : ''}</button>}
               {istAdminUser && <button className={`tab${tab==='verlauf'?' active':''}`} onClick={() => setTab('verlauf')}>🕐 Verlauf</button>}
             </div>
@@ -746,6 +785,71 @@ export default function BearbeitenPage() {
                     {bannerSaving ? '⏳ Speichern…' : '💾 Banner speichern'}
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* ── Tab: Aktuelles ── */}
+            {tab === 'aktuelles' && (
+              <div style={{maxWidth:620}}>
+                <div className="gruppe-head">📰 Aktuelles verwalten</div>
+
+                {/* Neuer Eintrag */}
+                <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--r)',padding:'1.25rem',marginBottom:'1.5rem'}}>
+                  <div style={{fontWeight:600,fontSize:'.88rem',marginBottom:'1rem',color:'var(--green)'}}>Neuen Eintrag hinzufügen</div>
+                  <div style={{display:'grid',gap:'.75rem'}}>
+                    <div>
+                      <label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:'.3rem'}}>Datum</label>
+                      <input type="date" value={neuerEintrag.datum}
+                        onChange={e => setNeuerEintrag(v => ({...v, datum: e.target.value}))}
+                        style={{width:'100%',padding:'.5rem .75rem',border:'1.5px solid var(--border)',borderRadius:'var(--r)',fontSize:'.88rem'}} />
+                    </div>
+                    <div>
+                      <label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:'.3rem'}}>Titel</label>
+                      <input type="text" value={neuerEintrag.titel} placeholder="z. B. Sommersaison gestartet"
+                        onChange={e => setNeuerEintrag(v => ({...v, titel: e.target.value}))}
+                        style={{width:'100%',padding:'.5rem .75rem',border:'1.5px solid var(--border)',borderRadius:'var(--r)',fontSize:'.88rem'}} />
+                    </div>
+                    <div>
+                      <label style={{fontSize:'.8rem',fontWeight:600,display:'block',marginBottom:'.3rem'}}>Text</label>
+                      <textarea value={neuerEintrag.text} placeholder="Kurzer Beschreibungstext …" rows={3}
+                        onChange={e => setNeuerEintrag(v => ({...v, text: e.target.value}))}
+                        style={{width:'100%',padding:'.5rem .75rem',border:'1.5px solid var(--border)',borderRadius:'var(--r)',fontSize:'.88rem',resize:'vertical'}} />
+                    </div>
+                    <button onClick={aktuellesHinzufuegen} disabled={aktuellesSpeichern || !neuerEintrag.titel || !neuerEintrag.text}
+                      style={{background:'var(--green)',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.55rem 1.25rem',fontWeight:700,fontSize:'.88rem',cursor:'pointer',alignSelf:'flex-start'}}>
+                      {aktuellesSpeichern ? 'Wird gespeichert …' : '+ Eintrag veröffentlichen'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bestehende Einträge */}
+                {aktuellesLaden && <p style={{color:'var(--mid)',fontSize:'.88rem'}}>Wird geladen …</p>}
+                {!aktuellesLaden && aktuellesListe.length === 0 && <p style={{color:'var(--mid)',fontSize:'.88rem',padding:'1rem 0'}}>Noch keine Einträge.</p>}
+                {aktuellesListe.map(a => (
+                  <div key={a.id} style={{background: a.aktiv ? 'var(--surface)' : '#f5f5f5', border:'1px solid var(--border)',borderRadius:'var(--r)',padding:'1rem',marginBottom:'.75rem',opacity: a.aktiv ? 1 : 0.6}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'.5rem'}}>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:'.9rem'}}>{a.titel}</div>
+                        <div style={{fontSize:'.75rem',color:'var(--mid)',marginTop:'.15rem'}}>
+                          {new Date(a.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}
+                          {a.erstellt_von ? ` · ${a.erstellt_von}` : ''}
+                          {!a.aktiv && <span style={{marginLeft:'.5rem',color:'#dc2626',fontWeight:600}}>● versteckt</span>}
+                        </div>
+                        <p style={{fontSize:'.82rem',color:'var(--mid)',marginTop:'.4rem',lineHeight:1.5}}>{a.text}</p>
+                      </div>
+                      <div style={{display:'flex',gap:'.4rem',flexShrink:0}}>
+                        <button onClick={() => aktuellesToggle(a.id, a.aktiv)}
+                          style={{background: a.aktiv ? '#f59e0b' : '#15803d',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
+                          {a.aktiv ? 'Verstecken' : 'Zeigen'}
+                        </button>
+                        <button onClick={() => aktuellesLoeschen(a.id)}
+                          style={{background:'#dc2626',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
+                          Löschen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

@@ -137,6 +137,23 @@ async function ladeGalerie(): Promise<{ id: string; url: string; beschreibung: s
   }
 }
 
+type Aktuell = { id: string; datum: string; titel: string; text: string; erstellt_von: string };
+
+async function ladeAktuelles(): Promise<Aktuell[]> {
+  try {
+    const db = createServiceClient();
+    const { data } = await db
+      .from('aktuelles')
+      .select('id, datum, titel, text, erstellt_von')
+      .eq('aktiv', true)
+      .order('datum', { ascending: false })
+      .limit(5);
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 async function ladeInhalte(): Promise<Record<string, string>> {
   try {
     const db = createServiceClient();
@@ -152,6 +169,7 @@ async function ladeInhalte(): Promise<Record<string, string>> {
 export default async function WebsitePage() {
   const t = await ladeInhalte();
   const galerie = await ladeGalerie();
+  const aktuelles = await ladeAktuelles();
   return (
     <>
       <style>{`
@@ -505,6 +523,7 @@ export default async function WebsitePage() {
           <li><a href="#kalender">Kalender</a></li>
           <li><a href="#fahrzeuge">Fahrzeuge</a></li>
           <li><a href="#stimmen">Stimmen</a></li>
+          <li><a href="#aktuelles">Aktuelles</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
           <li><a href="#team">Team</a></li>
           <li><a href="#ausbildung">Mitmachen</a></li>
@@ -820,6 +839,37 @@ export default async function WebsitePage() {
           </div>
         </div>
       </section>
+
+      <hr className="section-rule"/>
+
+      {/* Aktuelles */}
+      {aktuelles.length > 0 && (
+      <section className="fahrzeuge-section" id="aktuelles">
+        <div className="container">
+          <div className="eyebrow">Neuigkeiten</div>
+          <h2>Aktuelles &amp; Erlebtes</h2>
+          <div style={{display:'flex',flexDirection:'column',gap:'1.25rem',marginTop:'1.5rem'}}>
+            {aktuelles.map(a => (
+              <div key={a.id} style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:'1.25rem 1.5rem',display:'grid',gridTemplateColumns:'auto 1fr',gap:'1rem 1.25rem',alignItems:'start'}}>
+                <div style={{textAlign:'center',minWidth:'3rem'}}>
+                  <div style={{fontWeight:700,fontSize:'1.1rem',color:'var(--green)',lineHeight:1}}>
+                    {new Date(a.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}
+                  </div>
+                  <div style={{fontSize:'0.75rem',color:'var(--mid)',marginTop:'0.15rem'}}>
+                    {new Date(a.datum).getFullYear()}
+                  </div>
+                </div>
+                <div>
+                  <h3 style={{fontFamily:'var(--serif)',fontWeight:'normal',fontSize:'clamp(1rem,2vw,1.2rem)',color:'var(--ink)',marginBottom:'0.4rem'}}>{a.titel}</h3>
+                  <p style={{fontSize:'0.9rem',color:'var(--mid)',lineHeight:1.55}}>{a.text}</p>
+                  {a.erstellt_von && <div style={{fontSize:'0.75rem',color:'var(--border)',marginTop:'0.5rem'}}>— {a.erstellt_von}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      )}
 
       <hr className="section-rule"/>
 

@@ -137,6 +137,7 @@ export default function HamburgerMenu() {
             { href: '#kalender', label: 'Kalender' },
             { href: '#fahrzeuge', label: 'Fahrzeuge' },
             { href: '#stimmen', label: 'Stimmen' },
+            { href: '#aktuelles', label: 'Aktuelles' },
             { href: '#kontakt', label: 'Kontakt' },
             { href: '#team', label: 'Team' },
             { href: '#ausbildung', label: 'Mitmachen' },
