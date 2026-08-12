@@ -502,6 +502,7 @@ export default async function WebsitePage() {
         <ul className="nav-links">
           <li><a href="#fahrten">Fahrten</a></li>
           <li><a href="#touren">Touren</a></li>
+          <li><a href="#kalender">Kalender</a></li>
           <li><a href="#fahrzeuge">Fahrzeuge</a></li>
           <li><a href="#stimmen">Stimmen</a></li>
           <li><a href="#kontakt">Kontakt</a></li>
@@ -623,6 +624,40 @@ export default async function WebsitePage() {
           </div>
         </div>
       </section>      <hr className="section-rule"/>
+
+      {/* Kalender */}
+      <section className="fahrzeuge-section" id="kalender">
+        <div className="container-wide">
+          <div className="eyebrow">Termine</div>
+          <h2>
+            <span className="einfach-alt-block">Wann sind wir unterwegs?</span>
+            <span className="einfach-neu-block">Wann fahren wir?</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">Schaut im Fahrtenkalender nach, wann wir unterwegs sind — oder bucht direkt eine eigene Fahrt.</span>
+            <span className="einfach-neu-block">Im Kalender seht ihr, wann wir fahren. Ihr könnt auch eine eigene Fahrt buchen.</span>
+          </p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:'1.5rem',marginTop:'2rem'}}>
+            <a href="/kalender" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
+              <span style={{fontSize:'2.5rem'}}>📅</span>
+              <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Fahrtenkalender</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>Alle Termine auf einen Blick</div></div>
+              <span style={{padding:'0.5rem 1.25rem',background:'#2D6B1E',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Kalender öffnen ↗</span>
+            </a>
+            <a href="/buchen" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid #C8881A',textDecoration:'none',color:'inherit'}}>
+              <span style={{fontSize:'2.5rem'}}>🚲</span>
+              <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Fahrt anfragen</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>Wunschdatum direkt eintragen</div></div>
+              <span style={{padding:'0.5rem 1.25rem',background:'#7A4F0B',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Jetzt buchen ↗</span>
+            </a>
+            <a href="/api/ical" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
+              <span style={{fontSize:'2.5rem'}}>📆</span>
+              <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Kalender abonnieren</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>In Outlook, iPhone oder Google</div></div>
+              <span style={{padding:'0.5rem 1.25rem',background:'#2D6B1E',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>iCal herunterladen ↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <hr className="section-rule"/>
 
       {/* Fahrzeuge */}
       <section className="fahrzeuge-section" id="fahrzeuge">
@@ -900,40 +935,6 @@ export default async function WebsitePage() {
             </div>
           </div>
           <QrSpenden/>
-        </div>
-      </section>
-
-      <hr className="section-rule"/>
-
-      {/* Kalender */}
-      <section className="fahrzeuge-section" id="kalender">
-        <div className="container-wide">
-          <div className="eyebrow">Termine</div>
-          <h2>
-            <span className="einfach-alt-block">Wann sind wir unterwegs?</span>
-            <span className="einfach-neu-block">Wann fahren wir?</span>
-          </h2>
-          <p>
-            <span className="einfach-alt-block">Schaut im Fahrtenkalender nach, wann wir unterwegs sind — oder bucht direkt eine eigene Fahrt.</span>
-            <span className="einfach-neu-block">Im Kalender seht ihr, wann wir fahren. Ihr könnt auch eine eigene Fahrt buchen.</span>
-          </p>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:'1.5rem',marginTop:'2rem'}}>
-            <a href="/kalender" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
-              <span style={{fontSize:'2.5rem'}}>📅</span>
-              <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Fahrtenkalender</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>Alle Termine auf einen Blick</div></div>
-              <span style={{padding:'0.5rem 1.25rem',background:'#2D6B1E',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Kalender öffnen ↗</span>
-            </a>
-            <a href="/buchen" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid #C8881A',textDecoration:'none',color:'inherit'}}>
-              <span style={{fontSize:'2.5rem'}}>🚲</span>
-              <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Fahrt anfragen</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>Wunschdatum direkt eintragen</div></div>
-              <span style={{padding:'0.5rem 1.25rem',background:'#7A4F0B',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>Jetzt buchen ↗</span>
-            </a>
-            <a href="/api/ical" target="_blank" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2rem 1.5rem',background:'var(--surface)',borderRadius:'14px',border:'1.5px solid var(--border)',textDecoration:'none',color:'inherit'}}>
-              <span style={{fontSize:'2.5rem'}}>📆</span>
-              <div style={{textAlign:'center'}}><div style={{fontWeight:700,fontSize:'1.05rem',marginBottom:'0.3rem'}}>Kalender abonnieren</div><div style={{fontSize:'0.85rem',color:'var(--mid)'}}>In Outlook, iPhone oder Google</div></div>
-              <span style={{padding:'0.5rem 1.25rem',background:'#2D6B1E',color:'#fff',borderRadius:'6px',fontSize:'0.85rem',fontWeight:600}}>iCal herunterladen ↗</span>
-            </a>
-          </div>
         </div>
       </section>
 

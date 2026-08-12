@@ -134,6 +134,7 @@ export default function HamburgerMenu() {
           {[
             { href: '#fahrten', label: 'Fahrten' },
             { href: '#touren', label: 'Touren' },
+            { href: '#kalender', label: 'Kalender' },
             { href: '#fahrzeuge', label: 'Fahrzeuge' },
             { href: '#stimmen', label: 'Stimmen' },
             { href: '#kontakt', label: 'Kontakt' },
