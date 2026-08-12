@@ -133,14 +133,14 @@ export default function HamburgerMenu() {
           }}>
           {[
             { href: '#fahrten', label: 'Fahrten' },
-            { href: '#fahrzeuge', label: 'Fahrzeuge' },
-            { href: '#team', label: 'Team' },
             { href: '#touren', label: 'Touren' },
-            { href: '#ausbildung', label: 'Mitmachen' },
+            { href: '#fahrzeuge', label: 'Fahrzeuge' },
             { href: '#stimmen', label: 'Stimmen' },
+            { href: '#kontakt', label: 'Kontakt' },
+            { href: '#team', label: 'Team' },
+            { href: '#ausbildung', label: 'Mitmachen' },
             { href: '#spenden', label: 'Spenden' },
             { href: '/galerie', label: 'Galerie' },
-            { href: '#kontakt', label: 'Kontakt' },
           ].map(({ href, label }) => (
             <a key={href} href={href} onClick={close} style={{
               color: '#fff', textDecoration: 'none', fontSize: '1.1rem',

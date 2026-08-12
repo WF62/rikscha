@@ -501,14 +501,14 @@ export default async function WebsitePage() {
         </a>
         <ul className="nav-links">
           <li><a href="#fahrten">Fahrten</a></li>
-          <li><a href="#fahrzeuge">Fahrzeuge</a></li>
-          <li><a href="#team">Team</a></li>
           <li><a href="#touren">Touren</a></li>
-          <li><a href="#ausbildung">Mitmachen</a></li>
+          <li><a href="#fahrzeuge">Fahrzeuge</a></li>
           <li><a href="#stimmen">Stimmen</a></li>
+          <li><a href="#kontakt">Kontakt</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="#ausbildung">Mitmachen</a></li>
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
-          <li><a href="#kontakt">Kontakt</a></li>
           <li><a href="/buchen" className="nav-btn">Fahrt buchen</a></li>
           <li><a href="/gutschein" className="nav-btn">Gutschein</a></li>
           <li><PilotenNavLink /></li>
@@ -592,7 +592,37 @@ export default async function WebsitePage() {
         </div>
       </section>
 
+
+
       <hr className="section-rule"/>
+
+      {/* Touren */}
+      <section className="fahrzeuge-section" id="touren">
+        <div className="container">
+          <div className="eyebrow">Unsere Ausflüge</div>
+          <h2>
+            <span className="einfach-alt-block">{t.touren_h2}</span>
+            <span className="einfach-neu-block">Schöne Orte in der Natur</span>
+          </h2>
+          <p>
+            <span className="einfach-alt-block">{t.touren_intro}</span>
+            <span className="einfach-neu-block">Wir fahren zu vielen schönen Orten. Zum Beispiel in die Heide, zu Tieren oder an den Rhein.</span>
+          </p>
+          <div className="zukunft-grid" style={{marginTop:'2rem'}}>
+            <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>{t.tour_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_1_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_4_text}</p></div>
+          </div>
+
+          <div style={{marginTop:'2.5rem'}}>
+            <h3 style={{fontFamily:'var(--serif)',fontWeight:'normal',fontSize:'clamp(1.1rem,2vw,1.4rem)',marginBottom:'1rem',color:'var(--ink)'}}>
+              Alle Touren auf der Karte
+            </h3>
+            <TourenKarte />
+          </div>
+        </div>
+      </section>      <hr className="section-rule"/>
 
       {/* Fahrzeuge */}
       <section className="fahrzeuge-section" id="fahrzeuge">
@@ -727,31 +757,47 @@ export default async function WebsitePage() {
 
       <hr className="section-rule"/>
 
-      {/* Touren */}
-      <section className="fahrzeuge-section" id="touren">
+      {/* Stimmen */}
+      <section className="stimmen-section" id="stimmen">
         <div className="container">
-          <div className="eyebrow">Unsere Ausflüge</div>
-          <h2>
-            <span className="einfach-alt-block">{t.touren_h2}</span>
-            <span className="einfach-neu-block">Schöne Orte in der Natur</span>
-          </h2>
-          <p>
-            <span className="einfach-alt-block">{t.touren_intro}</span>
-            <span className="einfach-neu-block">Wir fahren zu vielen schönen Orten. Zum Beispiel in die Heide, zu Tieren oder an den Rhein.</span>
-          </p>
-          <div className="zukunft-grid" style={{marginTop:'2rem'}}>
-            <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>{t.tour_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_1_text}</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_4_text}</p></div>
+          <div className="eyebrow">Erfahrungen</div>
+          <h2>{t.stimmen_h2}</h2>
+          <div className="stimmen-grid">
+            {([
+              [t.stimme_1_text, t.stimme_1_name, t.stimme_1_rolle],
+              [t.stimme_2_text, t.stimme_2_name, t.stimme_2_rolle],
+              [t.stimme_3_text, t.stimme_3_name, t.stimme_3_rolle],
+              [t.stimme_4_text, t.stimme_4_name, t.stimme_4_rolle],
+              [t.stimme_5_text, t.stimme_5_name, t.stimme_5_rolle],
+              [t.stimme_6_text, t.stimme_6_name, t.stimme_6_rolle],
+            ] as [string,string,string][]).filter(([text]) => text).map(([text, name, rolle]) => (
+              <div key={name} className="stimme-card">
+                <p className="stimme-quote">{text}"</p>
+                <div className="stimme-meta">
+                  <div className="stimme-avatar">{name.charAt(0)}</div>
+                  <div>
+                    <div className="stimme-name">{name}</div>
+                    <span className={`stimme-badge ${rolle?.toLowerCase() === 'pilot' ? 'stimme-badge-pilot' : 'stimme-badge-gast'}`}>{rolle}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div style={{marginTop:'2.5rem'}}>
-            <h3 style={{fontFamily:'var(--serif)',fontWeight:'normal',fontSize:'clamp(1.1rem,2vw,1.4rem)',marginBottom:'1rem',color:'var(--ink)'}}>
-              Alle Touren auf der Karte
-            </h3>
-            <TourenKarte />
-          </div>
+      <hr className="section-rule"/>
+
+      {/* Kontakt */}
+      <section className="kontakt-section" id="kontakt">
+        <div className="container">
+          <div className="eyebrow">Schreib uns</div>
+          <h2>{t.kontakt_h2}</h2>
+          <p>
+            <span className="einfach-alt-block">{t.kontakt_text}</span>
+            <span className="einfach-neu-block">Schreib uns eine Nachricht. Wir antworten dir bald. Du kannst auch anrufen: <a href="tel:022279328383">02227 9328383</a></span>
+          </p>
+          <KontaktFormular />
         </div>
       </section>
 
@@ -802,37 +848,6 @@ export default async function WebsitePage() {
             <div className="zukunft-card"><span className="zukunft-icon">🗺️</span><h3>{t.zukunft_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_2_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🤝</span><h3>{t.zukunft_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_3_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌍</span><h3>{t.zukunft_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.zukunft_4_text}</p></div>
-          </div>
-        </div>
-      </section>
-
-      <hr className="section-rule"/>
-
-      {/* Stimmen */}
-      <section className="stimmen-section" id="stimmen">
-        <div className="container">
-          <div className="eyebrow">Erfahrungen</div>
-          <h2>{t.stimmen_h2}</h2>
-          <div className="stimmen-grid">
-            {([
-              [t.stimme_1_text, t.stimme_1_name, t.stimme_1_rolle],
-              [t.stimme_2_text, t.stimme_2_name, t.stimme_2_rolle],
-              [t.stimme_3_text, t.stimme_3_name, t.stimme_3_rolle],
-              [t.stimme_4_text, t.stimme_4_name, t.stimme_4_rolle],
-              [t.stimme_5_text, t.stimme_5_name, t.stimme_5_rolle],
-              [t.stimme_6_text, t.stimme_6_name, t.stimme_6_rolle],
-            ] as [string,string,string][]).filter(([text]) => text).map(([text, name, rolle]) => (
-              <div key={name} className="stimme-card">
-                <p className="stimme-quote">{text}"</p>
-                <div className="stimme-meta">
-                  <div className="stimme-avatar">{name.charAt(0)}</div>
-                  <div>
-                    <div className="stimme-name">{name}</div>
-                    <span className={`stimme-badge ${rolle?.toLowerCase() === 'pilot' ? 'stimme-badge-pilot' : 'stimme-badge-gast'}`}>{rolle}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -964,21 +979,6 @@ export default async function WebsitePage() {
               <a href="/galerie" className="galerie-alle-link" style={{display:'inline-block',padding:'0.6rem 1.5rem',background:'var(--green)',color:'#fff',borderRadius:'var(--radius)',fontSize:'0.9rem',fontWeight:600,textDecoration:'none'}}>Alle Fotos ansehen &amp; abstimmen ↗</a>
             </div>
           )}
-        </div>
-      </section>
-
-      <hr className="section-rule"/>
-
-      {/* Kontakt */}
-      <section className="kontakt-section" id="kontakt">
-        <div className="container">
-          <div className="eyebrow">Schreib uns</div>
-          <h2>{t.kontakt_h2}</h2>
-          <p>
-            <span className="einfach-alt-block">{t.kontakt_text}</span>
-            <span className="einfach-neu-block">Schreib uns eine Nachricht. Wir antworten dir bald. Du kannst auch anrufen: <a href="tel:022279328383">02227 9328383</a></span>
-          </p>
-          <KontaktFormular />
         </div>
       </section>
 
