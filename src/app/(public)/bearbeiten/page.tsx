@@ -290,6 +290,9 @@ export default function BearbeitenPage() {
   const [aktuellesLaden, setAktuellesLaden] = useState(false);
   const [neuerEintrag, setNeuerEintrag] = useState({ datum: new Date().toISOString().slice(0,10), titel: '', text: '' });
   const [aktuellesSpeichern, setAktuellesSpeichern] = useState(false);
+  const [bearbeitenId, setBearbeitenId] = useState<string | null>(null);
+  const [bearbeitenFelder, setBearbeitenFelder] = useState({ datum: '', titel: '', text: '' });
+  const [bearbeitenSpeichern, setBearbeitenSpeichern] = useState(false);
 
   async function ladeAktuellesAdmin() {
     setAktuellesLaden(true);
@@ -315,6 +318,21 @@ export default function BearbeitenPage() {
     await fetch('/api/aktuelles', { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pilot, password, id, aktiv: !aktiv }) });
     await ladeAktuellesAdmin();
+  }
+
+  async function aktuellesBearbeiten(a: AktuellEintrag) {
+    setBearbeitenId(a.id);
+    setBearbeitenFelder({ datum: a.datum, titel: a.titel, text: a.text });
+  }
+
+  async function aktuellesSpeichernEdit() {
+    if (!bearbeitenId) return;
+    setBearbeitenSpeichern(true);
+    await fetch('/api/aktuelles', { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password, id: bearbeitenId, ...bearbeitenFelder }) });
+    setBearbeitenId(null);
+    await ladeAktuellesAdmin();
+    setBearbeitenSpeichern(false);
   }
 
   async function aktuellesLoeschen(id: string) {
@@ -827,27 +845,66 @@ export default function BearbeitenPage() {
                 {!aktuellesLaden && aktuellesListe.length === 0 && <p style={{color:'var(--mid)',fontSize:'.88rem',padding:'1rem 0'}}>Noch keine Einträge.</p>}
                 {aktuellesListe.map(a => (
                   <div key={a.id} style={{background: a.aktiv ? 'var(--surface)' : '#f5f5f5', border:'1px solid var(--border)',borderRadius:'var(--r)',padding:'1rem',marginBottom:'.75rem',opacity: a.aktiv ? 1 : 0.6}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'.5rem'}}>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:'.9rem'}}>{a.titel}</div>
-                        <div style={{fontSize:'.75rem',color:'var(--mid)',marginTop:'.15rem'}}>
-                          {new Date(a.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}
-                          {a.erstellt_von ? ` · ${a.erstellt_von}` : ''}
-                          {!a.aktiv && <span style={{marginLeft:'.5rem',color:'#dc2626',fontWeight:600}}>● versteckt</span>}
+                    {bearbeitenId === a.id ? (
+                      /* ── Edit-Formular ── */
+                      <div style={{display:'grid',gap:'.65rem'}}>
+                        <div>
+                          <label style={{fontSize:'.78rem',fontWeight:600,display:'block',marginBottom:'.25rem'}}>Datum</label>
+                          <input type="date" value={bearbeitenFelder.datum}
+                            onChange={e => setBearbeitenFelder(v => ({...v, datum: e.target.value}))}
+                            style={{width:'100%',padding:'.45rem .7rem',border:'1.5px solid var(--border)',borderRadius:'var(--r)',fontSize:'.85rem'}} />
                         </div>
-                        <p style={{fontSize:'.82rem',color:'var(--mid)',marginTop:'.4rem',lineHeight:1.5}}>{a.text}</p>
+                        <div>
+                          <label style={{fontSize:'.78rem',fontWeight:600,display:'block',marginBottom:'.25rem'}}>Titel</label>
+                          <input type="text" value={bearbeitenFelder.titel}
+                            onChange={e => setBearbeitenFelder(v => ({...v, titel: e.target.value}))}
+                            style={{width:'100%',padding:'.45rem .7rem',border:'1.5px solid var(--border)',borderRadius:'var(--r)',fontSize:'.85rem'}} />
+                        </div>
+                        <div>
+                          <label style={{fontSize:'.78rem',fontWeight:600,display:'block',marginBottom:'.25rem'}}>Text</label>
+                          <textarea value={bearbeitenFelder.text} rows={3}
+                            onChange={e => setBearbeitenFelder(v => ({...v, text: e.target.value}))}
+                            style={{width:'100%',padding:'.45rem .7rem',border:'1.5px solid var(--border)',borderRadius:'var(--r)',fontSize:'.85rem',resize:'vertical'}} />
+                        </div>
+                        <div style={{display:'flex',gap:'.5rem'}}>
+                          <button onClick={aktuellesSpeichernEdit} disabled={bearbeitenSpeichern}
+                            style={{background:'var(--green)',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.4rem 1rem',fontSize:'.82rem',fontWeight:700,cursor:'pointer'}}>
+                            {bearbeitenSpeichern ? 'Speichert …' : 'Speichern'}
+                          </button>
+                          <button onClick={() => setBearbeitenId(null)}
+                            style={{background:'none',border:'1px solid var(--border)',borderRadius:'var(--r)',padding:'.4rem 1rem',fontSize:'.82rem',cursor:'pointer'}}>
+                            Abbrechen
+                          </button>
+                        </div>
                       </div>
-                      <div style={{display:'flex',gap:'.4rem',flexShrink:0}}>
-                        <button onClick={() => aktuellesToggle(a.id, a.aktiv)}
-                          style={{background: a.aktiv ? '#f59e0b' : '#15803d',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
-                          {a.aktiv ? 'Verstecken' : 'Zeigen'}
-                        </button>
-                        <button onClick={() => aktuellesLoeschen(a.id)}
-                          style={{background:'#dc2626',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
-                          Löschen
-                        </button>
+                    ) : (
+                      /* ── Anzeige ── */
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'.5rem'}}>
+                        <div>
+                          <div style={{fontWeight:700,fontSize:'.9rem'}}>{a.titel}</div>
+                          <div style={{fontSize:'.75rem',color:'var(--mid)',marginTop:'.15rem'}}>
+                            {new Date(a.datum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}
+                            {a.erstellt_von ? ` · ${a.erstellt_von}` : ''}
+                            {!a.aktiv && <span style={{marginLeft:'.5rem',color:'#dc2626',fontWeight:600}}>● versteckt</span>}
+                          </div>
+                          <p style={{fontSize:'.82rem',color:'var(--mid)',marginTop:'.4rem',lineHeight:1.5}}>{a.text}</p>
+                        </div>
+                        <div style={{display:'flex',gap:'.4rem',flexShrink:0,flexWrap:'wrap',justifyContent:'flex-end'}}>
+                          <button onClick={() => aktuellesBearbeiten(a)}
+                            style={{background:'#2563eb',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
+                            Bearbeiten
+                          </button>
+                          <button onClick={() => aktuellesToggle(a.id, a.aktiv)}
+                            style={{background: a.aktiv ? '#f59e0b' : '#15803d',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
+                            {a.aktiv ? 'Verstecken' : 'Zeigen'}
+                          </button>
+                          <button onClick={() => aktuellesLoeschen(a.id)}
+                            style={{background:'#dc2626',color:'#fff',border:'none',borderRadius:'var(--r)',padding:'.3rem .7rem',fontSize:'.75rem',fontWeight:600,cursor:'pointer'}}>
+                            Löschen
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
