@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { sendBuchungEmail } from '@/lib/email';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -77,5 +78,16 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  sendBuchungEmail({
+    fahrzeug: fahrzeug || '',
+    pilot: pilot || '',
+    datum,
+    startzeit,
+    endzeit,
+    gaeste: gaeste ?? [],
+    notiz,
+  }).catch(() => {});
+
   return NextResponse.json(data, { status: 201 });
 }
