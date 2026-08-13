@@ -550,6 +550,8 @@ export default async function WebsitePage() {
       {/* Hero */}
       <section className="hero">
         <div className="container">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="Mertener Rikschakutscher Logo" style={{width:140,height:140,borderRadius:'50%',objectFit:'cover',margin:'0 auto 1.5rem',display:'block',boxShadow:'0 4px 24px rgba(0,0,0,0.25)',border:'3px solid rgba(255,255,255,0.3)'}} />
           <div className="hero-eyebrow">{t.hero_eyebrow}</div>
           <h1>{t.hero_titel}</h1>
           <p className="hero-sub">
