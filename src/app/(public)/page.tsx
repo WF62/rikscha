@@ -520,15 +520,8 @@ export default async function WebsitePage() {
       {/* Navigation */}
       <nav aria-label="Hauptnavigation">
         <a href="/" className="nav-logo" aria-label="Mertener Rikschakutscher – Startseite">
-          <svg aria-hidden="true" focusable="false" width="36" height="36" viewBox="0 0 100 100" style={{verticalAlign:'middle',marginRight:'0.4rem'}} fill="none">
-            <circle cx="50" cy="50" r="48" fill="white"/>
-            <circle cx="28" cy="68" r="10" stroke="#2D6B1E" strokeWidth="4"/>
-            <circle cx="72" cy="68" r="10" stroke="#2D6B1E" strokeWidth="4"/>
-            <circle cx="34" cy="28" r="7" stroke="#2D6B1E" strokeWidth="3"/>
-            <rect x="38" y="35" width="26" height="22" rx="4" stroke="#2D6B1E" strokeWidth="3"/>
-            <line x1="28" y1="58" x2="42" y2="58" stroke="#2D6B1E" strokeWidth="3"/>
-            <line x1="64" y1="40" x2="72" y2="58" stroke="#2D6B1E" strokeWidth="3"/>
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1785078123043-su0txlq3ipq.png" alt="" aria-hidden="true" width={40} height={40} style={{borderRadius:'50%',objectFit:'cover',flexShrink:0}} />
           Mertener Rikschakutscher
         </a>
         <ul className="nav-links">
