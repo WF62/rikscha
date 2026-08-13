@@ -19,7 +19,7 @@ export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: 'Mertener Rikschakutscher – Bornheim-Merten',
+  title: { absolute: 'Mertener Rikschakutscher – Bornheim-Merten' },
   description: 'Kostenlose Rikschafahrten durch Bornheim-Merten seit 2018. Drei Rikschas, elf Piloten, ein Herz fürs Ehrenamt.',
   openGraph: {
     title: 'Mertener Rikschakutscher',
