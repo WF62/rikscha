@@ -21,6 +21,20 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   title: 'Mertener Rikschakutscher – Bornheim-Merten',
   description: 'Kostenlose Rikschafahrten durch Bornheim-Merten seit 2018. Drei Rikschas, elf Piloten, ein Herz fürs Ehrenamt.',
+  openGraph: {
+    title: 'Mertener Rikschakutscher',
+    description: 'Kostenlose Rikschafahrten durch Bornheim-Merten. Für alle, die Freude an einem Ausflug haben — kostenlos, barrierefrei, mit Herz.',
+    url: 'https://rikscha-kutscher.de',
+    siteName: 'Mertener Rikschakutscher',
+    locale: 'de_DE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mertener Rikschakutscher',
+    description: 'Kostenlose Rikschafahrten durch Bornheim-Merten seit 2018.',
+  },
+  alternates: { canonical: 'https://rikscha-kutscher.de' },
 };
 
 const DEFAULTS: Record<string, string> = {
@@ -1034,6 +1048,35 @@ export default async function WebsitePage() {
       </section>
 
       </main>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          name: 'Mertener Rikschakutscher',
+          description: 'Kostenlose Rikschafahrten durch Bornheim-Merten. Ehrenamtliches Projekt der GFO seit 2018.',
+          url: 'https://rikscha-kutscher.de',
+          telephone: '+4922279328383',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Merten',
+            addressLocality: 'Bornheim',
+            postalCode: '53332',
+            addressCountry: 'DE',
+          },
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: 50.753,
+            longitude: 6.977,
+          },
+          foundingDate: '2018',
+          nonprofit: true,
+          priceRange: 'Kostenlos',
+          openingHours: 'Mo-Su 09:00-18:00',
+          sameAs: [],
+        })}}
+      />
 
       {/* Footer */}
       <footer>
