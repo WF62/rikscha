@@ -426,7 +426,7 @@ export default async function FlyerPage() {
                 </div>
               </div>
               <div className="voucher-side">
-                <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Logo" style={{width:64,height:64,alignSelf:'center',marginBottom:'0.3rem',borderRadius:'50%',background:'rgba(255,255,255,0.18)',padding:'8px',objectFit:'contain'}}/>
+                <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Logo" style={{width:64,height:64,alignSelf:'center',marginBottom:'0.3rem',borderRadius:'18%',background:'rgba(255,255,255,0.18)',padding:'8px',objectFit:'contain'}}/>
                 <div className="voucher-brand">
                   Mertener<br/>Rikschakutscher
                   <small>Bornheim-Merten · seit 2018</small>
@@ -500,7 +500,7 @@ export default async function FlyerPage() {
           {/* V4: Cover */}
           <div className="panel p4 v4">
             <div className="cover-row">
-              <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Mertener Rikschakutscher Logo" style={{width:64,height:64,flexShrink:0,borderRadius:'50%',background:'rgba(255,255,255,0.18)',padding:'8px',objectFit:'contain'}}/>
+              <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Mertener Rikschakutscher Logo" style={{width:64,height:64,flexShrink:0,borderRadius:'18%',background:'rgba(255,255,255,0.18)',padding:'8px',objectFit:'contain'}}/>
               <div>
                 <div style={{fontSize:'0.54rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.48)',marginBottom:'0.18rem'}}>Bornheim-Merten · seit 2018</div>
                 <div className="cover-title">Mertener Rikschakutscher</div>

@@ -194,7 +194,7 @@ export default async function HandoutPage() {
         .bg-foto { position:absolute; inset:0; background-image:url(''); background-size:cover; background-position:center top; background-color:#2a3a22; }
         .bg-gradient { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 28%, rgba(10,30,8,.58) 60%, rgba(10,30,8,.92) 100%); }
         .brand-bar { position:absolute; top:0; left:0; right:0; display:flex; align-items:center; gap:.6rem; padding:.75rem 1rem; background:linear-gradient(to bottom, rgba(20,60,10,.97) 0%, rgba(30,70,15,.85) 55%, transparent 100%); z-index:2; }
-        .logo { width:56px; height:56px; flex-shrink:0; border-radius:50%; background:rgba(255,255,255,0.18); padding:7px; object-fit:contain; }
+        .logo { width:56px; height:56px; flex-shrink:0; border-radius:18%; background:rgba(255,255,255,0.18); padding:7px; object-fit:contain; }
         .brand-name { font-family:var(--serif); color:#fff; font-size:.82rem; line-height:1.3; text-shadow:0 1px 4px rgba(0,0,0,.5); }
         .brand-contact { margin-left:auto; display:flex; flex-direction:column; gap:.1rem; text-align:right; }
         .brand-contact span { font-size:.6rem; color:rgba(255,255,255,.85); }
