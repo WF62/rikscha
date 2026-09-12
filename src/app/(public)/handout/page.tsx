@@ -7,7 +7,7 @@ import { createServiceClient } from '@/lib/supabase';
 
 export const metadata: Metadata = { title: 'Handout – Mertener Rikschakutscher' };
 
-const LOGO = 'https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789228954115-7l3rj3vat29.png';
+const LOGO = 'https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230103391-2hv16dhd6k6.png';
 
 const SCHLUSSEL = [
   'handout_slogan', 'handout_sub', 'handout_text',
