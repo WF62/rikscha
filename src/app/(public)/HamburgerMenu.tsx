@@ -163,7 +163,7 @@ export default function HamburgerMenu() {
             color: '#fff', textDecoration: 'none', fontSize: '1.05rem', fontWeight: 700,
             marginTop: '0.5rem', background: 'rgba(255,255,255,0.15)', borderRadius: '8px',
             padding: '0.85rem 1rem', display: 'block',
-          }}>Piloten-Login</a>
+          }}>Kutscher-Login</a>
         </div>
       )}
     </>

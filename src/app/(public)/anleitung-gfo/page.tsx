@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'GFO-Admin-Anleitung – Mertener Rikschakutscher',
-  description: 'Anleitung für GFO-Admins: Pilotenverwaltung, Entwürfe freigeben, Versionsverlauf, Ordner und Banner.',
+  description: 'Anleitung für GFO-Admins: Kutscherverwaltung, Entwürfe freigeben, Versionsverlauf, Ordner und Banner.',
 };
 
 export default function AnleitungGfoPage() {
@@ -109,7 +109,7 @@ export default function AnleitungGfoPage() {
       <div className="hero-band">
         <div className="eyebrow">Nur für Admins · GFO</div>
         <h1>GFO- &amp; Admin-Anleitung</h1>
-        <p>Piloten verwalten, Entwürfe freigeben, Versionsverlauf nutzen und Ordner pflegen.</p>
+        <p>Kutscher verwalten, Entwürfe freigeben, Versionsverlauf nutzen und Ordner pflegen.</p>
       </div>
 
       <div className="page">
@@ -117,11 +117,11 @@ export default function AnleitungGfoPage() {
           <h2>📋 Inhalt</h2>
           <ol>
             <li><a href="#rollen">Rollen &amp; Zugänge</a></li>
-            <li><a href="#pilot-anlegen">Neuen Piloten anlegen</a></li>
-            <li><a href="#pilot-deaktivieren">Piloten deaktivieren</a></li>
+            <li><a href="#pilot-anlegen">Neuen Kutscher anlegen</a></li>
+            <li><a href="#pilot-deaktivieren">Kutscher deaktivieren</a></li>
             <li><a href="#entwuerfe">Entwürfe freigeben oder ablehnen</a></li>
             <li><a href="#verlauf">Versionsverlauf &amp; Rollback</a></li>
-            <li><a href="#ordner">Piloten-Ordner verwalten</a></li>
+            <li><a href="#ordner">Kutscher-Ordner verwalten</a></li>
             <li><a href="#banner">Banner verwalten</a></li>
             <li><a href="#direkt">Texte direkt speichern (ohne Freigabe)</a></li>
           </ol>
@@ -142,13 +142,13 @@ export default function AnleitungGfoPage() {
               <tbody>
                 <tr>
                   <td><span className="badge badge-green">pilot</span></td>
-                  <td>Alle aktiven Piloten</td>
+                  <td>Alle aktiven Kutscher</td>
                   <td>Kalender, Buchung, Fotos, eigener Ordner, Textentwürfe einreichen</td>
                 </tr>
                 <tr>
                   <td><span className="badge badge-gold">gfo</span></td>
                   <td>GFO-Verantwortliche (z. B. Walter, Heribert)</td>
-                  <td>Alles wie Pilot + Entwürfe freigeben, Verlauf/Rollback, Piloten-Ordner, Texte direkt speichern</td>
+                  <td>Alles wie Kutscher + Entwürfe freigeben, Verlauf/Rollback, Kutscher-Ordner, Texte direkt speichern</td>
                 </tr>
                 <tr>
                   <td><span className="badge badge-red">admin</span></td>
@@ -159,7 +159,7 @@ export default function AnleitungGfoPage() {
             </table>
           </div>
           <div className="info-box">
-            <strong>Zweiter GFO-Admin:</strong> Ein zweiter Admin wird als normaler Pilot-Zugang in der Datenbank angelegt — aber mit der Rolle <code>gfo</code> statt <code>pilot</code>. Dazu in der Supabase-Tabelle <code>piloten_zugang</code> den <code>rolle</code>-Wert auf <code>gfo</code> setzen.
+            <strong>Zweiter GFO-Admin:</strong> Ein zweiter Admin wird als normaler Kutscher-Zugang in der Datenbank angelegt — aber mit der Rolle <code>gfo</code> statt <code>pilot</code>. Dazu in der Supabase-Tabelle <code>piloten_zugang</code> den <code>rolle</code>-Wert auf <code>gfo</code> setzen.
           </div>
         </section>
 
@@ -167,47 +167,47 @@ export default function AnleitungGfoPage() {
         <section className="section" id="pilot-anlegen">
           <div className="section-head">
             <span className="section-icon">➕</span>
-            <h2>2. Neuen Piloten anlegen</h2>
+            <h2>2. Neuen Kutscher anlegen</h2>
           </div>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>Verwaltungsseite öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>⚙️ Verwaltung</strong> klicken und mit Admin-Passwort anmelden.</p>
+                <p>Im Kutscher-Menü auf <strong>⚙️ Verwaltung</strong> klicken und mit Admin-Passwort anmelden.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
-                <h3>„Neuer Pilot" ausfüllen</h3>
-                <p>Name, Passwort und Rolle (<code>pilot</code> oder <code>gfo</code>) eingeben. Das Passwort sollte dem neuen Piloten persönlich mitgeteilt werden.</p>
+                <h3>„Neuer Kutscher" ausfüllen</h3>
+                <p>Name, Passwort und Rolle (<code>pilot</code> oder <code>gfo</code>) eingeben. Das Passwort sollte dem neuen Kutscher persönlich mitgeteilt werden.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">3</div>
               <div className="step-body">
                 <h3>Anlegen bestätigen</h3>
-                <p>Der neue Pilot erscheint sofort in der Pilotenliste. Das System setzt automatisch <strong>„Passwort bei erster Anmeldung ändern"</strong>.</p>
+                <p>Der neue Kutscher erscheint sofort in der Kutscherliste. Das System setzt automatisch <strong>„Passwort bei erster Anmeldung ändern"</strong>.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">4</div>
               <div className="step-body">
                 <h3>Start-Passwort mitteilen</h3>
-                <p>Das eingetragene Start-Passwort dem neuen Piloten persönlich oder telefonisch mitteilen. Bei der ersten Anmeldung wird er automatisch aufgefordert, ein eigenes Passwort zu vergeben.</p>
+                <p>Das eingetragene Start-Passwort dem neuen Kutscher persönlich oder telefonisch mitteilen. Bei der ersten Anmeldung wird er automatisch aufgefordert, ein eigenes Passwort zu vergeben.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">5</div>
               <div className="step-body">
                 <h3>Ordner vorbereiten (optional)</h3>
-                <p>In der Pilotenliste auf <strong>🗂️ Ordner</strong> klicken und erste Dokumente (z. B. Einweisungsprotokoll) hochladen.</p>
+                <p>In der Kutscherliste auf <strong>🗂️ Ordner</strong> klicken und erste Dokumente (z. B. Einweisungsprotokoll) hochladen.</p>
               </div>
             </div>
           </div>
           <div className="info-box">
-            <strong>Passwort zurücksetzen:</strong> Wenn ein Pilot sein Passwort vergessen hat, einfach in der Verwaltung ein neues Start-Passwort eintragen (Stift-Symbol). Beim nächsten Login wird er wieder zur Passwort-Vergabe aufgefordert — dazu zusätzlich <code>muss_pw_aendern</code> in Supabase auf <code>true</code> setzen.
+            <strong>Passwort zurücksetzen:</strong> Wenn ein Kutscher sein Passwort vergessen hat, einfach in der Verwaltung ein neues Start-Passwort eintragen (Stift-Symbol). Beim nächsten Login wird er wieder zur Passwort-Vergabe aufgefordert — dazu zusätzlich <code>muss_pw_aendern</code> in Supabase auf <code>true</code> setzen.
           </div>
         </section>
 
@@ -215,33 +215,33 @@ export default function AnleitungGfoPage() {
         <section className="section" id="pilot-deaktivieren">
           <div className="section-head">
             <span className="section-icon">🔒</span>
-            <h2>3. Piloten deaktivieren</h2>
+            <h2>3. Kutscher deaktivieren</h2>
           </div>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>Verwaltungsseite öffnen</h3>
-                <p>In der Pilotenliste den betreffenden Piloten suchen.</p>
+                <p>In der Kutscherliste den betreffenden Kutscher suchen.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
                 <h3>„Deaktivieren" klicken</h3>
-                <p>Der Pilot wird sofort gesperrt und kann sich nicht mehr anmelden. Der Datensatz bleibt erhalten (kein Datenverlust).</p>
+                <p>Der Kutscher wird sofort gesperrt und kann sich nicht mehr anmelden. Der Datensatz bleibt erhalten (kein Datenverlust).</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">3</div>
               <div className="step-body">
                 <h3>Reaktivieren bei Bedarf</h3>
-                <p>Deaktivierte Piloten können jederzeit wieder aktiviert werden — einfach erneut auf den Schalter klicken.</p>
+                <p>Deaktivierte Kutscher können jederzeit wieder aktiviert werden — einfach erneut auf den Schalter klicken.</p>
               </div>
             </div>
           </div>
           <div className="info-box">
-            <strong>Ordner bleiben erhalten:</strong> Auch nach Deaktivierung bleiben alle Dateien im Piloten-Ordner gespeichert und sind für Admins weiterhin abrufbar.
+            <strong>Ordner bleiben erhalten:</strong> Auch nach Deaktivierung bleiben alle Dateien im Kutscher-Ordner gespeichert und sind für Admins weiterhin abrufbar.
           </div>
         </section>
 
@@ -251,13 +251,13 @@ export default function AnleitungGfoPage() {
             <span className="section-icon">📋</span>
             <h2>4. Entwürfe freigeben oder ablehnen</h2>
           </div>
-          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Wenn ein Pilot einen Text ändert, landet dieser als Entwurf in der Warteschlange. Als Admin entscheidest du, ob die Änderung live geht.</p>
+          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Wenn ein Kutscher einen Text ändert, landet dieser als Entwurf in der Warteschlange. Als Admin entscheidest du, ob die Änderung live geht.</p>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>„Inhalte bearbeiten" öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>✏️ Inhalte bearbeiten</strong> klicken (als GFO/Admin angemeldet sein).</p>
+                <p>Im Kutscher-Menü auf <strong>✏️ Inhalte bearbeiten</strong> klicken (als GFO/Admin angemeldet sein).</p>
               </div>
             </div>
             <div className="step">
@@ -331,22 +331,22 @@ export default function AnleitungGfoPage() {
         <section className="section" id="ordner">
           <div className="section-head">
             <span className="section-icon">🗂️</span>
-            <h2>6. Piloten-Ordner verwalten</h2>
+            <h2>6. Kutscher-Ordner verwalten</h2>
           </div>
-          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Jeder Pilot hat einen persönlichen Ordner für Pflichtdokumente. Als Admin kannst du Dokumente für alle Piloten hochladen und einsehen.</p>
+          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Jeder Kutscher hat einen persönlichen Ordner für Pflichtdokumente. Als Admin kannst du Dokumente für alle Kutscher hochladen und einsehen.</p>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>Verwaltungsseite öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>⚙️ Verwaltung</strong> klicken.</p>
+                <p>Im Kutscher-Menü auf <strong>⚙️ Verwaltung</strong> klicken.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
                 <h3>„🗂️ Ordner" beim Piloten klicken</h3>
-                <p>In der Pilotenliste rechts neben dem Namen auf den Ordner-Button klicken. Ein Panel öffnet sich darunter.</p>
+                <p>In der Kutscherliste rechts neben dem Namen auf den Ordner-Button klicken. Ein Panel öffnet sich darunter.</p>
               </div>
             </div>
             <div className="step">
@@ -365,9 +365,9 @@ export default function AnleitungGfoPage() {
             </div>
           </div>
           <div className="warn-box">
-            <strong>Datenschutz:</strong> Piloten sehen nur ihren eigenen Ordner. Admins sehen alle Ordner. Niemals personenbezogene Dokumente öffentlich zugänglich machen.
+            <strong>Datenschutz:</strong> Kutscher sehen nur ihren eigenen Ordner. Admins sehen alle Ordner. Niemals personenbezogene Dokumente öffentlich zugänglich machen.
           </div>
-          <p style={{marginTop:'1rem',color:'var(--mid)',fontSize:'0.9rem'}}>Alternativ kann jeder Pilot auch seinen eigenen Ordner über das Piloten-Menü → <strong>🗂️ Mein Ordner</strong> einsehen und selbst Dateien hochladen.</p>
+          <p style={{marginTop:'1rem',color:'var(--mid)',fontSize:'0.9rem'}}>Alternativ kann jeder Pilot auch seinen eigenen Ordner über das Kutscher-Menü → <strong>🗂️ Mein Ordner</strong> einsehen und selbst Dateien hochladen.</p>
         </section>
 
         {/* 7. Banner */}
@@ -382,7 +382,7 @@ export default function AnleitungGfoPage() {
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>Bearbeiten-Bereich öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>✏️ Inhalte bearbeiten</strong> klicken, dann Tab <strong>📢 Banner</strong> auswählen.</p>
+                <p>Im Kutscher-Menü auf <strong>✏️ Inhalte bearbeiten</strong> klicken, dann Tab <strong>📢 Banner</strong> auswählen.</p>
               </div>
             </div>
             <div className="step">

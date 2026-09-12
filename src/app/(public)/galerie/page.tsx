@@ -351,7 +351,7 @@ export default function GaleriePage() {
       <div className="page-body">
         <div className="eyebrow">Eindrücke</div>
         <h1>Galerie</h1>
-        <p className="lead">Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
+        <p className="lead">Fotos von unseren Kutschern — echte Augenblicke aus dem Rikscha-Alltag.</p>
 
         {/* Motivationstext Wettbewerb */}
         <div className="motiv-box">
@@ -401,7 +401,7 @@ export default function GaleriePage() {
             <span className="filter-label">Filtern:</span>
             {allePiloten.length > 1 && (
               <select value={filterPilot} onChange={e => setFilterPilot(e.target.value)}>
-                <option value="">Alle Piloten</option>
+                <option value="">Alle Kutscher</option>
                 {allePiloten.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             )}
@@ -458,7 +458,7 @@ export default function GaleriePage() {
           {gefilterteFotos.map(f => (
             <div key={f.id} className="galerie-card">
               <img src={f.url} alt={f.beschreibung || ''} loading="lazy" />
-              {istPilot && !f.sichtbar && <span className="badge-versteckt">🔒 Nur Piloten</span>}
+              {istPilot && !f.sichtbar && <span className="badge-versteckt">🔒 Nur Kutscher</span>}
 
               {/* Edit-Overlay für Piloten */}
               {istPilot && editId === f.id && (
@@ -536,7 +536,7 @@ export default function GaleriePage() {
           <>
             <hr className="divider" />
             <div className="upload-section">
-              <h2>📷 Fotos als Pilot hochladen</h2>
+              <h2>📷 Fotos als Kutscher hochladen</h2>
               <p style={{fontSize:'0.85rem',color:'var(--mid)'}}>Hochladen als: <strong style={{color:'var(--ink)'}}>{pilot}</strong></p>
 
               <div className="kat-row">
@@ -608,10 +608,10 @@ export default function GaleriePage() {
                                 onChange={() => sichtbarToggle(i)}
                                 disabled={d.status === 'laden'}
                               />
-                              {d.sichtbar ? '🌐 Für Besucher sichtbar' : '🔒 Nur für Piloten'}
+                              {d.sichtbar ? '🌐 Für Besucher sichtbar' : '🔒 Nur für Kutscher'}
                             </label>
                           )}
-                          {d.status === 'ok'    && <div className="upload-item-status ok">✓ Hochgeladen in „{aktiveKat}" · {d.sichtbar ? '🌐 Öffentlich' : '🔒 Nur Piloten'}</div>}
+                          {d.status === 'ok'    && <div className="upload-item-status ok">✓ Hochgeladen in „{aktiveKat}" · {d.sichtbar ? '🌐 Öffentlich' : '🔒 Nur Kutscher'}</div>}
                           {d.status === 'laden' && <div className="upload-item-status laden">Wird hochgeladen …</div>}
                           {d.status === 'err'   && <div className="upload-item-status err">✗ {d.meldung}</div>}
                         </div>

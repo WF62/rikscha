@@ -110,9 +110,9 @@ export default function DokumentePage() {
   if (!eingeloggt) return (
     <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <form onSubmit={login} style={{ background: '#fff', borderRadius: 12, padding: '2rem 1.8rem', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', width: 320 }}>
-        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#2D6B1E', marginBottom: '0.25rem' }}>📂 Pilotenablage</div>
+        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#2D6B1E', marginBottom: '0.25rem' }}>📂 Kutscherablage</div>
         <div style={{ fontSize: '0.8rem', color: '#5C4E38', marginBottom: '1.25rem' }}>Bitte anmelden</div>
-        <label style={lbl}>Pilotenname</label>
+        <label style={lbl}>Kutschername</label>
         <input style={inp} value={pilot} onChange={e => setPilot(e.target.value)} required autoFocus />
         <label style={lbl}>Passwort</label>
         <input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} required />
@@ -126,7 +126,7 @@ export default function DokumentePage() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1C1208' }}>📂 Pilotenablage</h2>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1C1208' }}>📂 Kutscherablage</h2>
           <div style={{ fontSize: '0.78rem', color: '#5C4E38', marginTop: '0.1rem' }}>{dateien.length} Dateien · angemeldet als {pilot}</div>
         </div>
         {/* Upload-Bereich */}

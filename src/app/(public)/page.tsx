@@ -20,7 +20,7 @@ export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: { absolute: 'Mertener Rikschakutscher – Bornheim-Merten' },
-  description: 'Kostenlose Rikschafahrten durch Bornheim-Merten seit 2018. Drei Rikschas, elf Piloten, ein Herz fürs Ehrenamt.',
+  description: 'Kostenlose Rikschafahrten durch Bornheim-Merten seit 2018. Drei Rikschas, elf Kutscher, ein Herz fürs Ehrenamt.',
   openGraph: {
     title: 'Mertener Rikschakutscher',
     description: 'Kostenlose Rikschafahrten durch Bornheim-Merten. Für alle, die Freude an einem Ausflug haben — kostenlos, barrierefrei, mit Herz.',
@@ -40,16 +40,16 @@ export const metadata: Metadata = {
 const DEFAULTS: Record<string, string> = {
   hero_eyebrow:      'Bornheim-Merten · Ehrenamt · seit 2018',
   hero_titel:        'Mertener Rikschakutscher',
-  hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Piloten.',
+  hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Kutschern.',
   fahrten_h2:        'Drei Rikschas, ein gemeinsames Erlebnis',
   gruppenfahrten_1:  'Unsere Rikschafahrten richten sich besonders an Menschen mit körperlichen oder geistigen Einschränkungen — und an alle, die ihnen nahe sind. Begleitpersonen sind herzlich willkommen.',
-  gruppenfahrten_2:  'Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Piloten, alle gemeinsam unterwegs. Ob Geburtstag, Gruppenausflug aus dem Pflegeheim oder ein besonderer Anlass — im Konvoi wird aus einer Fahrt ein echtes gemeinsames Erlebnis.',
+  gruppenfahrten_2:  'Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Kutscher, alle gemeinsam unterwegs. Ob Geburtstag, Gruppenausflug aus dem Pflegeheim oder ein besonderer Anlass — im Konvoi wird aus einer Fahrt ein echtes gemeinsames Erlebnis.',
   fahrzeuge_h2:      'Drei Rikschas, drei Charaktere',
   fahrzeuge_intro:   'Jedes Fahrzeug hat seinen eigenen Stil — zusammen sind sie unschlagbar.',
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
-  piter_text:        'Pilot und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
-  team_h2:           'Elf Piloten mit Herzblut',
+  piter_text:        'Kutscher und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
+  team_h2:           'Elf Kutscher mit Herzblut',
   team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
   touren_h2:         'Frischer Wind und wunderbare Ausblicke',
   touren_intro:      'Ob zur Mertener Heide, durch Gemüsefelder oder zu Alpakas — unsere Ausflüge sind so vielfältig wie die Wünsche unserer Gäste.',
@@ -65,20 +65,20 @@ const DEFAULTS: Record<string, string> = {
   mitmachen_intro:   'Du fährst gerne Fahrrad, magst Menschen und hast Freude daran, anderen etwas Besonderes zu schenken? Dann bist du bei uns genau richtig.',
   schritt_1_titel:   'Fahrradaffin & offen für Menschen',
   schritt_1_text:    'Du solltest sicher und gerne Fahrrad fahren und Freude am Umgang mit Menschen haben.',
-  schritt_2_titel:   'Einweisung durch erfahrene Piloten',
+  schritt_2_titel:   'Einweisung durch erfahrene Kutscher',
   schritt_2_text:    'Du wirst in Theorie und Praxis eingewiesen. Am Ende steht ein Checkbericht.',
   schritt_3_titel:   'Polizeiliches Führungszeugnis',
   schritt_3_text:    'Für den Umgang mit Fahrgästen ist ein polizeiliches Führungszeugnis erforderlich.',
   schritt_4_titel:   'Ehrenamtlicher Vertrag mit der GFO',
-  schritt_4_text:    'Als Pilot schließt du einen ehrenamtlichen Vertrag mit der GFO ab.',
+  schritt_4_text:    'Als Kutscher schließt du einen ehrenamtlichen Vertrag mit der GFO ab.',
   zukunft_h2:        'Was wir noch vorhaben',
   zukunft_intro:     'Wir haben viel vor — und mit eurer Unterstützung wird noch mehr möglich.',
   zukunft_1_titel:   'Mehr Fahrzeuge',
   zukunft_1_text:    'Wir träumen von einer wachsenden Flotte — für mehr Fahrten, mehr Gäste und größere Gruppen.',
   zukunft_2_titel:   'Feste Touren',
   zukunft_2_text:    'Ausgeschilderte Routen durch Merten mit interessanten Stationen.',
-  zukunft_3_titel:   'Mehr Piloten',
-  zukunft_3_text:    'Je mehr Piloten, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
+  zukunft_3_titel:   'Mehr Kutscher',
+  zukunft_3_text:    'Je mehr Kutscher, desto mehr Fahrten. Wir freuen uns über jeden, der mitmachen möchte.',
   zukunft_4_titel:   'Kooperationen',
   zukunft_4_text:    'Zusammenarbeit mit lokalen Vereinen, Pflegeeinrichtungen und der Stadt.',
   ausleihen_titel:   'Rikscha selbst steuern — für Angehörige',
@@ -86,7 +86,7 @@ const DEFAULTS: Record<string, string> = {
   ausleihen_cta:     'Jetzt melden',
   kennzahlen_h2:     'Mertener Kutscher in Zahlen',
   stat_1_zahl:       '11',
-  stat_1_label:      'Ehrenamtliche Piloten',
+  stat_1_label:      'Ehrenamtliche Kutscher',
   stat_2_zahl:       '3',
   stat_2_label:      'Rikschas',
   stat_3_zahl:       '2018',
@@ -95,19 +95,19 @@ const DEFAULTS: Record<string, string> = {
   stat_4_label:      'Fahrten',
   stat_5_zahl:       '6+',
   stat_5_label:      'Jahre Erfahrung',
-  stimmen_h2:        'Was Gäste und Piloten sagen',
+  stimmen_h2:        'Was Gäste und Kutscher sagen',
   stimme_1_text:     'Eine wunderbare Erfahrung — ich hätte nie gedacht, dass eine Rikschafahrt so besonders sein kann. Das Tempo, die Natur, die nette Unterhaltung. Wir kommen gerne wieder!',
   stimme_1_name:     'Familie Meier',
   stimme_1_rolle:    'Gast',
-  stimme_2_text:     'Als Pilot erlebe ich jede Fahrt neu. Die Dankbarkeit der Gäste und die frische Luft — das ist besser als jedes Fitnessstudio. Ich würde es jederzeit wieder tun.',
+  stimme_2_text:     'Als Kutscher erlebe ich jede Fahrt neu. Die Dankbarkeit der Gäste und die frische Luft — das ist besser als jedes Fitnessstudio. Ich würde es jederzeit wieder tun.',
   stimme_2_name:     'Guido',
-  stimme_2_rolle:    'Pilot',
+  stimme_2_rolle:    'Kutscher',
   stimme_3_text:     'Meine Mutter hat Demenz und war zunächst skeptisch. Nach der Fahrt mit dem Jruuse Piter war sie strahlend — das hat uns alle bewegt. Vielen herzlichen Dank!',
   stimme_3_name:     'Tochter eines Gastes',
   stimme_3_rolle:    'Gast',
-  stimme_4_text:     'Beim Rikschafahren sprechen wir nicht von Win-Win — sondern von vier Mal Win. Die Gäste genießen frische Luft und besondere Momente. Die Piloten erleben Freude und Sinn. Die GFO-Mitarbeiterinnen bekommen gut gelaunte Bewohner zurück. Und die Dorfbewohner freuen sich, wenn wir lachend einen schönen Tag wünschen. Das ist Ehrenamt, das wirklich ankommt.',
-  stimme_4_name:     'Walter — Pilot & Mitgründer',
-  stimme_4_rolle:    'Pilot',
+  stimme_4_text:     'Beim Rikschafahren sprechen wir nicht von Win-Win — sondern von vier Mal Win. Die Gäste genießen frische Luft und besondere Momente. Die Kutscher erleben Freude und Sinn. Die GFO-Mitarbeiterinnen bekommen gut gelaunte Bewohner zurück. Und die Dorfbewohner freuen sich, wenn wir lachend einen schönen Tag wünschen. Das ist Ehrenamt, das wirklich ankommt.',
+  stimme_4_name:     'Walter — Kutscher & Mitgründer',
+  stimme_4_rolle:    'Kutscher',
   stimme_5_text:     '',
   stimme_5_name:     '',
   stimme_5_rolle:    'Gast',
@@ -117,7 +117,7 @@ const DEFAULTS: Record<string, string> = {
   spenden_h2:        'Unsere Fahrten sind kostenlos — aus Freude am Fahren.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
   kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
-  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
+  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Kutscher — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
   galerie_homepage:  '',
   foto_lotte:        '',
   foto_flitzer:      '',
@@ -759,7 +759,7 @@ export default async function WebsitePage() {
                 <span className="fahrzeug-gaeste gaeste-piter"><span aria-hidden="true">👤</span> 1 Gast</span>
                 <p>
                   <span className="einfach-alt-block">{t.piter_text}</span>
-                  <span className="einfach-neu-block">Jruuse Piter ist ein Tandem. Gast und Pilot sitzen nebeneinander. Man fährt zusammen. Das macht das Gespräch leicht.</span>
+                  <span className="einfach-neu-block">Jruuse Piter ist ein Tandem. Gast und Kutscher sitzen nebeneinander. Man fährt zusammen. Das macht das Gespräch leicht.</span>
                 </p>
               </div>
             </div>
@@ -900,10 +900,10 @@ export default async function WebsitePage() {
       {/* Mitmachen */}
       <section className="ausbildung-section" id="ausbildung">
         <div className="container">
-          <div className="eyebrow">Pilot werden</div>
+          <div className="eyebrow">Kutscher werden</div>
           <h2>
             <span className="einfach-alt-block">{t.mitmachen_h2}</span>
-            <span className="einfach-neu-block">So kannst du Rikscha-Pilot werden</span>
+            <span className="einfach-neu-block">So kannst du Rikscha-Kutscher werden</span>
           </h2>
           <p>
             <span className="einfach-alt-block">{t.mitmachen_intro}</span>
@@ -989,7 +989,7 @@ export default async function WebsitePage() {
             </div>
             <div className="spenden-card">
               <h3>💵 Bar</h3>
-              <p style={{fontSize:'0.9rem'}}>Nach der Fahrt einfach dem Piloten mitgeben — kein Mindestbetrag, keine Quittung nötig.</p>
+              <p style={{fontSize:'0.9rem'}}>Nach der Fahrt einfach dem Kutscher mitgeben — kein Mindestbetrag, keine Quittung nötig.</p>
               <p style={{fontSize:'0.9rem',marginTop:'0.75rem'}}>Jede Münze zählt. Danke von Herzen!</p>
             </div>
           </div>
@@ -1004,7 +1004,7 @@ export default async function WebsitePage() {
         <div className="container">
           <div className="eyebrow">Eindrücke</div>
           <h2>Momente auf der Strecke</h2>
-          <p>Fotos von unseren Piloten — echte Augenblicke aus dem Rikscha-Alltag.</p>
+          <p>Fotos von unseren Kutschern — echte Augenblicke aus dem Rikscha-Alltag.</p>
 
           {/* Wettbewerbs-Banner */}
           <div className="wettbewerb-banner" style={{background:'var(--green)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',marginBottom:'1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap'}}>

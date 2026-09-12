@@ -7,7 +7,7 @@ export default function PilotenNavLink() {
       className="nav-piloten"
       onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('open-piloten-modal')); }}
     >
-      🔑 Piloten
+      🔑 Kutscher
     </a>
   );
 }

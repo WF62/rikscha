@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   }
   // Mindestens Pilot ODER Fahrzeug muss angegeben sein
   if (!pilot && !fahrzeug) {
-    return NextResponse.json({ error: 'Bitte mindestens Pilot oder Fahrzeug angeben.' }, { status: 400 });
+    return NextResponse.json({ error: 'Bitte mindestens Kutscher oder Fahrzeug angeben.' }, { status: 400 });
   }
 
   const sb = createServiceClient();

@@ -6,7 +6,7 @@ type Person = { id: string; name: string; rolle: string; aktiv: boolean };
 type OrdnerDatei = { id: string; kategorie: string; name: string; url: string; groesse: number; typ: string };
 
 const ROLLEN = [
-  { value: 'pilot', label: 'Pilot' },
+  { value: 'pilot', label: 'Kutscher' },
   { value: 'gfo',   label: 'GFO-Mitarbeiterin' },
 ];
 const ORDNER_KAT = ['Polizeiliches Führungszeugnis', 'Einweisungsprotokoll', 'Ehrenamtsvertrag', 'Sonstiges'] as const;
@@ -170,7 +170,7 @@ export default function AdminSeite() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-rikscha-green">Zugang verwalten</h2>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-400">Piloten &amp; GFO-Mitarbeiterinnen</span>
+          <span className="text-xs text-gray-400">Kutscher &amp; GFO-Mitarbeiterinnen</span>
           <a href="/anleitung-gfo" target="_blank" className="text-xs text-blue-600 underline">📖 Admin-Anleitung</a>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function AdminSeite() {
                 className={`text-xs px-2 py-0.5 rounded-full font-semibold border-0 cursor-pointer appearance-none ${
                   p.rolle === 'gfo' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
                 }`}>
-                <option value="pilot">Pilot</option>
+                <option value="pilot">Kutscher</option>
                 <option value="gfo">GFO</option>
                 <option value="angehoeriger">Angehörige/r</option>
               </select>
@@ -268,7 +268,7 @@ export default function AdminSeite() {
                   onChange={(e) => rolleÄndern(p, e.target.value)}
                   title="Rolle ändern"
                   className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold border-0 cursor-pointer appearance-none">
-                  <option value="pilot">Pilot</option>
+                  <option value="pilot">Kutscher</option>
                   <option value="gfo">GFO</option>
                   <option value="angehoeriger">Angehörige/r</option>
                 </select>

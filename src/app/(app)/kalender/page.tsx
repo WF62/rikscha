@@ -190,14 +190,14 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
         </div>
       </div>
       <div className="mb-3">
-        <p className="text-xs font-semibold text-gray-600 mb-1.5">Pilot:</p>
+        <p className="text-xs font-semibold text-gray-600 mb-1.5">Kutscher:</p>
         <div className="flex flex-wrap gap-1.5">
           {PILOTEN.map((name) => (
             <button key={name} disabled={saving} onClick={() => patch({ pilot: name })}
               style={{ backgroundColor: b.pilot === name ? PILOT_FARBE.dotHex : PILOT_FARBE.bgHex, color: b.pilot === name ? '#fff' : '#1e1b4b', outline: b.pilot === name ? `3px solid ${PILOT_FARBE.dotHex}` : 'none' }}
               className="text-sm px-3 py-1.5 rounded font-bold border border-indigo-400 hover:scale-105 transition-transform disabled:opacity-50">{name}</button>
           ))}
-          {b.pilot && <button onClick={() => patch({ pilot: '' })} disabled={saving} className="text-sm px-3 py-1.5 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">Kein Pilot</button>}
+          {b.pilot && <button onClick={() => patch({ pilot: '' })} disabled={saving} className="text-sm px-3 py-1.5 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">Kein Kutscher</button>}
         </div>
       </div>
       <div className="mb-3">
@@ -277,7 +277,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       ) : (
         <div className="flex items-center gap-2 px-3 py-2 bg-orange-50">
           <span className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-300" />
-          <span className="text-sm text-orange-600 italic">Pilot noch nicht zugewiesen</span>
+          <span className="text-sm text-orange-600 italic">Kutscher noch nicht zugewiesen</span>
         </div>
       )}
       {b.gaeste.map((g, i) => (
@@ -468,7 +468,7 @@ export default function KalenderSeite() {
         <span className="flex items-center gap-1 px-2 py-1 rounded border border-dashed border-orange-400 bg-orange-50 text-orange-800"><span className="w-2 h-2 rounded-full bg-orange-400" />Offen</span>
       </div>
       <div className="flex flex-wrap gap-2 mb-2 text-xs">
-        <span className="text-xs font-semibold text-gray-500 self-center">Pilot:</span>
+        <span className="text-xs font-semibold text-gray-500 self-center">Kutscher:</span>
         {PILOTEN.map((name) => (
           <button key={name} onClick={() => setFilterPilot(p => p === name ? '' : name)}
             onDoubleClick={() => schnellBuchen({ pilot: name })} title="Klick=Filter | Doppelklick=Termin"

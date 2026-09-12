@@ -8,7 +8,7 @@ export default function PilotenFooterLink() {
 
   return (
     <a href="javascript:void(0)" className="piloten-link" onClick={handleClick}>
-      Piloten
+      Kutscher
     </a>
   );
 }
