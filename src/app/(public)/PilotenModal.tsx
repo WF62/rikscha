@@ -327,7 +327,7 @@ export default function PilotenModal() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
               <span style={{ fontSize: '1.8rem' }}>🚲</span>
               <div>
-                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Piloten-Bereich</div>
+                <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Kutscher-Bereich</div>
                 <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Nur für das Rikscha-Team</div>
               </div>
             </div>
@@ -491,13 +491,13 @@ export default function PilotenModal() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               {[
                 { href: '/kalender',   icon: '📅', titel: 'Fahrtenkalender',   sub: 'Termine buchen & verwalten',       border: '#D6CCB8' },
-                { href: '/buchen',     icon: '➕', titel: 'Als Pilot buchen',   sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
+                { href: '/buchen',     icon: '➕', titel: 'Als Kutscher buchen', sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
                 { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Texte, Flyer & Banner',            border: '#C8881A' },
                 { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
                 { href: '#ordner',     icon: '🗂️', titel: 'Mein Ordner',        sub: 'Führungszeugnis, Vertrag & mehr',  border: '#D6CCB8' },
                 { href: '#ablage',     icon: '📂', titel: 'Ablage',             sub: 'Ordner, Dateien & Dokumente',      border: '#D6CCB8' },
-                { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Piloten & Einstellungen',          border: '#D6CCB8' },
-                { href: '/anleitung',  icon: '📖', titel: 'Pilot-Anleitung',    sub: 'Hilfe & Schritt-für-Schritt',      border: '#D6CCB8' },
+                { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Kutscher & Einstellungen',         border: '#D6CCB8' },
+                { href: '/anleitung',  icon: '📖', titel: 'Kutscher-Anleitung', sub: 'Hilfe & Schritt-für-Schritt',      border: '#D6CCB8' },
               ].map(k => (
                 <a key={k.href + k.titel}
                   href={k.href.startsWith('#') ? undefined : k.href}

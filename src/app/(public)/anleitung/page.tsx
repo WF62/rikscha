@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Piloten-Anleitung – Mertener Rikschakutscher',
-  description: 'Schritt-für-Schritt-Anleitung für Piloten: Kalender, Buchung, Fotos, Ordner und Inhalte bearbeiten.',
+  title: 'Kutscher-Anleitung – Mertener Rikschakutscher',
+  description: 'Schritt-für-Schritt-Anleitung für Kutscher: Kalender, Buchung, Fotos, Ordner und Inhalte bearbeiten.',
 };
 
 export default function AnleitungPage() {
@@ -95,15 +95,15 @@ export default function AnleitungPage() {
 
       <div className="hero-band">
         <div className="eyebrow">Interne Dokumentation</div>
-        <h1>Piloten-Anleitung</h1>
-        <p>Alles, was du als Pilot wissen musst — von der ersten Anmeldung bis zum Foto-Upload.</p>
+        <h1>Kutscher-Anleitung</h1>
+        <p>Alles, was du als Kutscher wissen musst — von der ersten Anmeldung bis zum Foto-Upload.</p>
       </div>
 
       <div className="page">
         <nav className="toc">
           <h2>📋 Inhalt</h2>
           <ol>
-            <li><a href="#anmeldung">Anmeldung im Piloten-Bereich</a></li>
+            <li><a href="#anmeldung">Anmeldung im Kutscher-Bereich</a></li>
             <li><a href="#kalender">Fahrtenkalender</a></li>
             <li><a href="#buchen">Neue Fahrt buchen</a></li>
             <li><a href="#inhalte">Website-Texte bearbeiten</a></li>
@@ -116,21 +116,21 @@ export default function AnleitungPage() {
         <section className="section" id="anmeldung">
           <div className="section-head">
             <span className="section-icon">🔑</span>
-            <h2>1. Anmeldung im Piloten-Bereich</h2>
+            <h2>1. Anmeldung im Kutscher-Bereich</h2>
           </div>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
-                <h3>Piloten-Link aufrufen</h3>
-                <p>Auf der Website ganz unten auf <strong>„Piloten-Bereich"</strong> klicken (kleiner Link im Footer).</p>
+                <h3>Kutscher-Link aufrufen</h3>
+                <p>Auf der Website ganz unten auf <strong>„Kutscher-Bereich"</strong> klicken (kleiner Link im Footer).</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
                 <h3>Name und Start-Passwort eingeben</h3>
-                <p>Deinen Piloten-Namen (Vorname) und das Start-Passwort eingeben, das dir der GFO-Admin mitgeteilt hat.</p>
+                <p>Deinen Kutschernamen (Vorname) und das Start-Passwort eingeben, das dir der GFO-Admin mitgeteilt hat.</p>
               </div>
             </div>
             <div className="step">
@@ -143,8 +143,8 @@ export default function AnleitungPage() {
             <div className="step">
               <div className="step-num">4</div>
               <div className="step-body">
-                <h3>Piloten-Menü öffnet sich</h3>
-                <p>Nach erfolgreicher Anmeldung (und ggf. Passwort-Vergabe) erscheint das Piloten-Menü mit allen verfügbaren Funktionen. Die Anmeldung bleibt im Browser gespeichert.</p>
+                <h3>Kutscher-Menü öffnet sich</h3>
+                <p>Nach erfolgreicher Anmeldung (und ggf. Passwort-Vergabe) erscheint das Kutscher-Menü mit allen verfügbaren Funktionen. Die Anmeldung bleibt im Browser gespeichert.</p>
               </div>
             </div>
           </div>
@@ -165,14 +165,14 @@ export default function AnleitungPage() {
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>Kalender öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>📅 Fahrtenkalender</strong> klicken. Der Kalender öffnet sich in einer neuen Seite.</p>
+                <p>Im Kutscher-Menü auf <strong>📅 Fahrtenkalender</strong> klicken. Der Kalender öffnet sich in einer neuen Seite.</p>
               </div>
             </div>
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
                 <h3>Termine ansehen</h3>
-                <p>Alle eingetragenen Fahrten werden nach Monat sortiert angezeigt — mit Datum, Uhrzeit, Ort und eingetragenem Piloten.</p>
+                <p>Alle eingetragenen Fahrten werden nach Monat sortiert angezeigt — mit Datum, Uhrzeit, Ort und eingetragenem Kutscher.</p>
               </div>
             </div>
             <div className="step">
@@ -203,13 +203,13 @@ export default function AnleitungPage() {
             <span className="section-icon">➕</span>
             <h2>3. Neue Fahrt buchen</h2>
           </div>
-          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Als Pilot kannst du neue Fahrten direkt eintragen — für Gäste oder als eigene Tour.</p>
+          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Als Kutscher kannst du neue Fahrten direkt eintragen — für Gäste oder als eigene Tour.</p>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
-                <h3>„Als Pilot buchen" öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>➕ Als Pilot buchen</strong> klicken.</p>
+                <h3>„Als Kutscher buchen" öffnen</h3>
+                <p>Im Kutscher-Menü auf <strong>➕ Als Kutscher buchen</strong> klicken.</p>
               </div>
             </div>
             <div className="step">
@@ -223,7 +223,7 @@ export default function AnleitungPage() {
               <div className="step-num">3</div>
               <div className="step-body">
                 <h3>Speichern</h3>
-                <p>Nach dem Speichern erscheint die Fahrt sofort im Fahrtenkalender und ist für alle Piloten sichtbar.</p>
+                <p>Nach dem Speichern erscheint die Fahrt sofort im Fahrtenkalender und ist für alle Kutscher sichtbar.</p>
               </div>
             </div>
           </div>
@@ -244,7 +244,7 @@ export default function AnleitungPage() {
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>„Inhalte bearbeiten" öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>✏️ Inhalte bearbeiten</strong> klicken.</p>
+                <p>Im Kutscher-Menü auf <strong>✏️ Inhalte bearbeiten</strong> klicken.</p>
               </div>
             </div>
             <div className="step">
@@ -270,7 +270,7 @@ export default function AnleitungPage() {
             </div>
           </div>
           <div className="info-box">
-            <strong>Hinweis:</strong> Fotos (Fahrzeugfotos, Piloten-Fotos, Galerie) können Piloten direkt hochladen — ohne Freigabe.
+            <strong>Hinweis:</strong> Fotos (Fahrzeugfotos, Kutscher-Fotos, Galerie) können Piloten direkt hochladen — ohne Freigabe.
           </div>
         </section>
 
@@ -280,7 +280,7 @@ export default function AnleitungPage() {
             <span className="section-icon">🖼️</span>
             <h2>5. Fotos hochladen</h2>
           </div>
-          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Piloten können Fotos für die Galerie, Fahrzeugfotos und ihr eigenes Piloten-Foto hochladen.</p>
+          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Piloten können Fotos für die Galerie, Fahrzeugfotos und ihr eigenes Kutscher-Foto hochladen.</p>
           <div className="card-grid">
             <div className="card">
               <span className="card-icon">📸</span>
@@ -294,12 +294,12 @@ export default function AnleitungPage() {
             </div>
             <div className="card">
               <span className="card-icon">👤</span>
-              <h3>Mein Piloten-Foto</h3>
+              <h3>Mein Kutscher-Foto</h3>
               <p>Eigenes Foto hochladen, das auf der Website im Team-Bereich erscheint.</p>
             </div>
           </div>
           <div className="info-box" style={{marginTop:'1.25rem'}}>
-            <strong>Format:</strong> JPG oder PNG, möglichst unter 5 MB. Quadratische Fotos für Piloten-Fotos empfohlen.
+            <strong>Format:</strong> JPG oder PNG, möglichst unter 5 MB. Quadratische Fotos für Kutscher-Fotos empfohlen.
           </div>
         </section>
 
@@ -309,13 +309,13 @@ export default function AnleitungPage() {
             <span className="section-icon">🗂️</span>
             <h2>6. Mein Ordner (Dokumente)</h2>
           </div>
-          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Jeder Pilot hat einen persönlichen Ordner für wichtige Dokumente, auf den nur du und der Admin zugreifen können.</p>
+          <p style={{color:'var(--mid)',marginBottom:'1rem'}}>Jeder Kutscher hat einen persönlichen Ordner für wichtige Dokumente, auf den nur du und der Admin zugreifen können.</p>
           <div className="steps">
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
                 <h3>„Mein Ordner" öffnen</h3>
-                <p>Im Piloten-Menü auf <strong>🗂️ Mein Ordner</strong> klicken.</p>
+                <p>Im Kutscher-Menü auf <strong>🗂️ Mein Ordner</strong> klicken.</p>
               </div>
             </div>
             <div className="step">
@@ -342,7 +342,7 @@ export default function AnleitungPage() {
             </div>
           </div>
           <div className="info-box">
-            <strong>Datenschutz:</strong> Nur du selbst und GFO-Admins können deinen Ordner einsehen. Andere Piloten haben keinen Zugriff.
+            <strong>Datenschutz:</strong> Nur du selbst und GFO-Admins können deinen Ordner einsehen. Andere Kutscher haben keinen Zugriff.
           </div>
         </section>
 

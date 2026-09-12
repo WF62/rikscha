@@ -160,8 +160,8 @@ export default function FlyerEditorPage() {
     <div style={{ minHeight:'100vh', background:'#F5F0E7', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <form onSubmit={login} style={{ background:'#fff', borderRadius:12, padding:'2.5rem 2rem', boxShadow:'0 4px 24px rgba(0,0,0,0.12)', width:340 }}>
         <div style={{ fontFamily:'Palatino Linotype,Georgia,serif', fontSize:'1.3rem', color:'#2D6B1E', marginBottom:'0.3rem' }}>Flyer-Editor</div>
-        <div style={{ fontSize:'0.8rem', color:'#5C4E38', marginBottom:'1.5rem' }}>Nur für Piloten · Texte &amp; Fotos bearbeiten</div>
-        <label style={lbl}>Pilotenname</label>
+        <div style={{ fontSize:'0.8rem', color:'#5C4E38', marginBottom:'1.5rem' }}>Nur für Kutscher · Texte &amp; Fotos bearbeiten</div>
+        <label style={lbl}>Kutschername</label>
         <input style={inp} value={pilot} onChange={e => setPilot(e.target.value)} required autoFocus/>
         <label style={lbl}>Passwort</label>
         <input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} required/>
