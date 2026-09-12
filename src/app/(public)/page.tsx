@@ -521,7 +521,7 @@ export default async function WebsitePage() {
       <nav aria-label="Hauptnavigation">
         <a href="/" className="nav-logo" aria-label="Mertener Rikschakutscher – Startseite">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789228954115-7l3rj3vat29.png" alt="" aria-hidden="true" width={40} height={40} style={{flexShrink:0}} />
+          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789229186303-8k7xwb5hcdd.png" alt="" aria-hidden="true" width={40} height={40} style={{flexShrink:0}} />
           Mertener Rikschakutscher
         </a>
         <ul className="nav-links">
@@ -551,7 +551,7 @@ export default async function WebsitePage() {
       <section className="hero">
         <div className="container">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789228954115-7l3rj3vat29.png" alt="Mertener Rikschakutscher Logo" style={{width:140,height:140,margin:'0 auto 1.5rem',display:'block'}} />
+          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789229186303-8k7xwb5hcdd.png" alt="Mertener Rikschakutscher Logo" style={{width:140,height:140,margin:'0 auto 1.5rem',display:'block'}} />
           <div className="hero-eyebrow">{t.hero_eyebrow}</div>
           <h1>{t.hero_titel}</h1>
           <p className="hero-sub">
