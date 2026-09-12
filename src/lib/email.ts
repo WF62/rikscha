@@ -1,8 +1,12 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = 'Mertener Rikschakutscher <onboarding@resend.dev>';
-const TO = process.env.NOTIFY_EMAIL ?? '';
+
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
 
 export async function sendBuchungEmail(b: {
   fahrzeug: string;
@@ -13,7 +17,9 @@ export async function sendBuchungEmail(b: {
   gaeste: string[];
   notiz?: string | null;
 }) {
-  if (!TO || !process.env.RESEND_API_KEY) return;
+  const resend = getResend();
+  const TO = process.env.NOTIFY_EMAIL ?? '';
+  if (!resend || !TO) return;
   const gaesteListe = b.gaeste?.length ? b.gaeste.filter(Boolean).join(', ') : '—';
   await resend.emails.send({
     from: FROM,
@@ -46,7 +52,9 @@ export async function sendKontaktEmail(k: {
   anliegen: string;
   nachricht: string;
 }) {
-  if (!TO || !process.env.RESEND_API_KEY) return;
+  const resend = getResend();
+  const TO = process.env.NOTIFY_EMAIL ?? '';
+  if (!resend || !TO) return;
   const anliegenMap: Record<string, string> = {
     fahrt: 'Fahrt anfragen',
     gruppe: 'Gruppenfahrt mit allen Rikschas',
