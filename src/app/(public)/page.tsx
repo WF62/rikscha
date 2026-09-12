@@ -521,7 +521,7 @@ export default async function WebsitePage() {
       <nav aria-label="Hauptnavigation">
         <a href="/" className="nav-logo" aria-label="Mertener Rikschakutscher – Startseite">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230103391-2hv16dhd6k6.png" alt="" aria-hidden="true" width={40} height={40} style={{flexShrink:0,borderRadius:'50%',background:'rgba(255,255,255,0.18)',padding:'4px'}} />
+          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="" aria-hidden="true" width={40} height={40} style={{flexShrink:0,borderRadius:'50%',background:'rgba(255,255,255,0.18)',padding:'4px'}} />
           Mertener Rikschakutscher
         </a>
         <ul className="nav-links">
@@ -551,7 +551,7 @@ export default async function WebsitePage() {
       <section className="hero">
         <div className="container">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230103391-2hv16dhd6k6.png" alt="Mertener Rikschakutscher Logo" style={{width:140,height:140,margin:'0 auto 1.5rem',display:'block',borderRadius:'50%',background:'rgba(255,255,255,0.18)',padding:'12px',objectFit:'contain'}} />
+          <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Mertener Rikschakutscher Logo" style={{width:140,height:140,margin:'0 auto 1.5rem',display:'block',borderRadius:'50%',background:'rgba(255,255,255,0.18)',padding:'12px',objectFit:'contain'}} />
           <div className="hero-eyebrow">{t.hero_eyebrow}</div>
           <h1>{t.hero_titel}</h1>
           <p className="hero-sub">
