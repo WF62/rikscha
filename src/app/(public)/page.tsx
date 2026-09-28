@@ -614,6 +614,9 @@ export default async function WebsitePage() {
               <strong>Herzlichen Dank, Aktion Mensch!</strong>
               {' '}Für die Saison 2027 wurden uns 2 neue Rikschas gespendet — ein Paralleltandem und eine klassische Rikscha. Wir sind überglücklich und tief dankbar! 🙏❤️
               <span className="am-ticker-dot">✦</span>
+              {' '}<strong>🎉 Rikscha-Taufe 2027:</strong>
+              {' '}Die feierliche Taufe beider Fahrzeuge findet Anfang der Saison 2027 statt — auf Wunsch informieren wir Sie rechtzeitig!
+              <span className="am-ticker-dot">✦</span>
             </span>
           ))}
         </div>
