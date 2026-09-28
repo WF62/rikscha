@@ -460,6 +460,9 @@ export default async function FlyerPage() {
                 <span className="chip chip-gold">Gruppenfahrten</span>
                 <span className="chip chip-gold">Gutscheine</span>
               </div>
+              <div style={{marginTop:'0.5rem',background:'rgba(255,255,255,0.12)',borderRadius:'5px',padding:'0.35rem 0.5rem',fontSize:'0.6rem',color:'rgba(255,255,255,0.9)',lineHeight:1.45,borderLeft:'2px solid rgba(255,255,255,0.5)'}}>
+                💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, der sich über eine Fahrt freuen würde? Melden Sie sich — gerne auch mit Begleitung.
+              </div>
             </div>
             <div className="v2-photos">
               {c.flyer_foto_fahrt1
