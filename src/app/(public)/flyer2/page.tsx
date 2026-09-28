@@ -169,7 +169,7 @@ export default async function Flyer2Page() {
         .col-vb .col-eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 2mm; }
         .col-vb h2 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; margin-bottom: 3mm; line-height: 1.2; }
         .col-vb p { font-size: 9pt; color: rgba(255,255,255,0.92); line-height: 1.6; margin-bottom: 3mm; }
-        .col-vb .photo-fahrt { border-radius: 4px; overflow: hidden; margin-bottom: 3mm; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: rgba(255,255,255,0.6); font-size: 8pt; height: 50mm; }
+        .col-vb .photo-fahrt { border-radius: 4px; overflow: hidden; margin-bottom: 3mm; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: rgba(255,255,255,0.6); font-size: 8pt; flex: 1; min-height: 40mm; }
         .col-vb .photo-fahrt img { width: 100%; height: 100%; object-fit: cover; }
         .col-vb .bf-box { background: rgba(255,255,255,0.18); border-left: 3px solid rgba(255,255,255,0.7); border-radius: 3px; padding: 3mm 4mm; margin-bottom: 3mm; }
         .col-vb .bf-box strong { font-size: 9pt; color: #fff; display: block; margin-bottom: 1.5mm; }
@@ -201,7 +201,7 @@ export default async function Flyer2Page() {
         .col-rv .badge-piter   { background: #ffedd5; color: #9c3a07; }
         .col-rv h3 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: var(--ink); margin-bottom: 2mm; line-height: 1.2; }
         .col-rv .vehicle-sub { font-size: 8pt; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4mm; }
-        .col-rv .photo-ph { background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: #888; font-size: 8pt; margin-bottom: 4mm; }
+        .col-rv .photo-ph { background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: #888; font-size: 8pt; margin-bottom: 4mm; flex: 1; min-height: 50mm; }
         .col-rv .photo-ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
         .col-rv p { font-size: 9pt; color: var(--mid); line-height: 1.6; margin-bottom: 3mm; }
         .col-rv .facts { display: flex; flex-direction: column; gap: 2mm; margin-top: 3mm; }
@@ -212,7 +212,7 @@ export default async function Flyer2Page() {
         .col-rc h3 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; margin-bottom: 2mm; line-height: 1.2; }
         .col-rc .vehicle-sub { font-size: 8pt; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4mm; }
         .col-rc .vehicle-badge { font-size: 7pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1.5mm 3mm; border-radius: 99px; margin-bottom: 2.5mm; display: inline-block; background: #ffedd5; color: #9c3a07; }
-        .col-rc .photo-ph { background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: rgba(255,255,255,0.5); font-size: 8pt; margin-bottom: 4mm; }
+        .col-rc .photo-ph { background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: rgba(255,255,255,0.5); font-size: 8pt; margin-bottom: 4mm; flex: 1; min-height: 40mm; }
         .col-rc .photo-ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
         .col-rc p { font-size: 9pt; color: rgba(255,255,255,0.88); line-height: 1.6; margin-bottom: 3mm; }
         .col-rc .divider { border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 3.5mm 0; }
@@ -287,26 +287,24 @@ export default async function Flyer2Page() {
 
         {/* V-B: Fahrten für alle */}
         <div className="col col-vb">
-          <div>
-            <div className="col-eyebrow">Kostenlos &amp; herzlich</div>
-            <h2>Fahrtwind für alle</h2>
-            <div className="photo-fahrt">
-              {c.flyer_foto_fahrt1
-                ? <img src={c.flyer_foto_fahrt1} alt="Rikschafahrt"/>
-                : <><span style={{fontSize:'1.8rem'}}>🛺</span><span>Foto einer Fahrt</span></>
-              }
-            </div>
-            <p>{c.flyer_fahrten_text}</p>
-            <div className="chips">
-              <span className="chip">Kostenlos</span>
-              <span className="chip">Ehrenamtlich</span>
-              <span className="chip">Gruppenfahrten</span>
-              <span className="chip">🚀 Ab 2027: 5 Rikschas</span>
-            </div>
-            <div className="bf-box">
-              <strong>♿ Neu ab 2027 — dank Aktion Mensch</strong>
-              <span>Rikschafahrten jetzt auch offiziell für Menschen mit Behinderung und eingeschränkter Mobilität. Begleitpersonen herzlich willkommen.</span>
-            </div>
+          <div className="col-eyebrow">Kostenlos &amp; herzlich</div>
+          <h2>Fahrtwind für alle</h2>
+          <div className="photo-fahrt">
+            {c.flyer_foto_fahrt1
+              ? <img src={c.flyer_foto_fahrt1} alt="Rikschafahrt"/>
+              : <><span style={{fontSize:'2.2rem'}}>🛺</span><span>Foto einer Fahrt</span></>
+            }
+          </div>
+          <p>{c.flyer_fahrten_text}</p>
+          <div className="chips">
+            <span className="chip">Kostenlos</span>
+            <span className="chip">Ehrenamtlich</span>
+            <span className="chip">Gruppenfahrten</span>
+            <span className="chip">🚀 Ab 2027: 5 Rikschas</span>
+          </div>
+          <div className="bf-box">
+            <strong>♿ Neu ab 2027 — dank Aktion Mensch</strong>
+            <span>Rikschafahrten jetzt auch offiziell für Menschen mit Behinderung und eingeschränkter Mobilität. Begleitpersonen herzlich willkommen.</span>
           </div>
           <div className="tipp-box">
             <span>💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, dem eine Fahrt Freude bereiten würde? Melden Sie sich — gerne auch mit Begleitung.</span>
@@ -359,90 +357,78 @@ export default async function Flyer2Page() {
 
         {/* R-A: Flotte Lotte */}
         <div className="col col-rv">
-          <div>
-            <span className="vehicle-badge badge-lotte">Rikscha · max. 2 Gäste</span>
-            <h3>Flotte Lotte</h3>
-            <p className="vehicle-sub">Klassische Rikscha</p>
-            <div className="photo-ph ph-tall">
-              {c.flyer_foto_lotte
-                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/>
-                : <><span style={{fontSize:'1.8rem'}}>📷</span><span>Foto Flotte Lotte</span></>
-              }
-            </div>
-            <p>{c.flyer_lotte_text}</p>
-            <div className="facts">
-              <div className="fact"><span className="fact-icon">👥</span><span>Bis zu 2 Gäste plus Begleitung</span></div>
-              <div className="fact"><span className="fact-icon">🌿</span><span>Ideal für Ausflüge, Familienbesuche, Senioren</span></div>
-              <div className="fact"><span className="fact-icon">♿</span><span>Auch für Menschen mit eingeschränkter Mobilität</span></div>
-            </div>
+          <span className="vehicle-badge badge-lotte">Rikscha · max. 2 Gäste</span>
+          <h3>Flotte Lotte</h3>
+          <p className="vehicle-sub">Klassische Rikscha</p>
+          <div className="photo-ph">
+            {c.flyer_foto_lotte
+              ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/>
+              : <><span style={{fontSize:'2.2rem'}}>📷</span><span>Foto Flotte Lotte</span></>
+            }
           </div>
-          <p style={{fontSize:'5.5pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm'}}>
+          <p>{c.flyer_lotte_text}</p>
+          <div className="facts">
+            <div className="fact"><span className="fact-icon">👥</span><span>Bis zu 2 Gäste plus Begleitung</span></div>
+            <div className="fact"><span className="fact-icon">🌿</span><span>Ideal für Ausflüge, Familienbesuche, Senioren</span></div>
+            <div className="fact"><span className="fact-icon">♿</span><span>Auch für Menschen mit eingeschränkter Mobilität</span></div>
+          </div>
+          <p style={{fontSize:'7pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm',marginTop:'3mm'}}>
             🏅 Ermöglicht durch Weihnachtslichter des General-Anzeigers (2018)
           </p>
         </div>
 
         {/* R-B: Flinker Flitzer */}
         <div className="col col-rv">
-          <div>
-            <span className="vehicle-badge badge-flitzer">Liegetandem · 1 Gast</span>
-            <h3>Flinker Flitzer</h3>
-            <p className="vehicle-sub">Liegetandem</p>
-            <div className="photo-ph ph-tall">
-              {c.flyer_foto_flitzer
-                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/>
-                : <><span style={{fontSize:'1.8rem'}}>📷</span><span>Foto Flinker Flitzer</span></>
-              }
-            </div>
-            <p>{c.flyer_flitzer_text}</p>
-            <div className="facts">
-              <div className="fact"><span className="fact-icon">👁</span><span>Ideal für sehbehinderte Menschen</span></div>
-              <div className="fact"><span className="fact-icon">🚴</span><span>Gast kann selbst mittreten — wenn gewünscht</span></div>
-              <div className="fact"><span className="fact-icon">🌍</span><span>Nah am Boden, nah am Leben</span></div>
-            </div>
+          <span className="vehicle-badge badge-flitzer">Liegetandem · 1 Gast</span>
+          <h3>Flinker Flitzer</h3>
+          <p className="vehicle-sub">Liegetandem</p>
+          <div className="photo-ph">
+            {c.flyer_foto_flitzer
+              ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/>
+              : <><span style={{fontSize:'2.2rem'}}>📷</span><span>Foto Flinker Flitzer</span></>
+            }
           </div>
-          <p style={{fontSize:'5.5pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm'}}>
+          <p>{c.flyer_flitzer_text}</p>
+          <div className="facts">
+            <div className="fact"><span className="fact-icon">👁</span><span>Ideal für sehbehinderte Menschen</span></div>
+            <div className="fact"><span className="fact-icon">🚴</span><span>Gast kann selbst mittreten — wenn gewünscht</span></div>
+            <div className="fact"><span className="fact-icon">🌍</span><span>Nah am Boden, nah am Leben</span></div>
+          </div>
+          <p style={{fontSize:'7pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm',marginTop:'3mm'}}>
             🏅 Ermöglicht durch Volksbank Merten, Förderverein GFO &amp; Einzelspender
           </p>
         </div>
 
         {/* R-C: Jruuse Piter + Kontakt + Spenden */}
         <div className="col col-rc">
-          <div>
-            <span className="vehicle-badge">Paralleltandem · 1 Gast</span>
-            <h3>Jruuse Piter</h3>
-            <p className="vehicle-sub">Paralleltandem · für Menschen mit Demenz</p>
-            <div className="photo-ph ph-medium">
-              {c.flyer_foto_piter
-                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/>
-                : <><span style={{fontSize:'1.8rem'}}>📷</span><span>Foto Jruuse Piter</span></>
-              }
-            </div>
-            <p>{c.flyer_piter_text}</p>
-            <p style={{fontSize:'6pt',color:'rgba(255,255,255,0.7)',marginTop:'1mm',marginBottom:'3mm',lineHeight:1.4}}>
-              👥 Pilot und Gast nebeneinander · 💬 Gespräche auf Augenhöhe · 🧡 Nähe und Sicherheit
-            </p>
+          <span className="vehicle-badge">Paralleltandem · 1 Gast</span>
+          <h3>Jruuse Piter</h3>
+          <p className="vehicle-sub">Paralleltandem · für Menschen mit Demenz</p>
+          <div className="photo-ph">
+            {c.flyer_foto_piter
+              ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/>
+              : <><span style={{fontSize:'2.2rem'}}>📷</span><span>Foto Jruuse Piter</span></>
+            }
           </div>
-          <div>
-            <hr className="divider"/>
-            <div className="spenden-label">Kontakt &amp; Buchung</div>
-            <p style={{marginBottom:'1.5mm'}}>📞 02227 9328383<br/>GFO Bornheim-Merten<br/>Kloster Merten · 53332 Bornheim</p>
-            <p style={{marginBottom:'1.5mm',fontSize:'6pt'}}>🌐 rikscha-kutscher.de</p>
-            <hr className="divider"/>
-            <div className="spenden-label">Spenden (freiwillig)</div>
-            <span className="iban">DE57 3705 0299 0000 4756 46</span>
-            <p style={{fontSize:'5.5pt',marginBottom:'2mm'}}>Kreissparkasse Köln · Förderverein Sankt Martin Merten</p>
-            <div className="am-mini">
-              <svg viewBox="0 0 120 42" fill="none" width="60" height="21">
-                <rect width="120" height="42" rx="4" fill="#E2001A"/>
-                <circle cx="15" cy="9" r="5" fill="#fff"/>
-                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
-                <line x1="4" y1="19" x2="9" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="26" y1="19" x2="21" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
-                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
-              </svg>
-              <span>Jruuse Piter &amp; 2 neue Rikschas 2027 gefördert durch Aktion Mensch</span>
-            </div>
+          <p>{c.flyer_piter_text}</p>
+          <hr className="divider"/>
+          <div className="spenden-label">Kontakt &amp; Buchung</div>
+          <p style={{marginBottom:'2mm'}}>📞 02227 9328383<br/>GFO Bornheim-Merten<br/>Kloster Merten · 53332 Bornheim<br/>🌐 rikscha-kutscher.de</p>
+          <hr className="divider"/>
+          <div className="spenden-label">Spenden (freiwillig)</div>
+          <span className="iban">DE57 3705 0299 0000 4756 46</span>
+          <p style={{fontSize:'7pt',marginBottom:'2mm'}}>Kreissparkasse Köln · Förderverein Sankt Martin Merten</p>
+          <div className="am-mini">
+            <svg viewBox="0 0 120 42" fill="none" width="60" height="21">
+              <rect width="120" height="42" rx="4" fill="#E2001A"/>
+              <circle cx="15" cy="9" r="5" fill="#fff"/>
+              <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
+              <line x1="4" y1="19" x2="9" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="26" y1="19" x2="21" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+              <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
+              <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
+            </svg>
+            <span>Jruuse Piter &amp; 2 neue Rikschas 2027 gefördert durch Aktion Mensch</span>
           </div>
         </div>
 
