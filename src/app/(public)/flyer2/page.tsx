@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase';
 import PrintButton from './PrintButton';
 
 export const metadata: Metadata = {
-  title: 'Flyer A4 Mittelfalz – Mertener Rikschakutscher',
+  title: 'Flyer A4 Z-Falz – Mertener Rikschakutscher',
 };
 
 const SCHLUSSEL = [
@@ -14,9 +14,9 @@ const SCHLUSSEL = [
 
 const DEFAULT: Record<string, string> = {
   flyer_fahrten_text:  'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
-  flyer_lotte_text:    'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
-  flyer_flitzer_text:  'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.',
-  flyer_piter_text:    'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
+  flyer_lotte_text:    'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
+  flyer_flitzer_text:  'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben.',
+  flyer_piter_text:    'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Sicherheit, Nähe und Gespräche auf Augenhöhe.',
   flyer_foto_fahrt1:   '',
   flyer_foto_fahrt2:   '',
   flyer_foto_lotte:    '',
@@ -55,11 +55,11 @@ export default async function Flyer2Page() {
           --mid:    #5C4E38;
           --serif:  Palatino Linotype, Palatino, Book Antiqua, Georgia, serif;
           --sans:   system-ui, -apple-system, Segoe UI, sans-serif;
-          /* A4 quer: 297mm × 210mm, Mittelfalz → 2 Panels à 148.5mm × 210mm */
-          --sheet-w: 297mm;
-          --sheet-h: 210mm;
-          --col-w:   148.5mm;
-          --pad:     10mm;
+          /* A4 hochkant: 210mm × 297mm, Z-Falz → 3 Streifen à 210mm × 99mm */
+          --sheet-w: 210mm;
+          --sheet-h: 297mm;
+          --row-h:   99mm;
+          --pad:     8mm;
         }
 
         body { background: #c8c8c8; font-family: var(--sans); }
@@ -93,7 +93,7 @@ export default async function Flyer2Page() {
           width: var(--sheet-w);
           height: var(--sheet-h);
           display: grid;
-          grid-template-columns: var(--col-w) var(--col-w);
+          grid-template-rows: var(--row-h) var(--row-h) var(--row-h);
           overflow: hidden;
           position: relative;
           margin: 0 auto 1.5rem;
@@ -101,120 +101,166 @@ export default async function Flyer2Page() {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        /* Falzlinie Mitte */
-        .sheet::before {
+        /* Zwei Falzlinien (horizontal) */
+        .sheet::before, .sheet::after {
           content: '';
           position: absolute;
-          top: 0; bottom: 0;
-          left: var(--col-w);
-          width: 1px;
-          background: rgba(0,0,0,0.15);
+          left: 0; right: 0;
+          height: 1px;
+          background: rgba(0,0,0,0.18);
           z-index: 10;
           pointer-events: none;
         }
+        .sheet::before { top: var(--row-h); }
+        .sheet::after  { top: calc(var(--row-h) * 2); }
 
-        /* ── Basis-Panel ── */
-        .panel {
-          width: var(--col-w);
-          height: var(--sheet-h);
+        /* ── Basis-Streifen ── */
+        .strip {
+          width: var(--sheet-w);
+          height: var(--row-h);
           padding: var(--pad);
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
+          align-items: stretch;
           overflow: hidden;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
+          gap: var(--pad);
         }
-
-        /* ══ DECKBLATT (Vorderseite rechts) ══ */
-        .panel-cover {
-          background: linear-gradient(155deg, #3A8A26 0%, #1C4A10 100%);
-          color: #fff;
-          align-items: center;
-          justify-content: space-between;
-          text-align: center;
-        }
-        .cover-logo {
-          width: 56mm; height: 56mm; border-radius: 50%;
+        /* Foto-Bereich im Streifen */
+        .strip-photo {
+          flex-shrink: 0;
+          width: 72mm;
+          height: calc(var(--row-h) - var(--pad) * 2);
+          border-radius: 6px;
+          overflow: hidden;
           background: rgba(255,255,255,0.15);
           display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
+          flex-direction: column; gap: 2mm;
+          font-size: 2rem;
         }
-        .cover-logo img { width: 46mm; height: 46mm; border-radius: 50%; object-fit: cover; }
-        .cover-eyebrow { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 3mm; }
-        .cover-h1 { font-family: var(--serif); font-size: 22pt; font-weight: normal; line-height: 1.2; color: #fff; text-wrap: balance; margin-bottom: 4mm; }
-        .cover-tagline { font-size: 10pt; color: rgba(255,255,255,0.88); line-height: 1.6; text-wrap: balance; }
-        .cover-contact {
-          background: rgba(255,255,255,0.18); border-radius: 6px;
-          padding: 5mm 6mm; font-size: 10pt; color: #fff; line-height: 1.85;
-          width: 100%; text-align: center;
+        .strip-photo img { width: 100%; height: 100%; object-fit: cover; }
+        /* Text-Bereich im Streifen */
+        .strip-text {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 2.5mm;
         }
-        .cover-contact strong { display: block; font-size: 10.5pt; margin-bottom: 2mm; }
 
-        /* ══ RÜCKSEITE-PANEL (Vorderseite links) ══ */
-        .panel-back {
-          background: #1C4A10;
+        /* ══ DECKBLATT-STREIFEN ══ */
+        .strip-cover {
+          background: linear-gradient(135deg, #3A8A26 0%, #1C4A10 100%);
           color: #fff;
-          justify-content: space-between;
+          align-items: center;
+          justify-content: flex-start;
         }
-        .back-top {}
-        .back-eyebrow { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 3mm; }
-        .back-h2 { font-family: var(--serif); font-size: 18pt; font-weight: normal; color: #fff; margin-bottom: 5mm; line-height: 1.2; }
-        .back-photo { flex: 1; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 3mm; color: rgba(255,255,255,0.5); font-size: 9pt; margin-bottom: 5mm; min-height: 50mm; }
-        .back-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .back-contact-box { background: rgba(255,255,255,0.12); border-radius: 5px; padding: 4mm 5mm; }
-        .back-contact-box p { font-size: 9pt; color: rgba(255,255,255,0.88); line-height: 1.8; margin-bottom: 0; }
-        .back-divider { border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 3.5mm 0; }
-        .back-spenden-label { font-size: 7.5pt; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 2mm; }
-        .back-iban { font-family: monospace; font-size: 8.5pt; background: rgba(255,255,255,0.12); padding: 2mm 3mm; border-radius: 3px; color: #fff; display: block; margin-bottom: 2mm; }
-        .back-iban-sub { font-size: 7.5pt; color: rgba(255,255,255,0.65); margin-bottom: 3mm; }
-        .back-am { display: flex; align-items: center; gap: 2.5mm; }
-        .back-am span { font-size: 8pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
+        .cover-logo-wrap {
+          flex-shrink: 0;
+          width: 64px; height: 64px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.15);
+          display: flex; align-items: center; justify-content: center;
+          margin-right: calc(var(--pad) - 2mm);
+        }
+        .cover-logo-wrap img { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
+        .cover-eyebrow { font-size: 7pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+        .cover-h1 { font-family: var(--serif); font-size: 17pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .cover-tagline { font-size: 8.5pt; color: rgba(255,255,255,0.88); line-height: 1.55; }
+        .cover-contact { font-size: 8.5pt; color: rgba(255,255,255,0.95); line-height: 1.7; background: rgba(255,255,255,0.14); border-radius: 5px; padding: 2.5mm 3.5mm; }
+        .cover-contact strong { font-size: 9pt; display: block; margin-bottom: 1mm; }
 
-        /* ══ INNENSEITE LINKS ══ */
-        .panel-inner-l {
+        /* ══ FAHRTEN-STREIFEN ══ */
+        .strip-fahrten {
           background: var(--orange);
           color: #fff;
-          justify-content: space-between;
         }
-        .il-eyebrow { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 3mm; }
-        .il-h2 { font-family: var(--serif); font-size: 20pt; font-weight: normal; color: #fff; margin-bottom: 4mm; line-height: 1.2; }
-        .il-photo { flex: 1; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 3mm; color: rgba(255,255,255,0.6); font-size: 9pt; margin-bottom: 4mm; min-height: 55mm; }
-        .il-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .il-text { font-size: 9.5pt; color: rgba(255,255,255,0.92); line-height: 1.65; margin-bottom: 4mm; }
-        .il-chips { display: flex; flex-wrap: wrap; gap: 2mm; margin-bottom: 4mm; }
-        .il-chip { font-size: 8pt; font-weight: 700; padding: 1.5mm 3mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
-        .il-bf { background: rgba(255,255,255,0.18); border-left: 3px solid rgba(255,255,255,0.7); border-radius: 4px; padding: 3.5mm 4mm; margin-bottom: 4mm; }
-        .il-bf strong { font-size: 9.5pt; color: #fff; display: block; margin-bottom: 1.5mm; }
-        .il-bf span { font-size: 8.5pt; color: rgba(255,255,255,0.9); line-height: 1.55; }
-        .il-tipp { background: rgba(255,255,255,0.12); border-radius: 4px; padding: 3.5mm 4mm; }
-        .il-tipp span { font-size: 8.5pt; color: rgba(255,255,255,0.88); line-height: 1.55; }
+        .strip-fahrten .strip-photo { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); }
+        .fahrten-eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+        .fahrten-h2 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .fahrten-p { font-size: 8.5pt; color: rgba(255,255,255,0.92); line-height: 1.55; }
+        .fahrten-chips { display: flex; flex-wrap: wrap; gap: 1.5mm; }
+        .fahrten-chip { font-size: 7.5pt; font-weight: 700; padding: 1mm 2.5mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
 
-        /* ══ INNENSEITE RECHTS ══ */
-        .panel-inner-r {
+        /* ══ FAHRZEUGE-STREIFEN ══ */
+        .strip-vehicles {
           background: var(--cream);
-          justify-content: space-between;
+          color: var(--ink);
+          align-items: flex-start;
+          gap: 3mm;
+          padding: calc(var(--pad) - 1mm) var(--pad);
         }
-        .ir-vehicles { display: flex; flex-direction: column; gap: 4mm; flex: 1; }
-        .ir-vehicle { display: flex; gap: 3.5mm; align-items: flex-start; }
-        .ir-photo { width: 38mm; height: 38mm; border-radius: 5px; overflow: hidden; flex-shrink: 0; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
-        .ir-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .ir-info {}
-        .ir-badge { font-size: 6.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; margin-bottom: 2mm; display: inline-block; }
-        .ir-badge-lotte   { background: #dcfce7; color: #15803d; }
-        .ir-badge-flitzer { background: #dbeafe; color: #1d4ed8; }
-        .ir-badge-piter   { background: #ffedd5; color: #9c3a07; }
-        .ir-h3 { font-family: var(--serif); font-size: 12pt; font-weight: normal; color: var(--ink); margin-bottom: 1.5mm; line-height: 1.2; }
-        .ir-p { font-size: 8pt; color: var(--mid); line-height: 1.55; }
-        .ir-divider { border: none; border-top: 1px solid #ddd; }
-        /* Gutschein */
-        .ir-voucher { }
-        .ir-vtag { display: inline-block; background: var(--gold); color: #fff; font-size: 7.5pt; font-weight: 700; padding: 1.5mm 3.5mm; border-radius: 99px; margin-bottom: 3mm; }
-        .ir-vh2 { font-family: var(--serif); font-size: 14pt; font-weight: normal; color: var(--ink); margin-bottom: 2mm; line-height: 1.2; }
-        .ir-vsub { font-size: 8pt; color: var(--mid); line-height: 1.5; margin-bottom: 3mm; }
-        .ir-vbody { border: 2px dashed var(--gold); border-radius: 6px; padding: 4mm; display: flex; flex-direction: column; gap: 3mm; }
-        .ir-vl { font-size: 7pt; color: var(--mid); margin-bottom: 1mm; }
-        .ir-vline { border-bottom: 1px solid #ccc; padding-bottom: 5mm; }
-        .ir-vfoot { font-size: 7pt; color: var(--mid); margin-top: 3mm; line-height: 1.6; text-align: center; }
+        .vehicle-card {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1.5mm;
+          overflow: hidden;
+        }
+        .vehicle-photo {
+          width: 100%;
+          height: 36mm;
+          border-radius: 5px;
+          overflow: hidden;
+          background: #ddd;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.8rem;
+          flex-shrink: 0;
+        }
+        .vehicle-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .vbadge { font-size: 6pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.8mm 2mm; border-radius: 99px; display: inline-block; }
+        .vbadge-lotte   { background: #dcfce7; color: #15803d; }
+        .vbadge-flitzer { background: #dbeafe; color: #1d4ed8; }
+        .vbadge-piter   { background: #ffedd5; color: #9c3a07; }
+        .vname { font-family: var(--serif); font-size: 11pt; font-weight: normal; color: var(--ink); line-height: 1.1; }
+        .vdesc { font-size: 7pt; color: var(--mid); line-height: 1.45; }
+        .vdivider { width: 1px; height: auto; background: #ddd; flex-shrink: 0; align-self: stretch; }
+
+        /* ══ KONTAKT-STREIFEN (Rückseite) ══ */
+        .strip-kontakt {
+          background: #1C4A10;
+          color: #fff;
+        }
+        .strip-kontakt .strip-photo { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+        .kontakt-eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+        .kontakt-h2 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .kontakt-p { font-size: 8.5pt; color: rgba(255,255,255,0.88); line-height: 1.7; }
+        .kontakt-iban { font-family: monospace; font-size: 8pt; background: rgba(255,255,255,0.12); padding: 1.5mm 2.5mm; border-radius: 3px; color: #fff; display: inline-block; margin: 1mm 0; }
+        .kontakt-am { display: flex; align-items: center; gap: 2mm; margin-top: 2mm; }
+        .kontakt-am span { font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
+
+        /* ══ INNENSEITE RÜCKSEITE — 2 Streifen ══ */
+        .strip-inner-a {
+          background: var(--cream);
+          color: var(--ink);
+          flex-direction: column;
+          justify-content: center;
+          padding: var(--pad);
+        }
+        .strip-inner-a .strip-row { display: flex; gap: var(--pad); align-items: center; }
+        .gutschein-wrap { flex: 1; }
+        .gutschein-tag { display: inline-block; background: var(--gold); color: #fff; font-size: 7pt; font-weight: 700; padding: 1mm 3mm; border-radius: 99px; margin-bottom: 2.5mm; }
+        .gutschein-h2 { font-family: var(--serif); font-size: 14pt; font-weight: normal; color: var(--ink); margin-bottom: 1.5mm; }
+        .gutschein-sub { font-size: 8pt; color: var(--mid); line-height: 1.5; margin-bottom: 3mm; }
+        .gutschein-body { border: 2px dashed var(--gold); border-radius: 6px; padding: 3.5mm; display: flex; flex-direction: column; gap: 2.5mm; }
+        .gutschein-label { font-size: 7pt; color: var(--mid); margin-bottom: 0.5mm; }
+        .gutschein-line { border-bottom: 1px solid #ccc; padding-bottom: 4mm; }
+        .gutschein-foot { font-size: 6.5pt; color: var(--mid); text-align: center; padding-top: 2mm; border-top: 1px dashed #ccc; }
+
+        .strip-inner-b {
+          background: #2a5c1a;
+          color: #fff;
+          flex-direction: column;
+          justify-content: center;
+          padding: var(--pad);
+          text-align: center;
+          gap: 3mm;
+        }
+        .inner-b-h { font-family: var(--serif); font-size: 18pt; font-weight: normal; color: #fff; }
+        .inner-b-sub { font-size: 9pt; color: rgba(255,255,255,0.85); line-height: 1.6; }
+        .inner-b-chip { display: inline-block; background: rgba(255,255,255,0.18); color: #fff; font-size: 8pt; padding: 2mm 4mm; border-radius: 99px; margin: 1mm; }
 
         /* ── Print ── */
         @media print {
@@ -222,7 +268,7 @@ export default async function Flyer2Page() {
           body { background: #fff; margin: 0; }
           .sheet { margin: 0; box-shadow: none; page-break-after: always; }
           .sheet:last-of-type { page-break-after: auto; }
-          @page { size: A4 landscape; margin: 0; }
+          @page { size: A4 portrait; margin: 0; }
         }
       `}</style>
 
@@ -230,155 +276,155 @@ export default async function Flyer2Page() {
       <div className="print-bar">
         <a href="/">← Startseite</a>
         <span style={{color:'rgba(255,255,255,0.4)',margin:'0 0.5rem'}}>·</span>
-        <span style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.7)'}}>Flyer A4 Mittelfalz · beidseitig drucken, einmal in der Mitte falten</span>
+        <span style={{fontSize:'0.78rem',color:'rgba(255,255,255,0.7)'}}>Flyer A4 hochkant · beidseitig drucken, horizontal Z-falzen</span>
         <PrintButton />
       </div>
       <div className="print-hint">
-        ℹ️ Beide Seiten auf <strong>ein Blatt A4 quer</strong> drucken (beidseitig). Einmal in der Mitte falten — fertig. Deckblatt liegt außen rechts.
+        ℹ️ Beide Seiten auf <strong>ein Blatt A4 hochkant</strong> drucken (beidseitig). Entlang der Falzlinien Z-falten — Deckblatt liegt außen oben.
       </div>
 
       {/* ═══ VORDERSEITE ═══ */}
-      <p className="side-label">Vorderseite — links: Rückseite des Flyers · rechts: Deckblatt</p>
+      <p className="side-label">Vorderseite — Außenseite</p>
       <div className="sheet">
 
-        {/* Links = Rückseite des gefalteten Flyers */}
-        <div className="panel panel-back">
-          <div className="back-top">
-            <div className="back-eyebrow">Mertener Rikschakutscher</div>
-            <div className="back-h2">Kontakt &amp; Spenden</div>
+        {/* Streifen 1: Deckblatt */}
+        <div className="strip strip-cover">
+          <div className="cover-logo-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Logo"/>
           </div>
-          <div className="back-photo">
-            {c.flyer_foto_fahrt2
-              ? <img src={c.flyer_foto_fahrt2} alt="Rikschafahrt"/>
-              : <><span style={{fontSize:'3rem'}}>📷</span><span>Foto einer Fahrt</span></>
-            }
-          </div>
-          <div>
-            <div className="back-contact-box">
-              <p>📞 <strong>02227 9328383</strong><br/>
-              GFO Bornheim-Merten · Kloster Merten<br/>
-              53332 Bornheim-Merten<br/>
-              🌐 rikscha-kutscher.de</p>
-            </div>
-            <hr className="back-divider"/>
-            <div className="back-spenden-label">Spenden (freiwillig)</div>
-            <span className="back-iban">DE57 3705 0299 0000 4756 46</span>
-            <p className="back-iban-sub">Kreissparkasse Köln · Förderverein Sankt Martin Merten</p>
-            <div className="back-am">
-              <svg viewBox="0 0 120 42" fill="none" width="70" height="24">
-                <rect width="120" height="42" rx="4" fill="#E2001A"/>
-                <circle cx="15" cy="9" r="5" fill="#fff"/>
-                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
-                <line x1="4" y1="19" x2="9" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="26" y1="19" x2="21" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
-                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
-              </svg>
-              <span className="back-am"><span>Gefördert durch Aktion Mensch — Jruuse Piter &amp; 2 neue Rikschas ab 2027</span></span>
+          <div className="strip-text">
+            <div className="cover-eyebrow">Bornheim-Merten · seit 2018</div>
+            <div className="cover-h1">Mertener Rikscha&shy;kutscher</div>
+            <div className="cover-tagline">Kostenlose Rikschafahrten durch Merten — mit Herz, Pedalen und elf begeisterten Kutschern.</div>
+            <div className="cover-contact">
+              <strong>📞 02227 9328383</strong>
+              GFO Bornheim-Merten · rikscha-kutscher.de
             </div>
           </div>
         </div>
 
-        {/* Rechts = Deckblatt */}
-        <div className="panel panel-cover">
-          <div className="cover-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://hcbqmqyxpasojbrewnps.supabase.co/storage/v1/object/public/piloten-dateien/1789230837654-o3j4ecfxsw.png" alt="Logo"/>
+        {/* Streifen 2: Fahrten */}
+        <div className="strip strip-fahrten">
+          <div className="strip-photo">
+            {c.flyer_foto_fahrt1
+              ? <img src={c.flyer_foto_fahrt1} alt="Rikschafahrt"/>
+              : <><span>🛺</span><span style={{fontSize:'7pt',color:'rgba(255,255,255,0.5)'}}>Foto</span></>
+            }
           </div>
-          <div>
-            <div className="cover-eyebrow">Bornheim-Merten · seit 2018</div>
-            <div className="cover-h1">Mertener Rikscha&shy;kutscher</div>
-            <div className="cover-tagline">Kostenlose Rikschafahrten durch Merten — mit Herz, Pedalen und elf begeisterten Kutschern.</div>
+          <div className="strip-text">
+            <div className="fahrten-eyebrow">Kostenlos &amp; herzlich</div>
+            <div className="fahrten-h2">Fahrtwind für alle</div>
+            <p className="fahrten-p">{c.flyer_fahrten_text}</p>
+            <div className="fahrten-chips">
+              <span className="fahrten-chip">Kostenlos</span>
+              <span className="fahrten-chip">Ehrenamtlich</span>
+              <span className="fahrten-chip">Gruppen möglich</span>
+              <span className="fahrten-chip">🚀 Ab 2027: 5 Rikschas</span>
+            </div>
           </div>
-          <div className="cover-contact">
-            <strong>📞 Fahrt anfragen</strong>
-            02227 9328383<br/>
-            GFO Bornheim-Merten<br/>
-            rikscha-kutscher.de
+        </div>
+
+        {/* Streifen 3: Fahrzeuge */}
+        <div className="strip strip-vehicles">
+          <div className="vehicle-card">
+            <div className="vehicle-photo">
+              {c.flyer_foto_lotte ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/> : <>🛺</>}
+            </div>
+            <span className="vbadge vbadge-lotte">2 Gäste</span>
+            <div className="vname">Flotte Lotte</div>
+            <p className="vdesc">{c.flyer_lotte_text}</p>
+          </div>
+          <div className="vdivider"/>
+          <div className="vehicle-card">
+            <div className="vehicle-photo">
+              {c.flyer_foto_flitzer ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/> : <>🚲</>}
+            </div>
+            <span className="vbadge vbadge-flitzer">Liegetandem</span>
+            <div className="vname">Flinker Flitzer</div>
+            <p className="vdesc">{c.flyer_flitzer_text}</p>
+          </div>
+          <div className="vdivider"/>
+          <div className="vehicle-card">
+            <div className="vehicle-photo">
+              {c.flyer_foto_piter ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/> : <>🚀</>}
+            </div>
+            <span className="vbadge vbadge-piter">Parallel</span>
+            <div className="vname">Jruuse Piter</div>
+            <p className="vdesc">{c.flyer_piter_text}</p>
           </div>
         </div>
 
       </div>
 
-      {/* ═══ RÜCKSEITE / INNENSEITE ═══ */}
-      <p className="side-label">Rückseite — Innenseite des gefalteten Flyers</p>
+      {/* ═══ RÜCKSEITE ═══ */}
+      <p className="side-label">Rückseite — Innenseite</p>
       <div className="sheet">
 
-        {/* Innenseite links: Fahrten */}
-        <div className="panel panel-inner-l">
-          <div className="il-eyebrow">Kostenlos &amp; herzlich</div>
-          <div className="il-h2">Fahrtwind für alle</div>
-          <div className="il-photo">
-            {c.flyer_foto_fahrt1
-              ? <img src={c.flyer_foto_fahrt1} alt="Rikschafahrt"/>
-              : <><span style={{fontSize:'3rem'}}>🛺</span><span>Foto einer Fahrt</span></>
+        {/* Rückseite Streifen 1: Kontakt */}
+        <div className="strip strip-kontakt">
+          <div className="strip-photo">
+            {c.flyer_foto_fahrt2
+              ? <img src={c.flyer_foto_fahrt2} alt="Rikschafahrt"/>
+              : <><span>📷</span><span style={{fontSize:'7pt',color:'rgba(255,255,255,0.4)'}}>Foto</span></>
             }
           </div>
-          <p className="il-text">{c.flyer_fahrten_text}</p>
-          <div className="il-chips">
-            <span className="il-chip">Kostenlos</span>
-            <span className="il-chip">Ehrenamtlich</span>
-            <span className="il-chip">Gruppenfahrten möglich</span>
-            <span className="il-chip">🚀 Ab 2027: 5 Rikschas</span>
-          </div>
-          <div className="il-bf">
-            <strong>♿ Neu ab 2027 — dank Aktion Mensch</strong>
-            <span>Rikschafahrten jetzt auch offiziell für Menschen mit Behinderung und eingeschränkter Mobilität. Begleitpersonen herzlich willkommen.</span>
-          </div>
-          <div className="il-tipp">
-            <span>💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, dem eine Fahrt Freude bereiten würde? Melden Sie sich — gerne auch mit Begleitung.</span>
+          <div className="strip-text">
+            <div className="kontakt-eyebrow">Kontakt &amp; Spenden</div>
+            <div className="kontakt-h2">Wir freuen uns auf Sie</div>
+            <p className="kontakt-p">
+              📞 <strong>02227 9328383</strong><br/>
+              GFO Bornheim-Merten · Kloster Merten<br/>
+              53332 Bornheim-Merten<br/>
+              🌐 rikscha-kutscher.de
+            </p>
+            <div>
+              <div style={{fontSize:'7pt',color:'rgba(255,255,255,0.6)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:'1.5mm'}}>Spenden (freiwillig)</div>
+              <span className="kontakt-iban">DE57 3705 0299 0000 4756 46</span>
+              <div style={{fontSize:'7pt',color:'rgba(255,255,255,0.55)'}}>Kreissparkasse Köln · Förderverein Sankt Martin Merten</div>
+            </div>
+            <div className="kontakt-am">
+              <svg viewBox="0 0 120 42" fill="none" width="60" height="21">
+                <rect width="120" height="42" rx="4" fill="#E2001A"/>
+                <circle cx="15" cy="9" r="5" fill="#fff"/>
+                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
+                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
+                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
+              </svg>
+              <span className="kontakt-am"><span>Gefördert durch Aktion Mensch — Jruuse Piter &amp; 2 neue Rikschas ab 2027</span></span>
+            </div>
           </div>
         </div>
 
-        {/* Innenseite rechts: Fahrzeuge + Gutschein */}
-        <div className="panel panel-inner-r">
-          <div className="ir-vehicles">
-            <div className="ir-vehicle">
-              <div className="ir-photo">
-                {c.flyer_foto_lotte ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/> : <>🛺</>}
-              </div>
-              <div className="ir-info">
-                <span className="ir-badge ir-badge-lotte">Rikscha · 2 Gäste</span>
-                <div className="ir-h3">Flotte Lotte</div>
-                <p className="ir-p">{c.flyer_lotte_text}</p>
-              </div>
-            </div>
-            <hr className="ir-divider"/>
-            <div className="ir-vehicle">
-              <div className="ir-photo">
-                {c.flyer_foto_flitzer ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/> : <>🚲</>}
-              </div>
-              <div className="ir-info">
-                <span className="ir-badge ir-badge-flitzer">Liegetandem · 1 Gast</span>
-                <div className="ir-h3">Flinker Flitzer</div>
-                <p className="ir-p">{c.flyer_flitzer_text}</p>
+        {/* Rückseite Streifen 2: Gutschein */}
+        <div className="strip strip-inner-a">
+          <div className="strip-row" style={{width:'100%',gap:'8mm',alignItems:'flex-start'}}>
+            <div className="gutschein-wrap" style={{flex:1}}>
+              <span className="gutschein-tag">Geschenkgutschein</span>
+              <div className="gutschein-h2">Rikschafahrt verschenken</div>
+              <p className="gutschein-sub">Ausschneiden, ausfüllen &amp; verschenken — kostenlos einlösen unter 02227 9328383.</p>
+              <div className="gutschein-body">
+                <div><div className="gutschein-label">Für</div><div className="gutschein-line">&nbsp;</div></div>
+                <div><div className="gutschein-label">Von</div><div className="gutschein-line">&nbsp;</div></div>
+                <div className="gutschein-foot">🛺 Mertener Rikschakutscher · kostenlos · 02227 9328383</div>
               </div>
             </div>
-            <hr className="ir-divider"/>
-            <div className="ir-vehicle">
-              <div className="ir-photo">
-                {c.flyer_foto_piter ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/> : <>🚀</>}
-              </div>
-              <div className="ir-info">
-                <span className="ir-badge ir-badge-piter">Paralleltandem · 1 Gast</span>
-                <div className="ir-h3">Jruuse Piter</div>
-                <p className="ir-p">{c.flyer_piter_text}</p>
-              </div>
+            <div style={{flex:1,paddingTop:'1mm'}}>
+              <div style={{fontSize:'7pt',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--mid)',marginBottom:'2mm'}}>♿ Neu ab 2027</div>
+              <div style={{fontFamily:'var(--serif)',fontSize:'12pt',color:'var(--ink)',marginBottom:'2mm',lineHeight:'1.2'}}>Barrierefreie Fahrten</div>
+              <p style={{fontSize:'8pt',color:'var(--mid)',lineHeight:'1.55'}}>Dank Förderung durch Aktion Mensch erweitern wir unser Angebot — Rikschafahrten für Menschen mit Behinderung und eingeschränkter Mobilität.</p>
             </div>
           </div>
-          <hr className="ir-divider" style={{marginTop:'4mm',marginBottom:'4mm'}}/>
-          <div className="ir-voucher">
-            <span className="ir-vtag">Geschenkgutschein</span>
-            <div className="ir-vh2">Rikschafahrt verschenken</div>
-            <p className="ir-vsub">Ausschneiden, ausfüllen &amp; verschenken — kostenlos einlösen unter 02227 9328383.</p>
-            <div className="ir-vbody">
-              <div><div className="ir-vl">Für</div><div className="ir-vline">&nbsp;</div></div>
-              <div><div className="ir-vl">Von</div><div className="ir-vline">&nbsp;</div></div>
-              <div style={{marginTop:'1mm',textAlign:'center',borderTop:'1px dashed #ccc',paddingTop:'2mm'}}>
-                <span style={{fontSize:'7pt',color:'#888'}}>🛺 Mertener Rikschakutscher · kostenlos · 02227 9328383</span>
-              </div>
-            </div>
-            <div className="ir-vfoot">Alle Fahrten sind kostenlos — GFO Bornheim-Merten</div>
+        </div>
+
+        {/* Rückseite Streifen 3: Einladung */}
+        <div className="strip strip-inner-b">
+          <div className="inner-b-h">Kommen Sie mit auf Tour!</div>
+          <div className="inner-b-sub">Elf ehrenamtliche Piloten freuen sich auf Ihre Anfrage.<br/>Ob alleine oder mit Begleitung — alle sind willkommen.</div>
+          <div>
+            <span className="inner-b-chip">📞 02227 9328383</span>
+            <span className="inner-b-chip">🌐 rikscha-kutscher.de</span>
+            <span className="inner-b-chip">Mertener Heide · Bornheim</span>
           </div>
         </div>
 
