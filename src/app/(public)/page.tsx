@@ -385,7 +385,8 @@ export default async function WebsitePage() {
         :root[data-theme="dark"] .barrierefreiheit-banner .bfb-text { color: #bfdbfe; }
         :root[data-theme="dark"] .barrierefreiheit-banner .bfb-text strong { color: #93c5fd; }
         .am-logo-wrap { flex-shrink: 0; }
-        .am-logo-wrap svg { width: 150px; height: 52px; display: block; }
+        .am-logo-wrap svg { width: 260px; height: 91px; display: block; }
+        @media (max-width: 520px) { .am-logo-wrap svg { width: 200px; height: 70px; } }
         .am-banner-text { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 0; }
         .am-banner-text strong { color: #9b0012; font-size: 1.05rem; }
         .am-banner-text span { font-size: 0.92rem; color: var(--ink); line-height: 1.55; }
