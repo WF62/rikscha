@@ -142,90 +142,89 @@ export default async function Flyer2Page() {
         }
 
         /* Vorderseite Spalten */
-        /* V-A: Deckblatt (aussen sichtbar beim Z-Fold) */
+        /* V-A: Deckblatt */
         .col-va {
           background: linear-gradient(160deg, #3A8A26 0%, #1C4A10 100%);
           color: #fff;
           align-items: center;
-          justify-content: center;
+          justify-content: space-between;
           text-align: center;
           gap: 0;
         }
         .col-va .logo-circle {
-          width: 42mm; height: 42mm; border-radius: 50%;
+          width: 50mm; height: 50mm; border-radius: 50%;
           background: rgba(255,255,255,0.15);
           display: flex; align-items: center; justify-content: center;
-          margin-bottom: 4mm;
           flex-shrink: 0;
         }
-        .col-va .logo-circle img { width: 34mm; height: 34mm; border-radius: 50%; object-fit: cover; }
-        .col-va .eyebrow { font-size: 5.5pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 2mm; }
-        .col-va h1 { font-family: var(--serif); font-size: 15pt; font-weight: normal; line-height: 1.2; margin-bottom: 3mm; color: #fff; text-wrap: balance; }
-        .col-va .tagline { font-size: 7pt; color: rgba(255,255,255,0.88); line-height: 1.5; margin-bottom: 5mm; text-wrap: balance; }
-        .col-va .contact-box { background: rgba(255,255,255,0.18); border-radius: 4px; padding: 3mm 4mm; font-size: 6.5pt; color: #fff; line-height: 1.7; width: 100%; text-align: center; }
-        .col-va .contact-box strong { display: block; font-size: 7pt; margin-bottom: 1mm; }
+        .col-va .logo-circle img { width: 42mm; height: 42mm; border-radius: 50%; object-fit: cover; }
+        .col-va .eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 3mm; }
+        .col-va h1 { font-family: var(--serif); font-size: 18pt; font-weight: normal; line-height: 1.25; margin-bottom: 4mm; color: #fff; text-wrap: balance; }
+        .col-va .tagline { font-size: 9pt; color: rgba(255,255,255,0.88); line-height: 1.6; margin-bottom: 0; text-wrap: balance; }
+        .col-va .contact-box { background: rgba(255,255,255,0.18); border-radius: 5px; padding: 4mm 5mm; font-size: 9pt; color: #fff; line-height: 1.8; width: 100%; text-align: center; }
+        .col-va .contact-box strong { display: block; font-size: 9.5pt; margin-bottom: 1.5mm; }
 
         /* V-B: Fahrten + Behinderung */
         .col-vb { background: #C8600A; color: #fff; gap: 0; justify-content: space-between; }
-        .col-vb .col-eyebrow { font-size: 5pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 1.5mm; }
-        .col-vb h2 { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: #fff; margin-bottom: 2.5mm; line-height: 1.2; }
-        .col-vb p { font-size: 6.5pt; color: rgba(255,255,255,0.92); line-height: 1.55; margin-bottom: 2.5mm; }
-        .col-vb .photo-fahrt { border-radius: 4px; overflow: hidden; margin-bottom: 2.5mm; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1mm; color: rgba(255,255,255,0.6); font-size: 6pt; height: 38mm; }
+        .col-vb .col-eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 2mm; }
+        .col-vb h2 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; margin-bottom: 3mm; line-height: 1.2; }
+        .col-vb p { font-size: 9pt; color: rgba(255,255,255,0.92); line-height: 1.6; margin-bottom: 3mm; }
+        .col-vb .photo-fahrt { border-radius: 4px; overflow: hidden; margin-bottom: 3mm; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: rgba(255,255,255,0.6); font-size: 8pt; height: 50mm; }
         .col-vb .photo-fahrt img { width: 100%; height: 100%; object-fit: cover; }
-        .col-vb .bf-box { background: rgba(255,255,255,0.18); border-left: 3px solid rgba(255,255,255,0.7); border-radius: 3px; padding: 2.5mm 3mm; margin-bottom: 2.5mm; }
-        .col-vb .bf-box strong { font-size: 6.5pt; color: #fff; display: block; margin-bottom: 1mm; }
-        .col-vb .bf-box span { font-size: 6pt; color: rgba(255,255,255,0.9); line-height: 1.5; }
-        .col-vb .tipp-box { background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2.5mm 3mm; }
-        .col-vb .tipp-box span { font-size: 6pt; color: rgba(255,255,255,0.88); line-height: 1.5; }
-        .col-vb .chips { display: flex; flex-wrap: wrap; gap: 1.5mm; margin-bottom: 2.5mm; }
-        .col-vb .chip { font-size: 5.5pt; font-weight: 700; padding: 0.8mm 2mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
+        .col-vb .bf-box { background: rgba(255,255,255,0.18); border-left: 3px solid rgba(255,255,255,0.7); border-radius: 3px; padding: 3mm 4mm; margin-bottom: 3mm; }
+        .col-vb .bf-box strong { font-size: 9pt; color: #fff; display: block; margin-bottom: 1.5mm; }
+        .col-vb .bf-box span { font-size: 8pt; color: rgba(255,255,255,0.9); line-height: 1.55; }
+        .col-vb .tipp-box { background: rgba(255,255,255,0.12); border-radius: 3px; padding: 3mm 4mm; }
+        .col-vb .tipp-box span { font-size: 8pt; color: rgba(255,255,255,0.88); line-height: 1.55; }
+        .col-vb .chips { display: flex; flex-wrap: wrap; gap: 2mm; margin-bottom: 3mm; }
+        .col-vb .chip { font-size: 7.5pt; font-weight: 700; padding: 1mm 2.5mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
 
         /* V-C: Gutschein */
         .col-vc { background: var(--cream); gap: 0; justify-content: space-between; }
-        .col-vc .voucher-tag { display: inline-block; background: var(--gold); color: #fff; font-size: 6pt; font-weight: 700; padding: 1mm 3mm; border-radius: 99px; margin-bottom: 3mm; letter-spacing: 0.05em; }
-        .col-vc h2 { font-family: var(--serif); font-size: 14pt; font-weight: normal; color: var(--ink); margin-bottom: 1.5mm; line-height: 1.2; }
-        .col-vc .sub { font-size: 6.5pt; color: var(--mid); line-height: 1.5; margin-bottom: 4mm; }
-        .col-vc .voucher-body { flex: 1; border: 2px dashed var(--gold); border-radius: 6px; padding: 4mm; display: flex; flex-direction: column; gap: 2.5mm; }
-        .col-vc .voucher-body .vl { font-size: 5.5pt; color: var(--mid); }
-        .col-vc .voucher-body .vline { border-bottom: 1px solid #ccc; padding-bottom: 4mm; margin-bottom: 1mm; }
-        .col-vc .voucher-body .vv { font-family: var(--serif); font-size: 9pt; color: var(--ink); }
-        .col-vc .wann-box { background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2.5mm 3mm; margin-top: 3mm; }
-        .col-vc .wann-box .wl { font-size: 5.5pt; color: var(--mid); margin-bottom: 1mm; }
-        .col-vc .wann-box .wv { border-bottom: 1px solid #ccc; padding-bottom: 3mm; font-family: var(--serif); font-size: 8pt; color: var(--ink); }
-        .col-vc .voucher-footer { font-size: 5.5pt; color: var(--mid); margin-top: 3mm; line-height: 1.5; text-align: center; }
+        .col-vc .voucher-tag { display: inline-block; background: var(--gold); color: #fff; font-size: 8pt; font-weight: 700; padding: 1.5mm 4mm; border-radius: 99px; margin-bottom: 3mm; letter-spacing: 0.05em; }
+        .col-vc h2 { font-family: var(--serif); font-size: 17pt; font-weight: normal; color: var(--ink); margin-bottom: 2mm; line-height: 1.2; }
+        .col-vc .sub { font-size: 8.5pt; color: var(--mid); line-height: 1.55; margin-bottom: 5mm; }
+        .col-vc .voucher-body { flex: 1; border: 2px dashed var(--gold); border-radius: 6px; padding: 5mm; display: flex; flex-direction: column; gap: 3mm; }
+        .col-vc .voucher-body .vl { font-size: 7pt; color: var(--mid); margin-bottom: 1mm; }
+        .col-vc .voucher-body .vline { border-bottom: 1px solid #ccc; padding-bottom: 5mm; margin-bottom: 1mm; }
+        .col-vc .voucher-body .vv { font-family: var(--serif); font-size: 11pt; color: var(--ink); }
+        .col-vc .wann-box { background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 3mm 4mm; margin-top: 3mm; }
+        .col-vc .wann-box .wl { font-size: 7pt; color: var(--mid); margin-bottom: 1.5mm; }
+        .col-vc .wann-box .wv { border-bottom: 1px solid #ccc; padding-bottom: 4mm; font-family: var(--serif); font-size: 10pt; color: var(--ink); }
+        .col-vc .voucher-footer { font-size: 7pt; color: var(--mid); margin-top: 3mm; line-height: 1.6; text-align: center; }
 
         /* Rückseite Spalten */
         .col-rv { background: var(--cream); gap: 0; justify-content: space-between; }
-        .col-rv .vehicle-badge { font-size: 5.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; margin-bottom: 2mm; display: inline-block; }
+        .col-rv .vehicle-badge { font-size: 7pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1.5mm 3mm; border-radius: 99px; margin-bottom: 2.5mm; display: inline-block; }
         .col-rv .badge-lotte   { background: #dcfce7; color: #15803d; }
         .col-rv .badge-flitzer { background: #dbeafe; color: #1d4ed8; }
         .col-rv .badge-piter   { background: #ffedd5; color: #9c3a07; }
-        .col-rv h3 { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: var(--ink); margin-bottom: 2mm; line-height: 1.2; }
-        .col-rv .vehicle-sub { font-size: 6pt; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3mm; }
-        .col-rv .photo-ph { background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1mm; color: #888; font-size: 6pt; margin-bottom: 3mm; }
+        .col-rv h3 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: var(--ink); margin-bottom: 2mm; line-height: 1.2; }
+        .col-rv .vehicle-sub { font-size: 8pt; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4mm; }
+        .col-rv .photo-ph { background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: #888; font-size: 8pt; margin-bottom: 4mm; }
         .col-rv .photo-ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-        .col-rv p { font-size: 6.5pt; color: var(--mid); line-height: 1.55; margin-bottom: 2mm; }
-        .col-rv .facts { display: flex; flex-direction: column; gap: 1.5mm; margin-top: 2mm; }
-        .col-rv .fact { font-size: 6pt; color: var(--mid); display: flex; align-items: flex-start; gap: 1.5mm; line-height: 1.4; }
+        .col-rv p { font-size: 9pt; color: var(--mid); line-height: 1.6; margin-bottom: 3mm; }
+        .col-rv .facts { display: flex; flex-direction: column; gap: 2mm; margin-top: 3mm; }
+        .col-rv .fact { font-size: 8pt; color: var(--mid); display: flex; align-items: flex-start; gap: 2mm; line-height: 1.5; }
         .col-rv .fact-icon { flex-shrink: 0; }
 
         .col-rc { background: #1C4A10; gap: 0; justify-content: space-between; }
-        .col-rc h3 { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: #fff; margin-bottom: 2mm; line-height: 1.2; }
-        .col-rc .vehicle-sub { font-size: 6pt; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3mm; }
-        .col-rc .vehicle-badge { font-size: 5.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; margin-bottom: 2mm; display: inline-block; background: #ffedd5; color: #9c3a07; }
-        .col-rc .photo-ph { background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1mm; color: rgba(255,255,255,0.5); font-size: 6pt; margin-bottom: 3mm; }
+        .col-rc h3 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; margin-bottom: 2mm; line-height: 1.2; }
+        .col-rc .vehicle-sub { font-size: 8pt; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4mm; }
+        .col-rc .vehicle-badge { font-size: 7pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1.5mm 3mm; border-radius: 99px; margin-bottom: 2.5mm; display: inline-block; background: #ffedd5; color: #9c3a07; }
+        .col-rc .photo-ph { background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2mm; color: rgba(255,255,255,0.5); font-size: 8pt; margin-bottom: 4mm; }
         .col-rc .photo-ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-        .col-rc p { font-size: 6.5pt; color: rgba(255,255,255,0.88); line-height: 1.55; margin-bottom: 3mm; }
-        .col-rc .divider { border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 3mm 0; }
-        .col-rc .spenden-label { font-size: 5.5pt; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.5mm; }
-        .col-rc .iban { font-family: monospace; font-size: 6pt; background: rgba(255,255,255,0.12); padding: 1.5mm 2mm; border-radius: 3px; color: #fff; word-break: break-all; margin-bottom: 2mm; display: block; }
-        .col-rc .am-mini { display: flex; align-items: center; gap: 1.5mm; margin-top: 2mm; }
-        .col-rc .am-mini span { font-size: 5.5pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
+        .col-rc p { font-size: 9pt; color: rgba(255,255,255,0.88); line-height: 1.6; margin-bottom: 3mm; }
+        .col-rc .divider { border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 3.5mm 0; }
+        .col-rc .spenden-label { font-size: 7pt; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 2mm; }
+        .col-rc .iban { font-family: monospace; font-size: 8pt; background: rgba(255,255,255,0.12); padding: 2mm 2.5mm; border-radius: 3px; color: #fff; word-break: break-all; margin-bottom: 2.5mm; display: block; }
+        .col-rc .am-mini { display: flex; align-items: center; gap: 2mm; margin-top: 2.5mm; }
+        .col-rc .am-mini span { font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
 
         /* Foto-Platzhalter-Größen */
-        .ph-tall   { height: 58mm; }
-        .ph-medium { height: 48mm; }
-        .ph-short  { height: 38mm; }
+        .ph-tall   { height: 72mm; }
+        .ph-medium { height: 62mm; }
+        .ph-short  { height: 50mm; }
 
         /* ── Print ── */
         @media print {
