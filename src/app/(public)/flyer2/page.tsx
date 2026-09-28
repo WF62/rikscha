@@ -308,14 +308,14 @@ export default async function Flyer2Page() {
                 <span style={{fontSize:'10pt',color:'rgba(255,255,255,0.8)'}}>📅 Termine online buchbar</span>
               </div>
               <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'3mm',background:'rgba(255,255,255,0.12)',borderRadius:'5px',padding:'3mm 4mm',flex:1,textAlign:'center'}}>
-                <svg viewBox="0 0 120 42" fill="none" width="110" height="38" style={{flexShrink:0}}>
+                <svg viewBox="0 0 120 42" fill="none" width="160" height="56" style={{flexShrink:0}}>
                   <rect width="120" height="42" rx="4" fill="#E2001A"/>
                   <circle cx="15" cy="9" r="5" fill="#fff"/>
                   <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
                   <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
                   <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
                 </svg>
-                <span style={{fontSize:'10pt',color:'rgba(255,255,255,0.9)',lineHeight:'1.5'}}>Gefördert durch<br/><strong>Aktion Mensch</strong><br/>2 neue Rikschas<br/>ab 2027</span>
+                <span style={{fontSize:'11pt',color:'rgba(255,255,255,0.9)',lineHeight:'1.6'}}>finanziert<br/><strong style={{fontSize:'13pt'}}>3 Rikschas</strong><br/>für Merten</span>
               </div>
             </div>
           </div>
@@ -437,14 +437,14 @@ export default async function Flyer2Page() {
             <span className="inner-b-chip">Mertener Heide · Bornheim</span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:'4mm',background:'rgba(255,255,255,0.12)',borderRadius:'6px',padding:'3mm 5mm',width:'100%'}}>
-            <svg viewBox="0 0 120 42" fill="none" width="110" height="38" style={{flexShrink:0}}>
+            <svg viewBox="0 0 120 42" fill="none" width="160" height="56" style={{flexShrink:0}}>
               <rect width="120" height="42" rx="4" fill="#E2001A"/>
               <circle cx="15" cy="9" r="5" fill="#fff"/>
               <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
               <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
               <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
             </svg>
-            <span style={{fontSize:'12pt',color:'#fff',lineHeight:'1.4'}}>Gefördert durch <strong>Aktion Mensch</strong> — Jruuse Piter &amp; 2 neue Rikschas ab 2027</span>
+            <span style={{fontSize:'13pt',color:'#fff',lineHeight:'1.5'}}>finanziert <strong>3 Rikschas</strong><br/>für Merten</span>
           </div>
         </div>
 
