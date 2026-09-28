@@ -340,7 +340,8 @@ export default async function FlyerPage() {
       <nav className="print-bar">
         <a href="/">← Zurück zur Website</a>
         <span style={{fontSize:'0.75rem',color:'#888',marginLeft:'1.5rem'}}>💡 Im Druckdialog: Kopf-/Fußzeilen deaktivieren</span>
-        <a href="/flyer2" style={{marginLeft:'auto',marginRight:'1rem'}}>📄 Einfacher A4-Flyer</a>
+        <a href="/flyer3" style={{marginLeft:'auto',marginRight:'0.5rem'}}>📄 Z-Falz vollständig</a>
+        <a href="/flyer2" style={{marginRight:'1rem'}}>📄 Z-Falz einfach</a>
         <a href="/bearbeiten" style={{marginRight:'1rem'}}>✏️ Fotos &amp; Texte bearbeiten</a>
         <PrintButton />
       </nav>
