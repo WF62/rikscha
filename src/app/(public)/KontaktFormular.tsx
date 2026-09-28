@@ -61,16 +61,28 @@ export default function KontaktFormular() {
         <select id="kontakt-anliegen" value={form.anliegen} onChange={e => setForm({ ...form, anliegen: e.target.value })}>
           <option value="fahrt">Fahrt anfragen</option>
           <option value="gruppe">Gruppenfahrt mit allen Rikschas</option>
+          <option value="tipp">Jemanden für eine Fahrt vorschlagen</option>
           <option value="pilot">Als Pilot mitmachen</option>
           <option value="angehoeriger">Rikscha selbst steuern — für Angehörige</option>
           <option value="frage">Allgemeine Frage</option>
         </select>
       </div>
       <div className="form-group">
-        <label htmlFor="kontakt-nachricht">Nachricht</label>
-        <textarea id="kontakt-nachricht" placeholder="Wann, wie viele Personen, besondere Wünsche..." value={form.nachricht}
+        <label htmlFor="kontakt-nachricht">
+          {form.anliegen === 'tipp' ? 'Wen möchten Sie vorschlagen?' : 'Nachricht'}
+        </label>
+        <textarea id="kontakt-nachricht"
+          placeholder={form.anliegen === 'tipp'
+            ? 'Name der Person, warum sie sich über eine Fahrt freuen würde, ob Begleitung dabei ist — so viel oder wenig Sie möchten.'
+            : 'Wann, wie viele Personen, besondere Wünsche…'}
+          value={form.nachricht}
           onChange={e => setForm({ ...form, nachricht: e.target.value })} />
       </div>
+      {form.anliegen === 'tipp' && (
+        <p style={{fontSize:'0.82rem',color:'rgba(255,255,255,0.75)',marginTop:'-0.5rem',marginBottom:'0.5rem',lineHeight:1.5}}>
+          Wir melden uns diskret bei Ihnen — die vorgeschlagene Person wird erst gefragt, bevor wir Kontakt aufnehmen.
+        </p>
+      )}
       <div>
         <button type="submit" className="btn btn-gold" disabled={laden}>
           {laden ? 'Wird gesendet…' : 'Nachricht senden'}

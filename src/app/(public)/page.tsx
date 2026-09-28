@@ -986,6 +986,17 @@ export default async function WebsitePage() {
             <span className="einfach-alt-block">{t.kontakt_text}</span>
             <span className="einfach-neu-block">Schreib uns eine Nachricht. Wir antworten dir bald. Du kannst auch anrufen: <a href="tel:022279328383">02227 9328383</a></span>
           </p>
+          <div style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:'var(--radius)',padding:'0.9rem 1.1rem',marginBottom:'1.5rem',display:'flex',gap:'0.75rem',alignItems:'flex-start'}}>
+            <span style={{fontSize:'1.4rem',flexShrink:0}}>💡</span>
+            <div>
+              <strong style={{color:'#fff',display:'block',marginBottom:'0.2rem'}}>Kennen Sie jemanden, der sich über eine Fahrt freuen würde?</strong>
+              <span style={{fontSize:'0.88rem',color:'rgba(255,255,255,0.85)',lineHeight:1.5}}>
+                Geben Sie uns einen Tipp — gerne auch mit Begleitung. Wählen Sie unten{' '}
+                <em>„Jemanden für eine Fahrt vorschlagen"</em> und schreiben Sie uns kurz, wer gemeint ist.
+                Wir melden uns diskret bei Ihnen.
+              </span>
+            </div>
+          </div>
           <KontaktFormular />
         </div>
       </section>
