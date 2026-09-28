@@ -306,6 +306,16 @@ export default async function Flyer2Page() {
               🌐 rikscha-kutscher.de<br/>
               <span style={{fontSize:'10pt',color:'rgba(255,255,255,0.8)'}}>📅 Termine online buchbar</span>
             </div>
+            <div style={{display:'flex',alignItems:'center',gap:'3mm',background:'rgba(255,255,255,0.12)',borderRadius:'5px',padding:'2.5mm 3.5mm'}}>
+              <svg viewBox="0 0 120 42" fill="none" width="90" height="32" style={{flexShrink:0}}>
+                <rect width="120" height="42" rx="4" fill="#E2001A"/>
+                <circle cx="15" cy="9" r="5" fill="#fff"/>
+                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
+                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
+                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
+              </svg>
+              <span style={{fontSize:'10pt',color:'rgba(255,255,255,0.9)',lineHeight:'1.4'}}>Gefördert — 2 neue Rikschas ab 2027</span>
+            </div>
           </div>
         </div>
 
