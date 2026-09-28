@@ -350,7 +350,7 @@ export default async function WebsitePage() {
         .zukunft-icon { font-size: 1.8rem; margin-bottom: 0.75rem; display: block; }
 
         /* Aktion Mensch Laufband */
-        .am-ticker { background: #E2001A; overflow: hidden; white-space: nowrap; height: 2.75rem; display: flex; align-items: center; }
+        .am-ticker { background: #E2001A; overflow: hidden; white-space: nowrap; height: 3.5rem; display: flex; align-items: center; }
         .am-ticker-track { display: inline-flex; align-items: center; animation: ticker-scroll 38s linear infinite; }
         .am-ticker-track:hover { animation-play-state: paused; }
         .am-ticker-seg { display: inline-flex; align-items: center; gap: 0.5rem; color: #fff; font-size: 0.92rem; font-weight: 500; padding: 0 2rem; white-space: nowrap; }
@@ -605,12 +605,14 @@ export default async function WebsitePage() {
         <div className="am-ticker-track">
           {[0,1,2,3].map(i => (
             <span key={i} className="am-ticker-seg" aria-hidden={i > 0}>
-              <svg viewBox="0 0 44 16" fill="none" style={{width:'44px',height:'16px',verticalAlign:'middle',marginRight:'0.6rem',flexShrink:0}}>
-                <rect width="44" height="16" rx="2" fill="#fff"/>
-                <circle cx="7" cy="5" r="2" fill="#E2001A"/>
-                <path d="M3 9.5C3 7 5 6 7 7.5C9 6 11 7 11 9.5C11 11.5 7 14 7 14C7 14 3 11.5 3 9.5Z" fill="#E2001A"/>
-                <text x="13.5" y="7" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#E2001A">aktion</text>
-                <text x="13.5" y="13" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#E2001A">mensch</text>
+              <svg viewBox="0 0 120 42" fill="none" style={{width:'120px',height:'42px',verticalAlign:'middle',marginRight:'0.75rem',flexShrink:0}}>
+                <rect width="120" height="42" rx="4" fill="#fff"/>
+                <circle cx="15" cy="9" r="5" fill="#E2001A"/>
+                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#E2001A"/>
+                <line x1="4" y1="19" x2="9" y2="17" stroke="#E2001A" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="26" y1="19" x2="21" y2="17" stroke="#E2001A" strokeWidth="2" strokeLinecap="round"/>
+                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#E2001A">aktion</text>
+                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#E2001A">mensch</text>
               </svg>
               <strong>Herzlichen Dank, Aktion Mensch!</strong>
               {' '}Für die Saison 2027 wurden uns 2 neue Rikschas gespendet — ein Paralleltandem und eine klassische Rikscha. Wir sind überglücklich und tief dankbar! 🙏❤️
