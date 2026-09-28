@@ -349,6 +349,21 @@ export default async function WebsitePage() {
         .zukunft-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
         .zukunft-icon { font-size: 1.8rem; margin-bottom: 0.75rem; display: block; }
 
+        /* Aktion Mensch Laufband */
+        .am-ticker { background: #E2001A; overflow: hidden; white-space: nowrap; height: 2.75rem; display: flex; align-items: center; }
+        .am-ticker-track { display: inline-flex; align-items: center; animation: ticker-scroll 38s linear infinite; }
+        .am-ticker-track:hover { animation-play-state: paused; }
+        .am-ticker-seg { display: inline-flex; align-items: center; gap: 0.5rem; color: #fff; font-size: 0.92rem; font-weight: 500; padding: 0 2rem; white-space: nowrap; }
+        .am-ticker-seg strong { font-weight: 800; letter-spacing: 0.01em; }
+        .am-ticker-dot { margin-left: 1rem; opacity: 0.5; font-size: 0.7rem; }
+        @keyframes ticker-scroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .am-ticker-track { animation: none; }
+          .am-ticker-seg:not(:first-child) { display: none; }
+        }
         .wachstum-section { background: #EAF3E8; }
         .wachstum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; position: relative; }
         .wachstum-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #C6E5BC; color: #1C4A10; padding: 0.2rem 0.6rem; border-radius: 99px; }
@@ -566,6 +581,26 @@ export default async function WebsitePage() {
       <Banner />
 
       <main id="main-content" tabIndex={-1}>
+
+      {/* Aktion Mensch Laufband */}
+      <div className="am-ticker" aria-label="Wichtige Ankündigung">
+        <div className="am-ticker-track">
+          {[0,1,2,3].map(i => (
+            <span key={i} className="am-ticker-seg" aria-hidden={i > 0}>
+              <svg viewBox="0 0 44 16" fill="none" style={{width:'44px',height:'16px',verticalAlign:'middle',marginRight:'0.6rem',flexShrink:0}}>
+                <rect width="44" height="16" rx="2" fill="#fff"/>
+                <circle cx="7" cy="5" r="2" fill="#E2001A"/>
+                <path d="M3 9.5C3 7 5 6 7 7.5C9 6 11 7 11 9.5C11 11.5 7 14 7 14C7 14 3 11.5 3 9.5Z" fill="#E2001A"/>
+                <text x="13.5" y="7" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#E2001A">aktion</text>
+                <text x="13.5" y="13" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#E2001A">mensch</text>
+              </svg>
+              <strong>Herzlichen Dank, Aktion Mensch!</strong>
+              {' '}Für die Saison 2027 wurden uns 2 neue Rikschas gespendet — ein Paralleltandem und eine klassische Rikscha. Wir sind überglücklich und tief dankbar! 🙏❤️
+              <span className="am-ticker-dot">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* Hero */}
       <section className="hero">
