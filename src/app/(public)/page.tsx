@@ -356,11 +356,11 @@ export default async function WebsitePage() {
         .wachstum-icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .wachstum-card h3 { font-family: var(--serif); font-weight: normal; font-size: 1.2rem; color: var(--ink); margin-bottom: 0.4rem; }
         .wachstum-card p { font-size: 0.9rem; color: var(--mid); line-height: 1.55; }
-        .am-banner { display: flex; align-items: flex-start; gap: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #E2001A; border-radius: var(--radius); padding: 1.25rem 1.5rem; max-width: 44rem; }
+        .am-banner { display: flex; align-items: center; gap: 1.5rem; background: #fff3f3; border: 2px solid #E2001A; border-radius: var(--radius); padding: 1.5rem 1.75rem; max-width: 52rem; box-shadow: 0 2px 12px rgba(226,0,26,0.10); }
         .am-logo-wrap { flex-shrink: 0; }
-        .am-banner-text { display: flex; flex-direction: column; gap: 0.3rem; }
-        .am-banner-text strong { color: var(--ink); font-size: 1rem; }
-        .am-banner-text span { font-size: 0.88rem; color: var(--mid); line-height: 1.5; }
+        .am-banner-text { display: flex; flex-direction: column; gap: 0.4rem; }
+        .am-banner-text strong { color: #9b0012; font-size: 1.1rem; }
+        .am-banner-text span { font-size: 0.95rem; color: var(--ink); line-height: 1.55; }
         .btn-outline { display: inline-block; padding: 0.65rem 1.5rem; border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; text-decoration: none; border: 2px solid var(--green); color: var(--green); background: transparent; transition: background 0.15s, color 0.15s; }
         .btn-outline:hover { background: var(--green); color: #fff; }
         .spenden-section { background: var(--gold-soft); }
@@ -919,7 +919,7 @@ export default async function WebsitePage() {
           <div className="am-banner">
             <div className="am-logo-wrap" aria-label="Aktion Mensch">
               {/* Aktion Mensch Logo SVG */}
-              <svg viewBox="0 0 172 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'172px',height:'60px',display:'block'}}>
+              <svg viewBox="0 0 172 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'200px',height:'70px',display:'block'}}>
                 <rect width="172" height="60" rx="6" fill="#E2001A"/>
                 {/* Kopf */}
                 <circle cx="22" cy="13" r="6" fill="#fff"/>
