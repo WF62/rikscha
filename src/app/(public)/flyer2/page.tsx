@@ -302,7 +302,9 @@ export default async function Flyer2Page() {
             <div className="cover-tagline">Kostenlose Rikschafahrten durch Merten — mit Herz, Pedalen und elf begeisterten Kutschern.</div>
             <div className="cover-contact">
               <strong>📞 02227 9328383</strong>
-              GFO Bornheim-Merten · rikscha-kutscher.de
+              GFO Bornheim-Merten<br/>
+              🌐 rikscha-kutscher.de<br/>
+              <span style={{fontSize:'10pt',color:'rgba(255,255,255,0.8)'}}>📅 Termine online buchbar</span>
             </div>
           </div>
         </div>
@@ -380,7 +382,8 @@ export default async function Flyer2Page() {
               📞 <strong>02227 9328383</strong><br/>
               GFO Bornheim-Merten · Kloster Merten<br/>
               53332 Bornheim-Merten<br/>
-              🌐 rikscha-kutscher.de
+              🌐 rikscha-kutscher.de<br/>
+              📅 <strong>Termine online buchbar</strong>
             </p>
             <div>
               <div style={{fontSize:'7pt',color:'rgba(255,255,255,0.6)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:'1.5mm'}}>Spenden (freiwillig)</div>
