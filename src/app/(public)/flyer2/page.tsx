@@ -166,34 +166,36 @@ export default async function Flyer2Page() {
         .col-va .contact-box strong { display: block; font-size: 7pt; margin-bottom: 1mm; }
 
         /* V-B: Fahrten + Behinderung */
-        .col-vb { background: #C8600A; color: #fff; gap: 0; }
+        .col-vb { background: #C8600A; color: #fff; gap: 0; justify-content: space-between; }
         .col-vb .col-eyebrow { font-size: 5pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 1.5mm; }
-        .col-vb h2 { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: #fff; margin-bottom: 3mm; line-height: 1.2; }
-        .col-vb p { font-size: 6.5pt; color: rgba(255,255,255,0.92); line-height: 1.55; margin-bottom: 3mm; }
-        .col-vb .bf-box { background: rgba(255,255,255,0.18); border-left: 3px solid rgba(255,255,255,0.7); border-radius: 3px; padding: 2.5mm 3mm; margin-bottom: 3mm; }
+        .col-vb h2 { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: #fff; margin-bottom: 2.5mm; line-height: 1.2; }
+        .col-vb p { font-size: 6.5pt; color: rgba(255,255,255,0.92); line-height: 1.55; margin-bottom: 2.5mm; }
+        .col-vb .photo-fahrt { border-radius: 4px; overflow: hidden; margin-bottom: 2.5mm; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1mm; color: rgba(255,255,255,0.6); font-size: 6pt; height: 38mm; }
+        .col-vb .photo-fahrt img { width: 100%; height: 100%; object-fit: cover; }
+        .col-vb .bf-box { background: rgba(255,255,255,0.18); border-left: 3px solid rgba(255,255,255,0.7); border-radius: 3px; padding: 2.5mm 3mm; margin-bottom: 2.5mm; }
         .col-vb .bf-box strong { font-size: 6.5pt; color: #fff; display: block; margin-bottom: 1mm; }
         .col-vb .bf-box span { font-size: 6pt; color: rgba(255,255,255,0.9); line-height: 1.5; }
-        .col-vb .tipp-box { background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2.5mm 3mm; margin-top: auto; }
+        .col-vb .tipp-box { background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2.5mm 3mm; }
         .col-vb .tipp-box span { font-size: 6pt; color: rgba(255,255,255,0.88); line-height: 1.5; }
-        .col-vb .chips { display: flex; flex-wrap: wrap; gap: 1.5mm; margin-bottom: 3mm; }
+        .col-vb .chips { display: flex; flex-wrap: wrap; gap: 1.5mm; margin-bottom: 2.5mm; }
         .col-vb .chip { font-size: 5.5pt; font-weight: 700; padding: 0.8mm 2mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
 
         /* V-C: Gutschein */
-        .col-vc { background: var(--cream); gap: 0; }
+        .col-vc { background: var(--cream); gap: 0; justify-content: space-between; }
         .col-vc .voucher-tag { display: inline-block; background: var(--gold); color: #fff; font-size: 6pt; font-weight: 700; padding: 1mm 3mm; border-radius: 99px; margin-bottom: 3mm; letter-spacing: 0.05em; }
         .col-vc h2 { font-family: var(--serif); font-size: 14pt; font-weight: normal; color: var(--ink); margin-bottom: 1.5mm; line-height: 1.2; }
         .col-vc .sub { font-size: 6.5pt; color: var(--mid); line-height: 1.5; margin-bottom: 4mm; }
-        .col-vc .voucher-body { flex: 1; border: 2px dashed var(--gold); border-radius: 6px; padding: 4mm; display: flex; flex-direction: column; gap: 2mm; }
+        .col-vc .voucher-body { flex: 1; border: 2px dashed var(--gold); border-radius: 6px; padding: 4mm; display: flex; flex-direction: column; gap: 2.5mm; }
         .col-vc .voucher-body .vl { font-size: 5.5pt; color: var(--mid); }
-        .col-vc .voucher-body .vline { border-bottom: 1px solid #ccc; padding-bottom: 3mm; margin-bottom: 1mm; }
+        .col-vc .voucher-body .vline { border-bottom: 1px solid #ccc; padding-bottom: 4mm; margin-bottom: 1mm; }
         .col-vc .voucher-body .vv { font-family: var(--serif); font-size: 9pt; color: var(--ink); }
+        .col-vc .wann-box { background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 2.5mm 3mm; margin-top: 3mm; }
+        .col-vc .wann-box .wl { font-size: 5.5pt; color: var(--mid); margin-bottom: 1mm; }
+        .col-vc .wann-box .wv { border-bottom: 1px solid #ccc; padding-bottom: 3mm; font-family: var(--serif); font-size: 8pt; color: var(--ink); }
         .col-vc .voucher-footer { font-size: 5.5pt; color: var(--mid); margin-top: 3mm; line-height: 1.5; text-align: center; }
 
         /* Rückseite Spalten */
-        /* R-A: Fahrzeug Flotte Lotte */
-        /* R-B: Fahrzeug Flinker Flitzer */
-        /* R-C: Fahrzeug Jruuse Piter + Spenden + Kontakt */
-        .col-rv { background: var(--cream); gap: 0; }
+        .col-rv { background: var(--cream); gap: 0; justify-content: space-between; }
         .col-rv .vehicle-badge { font-size: 5.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; margin-bottom: 2mm; display: inline-block; }
         .col-rv .badge-lotte   { background: #dcfce7; color: #15803d; }
         .col-rv .badge-flitzer { background: #dbeafe; color: #1d4ed8; }
@@ -202,9 +204,12 @@ export default async function Flyer2Page() {
         .col-rv .vehicle-sub { font-size: 6pt; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3mm; }
         .col-rv .photo-ph { background: #e0e0e0; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1mm; color: #888; font-size: 6pt; margin-bottom: 3mm; }
         .col-rv .photo-ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-        .col-rv p { font-size: 6.5pt; color: var(--mid); line-height: 1.55; }
+        .col-rv p { font-size: 6.5pt; color: var(--mid); line-height: 1.55; margin-bottom: 2mm; }
+        .col-rv .facts { display: flex; flex-direction: column; gap: 1.5mm; margin-top: 2mm; }
+        .col-rv .fact { font-size: 6pt; color: var(--mid); display: flex; align-items: flex-start; gap: 1.5mm; line-height: 1.4; }
+        .col-rv .fact-icon { flex-shrink: 0; }
 
-        .col-rc { background: #1C4A10; gap: 0; }
+        .col-rc { background: #1C4A10; gap: 0; justify-content: space-between; }
         .col-rc h3 { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: #fff; margin-bottom: 2mm; line-height: 1.2; }
         .col-rc .vehicle-sub { font-size: 6pt; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3mm; }
         .col-rc .vehicle-badge { font-size: 5.5pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; margin-bottom: 2mm; display: inline-block; background: #ffedd5; color: #9c3a07; }
@@ -218,8 +223,9 @@ export default async function Flyer2Page() {
         .col-rc .am-mini span { font-size: 5.5pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
 
         /* Foto-Platzhalter-Größen */
-        .ph-tall  { height: 45mm; }
-        .ph-short { height: 35mm; }
+        .ph-tall   { height: 58mm; }
+        .ph-medium { height: 48mm; }
+        .ph-short  { height: 38mm; }
 
         /* ── Print ── */
         @media print {
@@ -282,18 +288,26 @@ export default async function Flyer2Page() {
 
         {/* V-B: Fahrten für alle */}
         <div className="col col-vb">
-          <div className="col-eyebrow">Kostenlos &amp; herzlich</div>
-          <h2>Fahrtwind für alle</h2>
-          <p>{c.flyer_fahrten_text}</p>
-          <div className="bf-box">
-            <strong>♿ Neu ab 2027 — dank Aktion Mensch</strong>
-            <span>Rikschafahrten jetzt auch offiziell für Menschen mit Behinderung und eingeschränkter Mobilität. Begleitpersonen herzlich willkommen.</span>
-          </div>
-          <div className="chips">
-            <span className="chip">Kostenlos</span>
-            <span className="chip">Ehrenamtlich</span>
-            <span className="chip">Gruppenfahrten</span>
-            <span className="chip">🚀 Ab 2027: 5 Rikschas</span>
+          <div>
+            <div className="col-eyebrow">Kostenlos &amp; herzlich</div>
+            <h2>Fahrtwind für alle</h2>
+            <div className="photo-fahrt">
+              {c.flyer_foto_fahrt1
+                ? <img src={c.flyer_foto_fahrt1} alt="Rikschafahrt"/>
+                : <><span style={{fontSize:'1.8rem'}}>🛺</span><span>Foto einer Fahrt</span></>
+              }
+            </div>
+            <p>{c.flyer_fahrten_text}</p>
+            <div className="chips">
+              <span className="chip">Kostenlos</span>
+              <span className="chip">Ehrenamtlich</span>
+              <span className="chip">Gruppenfahrten</span>
+              <span className="chip">🚀 Ab 2027: 5 Rikschas</span>
+            </div>
+            <div className="bf-box">
+              <strong>♿ Neu ab 2027 — dank Aktion Mensch</strong>
+              <span>Rikschafahrten jetzt auch offiziell für Menschen mit Behinderung und eingeschränkter Mobilität. Begleitpersonen herzlich willkommen.</span>
+            </div>
           </div>
           <div className="tipp-box">
             <span>💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, dem eine Fahrt Freude bereiten würde? Melden Sie sich — gerne auch mit Begleitung.</span>
@@ -311,11 +325,15 @@ export default async function Flyer2Page() {
               <div className="vline vv">&nbsp;</div>
             </div>
             <div>
-              <div className="vl">Anlass</div>
+              <div className="vl">Anlass / Wunsch</div>
               <div className="vline vv">&nbsp;</div>
             </div>
             <div>
               <div className="vl">Von</div>
+              <div className="vline vv">&nbsp;</div>
+            </div>
+            <div>
+              <div className="vl">Datum</div>
               <div className="vline vv">&nbsp;</div>
             </div>
             <div style={{marginTop:'auto'}}>
@@ -324,9 +342,13 @@ export default async function Flyer2Page() {
               </div>
             </div>
           </div>
+          <div className="wann-box">
+            <div className="wl">Gewünschter Termin (flexibel)</div>
+            <div className="wv">&nbsp;</div>
+          </div>
           <div className="voucher-footer">
-            Gutschein telefonisch einlösen · Alle Fahrten kostenlos<br/>
-            GFO Bornheim-Merten · 02227 9328383
+            Einlösen: 02227 9328383 · GFO Bornheim-Merten<br/>
+            Alle Rikschafahrten sind kostenlos — eine Freude zu verschenken!
           </div>
         </div>
 
@@ -338,69 +360,90 @@ export default async function Flyer2Page() {
 
         {/* R-A: Flotte Lotte */}
         <div className="col col-rv">
-          <span className="vehicle-badge badge-lotte">Rikscha · max. 2 Gäste</span>
-          <h3>Flotte Lotte</h3>
-          <p className="vehicle-sub">Klassische Rikscha</p>
-          <div className="photo-ph ph-tall">
-            {c.flyer_foto_lotte
-              ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/>
-              : <><span style={{fontSize:'1.5rem'}}>📷</span><span>Foto Flotte Lotte</span></>
-            }
+          <div>
+            <span className="vehicle-badge badge-lotte">Rikscha · max. 2 Gäste</span>
+            <h3>Flotte Lotte</h3>
+            <p className="vehicle-sub">Klassische Rikscha</p>
+            <div className="photo-ph ph-tall">
+              {c.flyer_foto_lotte
+                ? <img src={c.flyer_foto_lotte} alt="Flotte Lotte"/>
+                : <><span style={{fontSize:'1.8rem'}}>📷</span><span>Foto Flotte Lotte</span></>
+              }
+            </div>
+            <p>{c.flyer_lotte_text}</p>
+            <div className="facts">
+              <div className="fact"><span className="fact-icon">👥</span><span>Bis zu 2 Gäste plus Begleitung</span></div>
+              <div className="fact"><span className="fact-icon">🌿</span><span>Ideal für Ausflüge, Familienbesuche, Senioren</span></div>
+              <div className="fact"><span className="fact-icon">♿</span><span>Auch für Menschen mit eingeschränkter Mobilität</span></div>
+            </div>
           </div>
-          <p>{c.flyer_lotte_text}</p>
-          <p style={{marginTop:'auto',fontSize:'5.5pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm'}}>
+          <p style={{fontSize:'5.5pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm'}}>
             🏅 Ermöglicht durch Weihnachtslichter des General-Anzeigers (2018)
           </p>
         </div>
 
         {/* R-B: Flinker Flitzer */}
         <div className="col col-rv">
-          <span className="vehicle-badge badge-flitzer">Liegetandem · 1 Gast</span>
-          <h3>Flinker Flitzer</h3>
-          <p className="vehicle-sub">Liegetandem</p>
-          <div className="photo-ph ph-tall">
-            {c.flyer_foto_flitzer
-              ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/>
-              : <><span style={{fontSize:'1.5rem'}}>📷</span><span>Foto Flinker Flitzer</span></>
-            }
+          <div>
+            <span className="vehicle-badge badge-flitzer">Liegetandem · 1 Gast</span>
+            <h3>Flinker Flitzer</h3>
+            <p className="vehicle-sub">Liegetandem</p>
+            <div className="photo-ph ph-tall">
+              {c.flyer_foto_flitzer
+                ? <img src={c.flyer_foto_flitzer} alt="Flinker Flitzer"/>
+                : <><span style={{fontSize:'1.8rem'}}>📷</span><span>Foto Flinker Flitzer</span></>
+              }
+            </div>
+            <p>{c.flyer_flitzer_text}</p>
+            <div className="facts">
+              <div className="fact"><span className="fact-icon">👁</span><span>Ideal für sehbehinderte Menschen</span></div>
+              <div className="fact"><span className="fact-icon">🚴</span><span>Gast kann selbst mittreten — wenn gewünscht</span></div>
+              <div className="fact"><span className="fact-icon">🌍</span><span>Nah am Boden, nah am Leben</span></div>
+            </div>
           </div>
-          <p>{c.flyer_flitzer_text}</p>
-          <p style={{marginTop:'auto',fontSize:'5.5pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm'}}>
+          <p style={{fontSize:'5.5pt',color:'#aaa',borderTop:'1px solid #e0e0e0',paddingTop:'2mm'}}>
             🏅 Ermöglicht durch Volksbank Merten, Förderverein GFO &amp; Einzelspender
           </p>
         </div>
 
         {/* R-C: Jruuse Piter + Kontakt + Spenden */}
         <div className="col col-rc">
-          <span className="vehicle-badge">Paralleltandem · 1 Gast</span>
-          <h3>Jruuse Piter</h3>
-          <p className="vehicle-sub">Paralleltandem · für Menschen mit Demenz</p>
-          <div className="photo-ph ph-short">
-            {c.flyer_foto_piter
-              ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/>
-              : <><span style={{fontSize:'1.5rem'}}>📷</span><span>Foto Jruuse Piter</span></>
-            }
+          <div>
+            <span className="vehicle-badge">Paralleltandem · 1 Gast</span>
+            <h3>Jruuse Piter</h3>
+            <p className="vehicle-sub">Paralleltandem · für Menschen mit Demenz</p>
+            <div className="photo-ph ph-medium">
+              {c.flyer_foto_piter
+                ? <img src={c.flyer_foto_piter} alt="Jruuse Piter"/>
+                : <><span style={{fontSize:'1.8rem'}}>📷</span><span>Foto Jruuse Piter</span></>
+              }
+            </div>
+            <p>{c.flyer_piter_text}</p>
+            <p style={{fontSize:'6pt',color:'rgba(255,255,255,0.7)',marginTop:'1mm',marginBottom:'3mm',lineHeight:1.4}}>
+              👥 Pilot und Gast nebeneinander · 💬 Gespräche auf Augenhöhe · 🧡 Nähe und Sicherheit
+            </p>
           </div>
-          <p>{c.flyer_piter_text}</p>
-          <hr className="divider"/>
-          <div className="spenden-label">Kontakt &amp; Buchung</div>
-          <p style={{marginBottom:'1.5mm'}}>📞 02227 9328383<br/>GFO Bornheim-Merten<br/>Kloster Merten · 53332 Bornheim</p>
-          <p style={{marginBottom:'1.5mm',fontSize:'6pt'}}>🌐 rikscha-kutscher.de</p>
-          <hr className="divider"/>
-          <div className="spenden-label">Spenden (freiwillig)</div>
-          <span className="iban">DE57 3705 0299 0000 4756 46</span>
-          <p style={{fontSize:'5.5pt',marginBottom:'2mm'}}>Kreissparkasse Köln · Förderverein Sankt Martin Merten</p>
-          <div className="am-mini">
-            <svg viewBox="0 0 120 42" fill="none" width="60" height="21">
-              <rect width="120" height="42" rx="4" fill="#E2001A"/>
-              <circle cx="15" cy="9" r="5" fill="#fff"/>
-              <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
-              <line x1="4" y1="19" x2="9" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="26" y1="19" x2="21" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-              <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
-              <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
-            </svg>
-            <span>Jruuse Piter &amp; 2 neue Rikschas 2027 gefördert durch Aktion Mensch</span>
+          <div>
+            <hr className="divider"/>
+            <div className="spenden-label">Kontakt &amp; Buchung</div>
+            <p style={{marginBottom:'1.5mm'}}>📞 02227 9328383<br/>GFO Bornheim-Merten<br/>Kloster Merten · 53332 Bornheim</p>
+            <p style={{marginBottom:'1.5mm',fontSize:'6pt'}}>🌐 rikscha-kutscher.de</p>
+            <hr className="divider"/>
+            <div className="spenden-label">Spenden (freiwillig)</div>
+            <span className="iban">DE57 3705 0299 0000 4756 46</span>
+            <p style={{fontSize:'5.5pt',marginBottom:'2mm'}}>Kreissparkasse Köln · Förderverein Sankt Martin Merten</p>
+            <div className="am-mini">
+              <svg viewBox="0 0 120 42" fill="none" width="60" height="21">
+                <rect width="120" height="42" rx="4" fill="#E2001A"/>
+                <circle cx="15" cy="9" r="5" fill="#fff"/>
+                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
+                <line x1="4" y1="19" x2="9" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="26" y1="19" x2="21" y2="17" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
+                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
+              </svg>
+              <span>Jruuse Piter &amp; 2 neue Rikschas 2027 gefördert durch Aktion Mensch</span>
+            </div>
           </div>
         </div>
 
