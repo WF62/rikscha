@@ -477,7 +477,10 @@ export default async function FlyerPage() {
                 <span className="chip chip-gold">Gruppenfahrten</span>
                 <span className="chip chip-gold">Gutscheine</span>
               </div>
-              <div style={{marginTop:'0.5rem',background:'rgba(255,255,255,0.12)',borderRadius:'5px',padding:'0.35rem 0.5rem',fontSize:'0.6rem',color:'rgba(255,255,255,0.9)',lineHeight:1.45,borderLeft:'2px solid rgba(255,255,255,0.5)'}}>
+              <div style={{marginTop:'0.5rem',background:'rgba(255,255,255,0.18)',borderRadius:'5px',padding:'0.4rem 0.55rem',fontSize:'0.6rem',color:'#fff',lineHeight:1.5,borderLeft:'3px solid #93c5fd',marginBottom:'0.35rem'}}>
+                ♿ <strong>Besonders willkommen:</strong> Menschen mit Behinderung, eingeschränkter Mobilität oder Demenz — kostenlos, barrierefrei, mit Begleitung.
+              </div>
+              <div style={{background:'rgba(255,255,255,0.12)',borderRadius:'5px',padding:'0.35rem 0.5rem',fontSize:'0.6rem',color:'rgba(255,255,255,0.9)',lineHeight:1.45,borderLeft:'2px solid rgba(255,255,255,0.5)'}}>
                 💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, der sich über eine Fahrt freuen würde? Melden Sie sich — gerne auch mit Begleitung.
               </div>
             </div>

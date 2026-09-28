@@ -372,6 +372,18 @@ export default async function WebsitePage() {
         .wachstum-card h3 { font-family: var(--serif); font-weight: normal; font-size: 1.2rem; color: var(--ink); margin-bottom: 0.4rem; }
         .wachstum-card p { font-size: 0.9rem; color: var(--mid); line-height: 1.55; }
         .am-banner { display: flex; align-items: center; gap: 1.5rem; background: #fff3f3; border: 2px solid #E2001A; border-radius: var(--radius); padding: 1.5rem 1.75rem; max-width: 52rem; box-shadow: 0 2px 12px rgba(226,0,26,0.10); }
+        .barrierefreiheit-banner { background: #EAF3FE; border: 1.5px solid #2563EB; border-radius: var(--radius); padding: 1.1rem 1.5rem; max-width: 720px; margin: 0 auto; display: flex; align-items: flex-start; gap: 1rem; }
+        .barrierefreiheit-banner .bfb-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+        .barrierefreiheit-banner .bfb-text { font-size: 0.95rem; color: #1e3a5f; line-height: 1.55; }
+        .barrierefreiheit-banner .bfb-text strong { color: #1d4ed8; font-size: 1rem; display: block; margin-bottom: 0.2rem; }
+        @media (prefers-color-scheme: dark) {
+          :root:not([data-theme="light"]) .barrierefreiheit-banner { background: #0f1e38; border-color: #3b82f6; }
+          :root:not([data-theme="light"]) .barrierefreiheit-banner .bfb-text { color: #bfdbfe; }
+          :root:not([data-theme="light"]) .barrierefreiheit-banner .bfb-text strong { color: #93c5fd; }
+        }
+        :root[data-theme="dark"] .barrierefreiheit-banner { background: #0f1e38; border-color: #3b82f6; }
+        :root[data-theme="dark"] .barrierefreiheit-banner .bfb-text { color: #bfdbfe; }
+        :root[data-theme="dark"] .barrierefreiheit-banner .bfb-text strong { color: #93c5fd; }
         .am-logo-wrap { flex-shrink: 0; }
         .am-banner-text { display: flex; flex-direction: column; gap: 0.4rem; }
         .am-banner-text strong { color: #9b0012; font-size: 1.1rem; }
@@ -624,6 +636,17 @@ export default async function WebsitePage() {
           </div>
         </div>
       </section>
+
+      {/* Barrierefreiheit-Hinweis */}
+      <div style={{background:'var(--ground)',padding:'1.5rem 2rem 0'}}>
+        <div className="barrierefreiheit-banner" role="note" aria-label="Hinweis für Menschen mit Behinderung">
+          <span className="bfb-icon" aria-hidden="true">♿</span>
+          <div className="bfb-text">
+            <strong>Rikschafahrten für Menschen mit Behinderung und eingeschränkter Mobilität</strong>
+            Unsere Rikschas sind besonders auf Menschen mit körperlichen oder geistigen Einschränkungen ausgerichtet — kostenlos, barrierefrei zugänglich und immer mit Herz. Begleitpersonen sind selbstverständlich willkommen. Für Menschen mit Demenz steht unser Paralleltandem <em>Jruuse Piter</em> bereit — Seite an Seite mit dem Kutscher.
+          </div>
+        </div>
+      </div>
 
       <hr className="section-rule"/>
 
