@@ -910,18 +910,19 @@ export default async function WebsitePage() {
           {/* Aktion Mensch Hero-Banner */}
           <div className="am-banner">
             <div className="am-logo-wrap" aria-label="Aktion Mensch">
-              {/* Aktion Mensch Logo SVG — rotes Quadrat, Herzmensch-Symbol, Schriftzug */}
-              <svg viewBox="0 0 160 56" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'160px',height:'56px',display:'block'}}>
-                {/* Roter Hintergrund */}
-                <rect width="160" height="56" rx="5" fill="#E2001A"/>
-                {/* Herzmensch-Symbol: Kopf */}
-                <circle cx="20" cy="13" r="5" fill="#fff"/>
-                {/* Körper / Herz-Form */}
-                <path d="M10 24 C10 18 16 16 20 20 C24 16 30 18 30 24 C30 30 20 38 20 38 C20 38 10 30 10 24Z" fill="#fff"/>
-                {/* Schriftzug "aktion" */}
-                <text x="38" y="22" fontFamily="Arial,Helvetica,sans-serif" fontWeight="700" fontSize="13" fill="#fff" letterSpacing="0.5">aktion</text>
-                {/* Schriftzug "mensch" */}
-                <text x="38" y="40" fontFamily="Arial,Helvetica,sans-serif" fontWeight="700" fontSize="13" fill="#fff" letterSpacing="0.5">mensch</text>
+              {/* Aktion Mensch Logo SVG */}
+              <svg viewBox="0 0 172 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'172px',height:'60px',display:'block'}}>
+                <rect width="172" height="60" rx="6" fill="#E2001A"/>
+                {/* Kopf */}
+                <circle cx="22" cy="13" r="6" fill="#fff"/>
+                {/* Herz-Körper: Arme oben, Spitze unten */}
+                <path d="M10 26 C10 19 16 16 22 21 C28 16 34 19 34 26 C34 34 22 44 22 44 C22 44 10 34 10 26Z" fill="#fff"/>
+                {/* Arme ausgestreckt */}
+                <line x1="8" y1="28" x2="14" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+                <line x1="36" y1="28" x2="30" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+                {/* Schriftzug */}
+                <text x="46" y="25" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">aktion</text>
+                <text x="46" y="44" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">mensch</text>
               </svg>
             </div>
             <div className="am-banner-text">

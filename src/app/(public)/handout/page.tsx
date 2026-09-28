@@ -111,6 +111,16 @@ export default async function HandoutPage() {
           <div className="sp-eye">Spenden</div>
           <div className="sp-title">Helfen Sie uns, weiterzufahren</div>
           <div className="sp-sub">Förderverein „Miteinander Kloster Merten e. V." · Stichwort: Rikscha</div>
+          <div style={{marginTop:'0.4rem',paddingTop:'0.35rem',borderTop:'1px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',gap:'0.3rem'}}>
+            <svg viewBox="0 0 44 16" fill="none" style={{width:'44px',height:'16px',flexShrink:0}}>
+              <rect width="44" height="16" rx="2" fill="#E2001A"/>
+              <circle cx="7" cy="5" r="2" fill="#fff"/>
+              <path d="M3 9.5C3 7 5 6 7 7.5C9 6 11 7 11 9.5C11 11.5 7 14 7 14C7 14 3 11.5 3 9.5Z" fill="#fff"/>
+              <text x="13.5" y="7" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#fff">aktion</text>
+              <text x="13.5" y="13" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#fff">mensch</text>
+            </svg>
+            <span style={{fontSize:'0.48rem',color:'rgba(255,255,255,0.75)',lineHeight:1.35}}>Jruuse Piter &amp; 2 neue Rikschas 2027 gefördert durch Aktion Mensch</span>
+          </div>
           <div className="sp-konto">
             <span className="sp-label">KSK Köln</span>
             <span className="sp-val">DE79 3705 0299 0049 0050 40</span>
