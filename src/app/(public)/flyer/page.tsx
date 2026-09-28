@@ -380,6 +380,23 @@ export default async function FlyerPage() {
           </div>
         </div>
 
+        {/* AM DANKESCHÖN BANNER */}
+        <div style={{background:'#E2001A',color:'#fff',display:'flex',alignItems:'center',gap:'1rem',padding:'0.65rem 1.5rem',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact',marginBottom:'0.5rem',borderRadius:'6px'}}>
+          <svg viewBox="0 0 172 60" fill="none" style={{width:'120px',height:'42px',flexShrink:0}}>
+            <rect width="172" height="60" rx="6" fill="#E2001A"/>
+            <circle cx="22" cy="13" r="6" fill="#fff"/>
+            <path d="M10 26 C10 19 16 16 22 21 C28 16 34 19 34 26 C34 34 22 44 22 44 C22 44 10 34 10 26Z" fill="#fff"/>
+            <line x1="8" y1="28" x2="14" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+            <line x1="36" y1="28" x2="30" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+            <text x="46" y="25" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">aktion</text>
+            <text x="46" y="44" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">mensch</text>
+          </svg>
+          <div>
+            <div style={{fontWeight:800,fontSize:'0.95rem'}}>Herzlichen Dank, Aktion Mensch! 🙏❤️</div>
+            <div style={{fontSize:'0.8rem',opacity:0.92,marginTop:'0.1rem'}}>Für die Saison 2027 werden uns 2 neue Rikschas ermöglicht — ein Paralleltandem und eine klassische Rikscha. Wir sind tief dankbar!</div>
+          </div>
+        </div>
+
         {/* VORDERSEITE */}
         <p className="side-label">Vorderseite</p>
         <div className="sheet">
