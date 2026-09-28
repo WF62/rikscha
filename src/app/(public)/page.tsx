@@ -617,6 +617,9 @@ export default async function WebsitePage() {
               <strong>Herzlichen Dank, Aktion Mensch!</strong>
               {' '}Für die Saison 2027 wurden uns 2 neue Rikschas gespendet — ein Paralleltandem und eine klassische Rikscha. Wir sind überglücklich und tief dankbar! 🙏❤️
               <span className="am-ticker-dot">✦</span>
+              {' '}<strong>♿ Neu ab 2027:</strong>
+              {' '}Rikschafahrten auch für Menschen mit Behinderung und eingeschränkter Mobilität — ermöglicht durch Aktion Mensch!
+              <span className="am-ticker-dot">✦</span>
               {' '}<strong>🎉 Rikscha-Taufe 2027:</strong>
               {' '}Die feierliche Taufe beider Fahrzeuge findet Anfang der Saison 2027 statt — auf Wunsch informieren wir Sie rechtzeitig!
               <span className="am-ticker-dot">✦</span>
@@ -653,8 +656,8 @@ export default async function WebsitePage() {
         <div className="barrierefreiheit-banner" role="note" aria-label="Hinweis für Menschen mit Behinderung">
           <span className="bfb-icon" aria-hidden="true">♿</span>
           <div className="bfb-text">
-            <strong>Rikschafahrten für Menschen mit Behinderung und eingeschränkter Mobilität</strong>
-            Unsere Rikschas sind besonders auf Menschen mit körperlichen oder geistigen Einschränkungen ausgerichtet — kostenlos, barrierefrei zugänglich und immer mit Herz. Begleitpersonen sind selbstverständlich willkommen. Für Menschen mit Demenz steht unser Paralleltandem <em>Jruuse Piter</em> bereit — Seite an Seite mit dem Kutscher.
+            <strong>Neu: Rikschafahrten auch für Menschen mit Behinderung — dank Aktion Mensch</strong>
+            Dank der Förderung durch Aktion Mensch können wir unsere Fahrten nun auch offiziell Menschen mit Behinderung und eingeschränkter Mobilität anbieten — kostenlos, mit Herz und auf Augenhöhe. Begleitpersonen sind selbstverständlich willkommen. Für Menschen mit Demenz steht unser Paralleltandem <em>Jruuse Piter</em> bereit.
           </div>
         </div>
       </div>
@@ -1018,19 +1021,20 @@ export default async function WebsitePage() {
             gemeinsam mit der GFO — auch deren Gästen zur Verfügung.
           </p>
           <p style={{maxWidth:'42rem',marginBottom:'2rem',color:'var(--mid)',fontSize:'0.95rem'}}>
-            Neu: Künftig können auch <strong>junge Menschen mit Behinderung</strong> (mit Begleitung) mitfahren —
-            unsere Zielgruppe wächst.
+            <strong>Neu:</strong> Rikschafahrten sind jetzt auch offiziell für{' '}
+            <strong>Menschen mit Behinderung und eingeschränkter Mobilität</strong> möglich —
+            ermöglicht durch die Förderung von Aktion Mensch. Begleitpersonen sind herzlich willkommen.
           </p>
 
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'1.5rem',marginBottom:'2.5rem'}}>
             <div className="wachstum-card">
               <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
+                <div className="wachstum-badge">Name gesucht</div>
                 <div className="wachstum-badge am-badge">Aktion Mensch</div>
-                <div className="wachstum-badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>♿ Für Menschen mit Behinderung</div>
               </div>
               <div className="wachstum-icon">🚲</div>
-              <h3>Schneller Jonas</h3>
-              <p>Paralleltandem — nebeneinander in die Welt hinaus. Besonders geeignet für Menschen mit Behinderung, ermöglicht durch Aktion Mensch.</p>
+              <h3>Paralleltandem</h3>
+              <p>Nebeneinander in die Welt hinaus — ideal für Menschen, die aktiv mitfahren möchten. Dieses Fahrzeug hat noch keinen Namen.</p>
             </div>
             <div className="wachstum-card">
               <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
@@ -1038,8 +1042,8 @@ export default async function WebsitePage() {
                 <div className="wachstum-badge am-badge">Aktion Mensch</div>
               </div>
               <div className="wachstum-icon">🛺</div>
-              <h3>Klassische Rikscha <span style={{fontSize:'0.75rem',fontFamily:'var(--sans)',fontWeight:600,background:'#fef9c3',color:'#854d0e',padding:'0.15rem 0.5rem',borderRadius:'99px',verticalAlign:'middle'}}>Name gesucht</span></h3>
-              <p>Die bewährte Rikscha-Form — bequem, offen, einladend. Auch sie wartet noch auf ihren Namen. Haben Sie einen Vorschlag?</p>
+              <h3>Klassische Rikscha</h3>
+              <p>Die bewährte Rikscha-Form — bequem, offen, einladend. Auch sie wartet noch auf ihren Namen.</p>
             </div>
           </div>
 
