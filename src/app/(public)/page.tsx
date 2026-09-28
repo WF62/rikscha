@@ -351,10 +351,16 @@ export default async function WebsitePage() {
 
         .wachstum-section { background: #EAF3E8; }
         .wachstum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; position: relative; }
-        .wachstum-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #C6E5BC; color: #1C4A10; padding: 0.2rem 0.6rem; border-radius: 99px; margin-bottom: 0.75rem; }
+        .wachstum-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #C6E5BC; color: #1C4A10; padding: 0.2rem 0.6rem; border-radius: 99px; }
+        .am-badge { background: #fde8e8; color: #9b0012; }
         .wachstum-icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .wachstum-card h3 { font-family: var(--serif); font-weight: normal; font-size: 1.2rem; color: var(--ink); margin-bottom: 0.4rem; }
         .wachstum-card p { font-size: 0.9rem; color: var(--mid); line-height: 1.55; }
+        .am-banner { display: flex; align-items: flex-start; gap: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #E2001A; border-radius: var(--radius); padding: 1.25rem 1.5rem; max-width: 44rem; }
+        .am-logo-wrap { flex-shrink: 0; }
+        .am-banner-text { display: flex; flex-direction: column; gap: 0.3rem; }
+        .am-banner-text strong { color: var(--ink); font-size: 1rem; }
+        .am-banner-text span { font-size: 0.88rem; color: var(--mid); line-height: 1.5; }
         .btn-outline { display: inline-block; padding: 0.65rem 1.5rem; border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; text-decoration: none; border: 2px solid var(--green); color: var(--green); background: transparent; transition: background 0.15s, color 0.15s; }
         .btn-outline:hover { background: var(--green); color: #fff; }
         .spenden-section { background: var(--gold-soft); }
@@ -467,6 +473,7 @@ export default async function WebsitePage() {
           :root:not([data-theme="light"]) .zukunft-section { background: var(--surface); }
           :root:not([data-theme="light"]) .wachstum-section { background: var(--ground); }
           :root:not([data-theme="light"]) .wachstum-badge { background: #1C4A10; color: #C6E5BC; }
+          :root:not([data-theme="light"]) .am-badge { background: #3d0008; color: #fca5a5; }
           :root:not([data-theme="light"]) .ausleihen-section { background: var(--ground); }
           :root:not([data-theme="light"]) .ausleihen-box { background: rgba(200,96,10,0.15); }
           :root:not([data-theme="light"]) .gfo-badge { color: var(--gold); }
@@ -496,6 +503,7 @@ export default async function WebsitePage() {
         :root[data-theme="dark"] .zukunft-section { background: var(--surface); }
         :root[data-theme="dark"] .wachstum-section { background: var(--ground); }
         :root[data-theme="dark"] .wachstum-badge { background: #1C4A10; color: #C6E5BC; }
+        :root[data-theme="dark"] .am-badge { background: #3d0008; color: #fca5a5; }
         :root[data-theme="dark"] .ausleihen-section { background: var(--ground); }
         :root[data-theme="dark"] .ausleihen-box { background: rgba(200,96,10,0.15); }
         :root[data-theme="dark"] .gfo-badge { color: var(--gold); }
@@ -898,24 +906,48 @@ export default async function WebsitePage() {
       <section className="wachstum-section" id="wachstum2027">
         <div className="container">
           <div className="eyebrow">Wachstum 2027</div>
-          <h2>Zwei neue Rikschas kommen — dank Aktion Mensch</h2>
-          <p style={{maxWidth:'42rem',marginBottom:'2rem'}}>
-            Der kath. Förderverein Sankt Martin Merten hat Anträge bei der Aktion Mensch gestellt —
-            und Erfolg gehabt: <strong>2027 kommen zwei neue Fahrzeuge dazu.</strong> Ein Paralleltandem
-            und eine klassische Rikscha, die der Kirchengemeinde und — gemeinsam mit der GFO — auch
-            deren Gästen zur Verfügung stehen. Künftig können auch <strong>junge Menschen mit Behinderung</strong>{' '}
-            (mit Begleitung) mitfahren.
+
+          {/* Aktion Mensch Hero-Banner */}
+          <div className="am-banner">
+            <div className="am-logo-wrap" aria-label="Aktion Mensch">
+              <svg viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'120px',height:'36px'}}>
+                <rect width="120" height="36" rx="4" fill="#E2001A"/>
+                <text x="8" y="25" fontFamily="Arial,sans-serif" fontWeight="bold" fontSize="14" fill="#fff">Aktion Mensch</text>
+              </svg>
+            </div>
+            <div className="am-banner-text">
+              <strong>Gefördert durch Aktion Mensch</strong>
+              <span>Schon unser Jruuse Piter (Paralleltandem) wurde durch Aktion Mensch ermöglicht — jetzt kommen zwei weitere Fahrzeuge dazu.</span>
+            </div>
+          </div>
+
+          <h2 style={{marginTop:'1.75rem'}}>Zwei neue Rikschas für 2027</h2>
+          <p style={{maxWidth:'42rem',marginBottom:'0.75rem'}}>
+            Der kath. Förderverein Sankt Martin Merten hat erneut Förderanträge bei{' '}
+            <strong>Aktion Mensch</strong> gestellt — und ist erfolgreich! <strong>2027 kommen zwei neue Fahrzeuge dazu,</strong>{' '}
+            finanziert durch die Lotterie der Solidarität. Die Rikschas stehen der Kirchengemeinde und —
+            gemeinsam mit der GFO — auch deren Gästen zur Verfügung.
+          </p>
+          <p style={{maxWidth:'42rem',marginBottom:'2rem',color:'var(--mid)',fontSize:'0.95rem'}}>
+            Neu: Künftig können auch <strong>junge Menschen mit Behinderung</strong> (mit Begleitung) mitfahren —
+            unsere Zielgruppe wächst.
           </p>
 
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'1.5rem',marginBottom:'2.5rem'}}>
             <div className="wachstum-card">
-              <div className="wachstum-badge">Name gesucht</div>
+              <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
+                <div className="wachstum-badge">Name gesucht</div>
+                <div className="wachstum-badge am-badge">Aktion Mensch</div>
+              </div>
               <div className="wachstum-icon">🚲</div>
               <h3>Paralleltandem</h3>
               <p>Nebeneinander in die Welt hinaus — ideal für Menschen, die aktiv mitfahren möchten. Dieses Fahrzeug hat noch keinen Namen.</p>
             </div>
             <div className="wachstum-card">
-              <div className="wachstum-badge">Name gesucht</div>
+              <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
+                <div className="wachstum-badge">Name gesucht</div>
+                <div className="wachstum-badge am-badge">Aktion Mensch</div>
+              </div>
               <div className="wachstum-icon">🛺</div>
               <h3>Klassische Rikscha</h3>
               <p>Die bewährte Rikscha-Form — bequem, offen, einladend. Auch sie wartet noch auf ihren Namen.</p>
