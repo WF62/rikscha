@@ -587,6 +587,7 @@ export default async function WebsitePage() {
           <li><a href="#kontakt">Kontakt</a></li>
           <li><a href="#team">Team</a></li>
           <li><a href="#ausbildung">Mitmachen</a></li>
+          <li><a href="#foerderer">Förderer</a></li>
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="/sponsoren">Förderer</a></li>
@@ -1164,6 +1165,23 @@ export default async function WebsitePage() {
       <hr className="section-rule"/>
 
       {/* Spenden */}
+      {/* Sponsoren-Hinweis */}
+      <section style={{background:'var(--green-soft)',padding:'3rem 2rem'}} id="foerderer">
+        <div className="container" style={{maxWidth:'860px'}}>
+          <div className="eyebrow" style={{color:'#2D6B1E'}}>Unsere Geschichte</div>
+          <h2>Förderer &amp; Sponsoren</h2>
+          <p style={{maxWidth:'52rem',marginBottom:'1.5rem'}}>
+            Fünf Rikschas — und hinter jedem Fahrzeug steckt eine Geschichte von Großzügigkeit.
+            Von den <strong>Weihnachtslichtern des General-Anzeigers</strong>, die 2018 die erste Rikscha
+            ermöglichten, über viele <strong>Einzelspender</strong> bis hin zu <strong>Aktion Mensch</strong>,
+            die drei unserer Fahrzeuge finanziert hat. Und diejenigen, die Jahr für Jahr
+            Reparaturen und Inspektionen übernehmen — ohne die der Betrieb nicht möglich wäre.
+          </p>
+          <a href="/sponsoren" className="btn btn-green" style={{textDecoration:'none'}}>Alle Förderer &amp; ihre Geschichte →</a>
+        </div>
+      </section>
+      <hr className="section-rule"/>
+
       <section className="spenden-section" id="spenden">
         <div className="container">
           <div className="eyebrow">Unterstützen</div>
