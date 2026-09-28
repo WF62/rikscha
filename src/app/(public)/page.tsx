@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 const DEFAULTS: Record<string, string> = {
   hero_eyebrow:      'Bornheim-Merten · Ehrenamt · seit 2018',
   hero_titel:        'Mertener Rikschakutscher',
-  hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Kutschern.',
+  hero_sub:          'Fahrtwind im Gesicht, gute Gesellschaft an der Seite — kostenlose Rikschafahrten durch Merten und die Region. Mit Herz, Pedalen und elf begeisterten Kutschern. Ab 2027 kommen zwei neue Rikschas dazu — gefördert durch Aktion Mensch.',
   fahrten_h2:        'Drei Rikschas, ein gemeinsames Erlebnis',
   gruppenfahrten_1:  'Unsere Rikschafahrten richten sich besonders an Menschen mit körperlichen oder geistigen Einschränkungen — und an alle, die ihnen nahe sind. Begleitpersonen sind herzlich willkommen.',
   gruppenfahrten_2:  'Bucht alle drei Rikschas auf einmal: jede Kutsche mit eigenem Kutscher, alle gemeinsam unterwegs. Ob Geburtstag, Gruppenausflug aus dem Pflegeheim oder ein besonderer Anlass — im Konvoi wird aus einer Fahrt ein echtes gemeinsames Erlebnis.',
@@ -87,8 +87,8 @@ const DEFAULTS: Record<string, string> = {
   kennzahlen_h2:     'Mertener Kutscher in Zahlen',
   stat_1_zahl:       '11',
   stat_1_label:      'Ehrenamtliche Kutscher',
-  stat_2_zahl:       '3',
-  stat_2_label:      'Rikschas',
+  stat_2_zahl:       '3 + 2',
+  stat_2_label:      'Rikschas (ab 2027: 5)',
   stat_3_zahl:       '2018',
   stat_3_label:      'Gegründet',
   stat_4_zahl:       '500+',
@@ -609,6 +609,10 @@ export default async function WebsitePage() {
               <span className="einfach-alt-block">{t.gruppenfahrten_2}</span>
               <span className="einfach-neu-block">Ihr könnt alle drei Rikschas auf einmal buchen. Dann fahren alle zusammen. Das ist toll für Geburtstage oder Ausflüge aus dem Pflegeheim.</span>
             </p>
+            <div style={{display:'inline-flex',alignItems:'center',gap:'0.5rem',background:'rgba(255,255,255,0.15)',borderRadius:'999px',padding:'0.35rem 0.85rem',fontSize:'0.82rem',color:'#fff',marginBottom:'0.25rem'}}>
+              <span>🚀</span>
+              <span><strong>Ab 2027:</strong> 5 Rikschas — dank Aktion Mensch &amp; Förderverein Sankt Martin Merten</span>
+            </div>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
@@ -718,6 +722,10 @@ export default async function WebsitePage() {
           <p>
             <span className="einfach-alt-block">{t.fahrzeuge_intro}</span>
             <span className="einfach-neu-block">Jede Rikscha sieht anders aus und ist für andere Menschen gut geeignet.</span>
+          </p>
+          <p style={{fontSize:'0.92rem',color:'var(--mid)',marginTop:'-0.5rem',marginBottom:'1rem'}}>
+            <strong style={{color:'var(--green)'}}>Ab 2027 wächst unsere Flotte auf 5 Rikschas</strong> — ein Paralleltandem und eine klassische Rikscha kommen durch die Förderung von <strong>Aktion Mensch</strong> dazu.{' '}
+            <a href="#wachstum2027" style={{color:'var(--green)'}}>Mehr erfahren →</a>
           </p>
           <div className="fahrzeug-list">
             <div className="fahrzeug-row" id="fahrzeug-lotte">
