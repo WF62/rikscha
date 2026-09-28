@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { createServiceClient } from '@/lib/supabase';
+import PrintButton from './PrintButton';
 
 export const metadata: Metadata = {
   title: 'Flyer A4 Z-Fold – Mertener Rikschakutscher',
@@ -252,7 +253,7 @@ export default async function Flyer2Page() {
         <a href="/">← Startseite</a>
         <span className="sep">·</span>
         <span>Flyer A4 Z-Fold · Vorder- &amp; Rückseite drucken (A4 quer, beidseitig)</span>
-        <button onClick={() => window.print()}>🖨 Drucken</button>
+        <PrintButton />
       </div>
       <div className="print-hint">
         ℹ️ Drucken Sie beide Seiten auf <strong>ein Blatt</strong> (beidseitig, A4 quer). Dann zweimal falten: erst die linke Spalte nach vorne, dann die rechte nach hinten — so entsteht der Z-Falz.
