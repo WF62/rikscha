@@ -385,8 +385,8 @@ export default async function WebsitePage() {
         :root[data-theme="dark"] .barrierefreiheit-banner .bfb-text { color: #bfdbfe; }
         :root[data-theme="dark"] .barrierefreiheit-banner .bfb-text strong { color: #93c5fd; }
         .am-logo-wrap { flex-shrink: 0; }
-        .am-logo-wrap svg { width: 260px; height: 91px; display: block; }
-        @media (max-width: 520px) { .am-logo-wrap svg { width: 200px; height: 70px; } }
+        .am-logo-wrap svg { width: 250px; height: 100px; display: block; }
+        @media (max-width: 520px) { .am-logo-wrap svg { width: 190px; height: 76px; } }
         .am-banner-text { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 0; }
         .am-banner-text strong { color: #9b0012; font-size: 1.05rem; }
         .am-banner-text span { font-size: 0.92rem; color: var(--ink); line-height: 1.55; }
@@ -985,19 +985,21 @@ export default async function WebsitePage() {
           {/* Aktion Mensch Hero-Banner */}
           <div className="am-banner">
             <div className="am-logo-wrap" aria-label="Aktion Mensch">
-              {/* Aktion Mensch Logo SVG */}
-              <svg viewBox="0 0 172 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="172" height="60" rx="6" fill="#E2001A"/>
+              <svg viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="80" rx="8" fill="#E2001A"/>
                 {/* Kopf */}
-                <circle cx="22" cy="13" r="6" fill="#fff"/>
-                {/* Herz-Körper: Arme oben, Spitze unten */}
-                <path d="M10 26 C10 19 16 16 22 21 C28 16 34 19 34 26 C34 34 22 44 22 44 C22 44 10 34 10 26Z" fill="#fff"/>
-                {/* Arme ausgestreckt */}
-                <line x1="8" y1="28" x2="14" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
-                <line x1="36" y1="28" x2="30" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+                <circle cx="28" cy="16" r="9" fill="#fff"/>
+                {/* Herz-Körper */}
+                <path d="M12 34 C12 24 20 20 28 27 C36 20 44 24 44 34 C44 45 28 58 28 58 C28 58 12 45 12 34Z" fill="#fff"/>
+                {/* Linker Arm */}
+                <line x1="6" y1="37" x2="16" y2="33" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"/>
+                {/* Rechter Arm */}
+                <line x1="50" y1="37" x2="40" y2="33" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"/>
+                {/* Trennlinie */}
+                <line x1="62" y1="12" x2="62" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
                 {/* Schriftzug */}
-                <text x="46" y="25" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">aktion</text>
-                <text x="46" y="44" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">mensch</text>
+                <text x="72" y="36" fontFamily="Arial Black,Arial,Helvetica,sans-serif" fontWeight="900" fontSize="20" fill="#fff" letterSpacing="0.5">aktion</text>
+                <text x="72" y="60" fontFamily="Arial Black,Arial,Helvetica,sans-serif" fontWeight="900" fontSize="20" fill="#fff" letterSpacing="0.5">mensch</text>
               </svg>
             </div>
             <div className="am-banner-text">
