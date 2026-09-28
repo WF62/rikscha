@@ -1025,12 +1025,12 @@ export default async function WebsitePage() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'1.5rem',marginBottom:'2.5rem'}}>
             <div className="wachstum-card">
               <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
-                <div className="wachstum-badge">Name gesucht</div>
                 <div className="wachstum-badge am-badge">Aktion Mensch</div>
+                <div className="wachstum-badge" style={{background:'#dbeafe',color:'#1d4ed8'}}>♿ Für Menschen mit Behinderung</div>
               </div>
               <div className="wachstum-icon">🚲</div>
-              <h3>Paralleltandem</h3>
-              <p>Nebeneinander in die Welt hinaus — ideal für Menschen, die aktiv mitfahren möchten. Dieses Fahrzeug hat noch keinen Namen.</p>
+              <h3>Schneller Jonas</h3>
+              <p>Paralleltandem — nebeneinander in die Welt hinaus. Besonders geeignet für Menschen mit Behinderung, ermöglicht durch Aktion Mensch.</p>
             </div>
             <div className="wachstum-card">
               <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
@@ -1038,8 +1038,8 @@ export default async function WebsitePage() {
                 <div className="wachstum-badge am-badge">Aktion Mensch</div>
               </div>
               <div className="wachstum-icon">🛺</div>
-              <h3>Klassische Rikscha</h3>
-              <p>Die bewährte Rikscha-Form — bequem, offen, einladend. Auch sie wartet noch auf ihren Namen.</p>
+              <h3>Klassische Rikscha <span style={{fontSize:'0.75rem',fontFamily:'var(--sans)',fontWeight:600,background:'#fef9c3',color:'#854d0e',padding:'0.15rem 0.5rem',borderRadius:'99px',verticalAlign:'middle'}}>Name gesucht</span></h3>
+              <p>Die bewährte Rikscha-Form — bequem, offen, einladend. Auch sie wartet noch auf ihren Namen. Haben Sie einen Vorschlag?</p>
             </div>
           </div>
 
