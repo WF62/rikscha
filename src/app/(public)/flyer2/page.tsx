@@ -166,11 +166,11 @@ export default async function Flyer2Page() {
           margin-right: calc(var(--pad) - 2mm);
         }
         .cover-logo-wrap img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; }
-        .cover-eyebrow { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
-        .cover-h1 { font-family: var(--serif); font-size: 22pt; font-weight: normal; color: #fff; line-height: 1.15; }
-        .cover-tagline { font-size: 10pt; color: rgba(255,255,255,0.88); line-height: 1.6; }
-        .cover-contact { font-size: 9.5pt; color: rgba(255,255,255,0.95); line-height: 1.75; background: rgba(255,255,255,0.14); border-radius: 5px; padding: 3mm 4mm; }
-        .cover-contact strong { font-size: 11pt; display: block; margin-bottom: 1mm; }
+        .cover-eyebrow { font-size: 10pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+        .cover-h1 { font-family: var(--serif); font-size: 28pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .cover-tagline { font-size: 12pt; color: rgba(255,255,255,0.88); line-height: 1.6; }
+        .cover-contact { font-size: 11pt; color: rgba(255,255,255,0.95); line-height: 1.75; background: rgba(255,255,255,0.14); border-radius: 5px; padding: 3mm 4mm; }
+        .cover-contact strong { font-size: 13pt; display: block; margin-bottom: 1mm; }
 
         /* ══ FAHRTEN-STREIFEN ══ */
         .strip-fahrten {
@@ -178,12 +178,12 @@ export default async function Flyer2Page() {
           color: #fff;
         }
         .strip-fahrten .strip-photo { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); }
-        .fahrten-eyebrow { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
-        .fahrten-h2 { font-family: var(--serif); font-size: 20pt; font-weight: normal; color: #fff; line-height: 1.15; }
-        .fahrten-p { font-size: 9.5pt; color: rgba(255,255,255,0.92); line-height: 1.6; }
+        .fahrten-eyebrow { font-size: 10pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+        .fahrten-h2 { font-family: var(--serif); font-size: 26pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .fahrten-p { font-size: 11pt; color: rgba(255,255,255,0.92); line-height: 1.6; }
         .fahrten-chips { display: flex; flex-wrap: wrap; gap: 1.5mm; }
-        .fahrten-chip { font-size: 8pt; font-weight: 700; padding: 1.5mm 3mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
-        .fahrten-extra { font-size: 8.5pt; color: rgba(255,255,255,0.85); line-height: 1.55; background: rgba(255,255,255,0.12); border-left: 3px solid rgba(255,255,255,0.5); padding: 2.5mm 3mm; border-radius: 3px; }
+        .fahrten-chip { font-size: 9.5pt; font-weight: 700; padding: 1.5mm 3mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
+        .fahrten-extra { font-size: 10pt; color: rgba(255,255,255,0.85); line-height: 1.55; background: rgba(255,255,255,0.12); border-left: 3px solid rgba(255,255,255,0.5); padding: 2.5mm 3mm; border-radius: 3px; }
 
         /* ══ FAHRZEUGE-STREIFEN ══ */
         .strip-vehicles {
@@ -213,12 +213,12 @@ export default async function Flyer2Page() {
           font-size: 1.8rem;
         }
         .vehicle-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .vbadge { font-size: 6.5pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; display: inline-block; }
+        .vbadge { font-size: 8pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; display: inline-block; }
         .vbadge-lotte   { background: #dcfce7; color: #15803d; }
         .vbadge-flitzer { background: #dbeafe; color: #1d4ed8; }
         .vbadge-piter   { background: #ffedd5; color: #9c3a07; }
-        .vname { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: var(--ink); line-height: 1.1; }
-        .vdesc { font-size: 8pt; color: var(--mid); line-height: 1.5; }
+        .vname { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: var(--ink); line-height: 1.1; }
+        .vdesc { font-size: 9.5pt; color: var(--mid); line-height: 1.5; }
         .vdivider { width: 1px; height: auto; background: #ddd; flex-shrink: 0; align-self: stretch; }
 
         /* ══ KONTAKT-STREIFEN (Rückseite) ══ */
@@ -227,10 +227,10 @@ export default async function Flyer2Page() {
           color: #fff;
         }
         .strip-kontakt .strip-photo { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
-        .kontakt-eyebrow { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
-        .kontakt-h2 { font-family: var(--serif); font-size: 20pt; font-weight: normal; color: #fff; line-height: 1.15; }
-        .kontakt-p { font-size: 9.5pt; color: rgba(255,255,255,0.88); line-height: 1.8; }
-        .kontakt-iban { font-family: monospace; font-size: 8.5pt; background: rgba(255,255,255,0.12); padding: 1.5mm 2.5mm; border-radius: 3px; color: #fff; display: inline-block; margin: 1mm 0; }
+        .kontakt-eyebrow { font-size: 10pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+        .kontakt-h2 { font-family: var(--serif); font-size: 26pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .kontakt-p { font-size: 11pt; color: rgba(255,255,255,0.88); line-height: 1.8; }
+        .kontakt-iban { font-family: monospace; font-size: 10pt; background: rgba(255,255,255,0.12); padding: 1.5mm 2.5mm; border-radius: 3px; color: #fff; display: inline-block; margin: 1mm 0; }
         .kontakt-am { display: flex; align-items: center; gap: 2mm; margin-top: 2mm; }
         .kontakt-am span { font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
 
