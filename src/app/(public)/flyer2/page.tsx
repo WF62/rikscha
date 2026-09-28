@@ -416,10 +416,11 @@ export default async function Flyer2Page() {
                 <div className="gutschein-foot">🛺 Mertener Rikschakutscher · kostenlos · 02227 9328383</div>
               </div>
             </div>
-            <div style={{flex:1,paddingTop:'1mm',display:'flex',flexDirection:'column',gap:'3mm'}}>
-              <div style={{fontSize:'7pt',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--mid)'}}>💡 Kennen Sie jemanden?</div>
-              <div style={{fontFamily:'var(--serif)',fontSize:'13pt',color:'var(--ink)',lineHeight:'1.2'}}>Fahrtgäste gesucht!</div>
-              <p style={{fontSize:'9pt',color:'var(--mid)',lineHeight:'1.6'}}>Senioren, Menschen mit eingeschränkter Mobilität, Demenz-Betroffene oder einfach jemand mit Freude am Fahrtwind — melden Sie sich gerne auch für andere. Begleitpersonen können selbstverständlich mitfahren.</p>
+            <div style={{flex:1,display:'flex',flexDirection:'column',gap:'3mm',background:'#fff7e6',borderRadius:'6px',padding:'4mm',border:'1.5px solid #e8c87a'}}>
+              <div style={{fontSize:'8pt',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--gold)',fontWeight:700}}>💡 Kennen Sie jemanden?</div>
+              <div style={{fontFamily:'var(--serif)',fontSize:'14pt',color:'var(--ink)',lineHeight:'1.2'}}>Fahrtgäste herzlich willkommen!</div>
+              <p style={{fontSize:'9.5pt',color:'var(--mid)',lineHeight:'1.6'}}>Senioren, Menschen mit eingeschränkter Mobilität, Demenz-Betroffene — melden Sie sich gerne auch für andere. Begleitpersonen können selbstverständlich mitfahren.</p>
+              <div style={{fontSize:'9pt',fontWeight:700,color:'var(--green)'}}>📞 02227 9328383</div>
             </div>
           </div>
         </div>
