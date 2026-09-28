@@ -328,7 +328,7 @@ export default async function Flyer2Page() {
               <span className="fahrten-chip">🚀 Ab 2027: 5 Rikschas</span>
             </div>
             <div className="fahrten-extra">♿ <strong>Neu ab 2027:</strong> Rikschafahrten auch offiziell für Menschen mit Behinderung — dank Förderung durch Aktion Mensch.</div>
-            <div className="fahrten-extra" style={{borderLeftColor:'rgba(255,255,255,0.3)'}}>💡 <strong>Kennen Sie jemanden?</strong> Senioren, Menschen mit eingeschränkter Mobilität, Demenz-Betroffene oder einfach Freude am Fahrtwind — melden Sie sich gerne für andere!</div>
+            <div className="fahrten-extra" style={{borderLeftColor:'rgba(255,255,255,0.3)'}}>💡 <strong>Kennen Sie jemanden?</strong> Senioren, Menschen mit eingeschränkter Mobilität, Demenz-Betroffene oder einfach Freude am Fahrtwind — melden Sie sich gerne für andere! Begleitpersonen können selbstverständlich mitfahren.</div>
           </div>
         </div>
 
