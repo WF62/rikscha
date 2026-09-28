@@ -328,7 +328,6 @@ export default async function Flyer2Page() {
               <span className="fahrten-chip">🚀 Ab 2027: 5 Rikschas</span>
             </div>
             <div className="fahrten-extra">♿ <strong>Neu ab 2027:</strong> Rikschafahrten auch offiziell für Menschen mit Behinderung — dank Förderung durch Aktion Mensch.</div>
-            <div className="fahrten-extra" style={{borderLeftColor:'rgba(255,255,255,0.3)'}}>💡 <strong>Kennen Sie jemanden?</strong> Senioren, Menschen mit eingeschränkter Mobilität, Demenz-Betroffene oder einfach Freude am Fahrtwind — melden Sie sich gerne für andere! Begleitpersonen können selbstverständlich mitfahren.</div>
           </div>
         </div>
 
@@ -417,10 +416,10 @@ export default async function Flyer2Page() {
                 <div className="gutschein-foot">🛺 Mertener Rikschakutscher · kostenlos · 02227 9328383</div>
               </div>
             </div>
-            <div style={{flex:1,paddingTop:'1mm'}}>
-              <div style={{fontSize:'7pt',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--mid)',marginBottom:'2mm'}}>♿ Neu ab 2027</div>
-              <div style={{fontFamily:'var(--serif)',fontSize:'12pt',color:'var(--ink)',marginBottom:'2mm',lineHeight:'1.2'}}>Barrierefreie Fahrten</div>
-              <p style={{fontSize:'8pt',color:'var(--mid)',lineHeight:'1.55'}}>Dank Förderung durch Aktion Mensch erweitern wir unser Angebot — Rikschafahrten für Menschen mit Behinderung und eingeschränkter Mobilität.</p>
+            <div style={{flex:1,paddingTop:'1mm',display:'flex',flexDirection:'column',gap:'3mm'}}>
+              <div style={{fontSize:'7pt',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--mid)'}}>💡 Kennen Sie jemanden?</div>
+              <div style={{fontFamily:'var(--serif)',fontSize:'13pt',color:'var(--ink)',lineHeight:'1.2'}}>Fahrtgäste gesucht!</div>
+              <p style={{fontSize:'9pt',color:'var(--mid)',lineHeight:'1.6'}}>Senioren, Menschen mit eingeschränkter Mobilität, Demenz-Betroffene oder einfach jemand mit Freude am Fahrtwind — melden Sie sich gerne auch für andere. Begleitpersonen können selbstverständlich mitfahren.</p>
             </div>
           </div>
         </div>
