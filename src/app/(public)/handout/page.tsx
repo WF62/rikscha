@@ -79,6 +79,7 @@ export default async function HandoutPage() {
           <span className="chip chip-green">Ehrenamtlich</span>
           <span className="chip chip-gold">Gutscheine</span>
           <span className="chip chip-gold">Gruppenfahrten</span>
+          <span className="chip" style={{background:'rgba(226,0,26,0.85)',color:'#fff'}}>🚀 Ab 2027: 5 Rikschas</span>
         </div>
         <div style={{marginTop:'0.4rem',background:'rgba(255,255,255,0.12)',borderRadius:'4px',padding:'0.3rem 0.45rem',fontSize:'0.58rem',color:'rgba(255,255,255,0.88)',lineHeight:1.45,borderLeft:'2px solid rgba(255,255,255,0.45)'}}>
           💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, dem eine Fahrt Freude bereiten würde? Rufen Sie uns an oder schreiben Sie uns — gerne auch mit Begleitung.

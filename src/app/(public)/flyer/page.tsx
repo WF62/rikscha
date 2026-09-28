@@ -360,7 +360,7 @@ export default async function FlyerPage() {
                 <div className="fold-inner">🚲 <strong style={{color:'var(--green)'}}>Fahrtwind für alle</strong></div>
               </div>
               <div className="fold-strip fs3">
-                <div className="fold-inner">🛺 <strong>Drei Rikschas</strong></div>
+                <div className="fold-inner">🛺 <strong>3 Rikschas · ab 2027: 5</strong></div>
               </div>
               <div className="fold-strip fs4">
                 <div className="fold-inner">🌿 <strong>Mertener Rikschakutscher</strong></div>
@@ -515,6 +515,7 @@ export default async function FlyerPage() {
               <span>📞 02227 9328383</span>
               <span>🌐 rikscha-merten.de</span>
               <span>🎁 Gutscheine erhältlich</span>
+              <span style={{color:'rgba(255,255,255,0.85)'}}>🚀 Ab 2027: 5 Rikschas</span>
             </div>
           </div>
 
