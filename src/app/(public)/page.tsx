@@ -910,9 +910,18 @@ export default async function WebsitePage() {
           {/* Aktion Mensch Hero-Banner */}
           <div className="am-banner">
             <div className="am-logo-wrap" aria-label="Aktion Mensch">
-              <svg viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'120px',height:'36px'}}>
-                <rect width="120" height="36" rx="4" fill="#E2001A"/>
-                <text x="8" y="25" fontFamily="Arial,sans-serif" fontWeight="bold" fontSize="14" fill="#fff">Aktion Mensch</text>
+              {/* Aktion Mensch Logo SVG — rotes Quadrat, Herzmensch-Symbol, Schriftzug */}
+              <svg viewBox="0 0 160 56" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'160px',height:'56px',display:'block'}}>
+                {/* Roter Hintergrund */}
+                <rect width="160" height="56" rx="5" fill="#E2001A"/>
+                {/* Herzmensch-Symbol: Kopf */}
+                <circle cx="20" cy="13" r="5" fill="#fff"/>
+                {/* Körper / Herz-Form */}
+                <path d="M10 24 C10 18 16 16 20 20 C24 16 30 18 30 24 C30 30 20 38 20 38 C20 38 10 30 10 24Z" fill="#fff"/>
+                {/* Schriftzug "aktion" */}
+                <text x="38" y="22" fontFamily="Arial,Helvetica,sans-serif" fontWeight="700" fontSize="13" fill="#fff" letterSpacing="0.5">aktion</text>
+                {/* Schriftzug "mensch" */}
+                <text x="38" y="40" fontFamily="Arial,Helvetica,sans-serif" fontWeight="700" fontSize="13" fill="#fff" letterSpacing="0.5">mensch</text>
               </svg>
             </div>
             <div className="am-banner-text">
