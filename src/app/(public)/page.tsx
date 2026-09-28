@@ -589,6 +589,7 @@ export default async function WebsitePage() {
           <li><a href="#ausbildung">Mitmachen</a></li>
           <li><a href="#spenden">Spenden</a></li>
           <li><a href="/galerie">Galerie</a></li>
+          <li><a href="/sponsoren">Förderer</a></li>
           <li><a href="/buchen" className="nav-btn">Fahrt buchen</a></li>
           <li><a href="/gutschein" className="nav-btn">Gutschein</a></li>
           <li><PilotenNavLink /></li>
@@ -1288,6 +1289,7 @@ export default async function WebsitePage() {
           {' · '}📞 <a href="tel:022279328383">02227 9328383</a>
         </p>
         <p style={{marginTop:'0.6rem',fontSize:'0.78rem',color:'rgba(255,255,255,0.65)'}}>
+          <a href="/sponsoren">Förderer & Sponsoren</a> &nbsp;·&nbsp;
           <a href="/impressum">Impressum</a> &nbsp;·&nbsp;
           <a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp;
           <PilotenFooterLink /> &nbsp;·&nbsp; © 2025
