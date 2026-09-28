@@ -130,8 +130,9 @@ export default async function Flyer2Page() {
         /* Foto-Bereich im Streifen */
         .strip-photo {
           flex-shrink: 0;
-          width: 76mm;
-          height: calc(var(--row-h) - var(--pad) * 2);
+          width: 80mm;
+          /* Kein feste Höhe — dehnt sich auf volle Streifenhöhe minus Padding */
+          align-self: stretch;
           border-radius: 6px;
           overflow: hidden;
           background: rgba(255,255,255,0.15);
@@ -158,13 +159,13 @@ export default async function Flyer2Page() {
         }
         .cover-logo-wrap {
           flex-shrink: 0;
-          width: 64px; height: 64px;
+          width: 80px; height: 80px;
           border-radius: 50%;
           background: rgba(255,255,255,0.15);
           display: flex; align-items: center; justify-content: center;
           margin-right: calc(var(--pad) - 2mm);
         }
-        .cover-logo-wrap img { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
+        .cover-logo-wrap img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; }
         .cover-eyebrow { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
         .cover-h1 { font-family: var(--serif); font-size: 22pt; font-weight: normal; color: #fff; line-height: 1.15; }
         .cover-tagline { font-size: 10pt; color: rgba(255,255,255,0.88); line-height: 1.6; }
@@ -188,12 +189,13 @@ export default async function Flyer2Page() {
         .strip-vehicles {
           background: var(--cream);
           color: var(--ink);
-          align-items: flex-start;
+          align-items: stretch;
           gap: 3mm;
-          padding: calc(var(--pad) - 1mm) var(--pad);
+          padding: var(--pad);
         }
         .vehicle-card {
           flex: 1;
+          align-self: stretch;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
@@ -202,13 +204,13 @@ export default async function Flyer2Page() {
         }
         .vehicle-photo {
           width: 100%;
-          height: 42mm;
+          flex: 1;
+          min-height: 30mm;
           border-radius: 5px;
           overflow: hidden;
           background: #ddd;
           display: flex; align-items: center; justify-content: center;
           font-size: 1.8rem;
-          flex-shrink: 0;
         }
         .vehicle-photo img { width: 100%; height: 100%; object-fit: cover; }
         .vbadge { font-size: 6.5pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; display: inline-block; }
