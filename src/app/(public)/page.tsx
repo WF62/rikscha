@@ -349,6 +349,14 @@ export default async function WebsitePage() {
         .zukunft-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
         .zukunft-icon { font-size: 1.8rem; margin-bottom: 0.75rem; display: block; }
 
+        .wachstum-section { background: #EAF3E8; }
+        .wachstum-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; position: relative; }
+        .wachstum-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #C6E5BC; color: #1C4A10; padding: 0.2rem 0.6rem; border-radius: 99px; margin-bottom: 0.75rem; }
+        .wachstum-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .wachstum-card h3 { font-family: var(--serif); font-weight: normal; font-size: 1.2rem; color: var(--ink); margin-bottom: 0.4rem; }
+        .wachstum-card p { font-size: 0.9rem; color: var(--mid); line-height: 1.55; }
+        .btn-outline { display: inline-block; padding: 0.65rem 1.5rem; border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; text-decoration: none; border: 2px solid var(--green); color: var(--green); background: transparent; transition: background 0.15s, color 0.15s; }
+        .btn-outline:hover { background: var(--green); color: #fff; }
         .spenden-section { background: var(--gold-soft); }
         .spenden-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
         .spenden-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
@@ -457,6 +465,8 @@ export default async function WebsitePage() {
           :root:not([data-theme="light"]) .piloten-section { background: var(--surface); }
           :root:not([data-theme="light"]) .ausbildung-section { background: var(--ground); }
           :root:not([data-theme="light"]) .zukunft-section { background: var(--surface); }
+          :root:not([data-theme="light"]) .wachstum-section { background: var(--ground); }
+          :root:not([data-theme="light"]) .wachstum-badge { background: #1C4A10; color: #C6E5BC; }
           :root:not([data-theme="light"]) .ausleihen-section { background: var(--ground); }
           :root:not([data-theme="light"]) .ausleihen-box { background: rgba(200,96,10,0.15); }
           :root:not([data-theme="light"]) .gfo-badge { color: var(--gold); }
@@ -484,6 +494,8 @@ export default async function WebsitePage() {
         :root[data-theme="dark"] .piloten-section { background: var(--surface); }
         :root[data-theme="dark"] .ausbildung-section { background: var(--ground); }
         :root[data-theme="dark"] .zukunft-section { background: var(--surface); }
+        :root[data-theme="dark"] .wachstum-section { background: var(--ground); }
+        :root[data-theme="dark"] .wachstum-badge { background: #1C4A10; color: #C6E5BC; }
         :root[data-theme="dark"] .ausleihen-section { background: var(--ground); }
         :root[data-theme="dark"] .ausleihen-box { background: rgba(200,96,10,0.15); }
         :root[data-theme="dark"] .gfo-badge { color: var(--gold); }
@@ -879,6 +891,47 @@ export default async function WebsitePage() {
         </div>
       </section>
       )}
+
+      <hr className="section-rule"/>
+
+      {/* Wachstum 2027 */}
+      <section className="wachstum-section" id="wachstum2027">
+        <div className="container">
+          <div className="eyebrow">Wachstum 2027</div>
+          <h2>Zwei neue Rikschas kommen — dank Aktion Mensch</h2>
+          <p style={{maxWidth:'42rem',marginBottom:'2rem'}}>
+            Der kath. Förderverein Sankt Martin Merten hat Anträge bei der Aktion Mensch gestellt —
+            und Erfolg gehabt: <strong>2027 kommen zwei neue Fahrzeuge dazu.</strong> Ein Paralleltandem
+            und eine klassische Rikscha, die der Kirchengemeinde und — gemeinsam mit der GFO — auch
+            deren Gästen zur Verfügung stehen. Künftig können auch <strong>junge Menschen mit Behinderung</strong>{' '}
+            (mit Begleitung) mitfahren.
+          </p>
+
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'1.5rem',marginBottom:'2.5rem'}}>
+            <div className="wachstum-card">
+              <div className="wachstum-badge">Name gesucht</div>
+              <div className="wachstum-icon">🚲</div>
+              <h3>Paralleltandem</h3>
+              <p>Nebeneinander in die Welt hinaus — ideal für Menschen, die aktiv mitfahren möchten. Dieses Fahrzeug hat noch keinen Namen.</p>
+            </div>
+            <div className="wachstum-card">
+              <div className="wachstum-badge">Name gesucht</div>
+              <div className="wachstum-icon">🛺</div>
+              <h3>Klassische Rikscha</h3>
+              <p>Die bewährte Rikscha-Form — bequem, offen, einladend. Auch sie wartet noch auf ihren Namen.</p>
+            </div>
+          </div>
+
+          <div style={{display:'flex',flexWrap:'wrap',gap:'1rem',alignItems:'center'}}>
+            <a href="#kontakt" className="btn btn-green">Namen vorschlagen</a>
+            <a href="#kontakt" className="btn btn-outline">Pate werden</a>
+          </div>
+          <p style={{fontSize:'0.85rem',color:'var(--mid)',marginTop:'1rem'}}>
+            Als Pate kümmerst du dich um die Pflege deines Fahrzeugs — Putzen, kleine Checks, Liebe.
+            Meld dich einfach über das Kontaktformular.
+          </p>
+        </div>
+      </section>
 
       <hr className="section-rule"/>
 
