@@ -59,7 +59,7 @@ export default async function Flyer2Page() {
           --sheet-w: 210mm;
           --sheet-h: 297mm;
           --row-h:   99mm;
-          --pad:     8mm;
+          --pad:     6mm;
         }
 
         body { background: #c8c8c8; font-family: var(--sans); }
@@ -130,7 +130,7 @@ export default async function Flyer2Page() {
         /* Foto-Bereich im Streifen */
         .strip-photo {
           flex-shrink: 0;
-          width: 72mm;
+          width: 76mm;
           height: calc(var(--row-h) - var(--pad) * 2);
           border-radius: 6px;
           overflow: hidden;
@@ -145,8 +145,8 @@ export default async function Flyer2Page() {
           flex: 1;
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          gap: 2.5mm;
+          justify-content: space-between;
+          gap: 0;
         }
 
         /* ══ DECKBLATT-STREIFEN ══ */
@@ -165,11 +165,11 @@ export default async function Flyer2Page() {
           margin-right: calc(var(--pad) - 2mm);
         }
         .cover-logo-wrap img { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
-        .cover-eyebrow { font-size: 7pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
-        .cover-h1 { font-family: var(--serif); font-size: 17pt; font-weight: normal; color: #fff; line-height: 1.15; }
-        .cover-tagline { font-size: 8.5pt; color: rgba(255,255,255,0.88); line-height: 1.55; }
-        .cover-contact { font-size: 8.5pt; color: rgba(255,255,255,0.95); line-height: 1.7; background: rgba(255,255,255,0.14); border-radius: 5px; padding: 2.5mm 3.5mm; }
-        .cover-contact strong { font-size: 9pt; display: block; margin-bottom: 1mm; }
+        .cover-eyebrow { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+        .cover-h1 { font-family: var(--serif); font-size: 22pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .cover-tagline { font-size: 10pt; color: rgba(255,255,255,0.88); line-height: 1.6; }
+        .cover-contact { font-size: 9.5pt; color: rgba(255,255,255,0.95); line-height: 1.75; background: rgba(255,255,255,0.14); border-radius: 5px; padding: 3mm 4mm; }
+        .cover-contact strong { font-size: 11pt; display: block; margin-bottom: 1mm; }
 
         /* ══ FAHRTEN-STREIFEN ══ */
         .strip-fahrten {
@@ -177,11 +177,12 @@ export default async function Flyer2Page() {
           color: #fff;
         }
         .strip-fahrten .strip-photo { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); }
-        .fahrten-eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
-        .fahrten-h2 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; line-height: 1.15; }
-        .fahrten-p { font-size: 8.5pt; color: rgba(255,255,255,0.92); line-height: 1.55; }
+        .fahrten-eyebrow { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+        .fahrten-h2 { font-family: var(--serif); font-size: 20pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .fahrten-p { font-size: 9.5pt; color: rgba(255,255,255,0.92); line-height: 1.6; }
         .fahrten-chips { display: flex; flex-wrap: wrap; gap: 1.5mm; }
-        .fahrten-chip { font-size: 7.5pt; font-weight: 700; padding: 1mm 2.5mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
+        .fahrten-chip { font-size: 8pt; font-weight: 700; padding: 1.5mm 3mm; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; }
+        .fahrten-extra { font-size: 8.5pt; color: rgba(255,255,255,0.85); line-height: 1.55; background: rgba(255,255,255,0.12); border-left: 3px solid rgba(255,255,255,0.5); padding: 2.5mm 3mm; border-radius: 3px; }
 
         /* ══ FAHRZEUGE-STREIFEN ══ */
         .strip-vehicles {
@@ -201,7 +202,7 @@ export default async function Flyer2Page() {
         }
         .vehicle-photo {
           width: 100%;
-          height: 36mm;
+          height: 42mm;
           border-radius: 5px;
           overflow: hidden;
           background: #ddd;
@@ -210,12 +211,12 @@ export default async function Flyer2Page() {
           flex-shrink: 0;
         }
         .vehicle-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .vbadge { font-size: 6pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.8mm 2mm; border-radius: 99px; display: inline-block; }
+        .vbadge { font-size: 6.5pt; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 1mm 2.5mm; border-radius: 99px; display: inline-block; }
         .vbadge-lotte   { background: #dcfce7; color: #15803d; }
         .vbadge-flitzer { background: #dbeafe; color: #1d4ed8; }
         .vbadge-piter   { background: #ffedd5; color: #9c3a07; }
-        .vname { font-family: var(--serif); font-size: 11pt; font-weight: normal; color: var(--ink); line-height: 1.1; }
-        .vdesc { font-size: 7pt; color: var(--mid); line-height: 1.45; }
+        .vname { font-family: var(--serif); font-size: 13pt; font-weight: normal; color: var(--ink); line-height: 1.1; }
+        .vdesc { font-size: 8pt; color: var(--mid); line-height: 1.5; }
         .vdivider { width: 1px; height: auto; background: #ddd; flex-shrink: 0; align-self: stretch; }
 
         /* ══ KONTAKT-STREIFEN (Rückseite) ══ */
@@ -224,10 +225,10 @@ export default async function Flyer2Page() {
           color: #fff;
         }
         .strip-kontakt .strip-photo { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
-        .kontakt-eyebrow { font-size: 7pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
-        .kontakt-h2 { font-family: var(--serif); font-size: 16pt; font-weight: normal; color: #fff; line-height: 1.15; }
-        .kontakt-p { font-size: 8.5pt; color: rgba(255,255,255,0.88); line-height: 1.7; }
-        .kontakt-iban { font-family: monospace; font-size: 8pt; background: rgba(255,255,255,0.12); padding: 1.5mm 2.5mm; border-radius: 3px; color: #fff; display: inline-block; margin: 1mm 0; }
+        .kontakt-eyebrow { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+        .kontakt-h2 { font-family: var(--serif); font-size: 20pt; font-weight: normal; color: #fff; line-height: 1.15; }
+        .kontakt-p { font-size: 9.5pt; color: rgba(255,255,255,0.88); line-height: 1.8; }
+        .kontakt-iban { font-family: monospace; font-size: 8.5pt; background: rgba(255,255,255,0.12); padding: 1.5mm 2.5mm; border-radius: 3px; color: #fff; display: inline-block; margin: 1mm 0; }
         .kontakt-am { display: flex; align-items: center; gap: 2mm; margin-top: 2mm; }
         .kontakt-am span { font-size: 7.5pt; color: rgba(255,255,255,0.8); line-height: 1.4; }
 
@@ -322,6 +323,7 @@ export default async function Flyer2Page() {
               <span className="fahrten-chip">Gruppen möglich</span>
               <span className="fahrten-chip">🚀 Ab 2027: 5 Rikschas</span>
             </div>
+            <div className="fahrten-extra">♿ <strong>Neu ab 2027:</strong> Rikschafahrten auch offiziell für Menschen mit Behinderung — dank Förderung durch Aktion Mensch.</div>
           </div>
         </div>
 
