@@ -682,9 +682,16 @@ export default async function WebsitePage() {
               <span className="einfach-alt-block">{t.gruppenfahrten_2}</span>
               <span className="einfach-neu-block">Ihr könnt alle drei Rikschas auf einmal buchen. Dann fahren alle zusammen. Das ist toll für Geburtstage oder Ausflüge aus dem Pflegeheim.</span>
             </p>
-            <div style={{display:'inline-flex',alignItems:'center',gap:'0.5rem',background:'rgba(255,255,255,0.15)',borderRadius:'999px',padding:'0.35rem 0.85rem',fontSize:'0.82rem',color:'#fff',marginBottom:'0.25rem'}}>
-              <span>🚀</span>
-              <span><strong>Ab 2027:</strong> 5 Rikschas — dank Aktion Mensch &amp; Förderverein Sankt Martin Merten</span>
+            <div style={{background:'rgba(255,255,255,0.18)',border:'2px solid rgba(255,255,255,0.5)',borderRadius:'10px',padding:'1rem 1.25rem',marginBottom:'1.25rem',marginTop:'0.5rem'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'0.6rem',marginBottom:'0.35rem'}}>
+                <span style={{fontSize:'1.4rem'}}>🚀</span>
+                <strong style={{fontSize:'1.05rem',color:'#fff',letterSpacing:'0.01em'}}>Ab Saison 2027: 5 Rikschas</strong>
+              </div>
+              <p style={{color:'rgba(255,255,255,0.92)',fontSize:'0.92rem',margin:0,lineHeight:1.55}}>
+                Wir wachsen! Dank der Förderung durch <strong style={{color:'#fff'}}>Aktion Mensch</strong> und
+                den <strong style={{color:'#fff'}}>Förderverein Sankt Martin Merten</strong> kommen zwei neue
+                Fahrzeuge dazu — und wir können künftig noch mehr Menschen auf Reisen schicken. 🎉
+              </p>
             </div>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
