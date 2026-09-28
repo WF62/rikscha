@@ -1043,6 +1043,24 @@ export default async function WebsitePage() {
             Als Pate kümmerst du dich um die Pflege deines Fahrzeugs — Putzen, kleine Checks, Liebe.
             Meld dich einfach über das Kontaktformular.
           </p>
+
+          {/* Taufe-Einladung */}
+          <div style={{marginTop:'2rem',background:'var(--gold-soft)',border:'1.5px solid var(--gold)',borderRadius:'var(--radius)',padding:'1.25rem 1.5rem',maxWidth:'42rem',display:'flex',gap:'1rem',alignItems:'flex-start'}}>
+            <span style={{fontSize:'1.8rem',lineHeight:1,flexShrink:0}}>🎉</span>
+            <div>
+              <strong style={{color:'var(--ink)',fontSize:'1rem',display:'block',marginBottom:'0.3rem'}}>
+                Taufe der neuen Rikschas — Anfang der Saison 2027
+              </strong>
+              <p style={{fontSize:'0.9rem',marginBottom:'0.75rem'}}>
+                Die obligatorische Taufe beider Fahrzeuge findet zu Beginn der Rikschasaison 2027 statt —
+                ein feierlicher Akt, bei dem die neuen Rikschas offiziell ihre Namen erhalten.
+                Auf Wunsch informieren wir Sie rechtzeitig, damit Sie dabei sein können.
+              </p>
+              <a href="#kontakt" className="btn btn-gold" style={{fontSize:'0.88rem',padding:'0.5rem 1.25rem'}}>
+                Zur Taufe einladen lassen
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
