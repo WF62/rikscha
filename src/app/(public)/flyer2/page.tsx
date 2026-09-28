@@ -390,17 +390,6 @@ export default async function Flyer2Page() {
               <span className="kontakt-iban">DE57 3705 0299 0000 4756 46</span>
               <div style={{fontSize:'7pt',color:'rgba(255,255,255,0.55)'}}>Kreissparkasse Köln · Förderverein Sankt Martin Merten</div>
             </div>
-            {/* Aktion Mensch ganz unten, groß */}
-            <div style={{display:'flex',alignItems:'center',gap:'4mm',background:'rgba(255,255,255,0.12)',borderRadius:'6px',padding:'3mm 4mm'}}>
-              <svg viewBox="0 0 120 42" fill="none" width="80" height="28" style={{flexShrink:0}}>
-                <rect width="120" height="42" rx="4" fill="#E2001A"/>
-                <circle cx="15" cy="9" r="5" fill="#fff"/>
-                <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
-                <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
-                <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
-              </svg>
-              <span style={{fontSize:'11pt',color:'#fff',lineHeight:'1.4'}}>Gefördert durch <strong>Aktion Mensch</strong> — Jruuse Piter &amp; 2 neue Rikschas ab 2027</span>
-            </div>
           </div>
         </div>
 
@@ -426,15 +415,18 @@ export default async function Flyer2Page() {
           </div>
         </div>
 
-        {/* Rückseite Streifen 3: Einladung */}
-        <div className="strip strip-inner-b">
-          <div className="inner-b-h">Kommen Sie mit auf Tour!</div>
-          <div className="inner-b-sub">Elf ehrenamtliche Piloten freuen sich auf Ihre Anfrage.<br/>Ob alleine oder mit Begleitung — alle sind willkommen.</div>
-          <div>
-            <span className="inner-b-chip">📞 02227 9328383</span>
-            <span className="inner-b-chip">🌐 rikscha-kutscher.de</span>
-            <span className="inner-b-chip">Mertener Heide · Bornheim</span>
-          </div>
+        {/* Rückseite Streifen 3: Aktion Mensch */}
+        <div className="strip strip-inner-b" style={{justifyContent:'center',gap:'5mm'}}>
+          <div style={{fontSize:'9pt',textTransform:'uppercase',letterSpacing:'0.15em',color:'rgba(255,255,255,0.6)'}}>Gefördert durch</div>
+          <svg viewBox="0 0 120 42" fill="none" width="160" height="56" style={{flexShrink:0}}>
+            <rect width="120" height="42" rx="4" fill="#E2001A"/>
+            <circle cx="15" cy="9" r="5" fill="#fff"/>
+            <path d="M6 18C6 13 10 11 15 14C20 11 24 13 24 18C24 23 15 30 15 30C15 30 6 23 6 18Z" fill="#fff"/>
+            <text x="32" y="18" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">aktion</text>
+            <text x="32" y="31" fontFamily="Arial Black,Arial,sans-serif" fontWeight="900" fontSize="11" fill="#fff">mensch</text>
+          </svg>
+          <div style={{fontFamily:'var(--serif)',fontSize:'18pt',color:'#fff',lineHeight:'1.3',textAlign:'center'}}>Jruuse Piter &amp; 2 neue Rikschas ab 2027</div>
+          <div style={{fontSize:'10pt',color:'rgba(255,255,255,0.75)',textAlign:'center'}}>rikscha-kutscher.de · 02227 9328383</div>
         </div>
 
       </div>
