@@ -222,6 +222,29 @@ export default function SponsorenPage() {
 
         </div>
 
+        {/* Laufende Unterstützer */}
+        <div className="tl-card" style={{marginTop:'3rem',borderLeft:'4px solid var(--gold)'}}>
+          <span className="rikscha-name" style={{background:'var(--gold-soft)',color:'#854d0e'}}>🔧 Laufender Betrieb</span>
+          <h2 style={{fontFamily:'var(--serif)',fontSize:'1.35rem',fontWeight:'normal',color:'var(--ink)',marginBottom:'0.5rem'}}>Die stillen Helfer — Reparaturen &amp; Inspektionen</h2>
+          <p>
+            Ein Fahrzeug kaufen ist einmalig. Es am Laufen zu halten ist die eigentliche Aufgabe —
+            Jahr für Jahr. <strong>Jährliche Inspektionen, Reparaturen, Ersatzteile</strong>: Das kostet
+            Geld, das wir nicht selbst erwirtschaften.
+          </p>
+          <p>
+            Dass unsere Rikschas sicher, gepflegt und zuverlässig unterwegs sind, verdanken wir
+            zahlreichen Spenderinnen und Spendern, die immer wieder einspringen — oft still,
+            oft ohne großes Aufheben. <strong>Ohne sie wäre der Betrieb schlicht nicht möglich.</strong>
+          </p>
+          <p>
+            Wenn Sie diesen laufenden Betrieb unterstützen möchten — mit einer einmaligen Spende
+            oder als verlässlicher Förderer — freuen wir uns sehr über Ihre Nachricht.
+          </p>
+          <a href="/#spenden" style={{display:'inline-block',marginTop:'0.75rem',padding:'0.5rem 1.25rem',background:'var(--gold)',color:'#1a1208',borderRadius:'4px',fontSize:'0.88rem',fontWeight:600,textDecoration:'none'}}>
+            Laufenden Betrieb unterstützen
+          </a>
+        </div>
+
         {/* Dankbox */}
         <div className="dankbox">
           <h2>Möchten auch Sie Teil dieser Geschichte werden?</h2>
