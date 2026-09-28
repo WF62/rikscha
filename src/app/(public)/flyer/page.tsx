@@ -233,8 +233,8 @@ export default async function FlyerPage() {
         .v2-stripe { width: 6px; background: linear-gradient(to bottom, var(--green), var(--green2)); flex-shrink: 0; }
         .v2-body { flex: 1; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .v2-body .eyebrow { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 0.15rem; }
-        .v2-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: normal; color: var(--ink); margin-bottom: 0.35rem; }
-        .v2-body p { font-size: 0.72rem; color: var(--mid); line-height: 1.52; margin-bottom: 0.4rem; }
+        .v2-body h3 { font-family: var(--serif); font-size: 1.1rem; font-weight: normal; color: var(--ink); margin-bottom: 0.35rem; }
+        .v2-body p { font-size: 0.78rem; color: var(--mid); line-height: 1.52; margin-bottom: 0.4rem; }
         .pill-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
         .chip { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; }
         .chip-green { background: #d1fae5; color: #065f46; }
@@ -271,7 +271,7 @@ export default async function FlyerPage() {
         .fz-panel-body { flex: 1; padding: calc(var(--tab) + 0.5rem) 0.7rem 0.5rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .fz-panel-body .fz-label { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 0.08rem; }
         .fz-panel-body h3 { font-family: var(--serif); font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
-        .fz-panel-body p { font-size: 0.71rem; line-height: 1.5; }
+        .fz-panel-body p { font-size: 0.78rem; line-height: 1.5; }
         .fz-panel-body .fz-badge { align-self: flex-start; margin-top: 0.35rem; font-size: 0.63rem; font-weight: 700; color: #fff; border-radius: 999px; padding: 0.1rem 0.52rem; }
         .fz-panel-photo { display: flex; flex-direction: column; padding: calc(var(--tab) + 0.4rem) 0 0.4rem 0; flex: 1; align-self: stretch; box-sizing: border-box; }
         .fz-panel-photo img, .fz-panel-photo .photo-ph { margin-right: 0.6rem; }
@@ -478,11 +478,10 @@ export default async function FlyerPage() {
                 <span className="chip chip-gold">Gruppenfahrten</span>
                 <span className="chip chip-gold">Gutscheine</span>
               </div>
-              <div style={{marginTop:'0.5rem',background:'rgba(255,255,255,0.18)',borderRadius:'5px',padding:'0.4rem 0.55rem',fontSize:'0.6rem',color:'#fff',lineHeight:1.5,borderLeft:'3px solid #93c5fd',marginBottom:'0.35rem'}}>
-                ♿ <strong>Besonders willkommen:</strong> Menschen mit Behinderung, eingeschränkter Mobilität oder Demenz — kostenlos, barrierefrei, mit Begleitung.
-              </div>
-              <div style={{background:'rgba(255,255,255,0.12)',borderRadius:'5px',padding:'0.35rem 0.5rem',fontSize:'0.6rem',color:'rgba(255,255,255,0.9)',lineHeight:1.45,borderLeft:'2px solid rgba(255,255,255,0.5)'}}>
-                💡 <strong>Tipp geben:</strong> Kennen Sie jemanden, der sich über eine Fahrt freuen würde? Melden Sie sich — gerne auch mit Begleitung.
+              <div style={{marginTop:'0.4rem',background:'#fff7e6',borderRadius:'6px',padding:'0.45rem 0.6rem',fontSize:'0.66rem',color:'#7c4a00',lineHeight:1.5,border:'2px solid #e8c87a'}}>
+                <div style={{fontWeight:800,fontSize:'0.72rem',color:'#92400e',marginBottom:'0.15rem'}}>💡 Fahrtgäste herzlich willkommen!</div>
+                <div>Kennen Sie jemanden, der sich über eine Rikschafahrt freuen würde? Begleitpersonen können selbstverständlich mitfahren.</div>
+                <div style={{marginTop:'0.2rem',fontWeight:700,color:'#2D6B1E'}}>📞 02227 9328383</div>
               </div>
             </div>
             <div className="v2-photos">
@@ -535,8 +534,8 @@ export default async function FlyerPage() {
             <div className="cover-info">
               <span>📞 02227 9328383</span>
               <span>🌐 rikscha-merten.de</span>
-              <span>🎁 Gutscheine erhältlich</span>
-              <span style={{color:'rgba(255,255,255,0.85)'}}>🚀 Ab 2027: 5 Rikschas</span>
+              <span>📅 Termine online buchbar</span>
+              <span style={{color:'rgba(255,255,255,0.85)'}}>🎁 Gutscheine erhältlich</span>
             </div>
           </div>
 
@@ -619,15 +618,17 @@ export default async function FlyerPage() {
               <div className="sp-eye">Spenden</div>
               <div className="sp-title">Helfen Sie uns, weiterzufahren</div>
               <div style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.6)',marginBottom:'0.1rem'}}>Förderverein „Miteinander Kloster Merten e. V." · Stichwort: Rikscha</div>
-              <div style={{marginTop:'0.35rem',paddingTop:'0.3rem',borderTop:'1px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',gap:'0.3rem'}}>
-                <svg viewBox="0 0 44 16" fill="none" style={{width:'44px',height:'16px',flexShrink:0}}>
-                  <rect width="44" height="16" rx="2" fill="#E2001A"/>
-                  <circle cx="7" cy="5" r="2" fill="#fff"/>
-                  <path d="M3 9.5C3 7 5 6 7 7.5C9 6 11 7 11 9.5C11 11.5 7 14 7 14C7 14 3 11.5 3 9.5Z" fill="#fff"/>
-                  <text x="13.5" y="7" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#fff">aktion</text>
-                  <text x="13.5" y="13" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="4" fill="#fff">mensch</text>
+              <div style={{marginTop:'0.35rem',paddingTop:'0.3rem',borderTop:'1px solid rgba(255,255,255,0.2)',display:'flex',alignItems:'center',gap:'0.5rem'}}>
+                <svg viewBox="0 0 172 60" fill="none" style={{width:'90px',height:'32px',flexShrink:0}}>
+                  <rect width="172" height="60" rx="6" fill="#E2001A"/>
+                  <circle cx="22" cy="13" r="6" fill="#fff"/>
+                  <path d="M10 26 C10 19 16 16 22 21 C28 16 34 19 34 26 C34 34 22 44 22 44 C22 44 10 34 10 26Z" fill="#fff"/>
+                  <line x1="8" y1="28" x2="14" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+                  <line x1="36" y1="28" x2="30" y2="26" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
+                  <text x="46" y="25" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">aktion</text>
+                  <text x="46" y="44" fontFamily="Arial,Helvetica,sans-serif" fontWeight="800" fontSize="15" fill="#fff" letterSpacing="0.3">mensch</text>
                 </svg>
-                <span style={{fontSize:'0.48rem',color:'rgba(255,255,255,0.75)',lineHeight:1.35}}>Jruuse Piter &amp; 2 neue Rikschas 2027 gefördert durch Aktion Mensch</span>
+                <span style={{fontSize:'0.58rem',color:'rgba(255,255,255,0.85)',lineHeight:1.4}}>finanziert <strong>3 Rikschas</strong><br/>für Merten</span>
               </div>
               <div className="konto-table">
                 <div className="konto-row">
