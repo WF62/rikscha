@@ -1315,6 +1315,9 @@ export default async function WebsitePage() {
         </p>
         <p style={{marginTop:'0.6rem',fontSize:'0.78rem',color:'rgba(255,255,255,0.65)'}}>
           <a href="/sponsoren">Förderer & Sponsoren</a> &nbsp;·&nbsp;
+          <a href="/flyer">Flyer</a> &nbsp;·&nbsp;
+          <a href="/flyer2">Flyer A4</a> &nbsp;·&nbsp;
+          <a href="/handout">Handzettel</a> &nbsp;·&nbsp;
           <a href="/impressum">Impressum</a> &nbsp;·&nbsp;
           <a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp;
           <PilotenFooterLink /> &nbsp;·&nbsp; © 2025
