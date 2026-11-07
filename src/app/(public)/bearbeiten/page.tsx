@@ -431,7 +431,7 @@ export default function BearbeitenPage() {
 
   async function ladeEntwuerfe() {
     setEntwurfLaden(true);
-    try { const r = await fetch(`/api/inhalte-entwurf?pilot=${encodeURIComponent(pilot)}&password=${encodeURIComponent(password)}`); setEntwuerfe(r.ok ? await r.json() : []); } catch { setEntwuerfe([]); }
+    try { const r = await fetch('/api/inhalte-entwurf', { headers: { 'x-pilot': encodeURIComponent(pilot), 'x-password': encodeURIComponent(password) } }); setEntwuerfe(r.ok ? await r.json() : []); } catch { setEntwuerfe([]); }
     setEntwurfLaden(false);
   }
 
@@ -450,7 +450,7 @@ export default function BearbeitenPage() {
   async function ladeVerlauf(schluessel: string) {
     setVerlaufSchluessel(schluessel);
     setVerlaufLaden(true);
-    try { const r = await fetch(`/api/inhalte-entwurf?pilot=${encodeURIComponent(pilot)}&password=${encodeURIComponent(password)}&verlauf=${encodeURIComponent(schluessel)}`); setVerlaufFelder(r.ok ? await r.json() : []); } catch { setVerlaufFelder([]); }
+    try { const r = await fetch(`/api/inhalte-entwurf?verlauf=${encodeURIComponent(schluessel)}`, { headers: { 'x-pilot': encodeURIComponent(pilot), 'x-password': encodeURIComponent(password) } }); setVerlaufFelder(r.ok ? await r.json() : []); } catch { setVerlaufFelder([]); }
     setVerlaufLaden(false);
   }
 

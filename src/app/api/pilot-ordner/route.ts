@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getPilotRolle, istAdmin } from '@/lib/pilotAuth';
+import { getPilotRolle, istAdmin, zugangAusAnfrage } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, x-pilot, x-password',
 };
 
 export async function OPTIONS() {
@@ -17,8 +17,9 @@ export async function OPTIONS() {
 // Admins können besitzer weglassen → alle; Piloten sehen nur sich selbst
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const pilot    = searchParams.get('pilot')    ?? '';
-  const password = searchParams.get('password') ?? '';
+  const kopf     = zugangAusAnfrage(req);
+  const pilot    = kopf.name     || (searchParams.get('pilot')    ?? '');
+  const password = kopf.password || (searchParams.get('password') ?? '');
   const besitzer = searchParams.get('besitzer') ?? pilot;
 
   const rolle = await getPilotRolle(pilot, password);

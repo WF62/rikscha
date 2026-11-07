@@ -105,7 +105,9 @@ export default function AdminSeite() {
   const ladeOrdner = useCallback(async (pilot: string) => {
     setOrdnerLaden(true);
     try {
-      const r = await fetch(`/api/pilot-ordner?pilot=${encodeURIComponent(process.env.NEXT_PUBLIC_ADMIN_NAME ?? 'Admin')}&password=${encodeURIComponent(adminPw)}&besitzer=${encodeURIComponent(pilot)}`);
+      const r = await fetch(`/api/pilot-ordner?besitzer=${encodeURIComponent(pilot)}`, {
+        headers: { 'x-pilot': encodeURIComponent(process.env.NEXT_PUBLIC_ADMIN_NAME ?? 'Admin'), 'x-password': encodeURIComponent(adminPw) },
+      });
       setOrdnerDateien(r.ok ? await r.json() : []);
     } catch { setOrdnerDateien([]); }
     setOrdnerLaden(false);

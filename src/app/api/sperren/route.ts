@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { rolleAusAnfrage, darfFahrtenVerwalten } from '@/lib/pilotAuth';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -19,6 +20,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const { rolle } = await rolleAusAnfrage(req);
+  if (!darfFahrtenVerwalten(rolle)) return NextResponse.json({ error: 'Bitte als Kutscher anmelden, um Fahrzeuge zu sperren.' }, { status: 401 });
   const body = await req.json();
   const { fahrzeug, von_datum, bis_datum, grund } = body;
   if (!fahrzeug || !von_datum || !bis_datum) {

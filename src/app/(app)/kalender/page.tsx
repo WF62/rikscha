@@ -12,6 +12,9 @@ import type { Buchung, Sperre } from '@/lib/supabase';
 import type { TeamUpEvent } from '@/app/api/teamup/route';
 import { FAHRZEUGE, PILOTEN, PILOT_FARBE, GAST_FARBE, fahrzeugById } from '@/lib/constants';
 import AbmeldeButton from '../AbmeldeButton';
+import { authHeaders } from '@/lib/authHeaders';
+
+const NICHT_ANGEMELDET = 'Bitte melde dich als Kutscherin oder Kutscher an, um Fahrten zu ändern.';
 
 type Ansicht = 'monat' | 'woche' | 'tag';
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -132,11 +135,12 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
 
   const patch = async (data: Record<string, unknown>) => {
     setSaving(true);
-    await fetch(`/api/buchungen/${b.id}`, {
+    const res = await fetch(`/api/buchungen/${b.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(data),
     });
+    if (res.status === 401) alert(NICHT_ANGEMELDET);
     setSaving(false);
     onUpdated();
   };
@@ -360,7 +364,7 @@ export default function KalenderSeite() {
     const von = format(gridStart, 'yyyy-MM-dd');
     const bis = format(gridEnd,   'yyyy-MM-dd');
     const [bRes, sRes, tRes] = await Promise.all([
-      fetch(`/api/buchungen?von=${von}&bis=${bis}`),
+      fetch(`/api/buchungen?von=${von}&bis=${bis}`, { headers: authHeaders() }),
       fetch(`/api/sperren?von=${von}&bis=${bis}`),
       fetch(`/api/teamup?von=${von}&bis=${bis}`),
     ]);
@@ -377,7 +381,8 @@ export default function KalenderSeite() {
 
   const stornieren = async (id: string) => {
     setStorniereId(id);
-    await fetch(`/api/buchungen/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storniert: true }) });
+    const res = await fetch(`/api/buchungen/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ storniert: true }) });
+    if (res.status === 401) alert(NICHT_ANGEMELDET);
     setStorniereId(null);
     ladeKalenderDaten();
   };

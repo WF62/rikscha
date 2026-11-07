@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendBuchungEmail } from '@/lib/email';
+import { rolleAusAnfrage, darfFahrtenVerwalten } from '@/lib/pilotAuth';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -19,7 +20,17 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+
+  // Gastnamen und Notizen sehen nur angemeldete Kutscher (Angehörige nur bei eigenen Buchungen).
+  const { name, rolle } = await rolleAusAnfrage(req);
+  const voll = darfFahrtenVerwalten(rolle);
+  let gekuerzt = false;
+  const liste = (data ?? []).map((b) => {
+    if (voll || (rolle === 'angehoeriger' && b.pilot === name)) return b;
+    gekuerzt = true;
+    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null };
+  });
+  return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });
 }
 
 export async function POST(req: NextRequest) {

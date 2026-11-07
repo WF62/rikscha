@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FAHRZEUGE, PILOTEN, GAST_FARBE, PILOT_FARBE, fahrzeugById } from '@/lib/constants';
+import { authHeaders } from '@/lib/authHeaders';
 
 type TerminTyp = 'normal' | 'offen' | 'gast';
 
@@ -236,8 +237,9 @@ function SperreFormular() {
   const [gespeichert, setGespeichert] = useState(false);
   const absenden = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/sperren', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    const res = await fetch('/api/sperren', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ fahrzeug: form.fahrzeug, von_datum: form.von, bis_datum: form.bis, grund: form.grund }) });
+    if (!res.ok) { alert(res.status === 401 ? 'Bitte melde dich als Kutscherin oder Kutscher an, um ein Fahrzeug zu sperren.' : 'Die Sperre konnte nicht gespeichert werden.'); return; }
     setGespeichert(true);
     setTimeout(() => { setGespeichert(false); setOffen(false); }, 2000);
   };

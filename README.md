@@ -36,4 +36,12 @@ SUPABASE_SERVICE_ROLE_KEY=...
 | PATCH/DELETE | `/api/buchungen/[id]` | Stornieren / loeschen |
 | GET/POST | `/api/sperren` | Sperren abrufen / erstellen |
 | DELETE | `/api/sperren/[id]` | Sperre loeschen |
-| GET | `/api/ical?pilot=&fahrzeug=` | iCal Feed |
+| GET | `/api/ical?pilot=&fahrzeug=&key=` | iCal Feed (Gastnamen nur mit `key` = `ICAL_KEY`) |
+
+## Zugriffsschutz
+
+- Fahrten ändern/stornieren und Fahrzeuge sperren: nur angemeldete Kutscher, GFO und Admin
+  (Zugangsdaten als Header `x-pilot` / `x-password`, siehe `src/lib/authHeaders.ts`).
+  Angehörige dürfen nur ihre eigenen Buchungen ändern. Endgültig löschen: nur Admin.
+- Gastnamen und Notizen in `/api/buchungen` sehen nur angemeldete Kutscher; alle anderen sehen „Gast“.
+- Im iCal-Feed stehen Gastnamen nur, wenn der Link `?key=<ICAL_KEY>` enthält. Ohne `ICAL_KEY` zeigt der Feed nur die Anzahl der Gäste.
