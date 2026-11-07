@@ -2,13 +2,16 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FAHRZEUGE, PILOTEN, GAST_FARBE, PILOT_FARBE, fahrzeugById } from '@/lib/constants';
+import { GAST_FARBE, PILOT_FARBE } from '@/lib/constants';
+import { useStammdaten } from '@/lib/useStammdaten';
+import { istBuchbarAm, datumDeutsch } from '@/lib/stammdaten';
 import { authHeaders } from '@/lib/authHeaders';
 
 type TerminTyp = 'normal' | 'offen' | 'gast';
 
 function BuchenFormular() {
   const router = useRouter();
+  const { fahrzeuge, kutscher } = useStammdaten();
   const params = useSearchParams();
   const [form, setForm] = useState({
     fahrzeug: params.get('fahrzeug') ?? '',
@@ -44,7 +47,8 @@ function BuchenFormular() {
     }
   }, [form.datum]);
 
-  const fahrzeug = fahrzeugById(form.fahrzeug);
+  const fahrzeug = fahrzeuge.find((f) => f.id === form.fahrzeug);
+  const nochNichtDa = !!fahrzeug && !istBuchbarAm(fahrzeug, form.datum);
   const gesperrt = !!fahrzeug && sperren.some((s) => s.fahrzeug === form.fahrzeug);
   const gaeste   = [form.gast1, form.gast2].filter(Boolean)
     .slice(0, fahrzeug ? fahrzeug.maxGaeste : 2);
@@ -62,6 +66,7 @@ function BuchenFormular() {
     if ((istAngehoeriger || !istPilot) && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
+    if (nochNichtDa && fahrzeug?.verfuegbarAb) { setFehler(`${fahrzeug.name} kann erst ab ${datumDeutsch(fahrzeug.verfuegbarAb)} gebucht werden.`); return; }
     setSpeichern(true); setFehler('');
     try {
       const res = await fetch('/api/buchungen', {
@@ -109,18 +114,28 @@ function BuchenFormular() {
           <fieldset className="border-0 p-0 m-0">
             <legend className="block text-sm font-semibold mb-1">Fahrzeug</legend>
             <div className="grid grid-cols-1 gap-2">
-              {FAHRZEUGE.map((f) => (
+              {fahrzeuge.map((f) => {
+                const zu = !istBuchbarAm(f, form.datum);
+                return (
                 <label key={f.id}
                   style={form.fahrzeug === f.id ? { backgroundColor: f.bgHex } : {}}
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${zu ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
                     form.fahrzeug === f.id ? 'border-gray-600 shadow' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
-                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id}
+                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id} disabled={zu}
                     onChange={(e) => setForm({ ...form, fahrzeug: e.target.value })} className="sr-only" />
                   <span style={{ backgroundColor: f.farbeHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
-                  <div><p className="font-semibold">{f.name}</p><p className="text-xs text-gray-500">{f.typ} &middot; max. {f.maxGaeste} Gast{f.maxGaeste > 1 ? 'e' : ''}</p></div>
+                  <div>
+                    <p className="font-semibold">{f.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {f.typ} &middot; max. {f.maxGaeste} Gast{f.maxGaeste > 1 ? 'e' : ''}
+                      {f.rollstuhl && <> &middot; ♿ für Rollstuhl</>}
+                      {f.verfuegbarAb && (!form.datum || form.datum < f.verfuegbarAb) && <> &middot; <strong>ab {datumDeutsch(f.verfuegbarAb)}</strong></>}
+                    </p>
+                  </div>
                 </label>
-              ))}
+                );
+              })}
               {istPilot && !istAngehoeriger && (
                 <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer border-dashed transition-colors ${
                   !form.fahrzeug ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-orange-300'
@@ -139,7 +154,7 @@ function BuchenFormular() {
           <fieldset className="border-0 p-0 m-0">
             <legend className="block text-sm font-semibold mb-1">Pilot</legend>
             <div className="grid grid-cols-2 gap-2">
-              {PILOTEN.map((p) => (
+              {kutscher.map(({ name: p }) => (
                 <label key={p}
                   style={form.pilot === p ? { backgroundColor: PILOT_FARBE.bgHex } : {}}
                   className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-colors ${
@@ -232,6 +247,7 @@ function BuchenFormular() {
 }
 
 function SperreFormular() {
+  const { fahrzeuge } = useStammdaten();
   const [offen, setOffen] = useState(false);
   const [form, setForm] = useState({ fahrzeug: 'flotte_lotte', von: '', bis: '', grund: '' });
   const [gespeichert, setGespeichert] = useState(false);
@@ -251,7 +267,7 @@ function SperreFormular() {
       {offen && (
         <form onSubmit={absenden} className="mt-3 space-y-3">
           <select value={form.fahrzeug} onChange={(e) => setForm({ ...form, fahrzeug: e.target.value })} className="w-full border rounded px-3 py-2 text-sm">
-            {FAHRZEUGE.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+            {fahrzeuge.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
           <div className="grid grid-cols-2 gap-2">
             <div><label htmlFor="sperre-von" className="text-xs font-semibold">Von</label><input id="sperre-von" type="date" required value={form.von} onChange={(e) => setForm({ ...form, von: e.target.value })} className="w-full border rounded px-2 py-1 text-sm" /></div>

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfFahrtenVerwalten } from '@/lib/pilotAuth';
+import { ladeStammdaten } from '@/lib/stammdaten-server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -26,6 +27,10 @@ export async function POST(req: NextRequest) {
   const { fahrzeug, von_datum, bis_datum, grund } = body;
   if (!fahrzeug || !von_datum || !bis_datum) {
     return NextResponse.json({ error: 'Pflichtfelder fehlen.' }, { status: 400 });
+  }
+  const { fahrzeuge } = await ladeStammdaten(true);
+  if (!fahrzeuge.some((f) => f.id === fahrzeug)) {
+    return NextResponse.json({ error: 'Dieses Fahrzeug gibt es nicht.' }, { status: 400 });
   }
   const sb = createServiceClient();
   const { data, error } = await sb

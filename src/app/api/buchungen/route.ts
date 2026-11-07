@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendBuchungEmail } from '@/lib/email';
 import { rolleAusAnfrage, darfFahrtenVerwalten } from '@/lib/pilotAuth';
+import { fahrzeugFehler } from '@/lib/stammdaten-server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -49,6 +50,9 @@ export async function POST(req: NextRequest) {
 
   // Sperre und Doppelbuchung nur prüfen wenn Fahrzeug gewählt
   if (fahrzeug) {
+    const fzFehler = await fahrzeugFehler(fahrzeug, datum);
+    if (fzFehler) return NextResponse.json({ error: fzFehler }, { status: 409 });
+
     const { data: sperren } = await sb
       .from('rikscha_sperren')
       .select('id')
