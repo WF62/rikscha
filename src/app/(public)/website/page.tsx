@@ -723,7 +723,8 @@ export default async function WebsitePage() {
             });
             if (res.ok) {
               localStorage.setItem('pilot_name', pilot);
-              localStorage.setItem('pilot_pw', pw);
+              var jj = await res.json().catch(function () { return {}; });
+              localStorage.setItem('pilot_pw', jj.token || pw);
               document.getElementById('pw-overlay').style.display = 'none';
               document.getElementById('pw-input').value = '';
               showPilotenBereich(pilot);

@@ -69,3 +69,11 @@ Kutscher sind von den Grenzen ausgenommen. Fehlt die Tabelle, greifen nur Lockfe
 | Gäste-Foto | 10 pro Stunde, 30 pro Tag (nur Bilder, max. 10 MB) |
 | Abstimmung | 1 pro Foto und Tag, 50 pro Tag |
 | Falsches Passwort | 10 in 15 Minuten, 30 pro Tag |
+
+## Passwörter
+
+Kutscher-Passwörter stehen nur als bcrypt-Hash in `piloten_zugang.passwort_hash`
+(einmalig `supabase/passwoerter-hashen.sql` ausführen – erst nachdem der Code live ist).
+Nach dem Login speichert der Browser nicht das Passwort, sondern einen Anmelde-Token (90 Tage gültig,
+ungültig nach Passwortänderung). Signiert wird mit `SESSION_SECRET` (optional, sonst Service-Key).
+Alte Anmeldungen werden beim nächsten Seitenaufruf automatisch auf einen Token umgestellt.

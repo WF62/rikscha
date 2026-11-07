@@ -94,11 +94,12 @@ export default function PilotenModal() {
       const j = await res.json();
       if (res.ok) {
         localStorage.setItem('pilot_name', j.pilot);
-        localStorage.setItem('pilot_pw', passwort);
+        const zugang = j.token ?? passwort; // Token statt Passwort speichern
+        localStorage.setItem('pilot_pw', zugang);
         localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
-        setPilotPw(passwort);
+        setPilotPw(zugang);
         setPilotRolle(j.rolle ?? 'pilot');
         if (j.muss_pw_aendern) {
           setNeuesPw('');
@@ -131,8 +132,9 @@ export default function PilotenModal() {
       });
       const j = await res.json();
       if (res.ok) {
-        localStorage.setItem('pilot_pw', neuesPw);
-        setPilotPw(neuesPw);
+        const zugang = j.token ?? neuesPw;
+        localStorage.setItem('pilot_pw', zugang);
+        setPilotPw(zugang);
         setErstanmeldung(false);
         setAnsicht('bereich');
       } else {

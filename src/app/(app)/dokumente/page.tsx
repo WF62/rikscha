@@ -60,7 +60,10 @@ export default function DokumentePage() {
       });
       if (!res.ok) { setLoginFehler('Name oder Passwort falsch.'); setLaden(false); return; }
       localStorage.setItem('pilot_name', pilot);
-      localStorage.setItem('pilot_pw', password);
+      const j = await res.json().catch(() => ({}));
+      const zugang = j.token ?? password; // Token statt Passwort speichern
+      localStorage.setItem('pilot_pw', zugang);
+      setPassword(zugang);
       setEingeloggt(true);
       await ladeDateien();
     } catch { setLoginFehler('Verbindungsfehler.'); }

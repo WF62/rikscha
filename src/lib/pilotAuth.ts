@@ -1,26 +1,14 @@
 import type { NextRequest } from 'next/server';
-import { createServiceClient } from './supabase';
+import { anmelden, istToken } from './passwort';
+import { zuViele, merke } from './spamschutz';
 
 export async function checkPilot(name: string, password: string): Promise<boolean> {
   return !!(await getPilotRolle(name, password));
 }
 
+/** Rolle zu Name + Passwort oder Anmelde-Token, sonst null. */
 export async function getPilotRolle(name: string, password: string): Promise<string | null> {
-  if (!name || !password) return null;
-
-  const adminName = process.env.ADMIN_NAME || 'Admin';
-  if (name === adminName && password === process.env.ADMIN_PASSWORD) return 'admin';
-
-  const db = createServiceClient();
-  const { data } = await db
-    .from('piloten_zugang')
-    .select('rolle')
-    .eq('name', name)
-    .eq('passwort', password)
-    .eq('aktiv', true)
-    .maybeSingle();
-
-  return data?.rolle ?? null;
+  return (await anmelden(name, password))?.rolle ?? null;
 }
 
 export function istAdmin(rolle: string | null) {
@@ -33,10 +21,18 @@ export function zugangAusAnfrage(req: NextRequest): { name: string; password: st
   return { name: lies(req.headers.get('x-pilot')), password: lies(req.headers.get('x-password')) };
 }
 
-/** Prüft die mitgesendeten Zugangsdaten und liefert Name und Rolle (oder null). */
+const FEHL_GRENZE = [{ max: 10, minuten: 15 }, { max: 30, minuten: 1440 }];
+
+/** Prüft die mitgesendeten Zugangsdaten und liefert Name und Rolle (oder null). Falsche Versuche zählen mit. */
 export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string; rolle: string | null }> {
   const { name, password } = zugangAusAnfrage(req);
-  return { name, rolle: await getPilotRolle(name, password) };
+  if (!name || !password) return { name, rolle: null };
+  // Abgelaufene Tokens zählen nicht als Fehlversuch (sie sind nicht zu erraten)
+  const token = istToken(password);
+  if (!token && await zuViele(req, 'login-fehler', FEHL_GRENZE)) return { name, rolle: null };
+  const rolle = await getPilotRolle(name, password);
+  if (!rolle && !token) await merke(req, 'login-fehler');
+  return { name, rolle };
 }
 
 /** Kutscher, GFO und Admin dürfen Fahrten und Sperren verwalten – Gäste und Angehörige nicht. */
