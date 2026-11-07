@@ -216,7 +216,9 @@ export default function PilotenModal() {
     setOrdnerLaden(true);
     const ziel = besitzer ?? pilotName;
     try {
-      const r = await fetch(`/api/pilot-ordner?pilot=${encodeURIComponent(pilotName)}&password=${encodeURIComponent(pilotPw)}&besitzer=${encodeURIComponent(ziel)}`);
+      const r = await fetch(`/api/pilot-ordner?besitzer=${encodeURIComponent(ziel)}`, {
+        headers: { 'x-pilot': encodeURIComponent(pilotName), 'x-password': encodeURIComponent(pilotPw) },
+      });
       setOrdnerDateien(r.ok ? await r.json() : []);
     } catch { setOrdnerDateien([]); }
     setOrdnerLaden(false);

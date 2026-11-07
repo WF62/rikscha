@@ -12,11 +12,13 @@ function toIcsDate(iso: string) {
   return iso.replace(/[-:]/g, '').replace(/\.\d+/, '').replace('Z', 'Z');
 }
 
-function buchungZuVEvent(b: Buchung): string {
+function buchungZuVEvent(b: Buchung, mitNamen: boolean): string {
   const start = `${b.datum.replace(/-/g, '')}T${b.startzeit.slice(0, 5).replace(/:/g, '')}00`;
   const end = `${b.datum.replace(/-/g, '')}T${b.endzeit.slice(0, 5).replace(/:/g, '')}00`;
   const dtstamp = toIcsDate(b.erstellt_am);
-  const gaeste = b.gaeste.length > 0 ? ` Gaeste: ${b.gaeste.join(', ')}` : '';
+  const gaeste = b.gaeste.length === 0 ? ''
+    : mitNamen ? ` Gaeste: ${b.gaeste.join(', ')}`
+    : ` (${b.gaeste.length} ${b.gaeste.length === 1 ? 'Gast' : 'Gaeste'})`;
   const status = b.storniert ? '[STORNIERT] ' : '';
   return [
     'BEGIN:VEVENT',
@@ -25,7 +27,7 @@ function buchungZuVEvent(b: Buchung): string {
     `DTSTART;TZID=Europe/Berlin:${start}`,
     `DTEND;TZID=Europe/Berlin:${end}`,
     `SUMMARY:${status}${fahrzeugName(b.fahrzeug)} - ${b.pilot}${gaeste}`,
-    `DESCRIPTION:Pilot: ${b.pilot}${gaeste}${b.notiz ? '\\n' + b.notiz : ''}`,
+    `DESCRIPTION:Pilot: ${b.pilot}${gaeste}${mitNamen && b.notiz ? '\\n' + b.notiz : ''}`,
     `STATUS:${b.storniert ? 'CANCELLED' : 'CONFIRMED'}`,
     'END:VEVENT',
   ].join('\r\n');
@@ -34,6 +36,8 @@ function buchungZuVEvent(b: Buchung): string {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const pilotFilter = searchParams.get('pilot');
+  // Gastnamen nur, wenn der geheime Schlüssel ICAL_KEY im Link steht (…/api/ical?key=…)
+  const mitNamen = !!process.env.ICAL_KEY && searchParams.get('key') === process.env.ICAL_KEY;
   const fahrzeugFilter = searchParams.get('fahrzeug');
 
   const sb = createServiceClient();
@@ -74,7 +78,7 @@ export async function GET(req: NextRequest) {
     'TZNAME:CEST',
     'END:DAYLIGHT',
     'END:VTIMEZONE',
-    ...buchungen.map(buchungZuVEvent),
+    ...buchungen.map((b) => buchungZuVEvent(b, mitNamen)),
     'END:VCALENDAR',
   ].join('\r\n');
 

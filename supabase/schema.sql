@@ -26,14 +26,16 @@ create table if not exists rikscha_sperren (
 alter table rikscha_buchungen enable row level security;
 alter table rikscha_sperren enable row level security;
 
-create policy "public read buchungen" on rikscha_buchungen for select using (true);
-create policy "public insert buchungen" on rikscha_buchungen for insert with check (true);
-create policy "public update buchungen" on rikscha_buchungen for update using (true);
-create policy "public delete buchungen" on rikscha_buchungen for delete using (true);
-
-create policy "public read sperren" on rikscha_sperren for select using (true);
-create policy "public insert sperren" on rikscha_sperren for insert with check (true);
-create policy "public delete sperren" on rikscha_sperren for delete using (true);
+-- Keine Policies für anon/authenticated: Zugriff ausschließlich über die
+-- Serverrouten der App (Service-Role). Öffentliche Policies würden es jedem mit
+-- dem öffentlichen Schlüssel erlauben, Buchungen zu lesen, zu ändern und zu löschen.
+drop policy if exists "public read buchungen"   on rikscha_buchungen;
+drop policy if exists "public insert buchungen" on rikscha_buchungen;
+drop policy if exists "public update buchungen" on rikscha_buchungen;
+drop policy if exists "public delete buchungen" on rikscha_buchungen;
+drop policy if exists "public read sperren"     on rikscha_sperren;
+drop policy if exists "public insert sperren"   on rikscha_sperren;
+drop policy if exists "public delete sperren"   on rikscha_sperren;
 
 create index if not exists idx_buchungen_datum on rikscha_buchungen(datum);
 create index if not exists idx_sperren_zeitraum on rikscha_sperren(von_datum, bis_datum);

@@ -1,11 +1,20 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { rolleAusAnfrage, darfFahrtenVerwalten, istAdmin } from '@/lib/pilotAuth';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const body = await req.json();
+  const { name, rolle } = await rolleAusAnfrage(req);
   const sb = createServiceClient();
+  if (!darfFahrtenVerwalten(rolle)) {
+    // Angehörige dürfen nur eigene Buchungen ändern
+    const { data: alt } = await sb.from('rikscha_buchungen').select('pilot').eq('id', id).maybeSingle();
+    if (!(rolle === 'angehoeriger' && alt && alt.pilot === name)) {
+      return NextResponse.json({ error: 'Bitte als Kutscher anmelden, um Fahrten zu ändern.' }, { status: 401 });
+    }
+  }
+  const body = await req.json();
   const update: Record<string, unknown> = {};
 
   if (body.storniert === true) {
@@ -31,8 +40,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json(data);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const { rolle } = await rolleAusAnfrage(req);
+  if (!istAdmin(rolle)) return NextResponse.json({ error: 'Nur Admins dürfen Buchungen endgültig löschen.' }, { status: 403 });
   const sb = createServiceClient();
   const { error } = await sb.from('rikscha_buchungen').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
