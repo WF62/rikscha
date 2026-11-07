@@ -399,8 +399,10 @@ export default function BearbeitenPage() {
       const r = await fetch('/api/pilot-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password }) });
       if (r.ok) {
         localStorage.setItem('pilot_name', pilot);
-        localStorage.setItem('pilot_pw', password);
         const j = await r.json();
+        const zugang = j.token ?? password; // Token statt Passwort speichern
+        localStorage.setItem('pilot_pw', zugang);
+        setPassword(zugang);
         const rolle = j.rolle ?? 'pilot';
         localStorage.setItem('pilot_rolle', rolle);
         setPilotRolle(rolle);

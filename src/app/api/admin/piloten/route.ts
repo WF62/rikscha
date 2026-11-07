@@ -1,11 +1,10 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { adminCookieGueltig, passwortFelder } from '@/lib/passwort';
 
 function checkAdmin(req: NextRequest) {
-  const cookie = req.cookies.get('admin_session')?.value;
-  const expected = process.env.ADMIN_PASSWORD;
-  return expected && cookie === expected;
+  return adminCookieGueltig(req.cookies.get('admin_session')?.value);
 }
 
 export async function GET(req: NextRequest) {
@@ -26,8 +25,8 @@ export async function POST(req: NextRequest) {
   const db = createServiceClient();
   const { data, error } = await db
     .from('piloten_zugang')
-    .insert({ name, passwort, rolle: rolle ?? 'pilot', aktiv: true, muss_pw_aendern: true })
-    .select()
+    .insert({ name, ...(await passwortFelder(String(passwort))), rolle: rolle ?? 'pilot', aktiv: true, muss_pw_aendern: true })
+    .select('id, name, rolle, aktiv')
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data, { status: 201 });
@@ -35,8 +34,14 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   if (!checkAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { id, ...fields } = await req.json();
+  const { id, name, rolle, aktiv, passwort } = await req.json();
   if (!id) return NextResponse.json({ error: 'ID fehlt.' }, { status: 400 });
+  const fields: Record<string, unknown> = {};
+  if (name !== undefined) fields.name = name;
+  if (rolle !== undefined) fields.rolle = rolle;
+  if (aktiv !== undefined) fields.aktiv = aktiv;
+  // Neues Passwort vom Admin: gehasht speichern, Person muss es beim nächsten Login ändern
+  if (passwort) Object.assign(fields, await passwortFelder(String(passwort)), { muss_pw_aendern: true });
   const db = createServiceClient();
   const { error } = await db.from('piloten_zugang').update(fields).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

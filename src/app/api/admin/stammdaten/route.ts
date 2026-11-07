@@ -1,12 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { adminCookieGueltig } from '@/lib/passwort';
 import { ladeStammdaten } from '@/lib/stammdaten-server';
 
 function checkAdmin(req: NextRequest) {
-  const cookie = req.cookies.get('admin_session')?.value;
-  const expected = process.env.ADMIN_PASSWORD;
-  return !!expected && cookie === expected;
+  return adminCookieGueltig(req.cookies.get('admin_session')?.value);
 }
 
 const FAHRZEUG_FELDER = ['name', 'typ', 'max_gaeste', 'rollstuhl', 'farbe_hex', 'bg_hex', 'verfuegbar_ab', 'aktiv', 'reihenfolge', 'notiz'] as const;

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { zuViele, merke } from '@/lib/spamschutz';
+import { adminCookieWert } from '@/lib/passwort';
 
 export async function POST(req: NextRequest) {
   if (await zuViele(req, 'login-fehler', [{ max: 10, minuten: 15 }, { max: 30, minuten: 1440 }])) {
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const res = NextResponse.json({ ok: true });
-  res.cookies.set('admin_session', expected, {
+  res.cookies.set('admin_session', adminCookieWert() ?? '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
