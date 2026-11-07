@@ -6,12 +6,15 @@ import { GAST_FARBE, PILOT_FARBE } from '@/lib/constants';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm, datumDeutsch } from '@/lib/stammdaten';
 import { authHeaders } from '@/lib/authHeaders';
+import { Lockfeld, useFormularStart } from '@/lib/Lockfeld';
 
 type TerminTyp = 'normal' | 'offen' | 'gast';
 
 function BuchenFormular() {
   const router = useRouter();
   const { fahrzeuge, kutscher } = useStammdaten();
+  const formularStart = useFormularStart();
+  const [lockfeld, setLockfeld] = useState('');
   const params = useSearchParams();
   const [form, setForm] = useState({
     fahrzeug: params.get('fahrzeug') ?? '',
@@ -71,12 +74,13 @@ function BuchenFormular() {
     try {
       const res = await fetch('/api/buchungen', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           fahrzeug: form.fahrzeug || '', pilot: form.pilot || '',
           gaeste, datum: form.datum, startzeit: form.startzeit,
           endzeit: form.endzeit, notiz: form.notiz,
           ...(istAngehoeriger ? { eigenfahrt: true } : {}),
+          website: lockfeld, _t: formularStart,
         }),
       });
       if (res.ok) { router.push('/'); }
@@ -100,7 +104,8 @@ function BuchenFormular() {
       <div className="max-w-lg mx-auto" style={{ padding: '2rem 1rem' }}>
         <h2 className="text-2xl font-bold text-rikscha-green mb-4">Fahrt buchen</h2>
 
-        <form onSubmit={absenden} className="bg-white rounded-xl shadow p-6 space-y-4">
+        <form onSubmit={absenden} className="bg-white rounded-xl shadow p-6 space-y-4 relative">
+          <Lockfeld wert={lockfeld} onChange={setLockfeld} />
 
           {/* Angehörige-Hinweis */}
           {istAngehoeriger && (

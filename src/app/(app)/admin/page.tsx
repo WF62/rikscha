@@ -45,7 +45,7 @@ export default function AdminSeite() {
       body: JSON.stringify({ password: adminPw }),
     });
     if (res.ok) { setEingeloggt(true); laden_(); }
-    else setLoginFehler('Falsches Passwort.');
+    else setLoginFehler(res.status === 429 ? 'Zu viele falsche Versuche. Bitte 15 Minuten warten.' : 'Falsches Passwort.');
   };
 
   const hinzufügen = async (e: React.FormEvent) => {

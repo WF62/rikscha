@@ -1,4 +1,5 @@
 'use client';
+import { authHeaders } from '@/lib/authHeaders';
 import { useState, useEffect, useRef } from 'react';
 
 type Foto = { id: string; url: string; beschreibung: string; pilot: string; kategorie?: string; created_at: string; sichtbar: boolean; freigegeben: boolean; stimmen: number };
@@ -101,7 +102,8 @@ export default function GaleriePage() {
 
   async function abstimmen(id: string) {
     if (gestimmt.has(id)) return;
-    await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
+    const res = await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
+    if (!res.ok) { const j = await res.json().catch(() => ({})); alert(j.error ?? 'Die Stimme konnte nicht gezählt werden.'); return; }
     const neu = new Set(gestimmt).add(id);
     setGestimmt(neu);
     localStorage.setItem('gestimmt', JSON.stringify(Array.from(neu)));
@@ -109,7 +111,8 @@ export default function GaleriePage() {
   }
 
   async function gastStimme(id: string) {
-    await fetch(`/api/galerie/${id}/stimme`, { method: 'POST' });
+    const res = await fetch(`/api/galerie/${id}/stimme`, { method: 'POST', headers: authHeaders() });
+    if (!res.ok) { const j = await res.json().catch(() => ({})); alert(j.error ?? 'Die Stimme konnte nicht gezählt werden.'); return; }
     setFotos(f => f.map(x => x.id === id ? { ...x, stimmen: x.stimmen + 1 } : x));
   }
 
