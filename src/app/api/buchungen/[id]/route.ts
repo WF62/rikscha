@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfFahrtenVerwalten, istAdmin } from '@/lib/pilotAuth';
+import { fahrzeugFehler } from '@/lib/stammdaten-server';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,6 +29,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.datum     !== undefined) update.datum     = body.datum;
   if (body.startzeit !== undefined) update.startzeit = body.startzeit;
   if (body.endzeit   !== undefined) update.endzeit   = body.endzeit;
+
+  // Neues Fahrzeug oder neues Datum: Fahrzeug muss an dem Tag buchbar sein
+  if (body.fahrzeug !== undefined || body.datum !== undefined) {
+    const { data: alt } = await sb.from('rikscha_buchungen').select('fahrzeug, datum').eq('id', id).maybeSingle();
+    const fz = (body.fahrzeug ?? alt?.fahrzeug ?? '') as string;
+    const tag = (body.datum ?? alt?.datum) as string | undefined;
+    const fzFehler = await fahrzeugFehler(fz, tag);
+    if (fzFehler) return NextResponse.json({ error: fzFehler }, { status: 409 });
+  }
 
   const { data, error } = await sb
     .from('rikscha_buchungen')

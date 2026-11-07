@@ -2,17 +2,18 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import type { Buchung } from '@/lib/supabase';
-import { FAHRZEUGE } from '@/lib/constants';
+import { ladeStammdaten } from '@/lib/stammdaten-server';
 
-function fahrzeugName(id: string) {
-  return FAHRZEUGE.find((f) => f.id === id)?.name ?? id;
+type Namen = Map<string, string>;
+function fahrzeugName(namen: Namen, id: string) {
+  return namen.get(id) ?? id;
 }
 
 function toIcsDate(iso: string) {
   return iso.replace(/[-:]/g, '').replace(/\.\d+/, '').replace('Z', 'Z');
 }
 
-function buchungZuVEvent(b: Buchung, mitNamen: boolean): string {
+function buchungZuVEvent(b: Buchung, mitNamen: boolean, namen: Namen): string {
   const start = `${b.datum.replace(/-/g, '')}T${b.startzeit.slice(0, 5).replace(/:/g, '')}00`;
   const end = `${b.datum.replace(/-/g, '')}T${b.endzeit.slice(0, 5).replace(/:/g, '')}00`;
   const dtstamp = toIcsDate(b.erstellt_am);
@@ -26,7 +27,7 @@ function buchungZuVEvent(b: Buchung, mitNamen: boolean): string {
     `DTSTAMP:${dtstamp}`,
     `DTSTART;TZID=Europe/Berlin:${start}`,
     `DTEND;TZID=Europe/Berlin:${end}`,
-    `SUMMARY:${status}${fahrzeugName(b.fahrzeug)} - ${b.pilot}${gaeste}`,
+    `SUMMARY:${status}${fahrzeugName(namen, b.fahrzeug)} - ${b.pilot}${gaeste}`,
     `DESCRIPTION:Pilot: ${b.pilot}${gaeste}${mitNamen && b.notiz ? '\\n' + b.notiz : ''}`,
     `STATUS:${b.storniert ? 'CANCELLED' : 'CONFIRMED'}`,
     'END:VEVENT',
@@ -34,6 +35,7 @@ function buchungZuVEvent(b: Buchung, mitNamen: boolean): string {
 }
 
 export async function GET(req: NextRequest) {
+  const namen: Namen = new Map((await ladeStammdaten(true)).fahrzeuge.map((f) => [f.id, f.name]));
   const { searchParams } = new URL(req.url);
   const pilotFilter = searchParams.get('pilot');
   // Gastnamen nur, wenn der geheime Schlüssel ICAL_KEY im Link steht (…/api/ical?key=…)
@@ -51,7 +53,7 @@ export async function GET(req: NextRequest) {
   const buchungen: Buchung[] = data ?? [];
   let calName = 'Rikscha-Team Fahrten';
   if (pilotFilter) calName = `Rikscha - ${pilotFilter}`;
-  if (fahrzeugFilter) calName = `Rikscha - ${fahrzeugName(fahrzeugFilter)}`;
+  if (fahrzeugFilter) calName = `Rikscha - ${fahrzeugName(namen, fahrzeugFilter)}`;
 
   const cal = [
     'BEGIN:VCALENDAR',
@@ -78,7 +80,7 @@ export async function GET(req: NextRequest) {
     'TZNAME:CEST',
     'END:DAYLIGHT',
     'END:VTIMEZONE',
-    ...buchungen.map((b) => buchungZuVEvent(b, mitNamen)),
+    ...buchungen.map((b) => buchungZuVEvent(b, mitNamen, namen)),
     'END:VCALENDAR',
   ].join('\r\n');
 

@@ -45,3 +45,11 @@ SUPABASE_SERVICE_ROLE_KEY=...
   Angehörige dürfen nur ihre eigenen Buchungen ändern. Endgültig löschen: nur Admin.
 - Gastnamen und Notizen in `/api/buchungen` sehen nur angemeldete Kutscher; alle anderen sehen „Gast“.
 - Im iCal-Feed stehen Gastnamen nur, wenn der Link `?key=<ICAL_KEY>` enthält. Ohne `ICAL_KEY` zeigt der Feed nur die Anzahl der Gäste.
+
+## Fahrzeuge und Kutscher pflegen
+
+Fahrzeuge und die Kutscher-Auswahlliste stehen in den Tabellen `rikscha_fahrzeuge` und `rikscha_kutscher`
+(einmalig `supabase/stammdaten-fahrzeuge-kutscher.sql` im Supabase SQL-Editor ausführen).
+Gepflegt wird im Admin-Bereich unter „Fahrzeuge & Kutscher“. Ein Fahrzeug mit „Verfügbar ab“ ist vorher
+nicht buchbar – so können bestellte Fahrzeuge schon eingetragen werden. Solange die Tabellen fehlen,
+nutzt die App die festen Werte aus `src/lib/constants.ts`.

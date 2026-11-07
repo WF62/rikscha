@@ -10,7 +10,9 @@ import {
 import { de } from 'date-fns/locale';
 import type { Buchung, Sperre } from '@/lib/supabase';
 import type { TeamUpEvent } from '@/app/api/teamup/route';
-import { FAHRZEUGE, PILOTEN, PILOT_FARBE, GAST_FARBE, fahrzeugById } from '@/lib/constants';
+import { PILOT_FARBE, GAST_FARBE } from '@/lib/constants';
+import { useStammdaten } from '@/lib/useStammdaten';
+import { istBuchbarAm, datumDeutsch } from '@/lib/stammdaten';
 import AbmeldeButton from '../AbmeldeButton';
 import { authHeaders } from '@/lib/authHeaders';
 
@@ -77,6 +79,7 @@ function tagBg(tag: Date, datum: Date, ansicht: Ansicht, feiertage: Map<string, 
 }
 
 function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; onClick?: (e: React.MouseEvent) => void }) {
+  const { fahrzeugById } = useStammdaten();
   const fz = fahrzeugById(b.fahrzeug);
   const istOffen = !b.pilot || !b.fahrzeug;
   return (
@@ -124,6 +127,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
 }
 
 function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () => void; onClose: () => void }) {
+  const { fahrzeuge, kutscher, fahrzeugById } = useStammdaten();
   const [saving, setSaving] = useState(false);
   const [gaestInput, setGaestInput] = useState('');
   const [notiz, setNotiz] = useState(b.notiz ?? '');
@@ -141,6 +145,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
       body: JSON.stringify(data),
     });
     if (res.status === 401) alert(NICHT_ANGEMELDET);
+    else if (!res.ok) { const j = await res.json().catch(() => ({})); alert(j.error ?? 'Die Änderung konnte nicht gespeichert werden.'); }
     setSaving(false);
     onUpdated();
   };
@@ -196,7 +201,7 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-600 mb-1.5">Kutscher:</p>
         <div className="flex flex-wrap gap-1.5">
-          {PILOTEN.map((name) => (
+          {kutscher.map(({ name }) => (
             <button key={name} disabled={saving} onClick={() => patch({ pilot: name })}
               style={{ backgroundColor: b.pilot === name ? PILOT_FARBE.dotHex : PILOT_FARBE.bgHex, color: b.pilot === name ? '#fff' : '#1e1b4b', outline: b.pilot === name ? `3px solid ${PILOT_FARBE.dotHex}` : 'none' }}
               className="text-sm px-3 py-1.5 rounded font-bold border border-indigo-400 hover:scale-105 transition-transform disabled:opacity-50">{name}</button>
@@ -207,13 +212,17 @@ function BearbeitenPanel({ b, onUpdated, onClose }: { b: Buchung; onUpdated: () 
       <div className="mb-3">
         <p className="text-xs font-semibold text-gray-600 mb-1.5">Fahrzeug:</p>
         <div className="flex flex-wrap gap-1.5">
-          {FAHRZEUGE.map((f) => (
-            <button key={f.id} disabled={saving} onClick={() => fahrzeugWaehlen(f.id)}
+          {fahrzeuge.map((f) => {
+            const zu = !istBuchbarAm(f, b.datum);
+            return (
+            <button key={f.id} disabled={saving || zu} onClick={() => fahrzeugWaehlen(f.id)}
+              title={zu && f.verfuegbarAb ? `Erst ab ${datumDeutsch(f.verfuegbarAb)} buchbar` : undefined}
               style={{ backgroundColor: f.bgHex, outline: b.fahrzeug === f.id ? `3px solid ${f.farbeHex}` : 'none' }}
               className="text-sm px-3 py-1.5 rounded font-bold border border-gray-400 hover:scale-105 transition-transform disabled:opacity-50 text-gray-900">
-              {f.name} <span className="font-normal text-xs opacity-70">(max. {f.maxGaeste}G)</span>
+              {f.name} <span className="font-normal text-xs opacity-70">(max. {f.maxGaeste}G{zu && f.verfuegbarAb ? ` · ab ${datumDeutsch(f.verfuegbarAb)}` : ''})</span>
             </button>
-          ))}
+            );
+          })}
           {b.fahrzeug && <button onClick={() => patch({ fahrzeug: '' })} disabled={saving} className="text-sm px-3 py-1.5 rounded border border-dashed border-orange-400 text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50">Kein Fahrzeug</button>}
         </div>
       </div>
@@ -257,6 +266,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
   onUpdated: () => void;
   ladeKalenderDaten: () => void;
 }) {
+  const { fahrzeugById } = useStammdaten();
   const fz = fahrzeugById(b.fahrzeug);
   const istOffen = !b.pilot || !b.fahrzeug;
   const bearbeiten = bearbeitenId === b.id;
@@ -329,6 +339,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
 }
 
 export default function KalenderSeite() {
+  const { fahrzeuge, kutscher, fahrzeugById } = useStammdaten();
   const [datum, setDatum]   = useState(new Date());
   const [ansicht, setAnsicht] = useState<Ansicht>('monat');
   const [buchungen, setBuchungen] = useState<Buchung[]>([]);
@@ -458,7 +469,7 @@ export default function KalenderSeite() {
       {/* Legende */}
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
         <span className="text-xs font-semibold text-gray-500 self-center">Fahrzeug:</span>
-        {FAHRZEUGE.map((f) => (
+        {fahrzeuge.map((f) => (
           <button key={f.id} onClick={() => setFilterFahrzeug(p => p === f.id ? '' : f.id)}
             onDoubleClick={() => schnellBuchen({ fahrzeug: f.id })} title="Klick=Filter | Doppelklick=Termin"
             style={{ backgroundColor: f.bgHex }}
@@ -474,7 +485,7 @@ export default function KalenderSeite() {
       </div>
       <div className="flex flex-wrap gap-2 mb-2 text-xs">
         <span className="text-xs font-semibold text-gray-500 self-center">Kutscher:</span>
-        {PILOTEN.map((name) => (
+        {kutscher.map(({ name }) => (
           <button key={name} onClick={() => setFilterPilot(p => p === name ? '' : name)}
             onDoubleClick={() => schnellBuchen({ pilot: name })} title="Klick=Filter | Doppelklick=Termin"
             style={{ backgroundColor: PILOT_FARBE.bgHex }}
@@ -666,7 +677,7 @@ export default function KalenderSeite() {
         <h3 className="font-semibold text-rikscha-green mb-2">📅 Kalender abonnieren (iCal)</h3>
         <div className="flex flex-wrap gap-2 text-xs">
           <a href="/api/ical" className="underline text-rikscha-green">Alle Fahrten</a>
-          {FAHRZEUGE.map((f) => <a key={f.id} href={`/api/ical?fahrzeug=${f.id}`} className="underline text-rikscha-green">{f.name}</a>)}
+          {fahrzeuge.map((f) => <a key={f.id} href={`/api/ical?fahrzeug=${f.id}`} className="underline text-rikscha-green">{f.name}</a>)}
         </div>
       </div>
 

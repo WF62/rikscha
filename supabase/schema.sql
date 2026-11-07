@@ -1,7 +1,7 @@
 -- Rikscha Buchungen
 create table if not exists rikscha_buchungen (
   id uuid primary key default gen_random_uuid(),
-  fahrzeug text not null check (fahrzeug in ('flotte_lotte', 'flinker_flitzer', 'jruuse_piter')),
+  fahrzeug text not null, -- gültige Werte: Tabelle rikscha_fahrzeuge (stammdaten-fahrzeuge-kutscher.sql)
   pilot text not null,
   gaeste text[] not null default '{}',
   datum date not null,
@@ -16,7 +16,7 @@ create table if not exists rikscha_buchungen (
 -- Rikscha Sperren
 create table if not exists rikscha_sperren (
   id uuid primary key default gen_random_uuid(),
-  fahrzeug text not null check (fahrzeug in ('flotte_lotte', 'flinker_flitzer', 'jruuse_piter')),
+  fahrzeug text not null, -- gültige Werte: Tabelle rikscha_fahrzeuge (stammdaten-fahrzeuge-kutscher.sql)
   von_datum date not null,
   bis_datum date not null,
   grund text,

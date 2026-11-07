@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import StammdatenVerwaltung from './StammdatenVerwaltung';
 
 type Person = { id: string; name: string; rolle: string; aktiv: boolean };
 type OrdnerDatei = { id: string; kategorie: string; name: string; url: string; groesse: number; typ: string };
@@ -322,6 +323,8 @@ export default function AdminSeite() {
           </div>
         </div>
       )}
+
+      <StammdatenVerwaltung />
     </div>
   );
 }
