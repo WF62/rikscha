@@ -77,3 +77,14 @@ Kutscher-Passwörter stehen nur als bcrypt-Hash in `piloten_zugang.passwort_hash
 Nach dem Login speichert der Browser nicht das Passwort, sondern einen Anmelde-Token (90 Tage gültig,
 ungültig nach Passwortänderung). Signiert wird mit `SESSION_SECRET` (optional, sonst Service-Key).
 Alte Anmeldungen werden beim nächsten Seitenaufruf automatisch auf einen Token umgestellt.
+
+## Bewohnerfahrten (Pflege)
+
+Rolle `pflege` (im Admin-Bereich vergeben) öffnet die Seite `/pflege`:
+- **Bewohner** anlegen: Name, Wohnbereich, Rollstuhl, kurzer Hinweis – bewusst keine Gesundheitsdaten. Löschen entfernt den Namen auch aus alten Fahrten.
+- **Freie Fahrzeiten belegen:** Kutscher bieten beim Buchen „freie Fahrzeit für Bewohner“ an, die Pflege ordnet einen Bewohner zu.
+- **Fahrtwunsch melden:** erscheint im Kalender als offene Fahrt, ein Kutscher tippt „Ich übernehme“.
+- Rollstuhl-Bewohner nur mit Fahrzeugen, die als rollstuhlgeeignet eingetragen sind.
+
+Bewohnernamen sehen nur Kutscher und Pflege; öffentlich erscheinen sie als „Gast“, in der Team-Mail gar nicht.
+Einmalig `supabase/bewohner-pflege.sql` ausführen.

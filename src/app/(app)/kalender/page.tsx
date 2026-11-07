@@ -99,10 +99,15 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
           <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate`}>{b.startzeit.slice(0,5)} offen</span>
         </div>
       )}
+      {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
+        <div className="px-1 py-0.5 border-t border-white/60 bg-emerald-100 text-emerald-800">
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : '🏠 frei für Bewohner'}</span>
+        </div>
+      )}
       {!schmal && (b.gaeste ?? []).map((g, i) => (
         <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
-          <span className="text-[11px] font-semibold truncate">G: {g}</span>
+          <span className="text-[11px] font-semibold truncate">{b.bewohner ? '🏠 ' : 'G: '}{g}{b.bewohner?.rollstuhl ? ' ♿' : ''}</span>
         </div>
       ))}
       {schmal && (b.gaeste ?? []).length > 0 && (
@@ -270,6 +275,20 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
   const fz = fahrzeugById(b.fahrzeug);
   const istOffen = !b.pilot || !b.fahrzeug;
   const bearbeiten = bearbeitenId === b.id;
+  const [ichKutscher, setIchKutscher] = useState<string | null>(null);
+  useEffect(() => {
+    const rolle = localStorage.getItem('pilot_rolle');
+    setIchKutscher(rolle === 'pilot' || rolle === 'gfo' ? localStorage.getItem('pilot_name') : null);
+  }, []);
+  const uebernehmen = async () => {
+    if (!ichKutscher) return;
+    const res = await fetch(`/api/buchungen/${b.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ pilot: ichKutscher }),
+    });
+    if (res.status === 401) alert(NICHT_ANGEMELDET);
+    else if (!res.ok) { const j = await res.json().catch(() => ({})); alert(j.error ?? 'Das hat nicht geklappt.'); }
+    onUpdated();
+  };
   return (
     <div className={`border-2 rounded-lg overflow-hidden mb-4 shadow-sm ${
       istOffen ? 'border-orange-400' : 'border-gray-300'
@@ -281,6 +300,8 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {b.startzeit.slice(0,5)}–{b.endzeit.slice(0,5)} Uhr
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
+        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">FREI FÜR BEWOHNER</span>}
+        {b.bewohner && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 BEWOHNERFAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
       </div>
       {b.pilot ? (
@@ -297,9 +318,16 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {b.gaeste.map((g, i) => (
         <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
-          <span className="text-sm font-semibold">G: {g}</span>
+          <span className="text-sm font-semibold">{b.bewohner ? '🏠 ' : 'G: '}{g}</span>
         </div>
       ))}
+      {b.bewohner && (
+        <div className="px-3 py-2 border-t border-teal-200 bg-teal-50 text-sm text-teal-900 space-y-0.5">
+          {b.bewohner.wohnbereich && <div>Wohnbereich: <strong>{b.bewohner.wohnbereich}</strong></div>}
+          {b.bewohner.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
+          {b.bewohner.hinweis && <div>Hinweis der Pflege: {b.bewohner.hinweis}</div>}
+        </div>
+      )}
       {b.fahrzeug ? (
         <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-2 px-3 py-2 border-t border-white/60 text-gray-900">
           <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="w-3 h-3 rounded-full flex-shrink-0" />
@@ -317,6 +345,13 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           ? <p className="text-sm text-gray-700">{b.notiz}</p>
           : <p className="text-sm text-gray-400 italic">Keine Notiz</p>}
       </div>
+      {!b.storniert && !b.pilot && ichKutscher && (
+        <div className="px-3 py-2 bg-orange-50 border-t border-orange-200">
+          <button onClick={uebernehmen} className="w-full text-sm font-bold py-2 rounded border-2 bg-rikscha-green text-white border-rikscha-green">
+            🙋 Ich übernehme diese Fahrt
+          </button>
+        </div>
+      )}
       {!b.storniert && (
         <div className="flex gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
           <button onClick={() => onBearbeiten(bearbeiten ? null : b.id)}

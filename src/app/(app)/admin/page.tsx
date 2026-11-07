@@ -9,6 +9,8 @@ type OrdnerDatei = { id: string; kategorie: string; name: string; url: string; g
 const ROLLEN = [
   { value: 'pilot', label: 'Kutscher' },
   { value: 'gfo',   label: 'GFO-Mitarbeiterin' },
+  { value: 'pflege', label: 'Pflege (Bewohnerfahrten)' },
+  { value: 'angehoeriger', label: 'Angehörige/r' },
 ];
 const ORDNER_KAT = ['Polizeiliches Führungszeugnis', 'Einweisungsprotokoll', 'Ehrenamtsvertrag', 'Sonstiges'] as const;
 
@@ -226,11 +228,12 @@ export default function AdminSeite() {
                 onChange={(e) => rolleÄndern(p, e.target.value)}
                 title="Rolle ändern"
                 className={`text-xs px-2 py-0.5 rounded-full font-semibold border-0 cursor-pointer appearance-none ${
-                  p.rolle === 'gfo' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                  p.rolle === 'gfo' ? 'bg-blue-100 text-blue-700' : p.rolle === 'pflege' ? 'bg-teal-100 text-teal-700' : 'bg-green-100 text-green-700'
                 }`}>
                 <option value="pilot">Kutscher</option>
                 <option value="gfo">GFO</option>
                 <option value="angehoeriger">Angehörige/r</option>
+                <option value="pflege">Pflege</option>
               </select>
               <span className="flex-1 font-medium text-sm">{p.name}</span>
 
@@ -274,6 +277,7 @@ export default function AdminSeite() {
                   <option value="pilot">Kutscher</option>
                   <option value="gfo">GFO</option>
                   <option value="angehoeriger">Angehörige/r</option>
+                  <option value="pflege">Pflege</option>
                 </select>
                 <span className="flex-1 text-sm text-gray-400 line-through">{p.name}</span>
                 <button onClick={() => ordnerOeffnen(p.name)} className="text-xs text-purple-400 hover:underline">🗂️ Ordner</button>

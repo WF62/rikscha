@@ -2,8 +2,10 @@ import type { NextRequest } from 'next/server';
 import { anmelden, istToken } from './passwort';
 import { zuViele, merke } from './spamschutz';
 
+/** Angemeldeter Zugang mit Kutscher-Rechten für Inhalte (Pflege-Zugänge sind nur für Bewohnerfahrten). */
 export async function checkPilot(name: string, password: string): Promise<boolean> {
-  return !!(await getPilotRolle(name, password));
+  const rolle = await getPilotRolle(name, password);
+  return !!rolle && rolle !== 'pflege';
 }
 
 /** Rolle zu Name + Passwort oder Anmelde-Token, sonst null. */
@@ -35,7 +37,12 @@ export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string;
   return { name, rolle };
 }
 
-/** Kutscher, GFO und Admin dürfen Fahrten und Sperren verwalten – Gäste und Angehörige nicht. */
+/** Kutscher, GFO und Admin dürfen Fahrten und Sperren verwalten – Gäste, Angehörige und Pflege nicht. */
 export function darfFahrtenVerwalten(rolle: string | null) {
-  return !!rolle && rolle !== 'gast' && rolle !== 'angehoeriger';
+  return rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
+}
+
+/** Pflege, GFO und Admin pflegen Bewohner und buchen Bewohnerfahrten. */
+export function darfBewohnerVerwalten(rolle: string | null) {
+  return rolle === 'pflege' || rolle === 'gfo' || rolle === 'admin';
 }

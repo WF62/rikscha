@@ -480,7 +480,36 @@ export default function PilotenModal() {
           </div>
         )}
 
-        {ansicht === 'bereich' && pilotRolle !== 'angehoeriger' && (
+        {/* PFLEGE-BEREICH */}
+        {ansicht === 'bereich' && pilotRolle === 'pflege' && (
+          <div style={{ maxWidth: 420 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.8rem' }}>🏠</span>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.1rem' }}>Hallo, {pilotName}!</div>
+                  <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Bereich für die Pflege</div>
+                </div>
+              </div>
+              <button onClick={abmelden} style={{ padding: '0.4rem 1rem', border: '1.5px solid #D6CCB8', borderRadius: 8, background: 'transparent', color: '#6B5C44', fontSize: '0.82rem', cursor: 'pointer' }}>Abmelden</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {[
+                { href: '/pflege',   icon: '🏠', titel: 'Bewohnerfahrten', sub: 'Freie Zeiten, Wünsche, Bewohner', border: '#2D6B1E' },
+                { href: '/kalender', icon: '📅', titel: 'Kalender',        sub: 'Alle Termine ansehen',            border: '#D6CCB8' },
+              ].map(k => (
+                <a key={k.href} href={k.href} target="_blank"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '1.1rem', background: '#F5F0E7', borderRadius: 12, border: `1.5px solid ${k.border}`, textDecoration: 'none', color: '#1C1208', cursor: 'pointer' }}>
+                  <span style={{ fontSize: '1.4rem' }}>{k.icon}</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{k.titel}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#6B5C44' }}>{k.sub}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {ansicht === 'bereich' && pilotRolle !== 'angehoeriger' && pilotRolle !== 'pflege' && (
           <div style={{ maxWidth: 600 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
