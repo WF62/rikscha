@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { Lockfeld, useFormularStart } from '@/lib/Lockfeld';
 
 type UploadDatei = { datei: File; vorschau: string; name: string; status: 'warten' | 'laden' | 'ok' | 'err'; meldung?: string };
 
@@ -30,6 +31,8 @@ export default function GasteUploadPage() {
   const [dateien, setDateien] = useState<UploadDatei[]>([]);
   const [uploading, setUploading] = useState(false);
   const [gastName, setGastName] = useState('');
+  const formularStart = useFormularStart();
+  const [lockfeld, setLockfeld] = useState('');
   const kameraRef = useRef<HTMLInputElement>(null);
   const inputRef  = useRef<HTMLInputElement>(null);
 
@@ -69,6 +72,8 @@ export default function GasteUploadPage() {
       form.append('sichtbar', '0');
       form.append('freigegeben', '0');
       form.append('datei', komprimiert);
+      form.append('website', lockfeld);
+      form.append('_t', String(formularStart));
 
       try {
         const res = await fetch('/api/galerie/gast', { method: 'POST', body: form });
@@ -146,7 +151,8 @@ export default function GasteUploadPage() {
             </div>
           </div>
         ) : (
-          <div className="card">
+          <div className="card" style={{ position: 'relative' }}>
+            <Lockfeld wert={lockfeld} onChange={setLockfeld} />
             <label className="field-label">Dein Name <span style={{color:'#dc2626'}}>*</span> <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'var(--mid)'}}>— für die Gewinner-Ermittlung</span></label>
             <input
               className="field-input"

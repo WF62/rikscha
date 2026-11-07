@@ -53,3 +53,19 @@ Fahrzeuge und die Kutscher-Auswahlliste stehen in den Tabellen `rikscha_fahrzeug
 Gepflegt wird im Admin-Bereich unter „Fahrzeuge & Kutscher“. Ein Fahrzeug mit „Verfügbar ab“ ist vorher
 nicht buchbar – so können bestellte Fahrzeuge schon eingetragen werden. Solange die Tabellen fehlen,
 nutzt die App die festen Werte aus `src/lib/constants.ts`.
+
+## Spam-Schutz
+
+Öffentliche Formulare (Buchen, Kontakt, Gäste-Fotos, Abstimmung) und die Logins sind geschützt durch:
+ein unsichtbares Lockfeld, eine Mindest-Ausfüllzeit von 3 Sekunden und Obergrenzen pro Gerät
+(Tabelle `rikscha_anfragen_log`, einmalig `supabase/spamschutz.sql` ausführen). Gespeichert wird nur ein
+gekürzter Hash aus IP-Adresse und Geheimwert (`SPAM_SALT`, optional), keine IP-Adresse. Angemeldete
+Kutscher sind von den Grenzen ausgenommen. Fehlt die Tabelle, greifen nur Lockfeld und Ausfüllzeit.
+
+| Aktion | Grenze pro Gerät |
+|---|---|
+| Buchung (nicht angemeldet) | 5 pro Stunde, 15 pro Tag |
+| Kontaktformular | 3 pro Stunde, 10 pro Tag |
+| Gäste-Foto | 10 pro Stunde, 30 pro Tag (nur Bilder, max. 10 MB) |
+| Abstimmung | 1 pro Foto und Tag, 50 pro Tag |
+| Falsches Passwort | 10 in 15 Minuten, 30 pro Tag |

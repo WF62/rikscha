@@ -1,11 +1,14 @@
 'use client';
 import { useState } from 'react';
+import { Lockfeld, useFormularStart } from '@/lib/Lockfeld';
 
 export default function KontaktFormular() {
   const [form, setForm] = useState({ name: '', email: '', anliegen: 'fahrt', nachricht: '' });
   const [fehler, setFehler] = useState('');
   const [erfolg, setErfolg] = useState(false);
   const [laden, setLaden] = useState(false);
+  const formularStart = useFormularStart();
+  const [lockfeld, setLockfeld] = useState('');
 
   async function absenden(e: React.FormEvent) {
     e.preventDefault();
@@ -19,13 +22,14 @@ export default function KontaktFormular() {
       const res = await fetch('/api/kontakt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, website: lockfeld, _t: formularStart }),
       });
       if (res.ok) {
         setErfolg(true);
         setForm({ name: '', email: '', anliegen: 'fahrt', nachricht: '' });
       } else {
-        setFehler('Beim Senden ist ein Fehler aufgetreten. Bitte versuche es erneut.');
+        const j = await res.json().catch(() => ({}));
+        setFehler(j.error ?? 'Beim Senden ist ein Fehler aufgetreten. Bitte versuche es erneut.');
       }
     } catch {
       setFehler('Keine Verbindung — bitte prüfe deine Internetverbindung und versuche es erneut.');
@@ -42,7 +46,8 @@ export default function KontaktFormular() {
   }
 
   return (
-    <form className="kontakt-form" aria-label="Kontaktformular" onSubmit={absenden} noValidate>
+    <form className="kontakt-form" aria-label="Kontaktformular" onSubmit={absenden} noValidate style={{ position: 'relative' }}>
+      <Lockfeld wert={lockfeld} onChange={setLockfeld} />
       {fehler && <p role="alert" style={{ color: '#A63228', background: '#F5E5D8', border: '1px solid #A63228', borderRadius: 8, padding: '0.7rem 1rem', marginBottom: '1rem', fontSize: '0.92rem' }}>{fehler}</p>}
       <div className="form-row">
         <div className="form-group">
