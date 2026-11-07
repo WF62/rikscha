@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendBuchungEmail } from '@/lib/email';
-import { rolleAusAnfrage, darfFahrtenVerwalten } from '@/lib/pilotAuth';
+import { rolleAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten } from '@/lib/pilotAuth';
 import { fahrzeugFehler, ladeStammdaten } from '@/lib/stammdaten-server';
 import { formularPruefen, begrenzen, ZU_VIELE, NEU_LADEN } from '@/lib/spamschutz';
 
@@ -31,11 +31,23 @@ export async function GET(req: NextRequest) {
   // Gastnamen und Notizen sehen nur angemeldete Kutscher (Angehörige nur bei eigenen Buchungen).
   const { name, rolle } = await rolleAusAnfrage(req);
   const voll = darfFahrtenVerwalten(rolle);
+  const pflege = darfBewohnerVerwalten(rolle);
+
+  // Bewohner-Angaben nur für Kutscher und Pflege
+  const bewohnerIds = Array.from(new Set((data ?? []).map((b) => b.bewohner_id).filter(Boolean))) as string[];
+  const bewohner = new Map<string, unknown>();
+  if ((voll || pflege) && bewohnerIds.length) {
+    const { data: bw } = await sb.from('rikscha_bewohner').select('id, name, wohnbereich, rollstuhl, hinweis').in('id', bewohnerIds);
+    for (const x of bw ?? []) bewohner.set(x.id, { name: x.name, wohnbereich: x.wohnbereich, rollstuhl: x.rollstuhl, hinweis: x.hinweis });
+  }
+
   let gekuerzt = false;
   const liste = (data ?? []).map((b) => {
-    if (voll || (rolle === 'angehoeriger' && b.pilot === name)) return b;
+    if (voll || (pflege && b.bewohner_id) || (rolle === 'angehoeriger' && b.pilot === name)) {
+      return { ...b, bewohner: b.bewohner_id ? bewohner.get(b.bewohner_id) ?? null : null };
+    }
     gekuerzt = true;
-    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null };
+    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null };
   });
   return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });
 }
@@ -79,6 +91,12 @@ export async function POST(req: NextRequest) {
   }
   // Eigenfahrt nur für angemeldete Angehörige; Kutscher-Namen nur aus der Liste
   const eigenfahrt = rolle === 'angehoeriger' && !!body.eigenfahrt;
+  // Freie Fahrzeit für Bewohner: nur Kutscher, mit Kutscher und Fahrzeug, ohne Gäste
+  const angebot = vertraut && !!body.angebot;
+  if (angebot && (!pilot || !fahrzeug)) {
+    return NextResponse.json({ error: 'Für eine freie Fahrzeit bitte Kutscher und Fahrzeug wählen.' }, { status: 400 });
+  }
+  if (angebot) gaeste.length = 0;
   if (pilot && !vertraut && !(rolle === 'angehoeriger' && pilot === angemeldet)
       && !stamm.kutscher.some((k) => k.name === pilot)) {
     return NextResponse.json({ error: 'Unbekannter Kutscher.' }, { status: 400 });
@@ -130,6 +148,7 @@ export async function POST(req: NextRequest) {
       endzeit,
       notiz: notiz || null,
       ...(eigenfahrt ? { eigenfahrt: true } : {}),
+      ...(angebot ? { angebot: true } : {}),
     })
     .select()
     .single();

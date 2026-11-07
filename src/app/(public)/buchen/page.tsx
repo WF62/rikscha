@@ -15,6 +15,7 @@ function BuchenFormular() {
   const { fahrzeuge, kutscher } = useStammdaten();
   const formularStart = useFormularStart();
   const [lockfeld, setLockfeld] = useState('');
+  const [angebot, setAngebot] = useState(false);
   const params = useSearchParams();
   const [form, setForm] = useState({
     fahrzeug: params.get('fahrzeug') ?? '',
@@ -39,7 +40,7 @@ function BuchenFormular() {
       setIstAngehoeriger(true);
       setForm(f => ({ ...f, pilot: name }));
     } else {
-      setIstPilot(!!name && rolle !== 'gast');
+      setIstPilot(!!name && rolle !== 'gast' && rolle !== 'pflege');
     }
   }, []);
 
@@ -68,6 +69,7 @@ function BuchenFormular() {
     if (istPilot && !form.pilot && !form.fahrzeug) { setFehler('Bitte mindestens einen Piloten oder ein Fahrzeug wählen.'); return; }
     if ((istAngehoeriger || !istPilot) && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
+    if (angebot && (!form.pilot || !form.fahrzeug)) { setFehler('Für eine freie Fahrzeit bitte Kutscher und Fahrzeug wählen.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
     if (nochNichtDa && fahrzeug?.verfuegbarAb) { setFehler(`${fahrzeug.name} kann erst ab ${datumDeutsch(fahrzeug.verfuegbarAb)} gebucht werden.`); return; }
     setSpeichern(true); setFehler('');
@@ -77,10 +79,11 @@ function BuchenFormular() {
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           fahrzeug: form.fahrzeug || '', pilot: form.pilot || '',
-          gaeste, datum: form.datum, startzeit: form.startzeit,
+          gaeste: angebot ? [] : gaeste, datum: form.datum, startzeit: form.startzeit,
           endzeit: form.endzeit, notiz: form.notiz,
           ...(istAngehoeriger ? { eigenfahrt: true } : {}),
           website: lockfeld, _t: formularStart,
+          ...(angebot ? { angebot: true } : {}),
         }),
       });
       if (res.ok) { router.push('/'); }
@@ -188,7 +191,19 @@ function BuchenFormular() {
             <p className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">{typLabel}</p>
           )}
 
+          {/* Freie Fahrzeit für Bewohner anbieten – nur Kutscher */}
+          {istPilot && !istAngehoeriger && (
+            <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer ${angebot ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+              <input type="checkbox" checked={angebot} onChange={(e) => setAngebot(e.target.checked)} className="mt-1" />
+              <span>
+                <span className="font-semibold">🏠 Als freie Fahrzeit für Bewohner anbieten</span>
+                <span className="block text-xs text-gray-500">Die Pflege sieht die Zeit und ordnet einen Bewohner zu. Bitte Kutscher und Fahrzeug wählen.</span>
+              </span>
+            </label>
+          )}
+
           {/* Gaeste */}
+          {!angebot && (
           <fieldset className="border-0 p-0 m-0">
             <legend className="block text-sm font-semibold mb-1">Ihr Name & Begleitung (optional)</legend>
             {[{ key: 'gast1', val: form.gast1, ph: 'Ihr Name' }, { key: 'gast2', val: form.gast2, ph: 'Begleitung' }]
@@ -203,6 +218,7 @@ function BuchenFormular() {
                 </div>
               ))}
           </fieldset>
+          )}
 
           {/* Datum */}
           <div>

@@ -28,6 +28,21 @@ export type Buchung = {
   storniert_am?: string;
   erstellt_am: string;
   eigenfahrt?: boolean;
+  /** Fahrt für einen Bewohner (nur für Kutscher und Pflege sichtbar) */
+  bewohner_id?: string | null;
+  /** Freie Fahrzeit, die ein Kutscher für Bewohner anbietet */
+  angebot?: boolean;
+  /** Angaben zum Bewohner – nur für Kutscher und Pflege mitgeliefert */
+  bewohner?: { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null } | null;
+};
+
+export type Bewohner = {
+  id: string;
+  name: string;
+  wohnbereich: string | null;
+  rollstuhl: boolean;
+  hinweis: string | null;
+  aktiv: boolean;
 };
 
 export type Sperre = {

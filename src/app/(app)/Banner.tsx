@@ -16,7 +16,8 @@ export default function Banner() {
     fetch('/api/banner').then(r => r.json()).then((d: string[]) => setTexte(d));
     const name = localStorage.getItem('pilot_name');
     const pw   = localStorage.getItem('pilot_pw');
-    if (name && pw) { setPilot(name); setPassword(pw); setIstPilot(true); }
+    const rolle = localStorage.getItem('pilot_rolle');
+    if (name && pw && rolle !== 'pflege') { setPilot(name); setPassword(pw); setIstPilot(true); }
   }, []);
 
   function openEdit() {
