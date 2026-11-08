@@ -6,6 +6,7 @@ import { authHeaders } from '@/lib/authHeaders';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
 import { WUNSCH_TOUREN } from '@/lib/touren';
+import AktualisierenKnopf from '../AktualisierenKnopf';
 
 type Daten = { bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[] };
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
@@ -37,9 +38,18 @@ function zweitDaten(z: Zweit) {
 const zweitAnzahl = (z: Zweit) => (z.wahl === BEGLEITUNG ? (z.begleitung.trim() ? 1 : 0) : z.wahl ? 1 : 0);
 
 /** Auswahl einer zweiten Person: weiterer Bewohner oder Begleitperson (z. B. Angehörige) */
-function ZweitePerson({ bewohner, ersteId, wert, onChange, rollstuhlOk }: {
+function ZweitePerson({ bewohner, ersteId, wert, onChange, rollstuhlOk, gesperrt }: {
   bewohner: Bewohner[]; ersteId: string; wert: Zweit; onChange: (z: Zweit) => void; rollstuhlOk: boolean;
+  /** Grund, warum (noch) keine zweite Person möglich ist */
+  gesperrt?: string;
 }) {
+  if (gesperrt) {
+    return (
+      <select aria-label="Zweite Person" disabled className="border rounded px-2 py-2 bg-gray-100 text-gray-500">
+        <option>{gesperrt}</option>
+      </select>
+    );
+  }
   return (
     <div className="flex flex-col gap-1">
       <select aria-label="Zweite Person" value={wert.wahl} onChange={(e) => onChange({ ...wert, wahl: e.target.value })} className="border rounded px-2 py-2">
@@ -140,7 +150,10 @@ export default function PflegeSeite() {
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold text-rikscha-green">🚲 Rikscha-Fahrten für Bewohner</h2>
-        <a href="/kalender" className="text-sm text-rikscha-green underline">Zum Kalender</a>
+        <span className="flex items-center gap-3 flex-wrap">
+          <AktualisierenKnopf />
+          <a href="/kalender" className="text-sm text-rikscha-green underline">Zum Kalender</a>
+        </span>
       </div>
 
       {meldung && (
@@ -178,13 +191,12 @@ export default function PflegeSeite() {
                         </option>
                       ))}
                     </select>
-                    {(fz?.maxGaeste ?? 1) >= 2 && auswahl[a.id] && (
-                      <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id]} rollstuhlOk={!!fz?.rollstuhl}
+                    {(fz?.maxGaeste ?? 1) >= 2 && (
+                      <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id] ?? ''} rollstuhlOk={!!fz?.rollstuhl}
+                        gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Bewohner wählen'}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
-                    {auswahl[a.id] && (
-                      <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
-                    )}
+                    <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
                     <button disabled={!auswahl[a.id]} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
                       onClick={async () => {
                         const zweit = (fz?.maxGaeste ?? 1) >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
@@ -219,13 +231,13 @@ export default function PflegeSeite() {
                   {aktive.map((b) => <option key={b.id} value={b.id}>{b.name}{b.wohnbereich ? ` (${b.wohnbereich})` : ''}{b.rollstuhl ? ' ♿' : ''}</option>)}
                 </select>
               </label>
-              {wunsch.bewohner_id && (!wunschFz || wunschFz.maxGaeste >= 2) && (
-                <label className="sm:col-span-2 text-sm font-semibold">Zweite Person (optional)
-                  <ZweitePerson bewohner={aktive} ersteId={wunsch.bewohner_id} rollstuhlOk={!wunschFz || wunschFz.rollstuhl}
-                    wert={wunsch2} onChange={setWunsch2} />
-                  {!wunschFz && zweitAnzahl(wunsch2) > 0 && <span className="block text-xs font-normal text-gray-500 mt-1">Für zwei Personen braucht der Kutscher ein Fahrzeug mit 2 Plätzen (z. B. Rikscha).</span>}
-                </label>
-              )}
+              <label className="sm:col-span-2 text-sm font-semibold">Zweite Person (optional)
+                <ZweitePerson bewohner={aktive} ersteId={wunsch.bewohner_id} rollstuhlOk={!wunschFz || wunschFz.rollstuhl}
+                  gesperrt={!wunsch.bewohner_id ? 'Erst oben einen Bewohner wählen'
+                    : wunschFz && wunschFz.maxGaeste < 2 ? `${wunschFz.name} hat nur 1 Platz – für zwei Personen z. B. die Rikscha wählen` : undefined}
+                  wert={wunsch2} onChange={setWunsch2} />
+                {!wunschFz && zweitAnzahl(wunsch2) > 0 && <span className="block text-xs font-normal text-gray-500 mt-1">Für zwei Personen braucht der Kutscher ein Fahrzeug mit 2 Plätzen (z. B. Rikscha).</span>}
+              </label>
               <label className="text-sm font-semibold">Tag
                 <input required type="date" value={wunsch.datum} onChange={(e) => setWunsch({ ...wunsch, datum: e.target.value })} className={feld} />
               </label>
