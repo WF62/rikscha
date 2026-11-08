@@ -295,6 +295,7 @@ export default function PilotenModal() {
     localStorage.removeItem('pilot_pw');
     localStorage.removeItem('pilot_rolle');
     window.dispatchEvent(new CustomEvent('pilot-login'));
+    window.dispatchEvent(new CustomEvent('pilot-logout'));
     setPilotName('');
     setPilotPw('');
     setPasswort('');

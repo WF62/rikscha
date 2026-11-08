@@ -7,6 +7,7 @@ const TourenKarte = nextDynamic(() => import('./TourenKarte'), { ssr: false });
 import PilotenFooterLink from './PilotenFooterLink';
 import PilotenNavLink from './PilotenNavLink';
 import PilotenModal from './PilotenModal';
+import SchnellStart from './SchnellStart';
 import Banner from '../(app)/Banner';
 import QrSpenden from './QrSpenden';
 import AusleihenButton from './AusleihenButton';
@@ -601,6 +602,7 @@ export default async function WebsitePage() {
       <Banner />
 
       <main id="main-content" tabIndex={-1}>
+      <SchnellStart />
 
       {/* Aktion Mensch Laufband */}
       <div className="am-ticker" aria-label="Wichtige Ankündigung">
