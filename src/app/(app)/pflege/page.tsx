@@ -296,7 +296,7 @@ export default function PflegeSeite() {
                 <input maxLength={40} type="tel" value={kontakt.telefon} onChange={(e) => setKontakt({ ...kontakt, telefon: e.target.value })} className="block border rounded px-2 py-1.5" />
               </label>
               <label className="font-semibold">E-Mail
-                <input maxLength={120} type="email" value={kontakt.email} onChange={(e) => setKontakt({ ...kontakt, email: e.target.value })} className="block border rounded px-2 py-1.5" />
+                <input maxLength={120} type="text" inputMode="email" autoComplete="off" value={kontakt.email} onChange={(e) => setKontakt({ ...kontakt, email: e.target.value })} className="block border rounded px-2 py-1.5" />
               </label>
               <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 font-semibold">Speichern</button>
               <button type="button" onClick={() => setKontakt(null)} className="text-gray-500 px-2 py-1.5">Abbrechen</button>
