@@ -184,6 +184,7 @@ export default function PflegeSeite() {
   const [angebotAbhol, setAngebotAbhol] = useState<Record<string, Abholort>>({});
   const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
   const [angebotStart, setAngebotStart] = useState<Record<string, string>>({}); // Beginn im Zeitfenster
+  const [angebotDauer, setAngebotDauer] = useState<Record<string, number>>({}); // Dauer (sonst aus der Tour)
   const [angebotFz, setAngebotFz] = useState<Record<string, string>>({}); // Angebot ohne Fahrzeug → gewähltes Fahrzeug
   const LEER_FG = { name: '', wohnbereich: '', adresse: '', telefon: '', rollstuhl: false, hinweis: '', bereich_id: '', kreise: [] as string[] };
   const [bearbeitenKreise, setBearbeitenKreise] = useState<string[]>([]);
@@ -384,7 +385,7 @@ export default function PflegeSeite() {
                 const rolliOk = a.fahrzeug ? !!fz?.rollstuhl : fahrzeuge.some((x) => x.rollstuhl);
                 // Zeitfenster: Beginn so wählen, dass die Fahrt in einen freien Abschnitt passt
                 const abschnitte = a.frei?.length ? a.frei : [{ von: a.startzeit.slice(0, 5), bis: a.endzeit.slice(0, 5) }];
-                const dauer = tourMinuten((angebotTour[a.id] ?? TOUR_LEER).wahl) ?? 60;
+                const dauer = angebotDauer[a.id] ?? tourMinuten((angebotTour[a.id] ?? TOUR_LEER).wahl) ?? 60;
                 const starts = startOptionen(abschnitte, dauer);
                 const beginn = starts.includes(angebotStart[a.id] ?? '') ? angebotStart[a.id] : starts[0] ?? '';
                 const ende = beginn ? zeitPlus(beginn, dauer) : null;
@@ -416,8 +417,11 @@ export default function PflegeSeite() {
                         gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Fahrgast wählen'}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
-                    <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })}
+                    <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => { setAngebotTour({ ...angebotTour, [a.id]: t }); setAngebotDauer(({ [a.id]: _alt, ...rest }) => rest); }}
                       verfuegbar={laengster} />
+                    <select aria-label="Dauer" value={dauer} onChange={(e) => setAngebotDauer({ ...angebotDauer, [a.id]: Number(e.target.value) })} className="border rounded px-2 py-2">
+                      {[45, 60, 90, 120, 180, 240].map((d) => <option key={d} value={d} disabled={d > laengster}>{dauerText(d)}{d > laengster ? ' – passt nicht' : ''}</option>)}
+                    </select>
                     {starts.length > 0 ? (
                       <select aria-label="Beginn" value={beginn} onChange={(e) => setAngebotStart({ ...angebotStart, [a.id]: e.target.value })} className="border rounded px-2 py-2">
                         {starts.map((x) => <option key={x} value={x}>{x}–{zeitPlus(x, dauer)} Uhr</option>)}
