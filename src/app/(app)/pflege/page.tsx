@@ -7,9 +7,11 @@ import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
 import { WUNSCH_TOUREN, ABHOLORTE, NACH_ABSPRACHE, tourMinuten, zeitPlus, zeitWarnung, uhrzeitMinuten, dauerText } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
+import { startOptionen, abschnitteText } from '@/lib/fenster';
 import { baumListe, bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import FahrzeugPicker from '../FahrzeugPicker';
 import OffenHinweis from '../../OffenHinweis';
+import VerschiebenAnfrage from '../../VerschiebenAnfrage';
 
 type Gruppe = { id: string; titel: string; datum: string; organisator: string | null; organisation_id: string | null; fahrten: Buchung[] };
 type Vorlage = {
@@ -181,6 +183,7 @@ export default function PflegeSeite() {
   const [wunschAbhol, setWunschAbhol] = useState<Abholort>(ABHOL_LEER);
   const [angebotAbhol, setAngebotAbhol] = useState<Record<string, Abholort>>({});
   const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
+  const [angebotStart, setAngebotStart] = useState<Record<string, string>>({}); // Beginn im Zeitfenster
   const [angebotFz, setAngebotFz] = useState<Record<string, string>>({}); // Angebot ohne Fahrzeug → gewähltes Fahrzeug
   const LEER_FG = { name: '', wohnbereich: '', adresse: '', telefon: '', rollstuhl: false, hinweis: '', bereich_id: '', kreise: [] as string[] };
   const [bearbeitenKreise, setBearbeitenKreise] = useState<string[]>([]);
@@ -227,6 +230,12 @@ export default function PflegeSeite() {
     const rolle = localStorage.getItem('pilot_rolle');
     if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     setZugang('ok'); laden();
+  }, [laden]);
+  // Nach Antworten im Hinweis-Kasten neu laden
+  useEffect(() => {
+    const neu = () => { laden(); };
+    window.addEventListener('rikscha-neu-laden', neu);
+    return () => window.removeEventListener('rikscha-neu-laden', neu);
   }, [laden]);
 
   // Erfolg verschwindet nach 5 s, Fehler bleiben stehen, bis man sie wegtippt
@@ -352,7 +361,7 @@ export default function PflegeSeite() {
           {/* 1. Freie Fahrzeiten der Kutscher */}
           <section className="bg-white rounded-xl shadow p-5">
             <h3 className="font-bold text-lg text-gray-800 mb-1">Freie Fahrzeiten der Kutscher</h3>
-            <p className="text-sm text-gray-500 mb-3">Kutscher bieten diese Zeiten für alle an. Wer zuerst zuordnet, bekommt die Zeit. Wähle einen Fahrgast und tippe auf „Zuordnen“.</p>
+            <p className="text-sm text-gray-500 mb-3">In diesen Zeitfenstern haben Kutscher Zeit. Wähle Fahrgast, Tour und Beginn und tippe auf „Zuordnen“ – die übrige Zeit bleibt für weitere Gäste frei.</p>
             {daten.angebote.length === 0 && <p className="text-sm text-gray-400">Im Moment sind keine freien Zeiten eingetragen.</p>}
             <div className="space-y-3">
               {daten.angebote.map((a) => {
@@ -360,10 +369,17 @@ export default function PflegeSeite() {
                 // Ohne Fahrzeug ("egal"): was die Flotte hergibt
                 const plaetze = a.fahrzeug ? fz?.maxGaeste ?? 1 : Math.max(1, ...fahrzeuge.map((x) => x.maxGaeste));
                 const rolliOk = a.fahrzeug ? !!fz?.rollstuhl : fahrzeuge.some((x) => x.rollstuhl);
+                // Zeitfenster: Beginn so wählen, dass die Fahrt in einen freien Abschnitt passt
+                const abschnitte = a.frei?.length ? a.frei : [{ von: a.startzeit.slice(0, 5), bis: a.endzeit.slice(0, 5) }];
+                const dauer = tourMinuten((angebotTour[a.id] ?? TOUR_LEER).wahl) ?? 60;
+                const starts = startOptionen(abschnitte, dauer);
+                const beginn = starts.includes(angebotStart[a.id] ?? '') ? angebotStart[a.id] : starts[0] ?? '';
+                const ende = beginn ? zeitPlus(beginn, dauer) : null;
+                const laengster = Math.max(...abschnitte.map((x) => (uhrzeitMinuten(x.bis) ?? 0) - (uhrzeitMinuten(x.von) ?? 0)));
                 return (
                   <div key={a.id} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
-                      <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}{a.oeffentlich && <span className="ml-2 text-xs font-normal bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">🌿 auch öffentlich buchbar</span>}</div>
+                      <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}{a.gebucht ? <span className="ml-2 text-sm font-normal text-emerald-800">noch frei: {abschnitteText(abschnitte)} Uhr</span> : null}{a.oeffentlich && <span className="ml-2 text-xs font-normal bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">🌿 auch öffentlich buchbar</span>}</div>
                       <div className="text-sm text-gray-600">
                         Kutscher: {a.pilot} · {a.fahrzeug
                           ? <>{fz?.name ?? a.fahrzeug} (max. {plaetze} {plaetze > 1 ? 'Gäste' : 'Gast'}){rolliOk ? ' · ♿ Rollstuhl möglich' : ''}</>
@@ -385,7 +401,12 @@ export default function PflegeSeite() {
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
                     <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })}
-                      verfuegbar={(uhrzeitMinuten(a.endzeit) ?? 0) - (uhrzeitMinuten(a.startzeit) ?? 0)} />
+                      verfuegbar={laengster} />
+                    {starts.length > 0 ? (
+                      <select aria-label="Beginn" value={beginn} onChange={(e) => setAngebotStart({ ...angebotStart, [a.id]: e.target.value })} className="border rounded px-2 py-2">
+                        {starts.map((x) => <option key={x} value={x}>{x}–{zeitPlus(x, dauer)} Uhr</option>)}
+                      </select>
+                    ) : <span className="text-sm text-orange-800">⚠ Diese Tour passt nicht mehr in die freie Zeit.</span>}
                     <AbholortFeld wert={angebotAbhol[a.id] ?? ABHOL_LEER} onChange={(v) => setAngebotAbhol({ ...angebotAbhol, [a.id]: v })}
                       standard={standardOrt} adresse={bewohnerById(auswahl[a.id])?.adresse} />
                     {!a.fahrzeug && auswahl[a.id] && (() => {
@@ -395,17 +416,18 @@ export default function PflegeSeite() {
                       return (
                         <FahrzeugPicker buchungId={a.id} personen={1 + zweitAnzahl(z)}
                           rollstuhl={!!bewohnerById(auswahl[a.id])?.rollstuhl || !!zweiterBw?.rollstuhl}
-                          wert={angebotFz[a.id] ?? ''} onChange={(id) => setAngebotFz((v) => ({ ...v, [a.id]: id }))} />
+                          wert={angebotFz[a.id] ?? ''} onChange={(id) => setAngebotFz((v) => ({ ...v, [a.id]: id }))}
+                          zeit={beginn && ende ? { datum: a.datum, von: beginn, bis: ende } : undefined} />
                       );
                     })()}
-                    <button disabled={!auswahl[a.id] || (!a.fahrzeug && !angebotFz[a.id])} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
+                    <button disabled={!auswahl[a.id] || !beginn || !ende || (!a.fahrzeug && !angebotFz[a.id])} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
                       onClick={async () => {
                         const zweit = plaetze >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
                         const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
                         const fzWahl = !a.fahrzeug ? { fahrzeug: angebotFz[a.id] } : {};
                         const abholort = abholText(angebotAbhol[a.id] ?? ABHOL_LEER, standardOrt, bewohnerById(auswahl[a.id])?.adresse);
                         if (!abholort) { zeige('Bitte einen Abholort eintragen.', false); return; }
-                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, abholort, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
+                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, abholort, startzeit: beginn, endzeit: ende, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
                           setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER }); setAngebotAbhol({ ...angebotAbhol, [a.id]: ABHOL_LEER });
                         }
                       }}>
@@ -505,6 +527,7 @@ export default function PflegeSeite() {
                       {f.abholort && <div className="text-sm text-sky-800">📍 {f.abholort}</div>}
                       {f.wunschfahrt && <div className="text-sm text-emerald-800">🗺️ {f.wunschfahrt}</div>}
                       {zeitWarnung(f.wunschfahrt, f.startzeit, f.endzeit) && <div className="text-sm text-orange-800">⚠ {zeitWarnung(f.wunschfahrt, f.startzeit, f.endzeit)}</div>}
+                      <div className="mt-1"><VerschiebenAnfrage b={f} onDone={laden} meldung={zeige} /></div>
                     </div>
                     {f.pilot
                       ? <span className="text-sm bg-green-100 text-green-800 rounded-full px-3 py-1">✓ Kutscher: {f.pilot}</span>

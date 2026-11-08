@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const fzFehler = await fahrzeugFehler(neu.fahrzeug, neu.datum);
       if (fzFehler) return NextResponse.json({ error: fzFehler }, { status: 409 });
       const rollstuhl = await rollstuhlNoetig([alt.bewohner_id, alt.bewohner2_id]);
-      const wahl = (await fahrzeugAuswahl(neu.datum, neu.startzeit, neu.endzeit, { anzahl: Math.max(1, anzahl), rollstuhl, ausserId: id }))
+      const wahl = (await fahrzeugAuswahl(neu.datum, neu.startzeit, neu.endzeit, { anzahl: Math.max(1, anzahl), rollstuhl, ausserId: id, fensterId: alt.angebot_id ?? null }))
         .find((x) => x.id === neu.fahrzeug);
       if (wahl && !wahl.frei) {
         return NextResponse.json({ error: `${wahl.name} geht hier nicht: ${wahl.grund}.` }, { status: 409 });

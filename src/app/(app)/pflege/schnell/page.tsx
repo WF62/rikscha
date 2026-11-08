@@ -8,9 +8,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Bewohner, Buchung, Organisation } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
-import { WUNSCH_TOUREN, tourMinuten, zeitPlus, uhrzeitMinuten } from '@/lib/touren';
+import { WUNSCH_TOUREN, tourMinuten, zeitPlus } from '@/lib/touren';
 import { bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import { useStammdaten } from '@/lib/useStammdaten';
+import { startOptionen, abschnitteText } from '@/lib/fenster';
 import OffenHinweis from '../../../OffenHinweis';
 
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
@@ -129,6 +130,7 @@ export default function SchnellAnmelden() {
   const [start, setStart] = useState('14:00');
   const [tour, setTour] = useState('');        // '' = egal, sonst Tour-ID
   const [freiId, setFreiId] = useState('');    // gewählte freie Fahrzeit
+  const [fensterStart, setFensterStart] = useState('');   // Beginn innerhalb der freien Fahrzeit
   const [hinweis, setHinweis] = useState('');
   const [fzWahl, setFzWahl] = useState('');    // '' = egal
   const [sendet, setSendet] = useState(false);
@@ -193,16 +195,23 @@ export default function SchnellAnmelden() {
   // Freie Fahrzeiten an dem Tag, in die die Tour passt
   const freie = (daten.angebote ?? [])
     .filter((a) => a.datum === tag)
-    .map((a) => ({ a, laenge: (uhrzeitMinuten(a.endzeit) ?? 0) - (uhrzeitMinuten(a.startzeit) ?? 0) }))
+    .map((a) => {
+      const abschnitte = a.frei?.length ? a.frei : [{ von: hhmm(a.startzeit), bis: hhmm(a.endzeit) }];
+      return { a, abschnitte, starts: startOptionen(abschnitte, dauer) };
+    })
     .sort((x, y) => x.a.startzeit.localeCompare(y.a.startzeit));
   const passtIn = (a: Buchung) => { const fz = a.fahrzeug ? fahrzeugById(a.fahrzeug) : undefined; return !fz || (fz.maxGaeste >= personen && (!rollstuhl || fz.rollstuhl)); };
-  const frei = freie.map((x) => x.a).find((a) => a.id === freiId && passtIn(a));
+  const freiEintrag = freie.find((x) => x.a.id === freiId && passtIn(x.a));
+  const frei = freiEintrag?.a;
+  // Zeit der Fahrt im Zeitfenster: gewählter (oder erster möglicher) Beginn + Dauer der Tour
+  const fb = freiEintrag ? (freiEintrag.starts.includes(fensterStart) ? fensterStart : freiEintrag.starts[0] ?? '') : '';
+  const fe = fb ? zeitPlus(fb, dauer) ?? '' : '';
   const abholort = org?.standard_abholort || gastObj?.adresse || 'nach Absprache';
   // Fahrzeugliste: bei freier Fahrzeit zu deren Zeit, sonst zur eigenen Zeit
   const fzFix = frei?.fahrzeug ? fahrzeugById(frei.fahrzeug) : undefined;
   const fzParams = `personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`;
   const fzUrl = !gastObj ? null
-    : frei ? (frei.fahrzeug ? null : `/api/fahrzeuge-frei?buchung=${frei.id}&${fzParams}`)
+    : frei ? (frei.fahrzeug || !fb ? null : `/api/fahrzeuge-frei?datum=${frei.datum}&von=${fb}&bis=${fe}&fenster=${frei.id}&${fzParams}`)
     : ende && tag ? `/api/fahrzeuge-frei?datum=${tag}&von=${start}&bis=${ende}&${fzParams}` : null;
   const fzName = fzFix?.name ?? (fzWahl ? fahrzeuge.find((f) => f.id === fzWahl)?.name ?? fzWahl : '');
 
@@ -215,11 +224,12 @@ export default function SchnellAnmelden() {
         let fahrzeug: string | undefined = frei.fahrzeug ? undefined : fzWahl || undefined;
         if (!frei.fahrzeug && !fahrzeug) {
           // Fahrzeug passend zum Gast wählen (Plätze, Rollstuhl, frei zu der Zeit)
-          const l = await fetch(`/api/fahrzeuge-frei?buchung=${frei.id}&personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`, { headers: authHeaders() }).then((r) => (r.ok ? r.json() : []));
+          const l = await fetch(`/api/fahrzeuge-frei?datum=${frei.datum}&von=${fb}&bis=${fe}&fenster=${frei.id}&${fzParams}`, { headers: authHeaders() }).then((r) => (r.ok ? r.json() : []));
           fahrzeug = l.find((x: { frei: boolean }) => x.frei)?.id;
           if (!fahrzeug) { setFehler('Für diese freie Fahrzeit ist kein passendes Fahrzeug frei. Bitte eine andere Zeit wählen.'); return; }
         }
-        body = { aktion: 'belegen', buchung_id: frei.id, bewohner_id: gastObj.id, ...zweitDaten, ...(fahrzeug ? { fahrzeug } : {}), ...(tourObj ? { wunschfahrt: tourObj.name } : {}), ...(hinweis.trim() ? { notiz: hinweis.trim() } : {}) };
+        if (!fb || !fe) { setFehler('Diese Tour passt nicht mehr in die freie Zeit. Bitte eine kürzere Tour oder eine andere Zeit wählen.'); return; }
+        body = { aktion: 'belegen', buchung_id: frei.id, bewohner_id: gastObj.id, startzeit: fb, endzeit: fe, ...zweitDaten, ...(fahrzeug ? { fahrzeug } : {}), ...(tourObj ? { wunschfahrt: tourObj.name } : {}), ...(hinweis.trim() ? { notiz: hinweis.trim() } : {}) };
       } else {
         if (!ende) { setFehler('Bitte eine frühere Startzeit wählen.'); return; }
         body = { aktion: 'wunsch', bewohner_id: gastObj.id, ...zweitDaten, datum: tag, startzeit: start, endzeit: ende, fahrzeug: fzWahl, notiz: hinweis.trim(), ...(tourObj ? { wunschfahrt: tourObj.name } : {}) };
@@ -230,7 +240,7 @@ export default function SchnellAnmelden() {
       try { if (!frei) localStorage.setItem('schnell_pflege_v1', JSON.stringify({ start, tour })); } catch { /* egal */ }
       setFertig({
         name: gastObj.name, zweit: zweitName, tag: tagText(frei?.datum ?? tag),
-        zeit: frei ? `${hhmm(frei.startzeit)}–${hhmm(frei.endzeit)} Uhr` : `${start}–${ende} Uhr`,
+        zeit: frei ? `${fb}–${fe} Uhr` : `${start}–${ende} Uhr`,
         tour: tourObj?.name ?? 'Kutscher schlägt etwas vor', fahrzeug: fzName || (frei ? '' : 'sucht der Kutscher aus'), abholort: j.abholort ?? abholort, freieZeit: !!frei,
       });
       await laden();
@@ -301,7 +311,7 @@ export default function SchnellAnmelden() {
         ) : null}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {gaeste.map((b) => (
-            <button key={b.id} type="button" onClick={() => { setGast(b.id); if (gast2 === b.id) setGast2(''); setFreiId(''); }} className={knopf(gast === b.id)} aria-pressed={gast === b.id}>
+            <button key={b.id} type="button" onClick={() => { setGast(b.id); if (gast2 === b.id) setGast2(''); }} className={knopf(gast === b.id)} aria-pressed={gast === b.id}>
               {b.name}{b.rollstuhl ? ' ♿' : ''}
               {!bereich && (() => {
                 const wo = [!filterOrg && daten.alle ? orgName(b.organisation_id) : '', bereichPfad(bereiche, b.bereich_id)].filter(Boolean).join(' · ');
@@ -314,12 +324,12 @@ export default function SchnellAnmelden() {
           <div className="border-t pt-3 space-y-2">
             <p className="font-semibold text-gray-800">Fährt noch jemand mit? <span className="font-normal text-gray-500">(optional)</span></p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button type="button" onClick={() => { setZweitArt(''); setFreiId(''); }} className={knopf(zweitArt === '')} aria-pressed={zweitArt === ''}>Nein</button>
-              <button type="button" onClick={() => { setZweitArt('gast'); setFreiId(''); }} className={knopf(zweitArt === 'gast')} aria-pressed={zweitArt === 'gast'}>Noch ein Fahrgast</button>
-              <button type="button" onClick={() => { setZweitArt('begleitung'); setFreiId(''); }} className={knopf(zweitArt === 'begleitung')} aria-pressed={zweitArt === 'begleitung'}>Begleitung<span className="block text-xs font-normal text-gray-500">z. B. Angehörige</span></button>
+              <button type="button" onClick={() => { setZweitArt(''); }} className={knopf(zweitArt === '')} aria-pressed={zweitArt === ''}>Nein</button>
+              <button type="button" onClick={() => { setZweitArt('gast'); }} className={knopf(zweitArt === 'gast')} aria-pressed={zweitArt === 'gast'}>Noch ein Fahrgast</button>
+              <button type="button" onClick={() => { setZweitArt('begleitung'); }} className={knopf(zweitArt === 'begleitung')} aria-pressed={zweitArt === 'begleitung'}>Begleitung<span className="block text-xs font-normal text-gray-500">z. B. Angehörige</span></button>
             </div>
             {zweitArt === 'gast' && (
-              <select aria-label="Zweiter Fahrgast" value={gast2} onChange={(e) => { setGast2(e.target.value); setFreiId(''); }} className="w-full border-2 border-gray-200 rounded-lg px-3 py-3 text-base">
+              <select aria-label="Zweiter Fahrgast" value={gast2} onChange={(e) => { setGast2(e.target.value); }} className="w-full border-2 border-gray-200 rounded-lg px-3 py-3 text-base">
                 <option value="">Bitte wählen …</option>
                 {andere.map((b) => <option key={b.id} value={b.id}>{b.name}{b.rollstuhl ? ' ♿' : ''}{bereichPfad(bereiche, b.bereich_id) ? ` – ${bereichPfad(bereiche, b.bereich_id)}` : ''}</option>)}
               </select>
@@ -349,19 +359,30 @@ export default function SchnellAnmelden() {
         {freie.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold text-emerald-800">🌿 An diesem Tag gibt es schon freie Fahrzeiten mit Kutscher:</p>
-            {freie.map(({ a, laenge }) => {
-              const zuKurz = !!tourObj && tourObj.minuten > laenge;
+            {freie.map(({ a, abschnitte, starts }) => {
+              const zuKurz = starts.length === 0;
               const fz = a.fahrzeug ? fahrzeugById(a.fahrzeug) : undefined;
               const zuKlein = !!fz && (fz.maxGaeste < personen || (rollstuhl && !fz.rollstuhl));
               return (
-                <button key={a.id} type="button" disabled={zuKlein} onClick={() => setFreiId(freiId === a.id ? '' : a.id)} className={`${knopf(freiId === a.id)} w-full disabled:opacity-50`} aria-pressed={freiId === a.id}>
-                  {hhmm(a.startzeit)}–{hhmm(a.endzeit)} Uhr · {a.pilot}{fz ? ` · ${fz.name}` : ''}
+                <button key={a.id} type="button" disabled={zuKlein} onClick={() => { setFreiId(freiId === a.id ? '' : a.id); setFensterStart(''); }} className={`${knopf(freiId === a.id)} w-full disabled:opacity-50`} aria-pressed={freiId === a.id}>
+                  {a.pilot} hat Zeit: {a.gebucht ? `noch frei ${abschnitteText(abschnitte)}` : `${hhmm(a.startzeit)}–${hhmm(a.endzeit)}`} Uhr{fz ? ` · ${fz.name}` : ''}
                   {zuKlein && <span className="block text-xs font-normal text-gray-600">{fz!.maxGaeste < personen ? `nur ${fz!.maxGaeste} Platz – passt nicht für zwei` : 'nicht für Rollstuhl'}</span>}
                   {zuKurz && <span className="block text-xs font-normal text-orange-700">⚠ zu kurz für die gewählte Tour</span>}
                 </button>
               );
             })}
           </div>
+        )}
+
+        {freiEintrag && (
+          freiEintrag.starts.length ? (
+            <label className="block text-sm font-semibold">Beginn in dieser freien Zeit
+              <select aria-label="Beginn" value={fb} onChange={(e) => setFensterStart(e.target.value)} className="mt-1 block border-2 border-gray-200 rounded-lg px-3 py-2 text-base">
+                {freiEintrag.starts.map((x) => <option key={x} value={x}>{x}–{zeitPlus(x, dauer)} Uhr</option>)}
+              </select>
+              <span className="block text-xs font-normal text-gray-500">Die übrige Zeit bleibt für weitere Gäste frei.</span>
+            </label>
+          ) : <p className="text-sm text-orange-800">⚠ Die gewählte Tour passt nicht mehr in diese freie Zeit – bitte eine kürzere Tour wählen.</p>
         )}
 
         {!frei && (
@@ -396,12 +417,12 @@ export default function SchnellAnmelden() {
       <section className="bg-white rounded-xl shadow p-5 space-y-3">
         <div className="text-gray-800 space-y-1">
           <div>👤 {gastObj ? <><strong>{gastObj.name}</strong>{zweitName && <> und <strong>{zweitName}</strong></>}</> : <span className="text-gray-400">noch niemand gewählt</span>}</div>
-          <div>🕑 {tagText(tag)}, {frei ? `${hhmm(frei.startzeit)}–${hhmm(frei.endzeit)} Uhr (freie Fahrzeit)` : ende ? `${start}–${ende} Uhr` : 'Startzeit zu spät'}</div>
+          <div>🕑 {tagText(tag)}, {frei ? (fb ? `${fb}–${fe} Uhr (freie Zeit von ${frei.pilot})` : 'Tour passt nicht in die freie Zeit') : ende ? `${start}–${ende} Uhr` : 'Startzeit zu spät'}</div>
           <div>🚲 Fahrzeug: {fzName || 'egal'}</div>
           <div>📍 Abholung: {abholort}</div>
         </div>
         {fehler && <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">⚠ {fehler}</p>}
-        <button type="button" disabled={!gastObj || sendet || (!frei && !ende) || zweitFehlt || flotteZuKlein} onClick={absenden}
+        <button type="button" disabled={!gastObj || sendet || (!frei && !ende) || (!!frei && !fb) || zweitFehlt || flotteZuKlein} onClick={absenden}
           className="w-full bg-rikscha-green text-white rounded-lg px-4 py-4 text-lg font-bold disabled:opacity-40">
           {sendet ? 'Wird angemeldet …' : 'Rikscha anmelden'}
         </button>

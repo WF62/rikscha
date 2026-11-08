@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { mitFreienAbschnitten } from '@/lib/fenster-server';
 import { anmeldungAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten } from '@/lib/pilotAuth';
 
 /** Wie viele Tage im Voraus gewarnt wird (heute + 2 Tage) */
@@ -24,7 +25,7 @@ function plusTage(iso: string, n: number) {
  *   Kutscher: ohne Namen; GFO/Admin: alle)
  */
 export async function GET(req: NextRequest) {
-  const { rolle, organisationId } = await anmeldungAusAnfrage(req);
+  const { name, rolle, organisationId } = await anmeldungAusAnfrage(req);
   const vermittlung = darfBewohnerVerwalten(rolle);
   const kutscher = darfFahrtenVerwalten(rolle);
   if (!vermittlung && !kutscher) return NextResponse.json({ error: 'Bitte anmelden.' }, { status: 401 });
@@ -38,9 +39,11 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const kommend = (data ?? []).filter((b) => b.datum > tag || String(b.startzeit).slice(0, 5) >= zeit);
 
+  // Freie Fahrzeiten (Zeitfenster) mit noch freien Abschnitten
   const freieZeiten = vermittlung
-    ? kommend.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && !(b.gaeste ?? []).length)
-      .map((b) => ({ id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, pilot: b.pilot, fahrzeug: b.fahrzeug }))
+    ? (await mitFreienAbschnitten(kommend.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && !(b.gaeste ?? []).length)))
+      .filter((b) => b.frei.length > 0)
+      .map((b) => ({ id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, pilot: b.pilot, fahrzeug: b.fahrzeug, frei: b.frei, gebucht: b.gebucht }))
     : [];
 
   let ohne = kommend.filter((b) => !b.pilot && (b.bewohner_id || (b.gaeste ?? []).length));
@@ -58,5 +61,32 @@ export async function GET(req: NextRequest) {
     gaeste: mitNamen ? (b.gaeste ?? []) : [], personen: (b.gaeste ?? []).length,
   }));
 
-  return NextResponse.json({ heute: tag, vorlaufTage: VORLAUF_TAGE, freieZeiten, ohneKutscher, rolle });
+  // Verschiebungs-Anfragen (alle künftigen Fahrten): offene zum Beantworten und Ergebnisse
+  const { data: vs, error: vsFehler } = await sb.from('rikscha_buchungen').select('*')
+    .gte('datum', tag).eq('storniert', false)
+    .or('verschiebung_start.not.is.null,verschiebung_ergebnis.not.is.null')
+    .order('datum').order('startzeit');
+  let anfragen: Record<string, unknown>[] = [];
+  let ergebnisse: { id: string; datum: string; text: string }[] = [];
+  if (!vsFehler && vs?.length) {
+    const ids = Array.from(new Set(vs.flatMap((b) => [b.bewohner_id, b.bewohner2_id]).filter(Boolean)));
+    const { data: bw } = ids.length ? await sb.from('rikscha_bewohner').select('id, organisation_id').in('id', ids) : { data: [] };
+    const org = Object.fromEntries((bw ?? []).map((x) => [x.id, x.organisation_id]));
+    const eigeneGaeste = (b: { bewohner_id: string | null; bewohner2_id: string | null }) =>
+      [b.bewohner_id, b.bewohner2_id].some((id) => id && org[id] === organisationId);
+    const meins = (b: { pilot: string; bewohner_id: string | null; bewohner2_id: string | null }) =>
+      alle || (rolle === 'pilot' && b.pilot === name) || (rolle === 'pflege' && eigeneGaeste(b));
+    anfragen = vs.filter((b) => b.verschiebung_start && meins(b) && b.verschiebung_von !== name
+      && (alle || (rolle === 'pilot' ? b.verschiebung_seite === 'vermittlung' : b.verschiebung_seite === 'kutscher')))
+      .map((b) => ({
+        id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, pilot: b.pilot, fahrzeug: b.fahrzeug,
+        gaeste: b.gaeste, bewohner_id: b.bewohner_id, bewohner2_id: b.bewohner2_id, storniert: false,
+        verschiebung_start: b.verschiebung_start, verschiebung_ende: b.verschiebung_ende, verschiebung_grund: b.verschiebung_grund,
+        verschiebung_von: b.verschiebung_von, verschiebung_seite: b.verschiebung_seite,
+      }));
+    ergebnisse = vs.filter((b) => !b.verschiebung_start && b.verschiebung_ergebnis && meins(b))
+      .map((b) => ({ id: b.id, datum: b.datum, text: b.verschiebung_ergebnis }));
+  }
+
+  return NextResponse.json({ heute: tag, vorlaufTage: VORLAUF_TAGE, freieZeiten, ohneKutscher, anfragen, ergebnisse, rolle });
 }

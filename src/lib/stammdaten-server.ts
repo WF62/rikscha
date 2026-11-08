@@ -50,13 +50,14 @@ export type FahrzeugWahl = {
  */
 export async function fahrzeugAuswahl(
   datum: string, start: string, ende: string,
-  opt: { anzahl?: number; rollstuhl?: boolean; ausserId?: string } = {},
+  opt: { anzahl?: number; rollstuhl?: boolean; ausserId?: string; /** Zeitfenster, in dem die Fahrt liegt – blockiert sie nicht */ fensterId?: string | null } = {},
 ): Promise<FahrzeugWahl[]> {
   const sb = createServiceClient();
   const { fahrzeuge } = await ladeStammdaten(false);
   let q = sb.from('rikscha_buchungen').select('id, fahrzeug').eq('datum', datum).eq('storniert', false)
     .neq('fahrzeug', '').lt('startzeit', ende).gt('endzeit', start);
   if (opt.ausserId) q = q.neq('id', opt.ausserId);
+  if (opt.fensterId) q = q.neq('id', opt.fensterId);
   const [{ data: belegt }, { data: sperren }] = await Promise.all([
     q,
     sb.from('rikscha_sperren').select('fahrzeug').lte('von_datum', datum).gte('bis_datum', datum),

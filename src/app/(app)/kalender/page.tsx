@@ -2,6 +2,7 @@
 
 import { zeitWarnung } from '@/lib/touren';
 import OffenHinweis from '../../OffenHinweis';
+import VerschiebenAnfrage from '../../VerschiebenAnfrage';
 import { useEffect, useState, useCallback } from 'react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
@@ -111,6 +112,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
       {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
         <div className="px-1 py-0.5 border-t border-white/60 bg-emerald-100 text-emerald-800">
           <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : b.oeffentlich ? '🌿 frei · öffentlich' : '🏠 frei für Vermittlung'}</span>
+          {!schmal && !!b.gebucht && <span className="text-[10px] block">{b.gebucht} gebucht · frei {(b.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ') || '–'}</span>}
         </div>
       )}
       {!schmal && (b.gaeste ?? []).map((g, i) => (
@@ -367,7 +369,10 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       )}
       {!b.storniert && b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0 && ichKutscher && (
         <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm flex items-center gap-2">
-          <span className="flex-1">{b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : 'Nur für Vermittlungsstellen sichtbar'}</span>
+          <span className="flex-1">
+            {b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : 'Nur für Vermittlungsstellen sichtbar'}
+            <span className="block text-xs text-gray-600">Zeitfenster: Gäste buchen darin kürzere Fahrten, auch mehrere nacheinander.{b.gebucht ? ` Schon ${b.gebucht} gebucht – noch frei: ${(b.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ') || 'nichts'}.` : ''}</span>
+          </span>
           <button onClick={async () => {
             const res = await fetch(`/api/buchungen/${b.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ oeffentlich: !b.oeffentlich }) });
             if (!res.ok) alert('Das hat nicht geklappt.');
@@ -388,6 +393,9 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {zeitWarnung(b.wunschfahrt, b.startzeit, b.endzeit) && <div className="text-orange-800 mt-1">⚠ {zeitWarnung(b.wunschfahrt, b.startzeit, b.endzeit)}</div>}
         </div>
       )}
+      <div className="px-3 py-2 border-t border-gray-100 empty:hidden">
+        <VerschiebenAnfrage b={b} onDone={onUpdated} />
+      </div>
       <div className="px-3 py-2 bg-yellow-50 border-t border-yellow-200 flex items-start gap-2">
         <span className="text-yellow-600 text-sm mt-0.5">📝</span>
         {b.notiz
@@ -486,6 +494,11 @@ export default function KalenderSeite() {
   }, [datum, ansicht]);
 
   useEffect(() => { ladeKalenderDaten(); }, [ladeKalenderDaten]);
+  useEffect(() => {
+    const neu = () => { ladeKalenderDaten(); };
+    window.addEventListener('rikscha-neu-laden', neu);
+    return () => window.removeEventListener('rikscha-neu-laden', neu);
+  }, [ladeKalenderDaten]);
 
   const stornieren = async (id: string) => {
     setStorniereId(id);

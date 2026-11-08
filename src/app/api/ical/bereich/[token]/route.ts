@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+import { anfrageText } from '@/lib/verschiebung';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { ladeStammdaten } from '@/lib/stammdaten-server';
@@ -85,6 +86,7 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
     if (b.wunschfahrt) zeilen.push(`Wunschfahrt: ${b.wunschfahrt}`);
     zeilen.push(`Kutscher: ${b.pilot || 'noch offen – wird gesucht'} · Fahrzeug: ${fzName(b.fahrzeug)}`);
     if (b.notiz) zeilen.push(`Notiz: ${b.notiz}`);
+    if (b.verschiebung_start) zeilen.push(`🔄 Verschiebung angefragt ${anfrageText(b)} – noch nicht bestätigt`);
     const hinweise = Array.from(new Set(hier.flatMap((p) => bereichHinweise(alle, p.bereich_id))));
     zeilen.push('');
     zeilen.push('Vorbereitung:');
