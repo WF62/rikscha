@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       };
     }
     gekuerzt = true;
-    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null, bewohner2_id: null, wunschfahrt: null };
+    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null, bewohner2_id: null, wunschfahrt: null, abholort: null };
   });
   return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });
 }

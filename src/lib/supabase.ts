@@ -38,6 +38,8 @@ export type Buchung = {
   bewohner2_id?: string | null;
   /** Gewünschte Tour, z. B. "Fahrt zum Rhein" */
   wunschfahrt?: string | null;
+  /** Wo der Gast abgeholt wird (Standard: GFO, Eingang Elisabeth) */
+  abholort?: string | null;
   bewohner2?: { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null } | null;
 };
 

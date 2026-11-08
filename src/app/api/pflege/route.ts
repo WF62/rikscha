@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfBewohnerVerwalten } from '@/lib/pilotAuth';
 import { ladeStammdaten, fahrzeugFehler, fahrzeugAuswahl } from '@/lib/stammdaten-server';
 import { sendBuchungEmail } from '@/lib/email';
+import { STANDARD_ABHOLORT } from '@/lib/touren';
 
 /**
  * Bereich für die Pflege: Bewohner pflegen, Fahrtwünsche melden, freie Fahrzeiten belegen, absagen.
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
       } else if (b.bewohner2_id) {
         update = { bewohner_id: b.bewohner2_id, bewohner2_id: null, gaeste: ohne };      // zweite Person fährt allein weiter
       } else if (b.angebot) {
-        update = { bewohner_id: null, gaeste: [], notiz: null, ...('wunschfahrt' in b ? { wunschfahrt: null } : {}) }; // freie Fahrzeit wird wieder frei
+        update = { bewohner_id: null, gaeste: [], notiz: null, ...('wunschfahrt' in b ? { wunschfahrt: null } : {}), ...('abholort' in b ? { abholort: null } : {}) }; // freie Fahrzeit wird wieder frei
       } else {
         update = { storniert: true, storniert_am: new Date().toISOString() };            // Fahrtwunsch absagen
       }
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
     return data;
   };
   const wunschfahrt = text(body.wunschfahrt, 120);
+  const abholort = text(body.abholort, 120) ?? STANDARD_ABHOLORT;
   type Person = { id: string; name: string; rollstuhl: boolean };
   /** Fahrgäste prüfen: Rollstuhl und Anzahl der Plätze im Fahrzeug */
   const fahrgastFehler = async (personen: Person[], anzahl: number, fahrzeugId: string) => {
@@ -157,12 +159,17 @@ export async function POST(req: NextRequest) {
         .eq('storniert', false).lt('startzeit', endzeit).gt('endzeit', startzeit);
       if (belegt?.length) return fehler('Das Fahrzeug ist in diesem Zeitraum schon gebucht.', 409);
     }
-    const { data, error } = await sb.from('rikscha_buchungen').insert({
+    const zeile = {
       fahrzeug, pilot: '', gaeste, datum, startzeit, endzeit,
       notiz: text(body.notiz, 500), bewohner_id: bew.id,
       ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}),
       ...(wunschfahrt ? { wunschfahrt } : {}),
-    }).select().single();
+    };
+    let { data, error } = await sb.from('rikscha_buchungen').insert({ ...zeile, abholort }).select().single();
+    if (error && /abholort/.test(error.message)) {
+      // Spalte abholort fehlt noch (SQL nicht gelaufen) → Abholort in die Notiz
+      ({ data, error } = await sb.from('rikscha_buchungen').insert({ ...zeile, notiz: [`Abholort: ${abholort}`, zeile.notiz].filter(Boolean).join(' · ') }).select().single());
+    }
     if (error) return fehler(error.message, 500);
     // Team-Mail ohne Bewohnernamen
     sendBuchungEmail({ fahrzeug, pilot: '', datum, startzeit, endzeit, gaeste: ['Bewohnerfahrt – Kutscher gesucht'], notiz: wunschfahrt ? `Wunschfahrt: ${wunschfahrt}` : null }).catch(() => {});
@@ -188,9 +195,10 @@ export async function POST(req: NextRequest) {
     if (!wahl) return fehler('Dieses Fahrzeug gibt es nicht.');
     if (!wahl.frei) return fehler(`${wahl.name} geht hier nicht: ${wahl.grund}.`, 409);
     // Nur belegen, wenn noch frei (gleichzeitiges Belegen verhindern)
-    const { data: neu, error } = await sb.from('rikscha_buchungen')
-      .update({ bewohner_id: bew.id, fahrzeug, gaeste, notiz: text(body.notiz, 500) ?? b.notiz, ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}), ...(wunschfahrt ? { wunschfahrt } : {}) })
-      .eq('id', b.id).is('bewohner_id', null).select().maybeSingle();
+    const felder = { bewohner_id: bew.id, fahrzeug, gaeste, notiz: text(body.notiz, 500) ?? b.notiz, ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}), ...(wunschfahrt ? { wunschfahrt } : {}) };
+    const belegen = (f: Record<string, unknown>) => sb.from('rikscha_buchungen').update(f).eq('id', b.id).is('bewohner_id', null).select().maybeSingle();
+    let { data: neu, error } = 'abholort' in b ? await belegen({ ...felder, abholort })
+      : await belegen({ ...felder, notiz: [`Abholort: ${abholort}`, felder.notiz].filter(Boolean).join(' · ') });
     if (error) return fehler(error.message, 500);
     if (!neu) return fehler('Diese Fahrzeit wurde gerade vergeben.', 409);
     return NextResponse.json(neu);
@@ -201,7 +209,7 @@ export async function POST(req: NextRequest) {
     if (!b || !(b.bewohner_id || b.bewohner2_id)) return fehler('Diese Bewohnerfahrt gibt es nicht.', 404);
     // Belegte freie Fahrzeit wird wieder frei, ein Fahrtwunsch wird storniert
     const update = b.angebot
-      ? { bewohner_id: null, gaeste: [], notiz: null, ...('bewohner2_id' in b ? { bewohner2_id: null } : {}), ...('wunschfahrt' in b ? { wunschfahrt: null } : {}) }
+      ? { bewohner_id: null, gaeste: [], notiz: null, ...('bewohner2_id' in b ? { bewohner2_id: null } : {}), ...('wunschfahrt' in b ? { wunschfahrt: null } : {}), ...('abholort' in b ? { abholort: null } : {}) }
       : { storniert: true, storniert_am: new Date().toISOString() };
     const { error } = await sb.from('rikscha_buchungen').update(update).eq('id', b.id);
     return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });

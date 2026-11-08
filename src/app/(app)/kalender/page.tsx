@@ -346,6 +346,9 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           <span className="text-sm text-orange-600 italic">Fahrzeug noch nicht gewählt</span>
         </div>
       )}
+      {b.abholort && (
+        <div className="px-3 py-2 border-t border-sky-200 bg-sky-50 text-sm text-sky-900">📍 Abholort: <strong>{b.abholort}</strong></div>
+      )}
       {b.wunschfahrt && (
         <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm text-emerald-900">🗺️ Wunschfahrt: <strong>{b.wunschfahrt}</strong></div>
       )}

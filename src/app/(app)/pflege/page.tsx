@@ -5,7 +5,7 @@ import type { Bewohner, Buchung } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
-import { WUNSCH_TOUREN } from '@/lib/touren';
+import { WUNSCH_TOUREN, STANDARD_ABHOLORT } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
 import FahrzeugPicker from '../FahrzeugPicker';
 
@@ -95,6 +95,27 @@ function WunschfahrtFeld({ wert, onChange }: { wert: Tour; onChange: (t: Tour) =
   );
 }
 
+type Abholort = { anders: boolean; text: string };
+const ABHOL_LEER: Abholort = { anders: false, text: '' };
+const abholText = (a: Abholort) => (a.anders && a.text.trim() ? a.text.trim() : STANDARD_ABHOLORT);
+
+/** Abholort: Standard „GFO, Eingang Elisabeth“ oder ein anderer Ort */
+function AbholortFeld({ wert, onChange }: { wert: Abholort; onChange: (a: Abholort) => void }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <select aria-label="Abholort" value={wert.anders ? 'anders' : 'standard'} onChange={(e) => onChange({ ...wert, anders: e.target.value === 'anders' })}
+        className="border rounded px-2 py-2">
+        <option value="standard">📍 {STANDARD_ABHOLORT}</option>
+        <option value="anders">Anderer Abholort …</option>
+      </select>
+      {wert.anders && (
+        <input aria-label="Anderer Abholort" maxLength={120} value={wert.text} placeholder="z. B. Haupteingang, Café, Adresse"
+          onChange={(e) => onChange({ ...wert, text: e.target.value })} className="border rounded px-2 py-2" />
+      )}
+    </div>
+  );
+}
+
 export default function PflegeSeite() {
   const { fahrzeuge, fahrzeugById } = useStammdaten();
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
@@ -106,6 +127,8 @@ export default function PflegeSeite() {
   const [wunsch, setWunsch] = useState({ bewohner_id: '', datum: '', startzeit: '14:00', endzeit: '15:00', fahrzeug: '', notiz: '' });
   const [wunsch2, setWunsch2] = useState<Zweit>(ZWEIT_LEER);
   const [wunschTour, setWunschTour] = useState<Tour>(TOUR_LEER);
+  const [wunschAbhol, setWunschAbhol] = useState<Abholort>(ABHOL_LEER);
+  const [angebotAbhol, setAngebotAbhol] = useState<Record<string, Abholort>>({});
   const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
   const [angebotFz, setAngebotFz] = useState<Record<string, string>>({}); // Angebot ohne Fahrzeug → gewähltes Fahrzeug
   const [neuerBewohner, setNeuerBewohner] = useState({ name: '', wohnbereich: '', rollstuhl: false, hinweis: '' });
@@ -204,6 +227,7 @@ export default function PflegeSeite() {
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
                     <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
+                    <AbholortFeld wert={angebotAbhol[a.id] ?? ABHOL_LEER} onChange={(v) => setAngebotAbhol({ ...angebotAbhol, [a.id]: v })} />
                     {!a.fahrzeug && auswahl[a.id] && (() => {
                       // Kutscher + Gast stehen fest → jetzt Fahrzeug festlegen
                       const z = auswahl2[a.id] ?? ZWEIT_LEER;
@@ -219,8 +243,9 @@ export default function PflegeSeite() {
                         const zweit = plaetze >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
                         const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
                         const fzWahl = !a.fahrzeug ? { fahrzeug: angebotFz[a.id] } : {};
-                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
-                          setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER });
+                        const abholort = abholText(angebotAbhol[a.id] ?? ABHOL_LEER);
+                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, abholort, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
+                          setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER }); setAngebotAbhol({ ...angebotAbhol, [a.id]: ABHOL_LEER });
                         }
                       }}>
                       Zuordnen
@@ -239,8 +264,8 @@ export default function PflegeSeite() {
               e.preventDefault();
               const zweitOk = !wunschFz || wunschFz.maxGaeste >= 2;
               const wunschfahrt = tourText(wunschTour);
-              if (await ausfuehren({ aktion: 'wunsch', ...wunsch, ...(zweitOk ? zweitDaten(wunsch2) : {}), ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
-                setWunsch({ ...wunsch, bewohner_id: '', notiz: '' }); setWunsch2(ZWEIT_LEER); setWunschTour(TOUR_LEER);
+              if (await ausfuehren({ aktion: 'wunsch', ...wunsch, abholort: abholText(wunschAbhol), ...(zweitOk ? zweitDaten(wunsch2) : {}), ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
+                setWunsch({ ...wunsch, bewohner_id: '', notiz: '' }); setWunsch2(ZWEIT_LEER); setWunschTour(TOUR_LEER); setWunschAbhol(ABHOL_LEER);
               }
             }}>
               <label className="sm:col-span-2 text-sm font-semibold">Bewohner
@@ -283,6 +308,9 @@ export default function PflegeSeite() {
               <label className="text-sm font-semibold">Wunschfahrt (optional)
                 <WunschfahrtFeld wert={wunschTour} onChange={setWunschTour} />
               </label>
+              <label className="text-sm font-semibold">Abholort
+                <AbholortFeld wert={wunschAbhol} onChange={setWunschAbhol} />
+              </label>
               <label className="text-sm font-semibold">Hinweis für den Kutscher (optional)
                 <input value={wunsch.notiz} maxLength={500} onChange={(e) => setWunsch({ ...wunsch, notiz: e.target.value })} className={feld} placeholder="z. B. am Haupteingang abholen" />
               </label>
@@ -309,6 +337,7 @@ export default function PflegeSeite() {
                         }).join(' + ')}
                       </div>
                       <div className="text-sm text-gray-600">{tagText(f.datum)}, {zeit(f)}{f.fahrzeug ? ` · ${fahrzeugById(f.fahrzeug)?.name ?? f.fahrzeug}` : ''}</div>
+                      {f.abholort && <div className="text-sm text-sky-800">📍 {f.abholort}</div>}
                       {f.wunschfahrt && <div className="text-sm text-emerald-800">🗺️ {f.wunschfahrt}</div>}
                     </div>
                     {f.pilot
