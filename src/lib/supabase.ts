@@ -33,8 +33,12 @@ export type Buchung = {
   eigenfahrt?: boolean;
   /** Fahrt für einen Bewohner (nur für Kutscher und Pflege sichtbar) */
   bewohner_id?: string | null;
-  /** Freie Fahrzeit, die ein Kutscher für Bewohner anbietet */
+  /** Freie Fahrzeit, die ein Kutscher anbietet (für Vermittlungsstellen) */
   angebot?: boolean;
+  /** Freie Fahrzeit auch für Interessierte aus dem Quartier direkt buchbar */
+  oeffentlich?: boolean;
+  /** Telefon des Gasts bei öffentlich gebuchter Zeit – nur für den Kutscher der Fahrt */
+  kontakt_telefon?: string | null;
   /** Angaben zum Bewohner – nur für Kutscher und Pflege mitgeliefert */
   bewohner?: Fahrgast | null;
   /** Zweiter Bewohner in derselben Fahrt (z. B. Rikscha mit 2 Plätzen) */

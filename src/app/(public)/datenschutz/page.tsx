@@ -77,6 +77,7 @@ export default function DatenschutzPage() {
           <h2>5. Fahrten buchen</h2>
           <p>Bei einer Buchung speichern wir Datum, Uhrzeit, Fahrzeug, Kutscher, die Namen der Mitfahrenden sowie freiwillige Angaben wie Notiz, Abholort und Wunschfahrt. Diese Daten dienen nur der Organisation der Rikschafahrten.</p>
           <p>Im öffentlich sichtbaren Kalender erscheinen Mitfahrende nur als „Gast“. Namen und Notizen sehen ausschließlich angemeldete Kutscherinnen und Kutscher (Art. 6 Abs. 1 lit. b DSGVO).</p>
+          <p>Wenn Sie eine freigegebene freie Fahrzeit direkt buchen, speichern wir zusätzlich Ihre Telefonnummer, damit sich die Kutscherin oder der Kutscher bei Änderungen (zum Beispiel wegen Regen) melden kann. Die Telefonnummer sieht nur die Person, die Sie fährt, sowie die Verwaltung. Sie wird 7 Tage nach dem Fahrttag automatisch gelöscht.</p>
         </div>
 
         <div className="block">

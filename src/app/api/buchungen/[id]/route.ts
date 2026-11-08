@@ -29,6 +29,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.datum     !== undefined) update.datum     = body.datum;
   if (body.startzeit !== undefined) update.startzeit = body.startzeit;
   if (body.endzeit   !== undefined) update.endzeit   = body.endzeit;
+  // Freie Zeit für das Quartier öffnen/schließen – nur Kutscher
+  if (body.oeffentlich !== undefined && darfFahrtenVerwalten(rolle)) update.oeffentlich = !!body.oeffentlich;
 
   // Fahrzeug prüfen, sobald Kutscher, Gäste, Fahrzeug oder Zeit geändert werden
   const betrifftFahrzeug = ['fahrzeug', 'datum', 'startzeit', 'endzeit', 'gaeste', 'pilot'].some((k) => body[k] !== undefined);

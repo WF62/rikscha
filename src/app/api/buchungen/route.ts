@@ -76,12 +76,15 @@ export async function GET(req: NextRequest) {
       const abholort = nah || oeffentlich ? b.abholort : 'Im Quartier – sichtbar nach Übernahme';
       const orgId = gruppe?.organisation_id ?? leute.find((x) => x?.organisation_id)?.organisation_id ?? null;
       const vermittlung = orgId && (voll || eigeneOrg) ? stellen.get(orgId) ?? null : null;
-      return { ...b, abholort, bewohner: angaben(leute[0]), bewohner2: angaben(leute[1]), gruppe: gruppe ? { titel: gruppe.titel } : null, vermittlung };
+      return {
+        ...b, abholort, kontakt_telefon: nah ? b.kontakt_telefon ?? null : null,
+        bewohner: angaben(leute[0]), bewohner2: angaben(leute[1]), gruppe: gruppe ? { titel: gruppe.titel } : null, vermittlung,
+      };
     }
     gekuerzt = true;
     return {
       ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null, bewohner2_id: null,
-      wunschfahrt: null, abholort: null, gruppe: b.gruppe_id ? { titel: 'Gruppenfahrt' } : null,
+      wunschfahrt: null, abholort: null, kontakt_telefon: null, gruppe: b.gruppe_id ? { titel: 'Gruppenfahrt' } : null,
     };
   });
   return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });
@@ -188,6 +191,7 @@ export async function POST(req: NextRequest) {
       notiz: notiz || null,
       ...(eigenfahrt ? { eigenfahrt: true } : {}),
       ...(angebot ? { angebot: true } : {}),
+      ...(angebot && body.oeffentlich ? { oeffentlich: true } : {}),
     })
     .select()
     .single();

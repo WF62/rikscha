@@ -304,7 +304,7 @@ export default function PflegeSeite() {
                 return (
                   <div key={a.id} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
-                      <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}</div>
+                      <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}{a.oeffentlich && <span className="ml-2 text-xs font-normal bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">🌿 auch öffentlich buchbar</span>}</div>
                       <div className="text-sm text-gray-600">
                         Kutscher: {a.pilot} · {a.fahrzeug
                           ? <>{fz?.name ?? a.fahrzeug} (max. {plaetze} {plaetze > 1 ? 'Gäste' : 'Gast'}){rolliOk ? ' · ♿ Rollstuhl möglich' : ''}</>
