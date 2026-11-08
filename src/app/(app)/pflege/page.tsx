@@ -5,7 +5,7 @@ import type { Bewohner, Buchung, Organisation } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
-import { WUNSCH_TOUREN, ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
+import { WUNSCH_TOUREN, ABHOLORTE, NACH_ABSPRACHE, tourMinuten, zeitPlus, zeitWarnung, uhrzeitMinuten, dauerText } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
 import { baumListe, bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import FahrzeugPicker from '../FahrzeugPicker';
@@ -89,18 +89,34 @@ function tourText(t: Tour) {
   return WUNSCH_TOUREN.find((x) => x.id === t.wahl)?.name ?? '';
 }
 
-/** Wunschfahrt: eine der bekannten Touren oder ein eigener Wunsch */
-function WunschfahrtFeld({ wert, onChange }: { wert: Tour; onChange: (t: Tour) => void }) {
+/** Endzeit passend zur Tour: Start + Tourdauer (oder unverändert, wenn keine feste Dauer) */
+function endeFuerTour(t: Tour, start: string, ende: string) {
+  const min = tourMinuten(t.wahl);
+  return (min !== null && start && zeitPlus(start, min)) || ende;
+}
+
+/** Hinweis unter der Zeit: zu knapp für die gewählte Tour */
+function ZeitWarnung({ tour, start, ende }: { tour: Tour; start: string; ende: string }) {
+  const w = zeitWarnung(tourText(tour), start, ende);
+  return w ? <p role="alert" className="sm:col-span-2 text-sm text-orange-800 bg-orange-50 border border-orange-200 rounded px-3 py-2">⚠ {w} Bitte die Endzeit anpassen, sonst ist das Fahrzeug zu kurz eingeplant.</p> : null;
+}
+
+/** Wunschfahrt: eine der bekannten Touren oder ein eigener Wunsch. verfuegbar = Länge der festen Fahrzeit in Minuten */
+function WunschfahrtFeld({ wert, onChange, verfuegbar }: { wert: Tour; onChange: (t: Tour) => void; verfuegbar?: number | null }) {
+  const gewaehlt = WUNSCH_TOUREN.find((t) => t.id === wert.wahl);
   return (
     <div className="flex flex-col gap-1">
       <select aria-label="Wunschfahrt" value={wert.wahl} onChange={(e) => onChange({ ...wert, wahl: e.target.value })} className="border rounded px-2 py-2">
         <option value="">Egal – der Kutscher schlägt etwas vor</option>
-        {WUNSCH_TOUREN.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.dauer})</option>)}
+        {WUNSCH_TOUREN.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.dauer}){verfuegbar != null && t.minuten > verfuegbar ? ' – zu lang für diese Zeit' : ''}</option>)}
         <option value={EIGENE}>Eigener Wunsch …</option>
       </select>
       {wert.wahl === EIGENE && (
         <input aria-label="Eigener Wunsch" maxLength={120} value={wert.eigene} placeholder="z. B. zur Eisdiele, zum alten Wohnhaus"
           onChange={(e) => onChange({ ...wert, eigene: e.target.value })} className="border rounded px-2 py-2" />
+      )}
+      {gewaehlt && verfuegbar != null && gewaehlt.minuten > verfuegbar && (
+        <span role="alert" className="text-xs font-normal text-orange-800">⚠ Die Tour dauert {gewaehlt.dauer}, diese Fahrzeit hat nur {dauerText(verfuegbar)}. Lieber eine kürzere Tour wählen.</span>
       )}
     </div>
   );
@@ -362,7 +378,8 @@ export default function PflegeSeite() {
                         gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Fahrgast wählen'}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
-                    <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
+                    <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })}
+                      verfuegbar={(uhrzeitMinuten(a.endzeit) ?? 0) - (uhrzeitMinuten(a.startzeit) ?? 0)} />
                     <AbholortFeld wert={angebotAbhol[a.id] ?? ABHOL_LEER} onChange={(v) => setAngebotAbhol({ ...angebotAbhol, [a.id]: v })}
                       standard={standardOrt} adresse={bewohnerById(auswahl[a.id])?.adresse} />
                     {!a.fahrzeug && auswahl[a.id] && (() => {
@@ -426,12 +443,13 @@ export default function PflegeSeite() {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="text-sm font-semibold">Von
-                  <input required type="time" value={wunsch.startzeit} onChange={(e) => setWunsch({ ...wunsch, startzeit: e.target.value })} className={feld} />
+                  <input required type="time" value={wunsch.startzeit} onChange={(e) => setWunsch({ ...wunsch, startzeit: e.target.value, endzeit: endeFuerTour(wunschTour, e.target.value, wunsch.endzeit) })} className={feld} />
                 </label>
                 <label className="text-sm font-semibold">Bis
                   <input required type="time" value={wunsch.endzeit} onChange={(e) => setWunsch({ ...wunsch, endzeit: e.target.value })} className={feld} />
                 </label>
               </div>
+              <ZeitWarnung tour={wunschTour} start={wunsch.startzeit} ende={wunsch.endzeit} />
               <label className="text-sm font-semibold">Fahrzeug (optional)
                 <select value={wunsch.fahrzeug} onChange={(e) => setWunsch({ ...wunsch, fahrzeug: e.target.value })} className={feld}>
                   <option value="">Egal – sucht der Kutscher aus</option>
@@ -446,7 +464,8 @@ export default function PflegeSeite() {
                 </select>
               </label>
               <label className="text-sm font-semibold">Wunschfahrt (optional)
-                <WunschfahrtFeld wert={wunschTour} onChange={setWunschTour} />
+                <WunschfahrtFeld wert={wunschTour} onChange={(t) => { setWunschTour(t); setWunsch((w) => ({ ...w, endzeit: endeFuerTour(t, w.startzeit, w.endzeit) })); }} />
+                {tourMinuten(wunschTour.wahl) !== null && <span className="block text-xs font-normal text-gray-500 mt-1">Die Endzeit wird passend zur Tour gesetzt.</span>}
               </label>
               <label className="text-sm font-semibold">Abholort
                 <AbholortFeld wert={wunschAbhol} onChange={setWunschAbhol} standard={standardOrt} adresse={bewohnerById(wunsch.bewohner_id)?.adresse} />
@@ -479,6 +498,7 @@ export default function PflegeSeite() {
                       <div className="text-sm text-gray-600">{tagText(f.datum)}, {zeit(f)}{f.fahrzeug ? ` · ${fahrzeugById(f.fahrzeug)?.name ?? f.fahrzeug}` : ''}</div>
                       {f.abholort && <div className="text-sm text-sky-800">📍 {f.abholort}</div>}
                       {f.wunschfahrt && <div className="text-sm text-emerald-800">🗺️ {f.wunschfahrt}</div>}
+                      {zeitWarnung(f.wunschfahrt, f.startzeit, f.endzeit) && <div className="text-sm text-orange-800">⚠ {zeitWarnung(f.wunschfahrt, f.startzeit, f.endzeit)}</div>}
                     </div>
                     {f.pilot
                       ? <span className="text-sm bg-green-100 text-green-800 rounded-full px-3 py-1">✓ Kutscher: {f.pilot}</span>
@@ -565,12 +585,13 @@ export default function PflegeSeite() {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="text-sm font-semibold">Von
-                  <input required type="time" value={gruppe.startzeit} onChange={(e) => setGruppe({ ...gruppe, startzeit: e.target.value })} className={feld} />
+                  <input required type="time" value={gruppe.startzeit} onChange={(e) => setGruppe({ ...gruppe, startzeit: e.target.value, endzeit: endeFuerTour(gruppeTour, e.target.value, gruppe.endzeit) })} className={feld} />
                 </label>
                 <label className="text-sm font-semibold">Bis
                   <input required type="time" value={gruppe.endzeit} onChange={(e) => setGruppe({ ...gruppe, endzeit: e.target.value })} className={feld} />
                 </label>
               </div>
+              <ZeitWarnung tour={gruppeTour} start={gruppe.startzeit} ende={gruppe.endzeit} />
               <fieldset className="sm:col-span-2 text-sm">
                 <legend className="font-semibold mb-1">Fahrgäste ({gruppeTeilnehmer.length} gewählt)</legend>
                 {(baum.length > 0 || kreise.length > 0) && (
@@ -620,7 +641,8 @@ export default function PflegeSeite() {
                 <AbholortFeld wert={gruppeAbhol} onChange={setGruppeAbhol} standard={standardOrt} label="Treffpunkt" />
               </label>
               <label className="text-sm font-semibold">Wunschfahrt (optional)
-                <WunschfahrtFeld wert={gruppeTour} onChange={setGruppeTour} />
+                <WunschfahrtFeld wert={gruppeTour} onChange={(t) => { setGruppeTour(t); setGruppe((g) => ({ ...g, endzeit: endeFuerTour(t, g.startzeit, g.endzeit) })); }} />
+                {tourMinuten(gruppeTour.wahl) !== null && <span className="block text-xs font-normal text-gray-500 mt-1">Die Endzeit wird passend zur Tour gesetzt.</span>}
               </label>
               <label className="sm:col-span-2 text-sm font-semibold">Hinweis für die Kutscher (optional)
                 <input value={gruppe.notiz} maxLength={500} onChange={(e) => setGruppe({ ...gruppe, notiz: e.target.value })} className={feld} />
