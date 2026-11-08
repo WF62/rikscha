@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { sendBuchungEmail } from '@/lib/email';
 import { rolleAusAnfrage, anmeldungAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten, istAdmin } from '@/lib/pilotAuth';
 import { aufraeumen } from '@/lib/datenschutz-server';
+import { ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
 import { fahrzeugFehler, ladeStammdaten } from '@/lib/stammdaten-server';
 import { formularPruefen, begrenzen, ZU_VIELE, NEU_LADEN } from '@/lib/spamschutz';
 
@@ -67,7 +68,8 @@ export async function GET(req: NextRequest) {
         name: x.name, wohnbereich: x.wohnbereich, rollstuhl: x.rollstuhl, hinweis: x.hinweis,
         telefon: nah ? x.telefon ?? null : null, adresse: nah ? x.adresse ?? null : null,
       } : null;
-      const abholort = !b.abholort || nah || standardOrte.has(b.abholort) ? b.abholort : 'Im Quartier – sichtbar nach Übernahme';
+      const oeffentlich = !b.abholort || standardOrte.has(b.abholort) || (ABHOLORTE as readonly string[]).includes(b.abholort) || b.abholort === NACH_ABSPRACHE;
+      const abholort = nah || oeffentlich ? b.abholort : 'Im Quartier – sichtbar nach Übernahme';
       return { ...b, abholort, bewohner: angaben(leute[0]), bewohner2: angaben(leute[1]), gruppe: gruppe ? { titel: gruppe.titel } : null };
     }
     gekuerzt = true;

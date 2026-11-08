@@ -8,5 +8,11 @@ export const WUNSCH_TOUREN = [
   { id: 'schloesser', name: 'Brühler Schlösserrunde', dauer: 'ca. 2 Std.' },
 ] as const;
 
-/** Standard-Abholort für Bewohnerfahrten */
-export const STANDARD_ABHOLORT = 'GFO, Eingang Elisabeth';
+/** Standard-Abholort für Fahrten des Seniorenheims (GFO) */
+export const STANDARD_ABHOLORT = 'Seniorenheim St. Elisabeth – Eingang Elisabeth';
+
+/** Feste Abholorte zur Auswahl – für alle Kutscher sichtbar (keine Privatadressen) */
+export const ABHOLORTE = ['Pfarrzentrum Merten', STANDARD_ABHOLORT, 'Betreutes Wohnen Paulinenhof'] as const;
+
+/** Text, wenn der Ort noch abgesprochen wird */
+export const NACH_ABSPRACHE = 'Anderer Abholort nach Absprache';

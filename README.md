@@ -91,7 +91,7 @@ Einmalig `supabase/bewohner-pflege.sql` ausführen.
 
 ## Vermittlung durch Organisationen und Gruppenfahrten
 
-- **Organisationen** (Admin-Bereich): z. B. „GFO Seniorenheim“ (Einrichtung, Standard-Abholort „GFO, Eingang Elisabeth“),
+- **Organisationen** (Admin-Bereich): z. B. „GFO Seniorenheim“ (Einrichtung, Standard-Abholort „Seniorenheim St. Elisabeth – Eingang Elisabeth“; feste Abholorte: Pfarrzentrum Merten, Seniorenheim St. Elisabeth, Betreutes Wohnen Paulinenhof, „nach Absprache“),
   Quartiersbüro, Kirchengemeinde (Quartier). Zugänge mit der Rolle „Vermittlung“ gehören zu einer Organisation
   und sehen nur deren Fahrgäste. Freie Fahrzeiten der Kutscher sehen alle gleich – wer zuerst zuordnet, bekommt sie.
 - **Fahrgäste aus dem Quartier** haben Adresse und Telefon. Beides sehen nur der Kutscher, der die Fahrt übernimmt,

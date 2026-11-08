@@ -5,7 +5,7 @@ import type { Bewohner, Buchung, Organisation } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
-import { WUNSCH_TOUREN } from '@/lib/touren';
+import { WUNSCH_TOUREN, ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
 import FahrzeugPicker from '../FahrzeugPicker';
 
@@ -99,31 +99,38 @@ function WunschfahrtFeld({ wert, onChange }: { wert: Tour; onChange: (t: Tour) =
   );
 }
 
-type Abholort = { wahl: '' | 'standard' | 'adresse' | 'anders'; text: string };
+// wahl: '' (Vorgabe) | 'ort:<fester Ort>' | 'adresse' | 'anders'
+type Abholort = { wahl: string; text: string };
 const ABHOL_LEER: Abholort = { wahl: '', text: '' };
-/** Text des Abholorts; '' = nichts Passendes gewählt */
+
+/** Vorgabe: Standard der Organisation, sonst Wohnadresse, sonst erster fester Ort */
+function abholVorgabe(standard: string | null, adresse: string | null | undefined) {
+  return standard ? `ort:${standard}` : adresse ? 'adresse' : `ort:${ABHOLORTE[0]}`;
+}
+/** Text des Abholorts */
 function abholText(a: Abholort, standard: string | null, adresse: string | null | undefined): string {
-  const wahl = a.wahl || (standard ? 'standard' : adresse ? 'adresse' : 'anders');
-  if (wahl === 'standard') return standard ?? '';
+  const wahl = a.wahl || abholVorgabe(standard, adresse);
+  if (wahl.startsWith('ort:')) return wahl.slice(4);
   if (wahl === 'adresse') return adresse ?? '';
-  return a.text.trim();
+  return a.text.trim() ? `${NACH_ABSPRACHE}: ${a.text.trim()}` : NACH_ABSPRACHE;
 }
 
-/** Abholort: Standard der Organisation, Wohnadresse des Fahrgasts oder ein anderer Ort */
+/** Abholort: feste Orte (Pfarrzentrum, St. Elisabeth, Paulinenhof), Wohnadresse oder nach Absprache */
 function AbholortFeld({ wert, onChange, standard, adresse, label = 'Abholort' }: {
   wert: Abholort; onChange: (a: Abholort) => void; standard: string | null; adresse?: string | null; label?: string;
 }) {
-  const wahl = wert.wahl || (standard ? 'standard' : adresse ? 'adresse' : 'anders');
+  const wahl = wert.wahl || abholVorgabe(standard, adresse);
+  const orte = standard && !(ABHOLORTE as readonly string[]).includes(standard) ? [standard, ...ABHOLORTE] : [...ABHOLORTE];
   return (
     <div className="flex flex-col gap-1">
-      <select aria-label={label} value={wahl} onChange={(e) => onChange({ ...wert, wahl: e.target.value as Abholort['wahl'] })}
+      <select aria-label={label} value={wahl} onChange={(e) => onChange({ ...wert, wahl: e.target.value })}
         className="border rounded px-2 py-2">
-        {standard && <option value="standard">📍 {standard}</option>}
+        {orte.map((o) => <option key={o} value={`ort:${o}`}>📍 {o}</option>)}
         {adresse && <option value="adresse">🏡 Zuhause: {adresse}</option>}
-        <option value="anders">Anderer Ort …</option>
+        <option value="anders">💬 {NACH_ABSPRACHE}</option>
       </select>
       {wahl === 'anders' && (
-        <input aria-label={`${label}: anderer Ort`} maxLength={120} value={wert.text} placeholder="z. B. Kirchplatz, Café, Adresse"
+        <input aria-label={`${label}: Hinweis`} maxLength={80} value={wert.text} placeholder="optional, z. B. Kirchplatz oder Adresse"
           onChange={(e) => onChange({ ...wert, text: e.target.value })} className="border rounded px-2 py-2" />
       )}
     </div>
@@ -418,7 +425,7 @@ export default function PflegeSeite() {
               e.preventDefault();
               const weitere = gruppeWeitere.split('\n').map((x) => x.trim()).filter(Boolean);
               const abholort = abholText(gruppeAbhol, standardOrt, null);
-              if (!abholort) { zeige('Bitte einen Treffpunkt eintragen.', false); return; }
+              
               const wunschfahrt = tourText(gruppeTour);
               const r = await fetch('/api/pflege', {
                 method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },

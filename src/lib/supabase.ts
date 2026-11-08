@@ -38,7 +38,7 @@ export type Buchung = {
   bewohner2_id?: string | null;
   /** Gewünschte Tour, z. B. "Fahrt zum Rhein" */
   wunschfahrt?: string | null;
-  /** Wo der Gast abgeholt wird (Standard: GFO, Eingang Elisabeth) */
+  /** Wo der Gast abgeholt wird (z. B. Pfarrzentrum Merten, Seniorenheim St. Elisabeth – Eingang Elisabeth) */
   abholort?: string | null;
   bewohner2?: Fahrgast | null;
   /** Gehört zu einer Gruppenfahrt (mehrere Fahrzeuge) */

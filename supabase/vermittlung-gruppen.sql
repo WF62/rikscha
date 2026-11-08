@@ -15,7 +15,7 @@ create table if not exists rikscha_organisationen (
 alter table rikscha_organisationen enable row level security;   -- nur über die Server-API
 
 insert into rikscha_organisationen (name, art, standard_abholort)
-values ('GFO Seniorenheim', 'einrichtung', 'GFO, Eingang Elisabeth')
+values ('GFO Seniorenheim', 'einrichtung', 'Seniorenheim St. Elisabeth – Eingang Elisabeth')
 on conflict (name) do nothing;
 
 -- 2. Vermittlungs-Zugänge gehören zu einer Organisation (bisherige Pflege-Zugänge → GFO)
