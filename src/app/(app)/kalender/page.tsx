@@ -107,7 +107,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
       {!schmal && (b.gaeste ?? []).map((g, i) => (
         <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-1 px-1.5 py-0.5 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="flex-shrink-0 w-2 h-2 rounded-full" />
-          <span className="text-[11px] font-semibold truncate">{b.bewohner ? '🏠 ' : 'G: '}{g}{b.bewohner?.rollstuhl ? ' ♿' : ''}</span>
+          <span className="text-[11px] font-semibold truncate">{[b.bewohner, b.bewohner2].some((x) => x?.name === g) ? '🏠 ' : 'G: '}{g}{[b.bewohner, b.bewohner2].some((x) => x?.name === g && x.rollstuhl) ? ' ♿' : ''}</span>
         </div>
       ))}
       {schmal && (b.gaeste ?? []).length > 0 && (
@@ -301,7 +301,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
         {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">FREI FÜR BEWOHNER</span>}
-        {b.bewohner && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 BEWOHNERFAHRT</span>}
+        {(b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 BEWOHNERFAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
       </div>
       {b.pilot ? (
@@ -318,16 +318,17 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {b.gaeste.map((g, i) => (
         <div key={i} style={{ backgroundColor: GAST_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 border-t border-white/60 ${GAST_FARBE.textClass}`}>
           <span style={{ backgroundColor: GAST_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
-          <span className="text-sm font-semibold">{b.bewohner ? '🏠 ' : 'G: '}{g}</span>
+          <span className="text-sm font-semibold">{[b.bewohner?.name, b.bewohner2?.name].includes(g) ? '🏠 ' : 'G: '}{g}</span>
         </div>
       ))}
-      {b.bewohner && (
-        <div className="px-3 py-2 border-t border-teal-200 bg-teal-50 text-sm text-teal-900 space-y-0.5">
-          {b.bewohner.wohnbereich && <div>Wohnbereich: <strong>{b.bewohner.wohnbereich}</strong></div>}
-          {b.bewohner.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
-          {b.bewohner.hinweis && <div>Hinweis der Pflege: {b.bewohner.hinweis}</div>}
+      {[b.bewohner, b.bewohner2].filter((x): x is NonNullable<typeof x> => !!x).map((bw, i, alle) => (
+        <div key={i} className="px-3 py-2 border-t border-teal-200 bg-teal-50 text-sm text-teal-900 space-y-0.5">
+          {alle.length > 1 && <div className="font-semibold">🏠 {bw.name}</div>}
+          {bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
+          {bw.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
+          {bw.hinweis && <div>Hinweis der Pflege: {bw.hinweis}</div>}
         </div>
-      )}
+      ))}
       {b.fahrzeug ? (
         <div style={{ backgroundColor: fz?.bgHex ?? '#e5e7eb' }} className="flex items-center gap-2 px-3 py-2 border-t border-white/60 text-gray-900">
           <span style={{ backgroundColor: fz?.farbeHex ?? '#6b7280' }} className="w-3 h-3 rounded-full flex-shrink-0" />

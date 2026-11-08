@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfFahrtenVerwalten, istAdmin } from '@/lib/pilotAuth';
-import { fahrzeugFehler } from '@/lib/stammdaten-server';
+import { fahrzeugFehler, ladeStammdaten } from '@/lib/stammdaten-server';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,11 +32,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   // Neues Fahrzeug oder neues Datum: Fahrzeug muss an dem Tag buchbar sein
   if (body.fahrzeug !== undefined || body.datum !== undefined) {
-    const { data: alt } = await sb.from('rikscha_buchungen').select('fahrzeug, datum').eq('id', id).maybeSingle();
+    const { data: alt } = await sb.from('rikscha_buchungen').select('fahrzeug, datum, gaeste').eq('id', id).maybeSingle();
     const fz = (body.fahrzeug ?? alt?.fahrzeug ?? '') as string;
     const tag = (body.datum ?? alt?.datum) as string | undefined;
     const fzFehler = await fahrzeugFehler(fz, tag);
     if (fzFehler) return NextResponse.json({ error: fzFehler }, { status: 409 });
+    // Passen alle Fahrgäste ins neue Fahrzeug?
+    const anzahl = ((body.gaeste ?? alt?.gaeste ?? []) as string[]).length;
+    const f = fz ? (await ladeStammdaten(true)).fahrzeuge.find((x) => x.id === fz) : undefined;
+    if (body.fahrzeug && f && anzahl > f.maxGaeste) {
+      return NextResponse.json({ error: `${f.name} hat nur ${f.maxGaeste} Platz${f.maxGaeste === 1 ? '' : 'e'}, gebucht sind ${anzahl} Personen.` }, { status: 409 });
+    }
   }
 
   const { data, error } = await sb
