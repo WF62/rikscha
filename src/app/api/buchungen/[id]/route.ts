@@ -32,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   // Neues Fahrzeug oder neues Datum: Fahrzeug muss an dem Tag buchbar sein
   if (body.fahrzeug !== undefined || body.datum !== undefined) {
-    const { data: alt } = await sb.from('rikscha_buchungen').select('fahrzeug, datum, gaeste').eq('id', id).maybeSingle();
+    const { data: alt } = await sb.from('rikscha_buchungen').select('*').eq('id', id).maybeSingle();
     const fz = (body.fahrzeug ?? alt?.fahrzeug ?? '') as string;
     const tag = (body.datum ?? alt?.datum) as string | undefined;
     const fzFehler = await fahrzeugFehler(fz, tag);
@@ -42,6 +42,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const f = fz ? (await ladeStammdaten(true)).fahrzeuge.find((x) => x.id === fz) : undefined;
     if (body.fahrzeug && f && anzahl > f.maxGaeste) {
       return NextResponse.json({ error: `${f.name} hat nur ${f.maxGaeste} Platz${f.maxGaeste === 1 ? '' : 'e'}, gebucht sind ${anzahl} Personen.` }, { status: 409 });
+    }
+    // Bewohner im Rollstuhl nur mit geeignetem Fahrzeug
+    const ids = [alt?.bewohner_id, alt?.bewohner2_id].filter(Boolean) as string[];
+    if (body.fahrzeug && f && !f.rollstuhl && ids.length) {
+      const { data: rolli } = await sb.from('rikscha_bewohner').select('name').in('id', ids).eq('rollstuhl', true);
+      if (rolli?.length) {
+        return NextResponse.json({ error: `${f.name} ist nicht für Rollstühle geeignet (${rolli.map((r) => r.name).join(', ')}).` }, { status: 409 });
+      }
     }
   }
 

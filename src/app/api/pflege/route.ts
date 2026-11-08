@@ -111,8 +111,15 @@ export async function POST(req: NextRequest) {
   type Person = { id: string; name: string; rollstuhl: boolean };
   /** Fahrgäste prüfen: Rollstuhl und Anzahl der Plätze im Fahrzeug */
   const fahrgastFehler = async (personen: Person[], anzahl: number, fahrzeugId: string) => {
-    if (!fahrzeugId) return null;
-    const f = (await ladeStammdaten(true)).fahrzeuge.find((x) => x.id === fahrzeugId);
+    const flotte = (await ladeStammdaten(false)).fahrzeuge;
+    if (!fahrzeugId) {
+      // Fahrzeug noch offen: Gibt es überhaupt ein passendes?
+      const rolli = personen.find((p) => p.rollstuhl);
+      const passend = flotte.filter((x) => x.maxGaeste >= anzahl && (!rolli || x.rollstuhl));
+      if (passend.length) return null;
+      return rolli ? `Kein Fahrzeug ist für Rollstühle eingetragen (${rolli.name}).` : `Kein Fahrzeug hat ${anzahl} Plätze.`;
+    }
+    const f = flotte.find((x) => x.id === fahrzeugId) ?? (await ladeStammdaten(true)).fahrzeuge.find((x) => x.id === fahrzeugId);
     if (!f) return null;
     if (anzahl > f.maxGaeste) return `${f.name} hat nur ${f.maxGaeste} Platz${f.maxGaeste === 1 ? '' : 'e'}.`;
     const rolli = personen.find((p) => p.rollstuhl);

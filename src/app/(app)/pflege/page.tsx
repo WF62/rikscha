@@ -174,32 +174,37 @@ export default function PflegeSeite() {
             <div className="space-y-3">
               {daten.angebote.map((a) => {
                 const fz = fahrzeugById(a.fahrzeug);
+                // Ohne Fahrzeug ("egal"): was die Flotte hergibt
+                const plaetze = a.fahrzeug ? fz?.maxGaeste ?? 1 : Math.max(1, ...fahrzeuge.map((x) => x.maxGaeste));
+                const rolliOk = a.fahrzeug ? !!fz?.rollstuhl : fahrzeuge.some((x) => x.rollstuhl);
                 return (
                   <div key={a.id} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
                       <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}</div>
                       <div className="text-sm text-gray-600">
-                        Kutscher: {a.pilot} · {fz?.name ?? a.fahrzeug} (max. {fz?.maxGaeste ?? 1} {(fz?.maxGaeste ?? 1) > 1 ? 'Gäste' : 'Gast'}){fz?.rollstuhl ? ' · ♿ Rollstuhl möglich' : ''}
+                        Kutscher: {a.pilot} · {a.fahrzeug
+                          ? <>{fz?.name ?? a.fahrzeug} (max. {plaetze} {plaetze > 1 ? 'Gäste' : 'Gast'}){rolliOk ? ' · ♿ Rollstuhl möglich' : ''}</>
+                          : <>Fahrzeug egal – wird passend zu den Gästen gewählt</>}
                       </div>
                     </div>
                     <select aria-label="Bewohner wählen" value={auswahl[a.id] ?? ''} onChange={(e) => setAuswahl({ ...auswahl, [a.id]: e.target.value })}
                       className="border rounded px-2 py-2">
                       <option value="">Bewohner wählen…</option>
                       {aktive.map((b) => (
-                        <option key={b.id} value={b.id} disabled={b.rollstuhl && !fz?.rollstuhl}>
-                          {b.name}{b.wohnbereich ? ` (${b.wohnbereich})` : ''}{b.rollstuhl ? ' ♿' : ''}{b.rollstuhl && !fz?.rollstuhl ? ' – Fahrzeug passt nicht' : ''}
+                        <option key={b.id} value={b.id} disabled={b.rollstuhl && !rolliOk}>
+                          {b.name}{b.wohnbereich ? ` (${b.wohnbereich})` : ''}{b.rollstuhl ? ' ♿' : ''}{b.rollstuhl && !rolliOk ? ' – Fahrzeug passt nicht' : ''}
                         </option>
                       ))}
                     </select>
-                    {(fz?.maxGaeste ?? 1) >= 2 && (
-                      <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id] ?? ''} rollstuhlOk={!!fz?.rollstuhl}
+                    {plaetze >= 2 && (
+                      <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id] ?? ''} rollstuhlOk={rolliOk}
                         gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Bewohner wählen'}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
                     <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
                     <button disabled={!auswahl[a.id]} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
                       onClick={async () => {
-                        const zweit = (fz?.maxGaeste ?? 1) >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
+                        const zweit = plaetze >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
                         const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
                         if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
                           setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER });
@@ -232,7 +237,7 @@ export default function PflegeSeite() {
                 </select>
               </label>
               <label className="sm:col-span-2 text-sm font-semibold">Zweite Person (optional)
-                <ZweitePerson bewohner={aktive} ersteId={wunsch.bewohner_id} rollstuhlOk={!wunschFz || wunschFz.rollstuhl}
+                <ZweitePerson bewohner={aktive} ersteId={wunsch.bewohner_id} rollstuhlOk={wunschFz ? wunschFz.rollstuhl : fahrzeuge.some((x) => x.rollstuhl)}
                   gesperrt={!wunsch.bewohner_id ? 'Erst oben einen Bewohner wählen'
                     : wunschFz && wunschFz.maxGaeste < 2 ? `${wunschFz.name} hat nur 1 Platz – für zwei Personen z. B. die Rikscha wählen` : undefined}
                   wert={wunsch2} onChange={setWunsch2} />

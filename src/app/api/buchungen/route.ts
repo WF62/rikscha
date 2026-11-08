@@ -95,10 +95,10 @@ export async function POST(req: NextRequest) {
   }
   // Eigenfahrt nur für angemeldete Angehörige; Kutscher-Namen nur aus der Liste
   const eigenfahrt = rolle === 'angehoeriger' && !!body.eigenfahrt;
-  // Freie Fahrzeit für Bewohner: nur Kutscher, mit Kutscher und Fahrzeug, ohne Gäste
+  // Freie Fahrzeit für Bewohner: nur Kutscher, ohne Gäste. Fahrzeug darf offen bleiben ("egal").
   const angebot = vertraut && !!body.angebot;
-  if (angebot && (!pilot || !fahrzeug)) {
-    return NextResponse.json({ error: 'Für eine freie Fahrzeit bitte Kutscher und Fahrzeug wählen.' }, { status: 400 });
+  if (angebot && !pilot) {
+    return NextResponse.json({ error: 'Für eine freie Fahrzeit bitte den Kutscher wählen.' }, { status: 400 });
   }
   if (angebot) gaeste.length = 0;
   if (pilot && !vertraut && !(rolle === 'angehoeriger' && pilot === angemeldet)
