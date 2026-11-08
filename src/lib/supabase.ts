@@ -12,6 +12,9 @@ export function createServiceClient() {
   if (!supabaseUrl || !serviceKey) throw new Error('Supabase env vars missing');
   return createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
+    // Next.js 14 legt fetch-Antworten sonst im Data Cache ab – auch über Deployments hinweg.
+    // Dann zeigt die App veraltete Daten (z. B. neu angelegte Fahrzeuge fehlen). Daher immer frisch laden.
+    global: { fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }) },
   });
 }
 
