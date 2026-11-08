@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { sendBuchungEmail } from '@/lib/email';
 import { rolleAusAnfrage, anmeldungAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten, istAdmin } from '@/lib/pilotAuth';
-import { aufraeumen } from '@/lib/datenschutz-server';
+import { aufraeumen, kontaktVermerken } from '@/lib/datenschutz-server';
 import { ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
 import { bereichPfad, type Bereich } from '@/lib/struktur';
 import { fahrzeugFehler, ladeStammdaten } from '@/lib/stammdaten-server';
@@ -144,6 +144,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Für eine freie Fahrzeit bitte den Kutscher wählen.' }, { status: 400 });
   }
   if (angebot) gaeste.length = 0;
+
+  // Bewohner aus der Namensliste (Kutscher/GFO/Admin): Namen aus der Datenbank, Abholort der Einrichtung.
+  // So erscheint die Fahrt auch im Etagen-Kalender und Wochenplan der Einrichtung.
+  const bwIds = vertraut && !angebot
+    ? Array.from(new Set([body.bewohner_id, body.bewohner2_id].map((x) => String(x ?? '')).filter(Boolean)))
+    : [];
+  let bewohner: { id: string; name: string; rollstuhl: boolean; organisation_id: string | null }[] = [];
+  let abholort: string | null = null;
+  if (bwIds.length) {
+    const sbBw = createServiceClient();
+    const { data: bw } = await sbBw.from('rikscha_bewohner').select('id, name, rollstuhl, organisation_id, aktiv').in('id', bwIds);
+    bewohner = bwIds.map((id) => (bw ?? []).find((x) => x.id === id && x.aktiv)).filter(Boolean) as typeof bewohner;
+    if (bewohner.length !== bwIds.length) return NextResponse.json({ error: 'Diesen Fahrgast gibt es nicht (mehr). Bitte neu laden.' }, { status: 400 });
+    gaeste.unshift(...bewohner.map((x) => x.name));
+    if (gaeste.length > (fz?.maxGaeste ?? 2)) {
+      return NextResponse.json({ error: `Für dieses Fahrzeug sind höchstens ${fz?.maxGaeste ?? 2} Gäste möglich.` }, { status: 400 });
+    }
+    const rolli = bewohner.find((x) => x.rollstuhl);
+    if (rolli && fz && !fz.rollstuhl) {
+      return NextResponse.json({ error: `${fz.name} ist nicht für Rollstühle eingetragen (${rolli.name}).` }, { status: 400 });
+    }
+    if (bewohner[0].organisation_id) {
+      const { data: org } = await sbBw.from('rikscha_organisationen').select('standard_abholort').eq('id', bewohner[0].organisation_id).maybeSingle();
+      abholort = org?.standard_abholort ?? null;
+    }
+  }
   // Kutscher und Gast stehen fest → Fahrzeug muss feststehen, sonst droht Überbuchung
   if (pilot && gaeste.length > 0 && !fahrzeug) {
     return NextResponse.json({ error: 'Wenn Kutscher und Gast feststehen, bitte auch das Fahrzeug wählen – sonst kann es doppelt gebucht werden.' }, { status: 400 });
@@ -199,6 +225,7 @@ export async function POST(req: NextRequest) {
       endzeit,
       notiz: notiz || null,
       ...(eigenfahrt ? { eigenfahrt: true } : {}),
+      ...(bewohner.length ? { bewohner_id: bewohner[0].id, bewohner2_id: bewohner[1]?.id ?? null, abholort } : {}),
       ...(angebot ? { angebot: true } : {}),
       ...(angebot && body.oeffentlich ? { oeffentlich: true } : {}),
     })
@@ -206,6 +233,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (bewohner.length) await kontaktVermerken(bewohner.map((x) => x.id), datum);
 
   sendBuchungEmail({
     fahrzeug: fahrzeug || '',
@@ -213,7 +241,8 @@ export async function POST(req: NextRequest) {
     datum,
     startzeit,
     endzeit,
-    gaeste,
+    // Namen von Bewohnern nicht per Mail verschicken
+    gaeste: bewohner.length ? ['Fahrt mit Fahrgast einer Einrichtung', ...gaeste.slice(bewohner.length)] : gaeste,
     notiz,
   }).catch(() => {});
 

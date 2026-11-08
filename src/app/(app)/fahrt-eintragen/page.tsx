@@ -13,6 +13,9 @@ const ERLAUBT = ['pilot', 'gfo', 'admin'];
 const MERKEN = 'schnell_kutscher_v1';
 type Art = 'angebot' | 'gast';
 type Merk = { art: Art; start: string; dauer: number; fahrzeug: string; oeffentlich: boolean };
+type Person = { id: string; name: string; einrichtung: string; bereich: string; rollstuhl: boolean };
+type Platz = { bw: string; text: string };  // bw: Bewohner-ID, '' = frei eintippen
+const ANDERE = '__andere';
 type FzWahl = { id: string; name: string; maxGaeste: number; rollstuhl: boolean; frei: boolean; grund?: string };
 
 const DAUERN = [45, 60, 90, 120];
@@ -36,7 +39,8 @@ export default function FahrtEintragen() {
   const [start, setStart] = useState('14:00');
   const [dauer, setDauer] = useState(60);
   const [fahrzeug, setFahrzeug] = useState('');
-  const [gaeste, setGaeste] = useState(['', '']);
+  const [plaetze, setPlaetze] = useState<Platz[]>([{ bw: '', text: '' }, { bw: '', text: '' }]);
+  const [leute, setLeute] = useState<Person[]>([]);
   const [oeffentlich, setOeffentlich] = useState(false);
   const [notiz, setNotiz] = useState('');
   const [liste, setListe] = useState<FzWahl[] | null>(null);
@@ -56,25 +60,31 @@ export default function FahrtEintragen() {
     if (m.fahrzeug) setFahrzeug(m.fahrzeug);
     if (m.oeffentlich) setOeffentlich(true);
     setZugang('ok');
+    // Namensliste der Fahrgäste (nur Name, Einrichtung, Bereich, ♿)
+    fetch('/api/bewohner-liste', { headers: authHeaders() }).then((r) => (r.ok ? r.json() : [])).then(setLeute).catch(() => setLeute([]));
   }, []);
 
   const ende = zeitPlus(start, dauer);
-  const namen = gaeste.map((g) => g.trim()).filter(Boolean);
+  const person = (id: string) => leute.find((x) => x.id === id);
+  const gewaehlt = plaetze.map((p) => (p.bw && p.bw !== ANDERE ? person(p.bw) : undefined)).filter(Boolean) as Person[];
+  const freiNamen = plaetze.filter((p) => p.bw === ANDERE || (!p.bw && !leute.length)).map((p) => p.text.trim()).filter(Boolean);
+  const namen = [...gewaehlt.map((x) => x.name), ...freiNamen];
   const personen = art === 'gast' ? Math.max(1, namen.length) : 1;
+  const rollstuhl = art === 'gast' && gewaehlt.some((x) => x.rollstuhl);
 
   // Freie Fahrzeuge zur gewählten Zeit
   useEffect(() => {
     if (zugang !== 'ok' || !tag || !ende) { setListe(null); return; }
     let aktiv = true;
     setListe(null);
-    fetch(`/api/fahrzeuge-frei?datum=${tag}&von=${start}&bis=${ende}&personen=${personen}`, { headers: authHeaders() })
+    fetch(`/api/fahrzeuge-frei?datum=${tag}&von=${start}&bis=${ende}&personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : [])).then((l: FzWahl[]) => {
         if (!aktiv) return;
         setListe(l);
         setFahrzeug((alt) => (alt && !l.some((x) => x.id === alt && x.frei) ? '' : alt));
       }).catch(() => aktiv && setListe([]));
     return () => { aktiv = false; };
-  }, [zugang, tag, start, ende, personen]);
+  }, [zugang, tag, start, ende, personen, rollstuhl]);
 
   if (zugang === 'pruefen') return <p className="text-center text-gray-400 mt-16">Einen Moment …</p>;
   if (zugang === 'nein') {
@@ -89,7 +99,8 @@ export default function FahrtEintragen() {
 
   const fzObj = liste?.find((f) => f.id === fahrzeug);
   const fehlt = !ende ? 'Bitte eine frühere Startzeit wählen.'
-    : art === 'gast' && !namen.length ? 'Bitte den Namen des Gasts eintragen.'
+    : art === 'gast' && !namen.length ? 'Bitte einen Gast wählen oder den Namen eintragen.'
+    : art === 'gast' && gewaehlt.length === 2 && gewaehlt[0].id === gewaehlt[1].id ? 'Bitte zwei verschiedene Gäste wählen.'
     : art === 'gast' && !fahrzeug ? 'Mit Gast bitte ein Fahrzeug wählen – sonst kann es doppelt gebucht werden.'
     : '';
 
@@ -101,7 +112,9 @@ export default function FahrtEintragen() {
         method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           pilot: ich, fahrzeug, datum: tag, startzeit: start, endzeit: ende, notiz: notiz.trim(),
-          gaeste: art === 'gast' ? namen : [],
+          gaeste: art === 'gast' ? freiNamen : [],
+          ...(art === 'gast' && gewaehlt[0] ? { bewohner_id: gewaehlt[0].id } : {}),
+          ...(art === 'gast' && gewaehlt[1] ? { bewohner2_id: gewaehlt[1].id } : {}),
           ...(art === 'angebot' ? { angebot: true, oeffentlich } : {}),
         }),
       });
@@ -120,12 +133,13 @@ export default function FahrtEintragen() {
           <div className="font-semibold">{art === 'angebot' ? 'Freie Fahrzeit' : `Fahrt mit ${namen.join(' und ')}`}</div>
           <div>{fertig}</div>
         </div>
-        <p className="text-gray-600">{art === 'angebot' ? 'Die Vermittlung sieht die Zeit jetzt und kann einen Gast eintragen.' : 'Die Fahrt steht im Kalender.'}</p>
+        <p className="text-gray-600">{art === 'angebot' ? 'Die Vermittlung sieht die Zeit jetzt und kann einen Gast eintragen.'
+          : gewaehlt.length ? 'Die Fahrt steht im Kalender – und automatisch im Kalender und Wochenplan der Einrichtung.' : 'Die Fahrt steht im Kalender.'}</p>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => { setTag(inTagen(7, tag)); setFertig(null); }} className="bg-rikscha-green text-white rounded-lg px-4 py-3 font-semibold">
             Gleiche Fahrt eine Woche später
           </button>
-          <button onClick={() => { setFertig(null); setGaeste(['', '']); setNotiz(''); }} className="border rounded-lg px-4 py-3 font-semibold text-gray-700">Andere Fahrt eintragen</button>
+          <button onClick={() => { setFertig(null); setPlaetze([{ bw: '', text: '' }, { bw: '', text: '' }]); setNotiz(''); }} className="border rounded-lg px-4 py-3 font-semibold text-gray-700">Andere Fahrt eintragen</button>
           <a href="/kalender" className="border rounded-lg px-4 py-3 font-semibold text-gray-700">📅 Kalender</a>
         </div>
       </div>
@@ -155,10 +169,32 @@ export default function FahrtEintragen() {
         </div>
         {art === 'gast' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {gaeste.map((g, i) => (
-              <input key={i} aria-label={`Gast ${i + 1}`} maxLength={80} value={g} placeholder={i === 0 ? 'Name des Gasts' : 'zweiter Gast (optional)'}
-                onChange={(e) => setGaeste(gaeste.map((x, k) => (k === i ? e.target.value : x)))} className="border-2 border-gray-200 rounded-lg px-3 py-3 text-base" />
-            ))}
+            {plaetze.map((p, i) => {
+              const setze = (neu: Partial<Platz>) => setPlaetze(plaetze.map((x, k) => (k === i ? { ...x, ...neu } : x)));
+              const gruppen = Array.from(new Set(leute.map((x) => x.einrichtung || 'Ohne Einrichtung')));
+              return (
+                <div key={i} className="flex flex-col gap-1">
+                  {leute.length > 0 && (
+                    <select aria-label={`Gast ${i + 1}`} value={p.bw} onChange={(e) => setze({ bw: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-3 text-base">
+                      <option value="">{i === 0 ? 'Gast wählen …' : 'zweiter Gast (optional)'}</option>
+                      {gruppen.map((g) => (
+                        <optgroup key={g} label={g}>
+                          {leute.filter((x) => (x.einrichtung || 'Ohne Einrichtung') === g).map((x) => (
+                            <option key={x.id} value={x.id} disabled={plaetze.some((q, k) => k !== i && q.bw === x.id)}>{x.name}{x.bereich ? ` – ${x.bereich}` : ''}{x.rollstuhl ? ' ♿' : ''}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                      <option value={ANDERE}>✍️ Anderer Gast – Name eintippen</option>
+                    </select>
+                  )}
+                  {(p.bw === ANDERE || !leute.length) && (
+                    <input aria-label={`Name Gast ${i + 1}`} maxLength={80} value={p.text} placeholder={i === 0 ? 'Name des Gasts' : 'zweiter Gast (optional)'}
+                      onChange={(e) => setze({ text: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-3 text-base" />
+                  )}
+                </div>
+              );
+            })}
+            {leute.length > 0 && <p className="sm:col-span-2 text-xs text-gray-500">Gäste aus der Liste erscheinen automatisch im Kalender und Wochenplan ihrer Einrichtung (z. B. Etage). Du siehst nur Name, Bereich und ♿.</p>}
           </div>
         )}
         {art === 'angebot' && (
