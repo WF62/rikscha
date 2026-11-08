@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       } else if (b.bewohner2_id) {
         update = { bewohner_id: b.bewohner2_id, bewohner2_id: null, gaeste: ohne };      // zweite Person fährt allein weiter
       } else if (b.angebot) {
-        update = { bewohner_id: null, gaeste: [], notiz: null };                         // freie Fahrzeit wird wieder frei
+        update = { bewohner_id: null, gaeste: [], notiz: null, ...('wunschfahrt' in b ? { wunschfahrt: null } : {}) }; // freie Fahrzeit wird wieder frei
       } else {
         update = { storniert: true, storniert_am: new Date().toISOString() };            // Fahrtwunsch absagen
       }
@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
     const { data } = await sb.from('rikscha_bewohner').select('*').eq('id', String(id)).eq('aktiv', true).maybeSingle();
     return data;
   };
+  const wunschfahrt = text(body.wunschfahrt, 120);
   type Person = { id: string; name: string; rollstuhl: boolean };
   /** Fahrgäste prüfen: Rollstuhl und Anzahl der Plätze im Fahrzeug */
   const fahrgastFehler = async (personen: Person[], anzahl: number, fahrzeugId: string) => {
@@ -153,10 +154,11 @@ export async function POST(req: NextRequest) {
       fahrzeug, pilot: '', gaeste, datum, startzeit, endzeit,
       notiz: text(body.notiz, 500), bewohner_id: bew.id,
       ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}),
+      ...(wunschfahrt ? { wunschfahrt } : {}),
     }).select().single();
     if (error) return fehler(error.message, 500);
     // Team-Mail ohne Bewohnernamen
-    sendBuchungEmail({ fahrzeug, pilot: '', datum, startzeit, endzeit, gaeste: ['Bewohnerfahrt – Kutscher gesucht'], notiz: null }).catch(() => {});
+    sendBuchungEmail({ fahrzeug, pilot: '', datum, startzeit, endzeit, gaeste: ['Bewohnerfahrt – Kutscher gesucht'], notiz: wunschfahrt ? `Wunschfahrt: ${wunschfahrt}` : null }).catch(() => {});
     return NextResponse.json(data, { status: 201 });
   }
 
@@ -174,7 +176,7 @@ export async function POST(req: NextRequest) {
     if (rf) return fehler(rf, 409);
     // Nur belegen, wenn noch frei (gleichzeitiges Belegen verhindern)
     const { data: neu, error } = await sb.from('rikscha_buchungen')
-      .update({ bewohner_id: bew.id, gaeste, notiz: text(body.notiz, 500) ?? b.notiz, ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}) })
+      .update({ bewohner_id: bew.id, gaeste, notiz: text(body.notiz, 500) ?? b.notiz, ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}), ...(wunschfahrt ? { wunschfahrt } : {}) })
       .eq('id', b.id).is('bewohner_id', null).select().maybeSingle();
     if (error) return fehler(error.message, 500);
     if (!neu) return fehler('Diese Fahrzeit wurde gerade vergeben.', 409);
@@ -186,7 +188,7 @@ export async function POST(req: NextRequest) {
     if (!b || !(b.bewohner_id || b.bewohner2_id)) return fehler('Diese Bewohnerfahrt gibt es nicht.', 404);
     // Belegte freie Fahrzeit wird wieder frei, ein Fahrtwunsch wird storniert
     const update = b.angebot
-      ? { bewohner_id: null, gaeste: [], notiz: null, ...('bewohner2_id' in b ? { bewohner2_id: null } : {}) }
+      ? { bewohner_id: null, gaeste: [], notiz: null, ...('bewohner2_id' in b ? { bewohner2_id: null } : {}), ...('wunschfahrt' in b ? { wunschfahrt: null } : {}) }
       : { storniert: true, storniert_am: new Date().toISOString() };
     const { error } = await sb.from('rikscha_buchungen').update(update).eq('id', b.id);
     return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });

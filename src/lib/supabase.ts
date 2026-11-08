@@ -36,6 +36,8 @@ export type Buchung = {
   bewohner?: { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null } | null;
   /** Zweiter Bewohner in derselben Fahrt (z. B. Rikscha mit 2 Plätzen) */
   bewohner2_id?: string | null;
+  /** Gewünschte Tour, z. B. "Fahrt zum Rhein" */
+  wunschfahrt?: string | null;
   bewohner2?: { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null } | null;
 };
 

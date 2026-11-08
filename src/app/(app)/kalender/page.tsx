@@ -340,6 +340,9 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           <span className="text-sm text-orange-600 italic">Fahrzeug noch nicht gewählt</span>
         </div>
       )}
+      {b.wunschfahrt && (
+        <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm text-emerald-900">🗺️ Wunschfahrt: <strong>{b.wunschfahrt}</strong></div>
+      )}
       <div className="px-3 py-2 bg-yellow-50 border-t border-yellow-200 flex items-start gap-2">
         <span className="text-yellow-600 text-sm mt-0.5">📝</span>
         {b.notiz

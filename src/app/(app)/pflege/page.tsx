@@ -5,6 +5,7 @@ import type { Bewohner, Buchung } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
+import { WUNSCH_TOUREN } from '@/lib/touren';
 
 type Daten = { bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[] };
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
@@ -58,6 +59,31 @@ function ZweitePerson({ bewohner, ersteId, wert, onChange, rollstuhlOk }: {
   );
 }
 
+const EIGENE = '__eigene';
+type Tour = { wahl: string; eigene: string };  // wahl: '' | Tour-ID | EIGENE
+const TOUR_LEER: Tour = { wahl: '', eigene: '' };
+function tourText(t: Tour) {
+  if (t.wahl === EIGENE) return t.eigene.trim();
+  return WUNSCH_TOUREN.find((x) => x.id === t.wahl)?.name ?? '';
+}
+
+/** Wunschfahrt: eine der bekannten Touren oder ein eigener Wunsch */
+function WunschfahrtFeld({ wert, onChange }: { wert: Tour; onChange: (t: Tour) => void }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <select aria-label="Wunschfahrt" value={wert.wahl} onChange={(e) => onChange({ ...wert, wahl: e.target.value })} className="border rounded px-2 py-2">
+        <option value="">Egal – der Kutscher schlägt etwas vor</option>
+        {WUNSCH_TOUREN.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.dauer})</option>)}
+        <option value={EIGENE}>Eigener Wunsch …</option>
+      </select>
+      {wert.wahl === EIGENE && (
+        <input aria-label="Eigener Wunsch" maxLength={120} value={wert.eigene} placeholder="z. B. zur Eisdiele, zum alten Wohnhaus"
+          onChange={(e) => onChange({ ...wert, eigene: e.target.value })} className="border rounded px-2 py-2" />
+      )}
+    </div>
+  );
+}
+
 export default function PflegeSeite() {
   const { fahrzeuge, fahrzeugById } = useStammdaten();
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
@@ -68,6 +94,8 @@ export default function PflegeSeite() {
   const [auswahl2, setAuswahl2] = useState<Record<string, Zweit>>({}); // Angebot-ID → zweite Person
   const [wunsch, setWunsch] = useState({ bewohner_id: '', datum: '', startzeit: '14:00', endzeit: '15:00', fahrzeug: '', notiz: '' });
   const [wunsch2, setWunsch2] = useState<Zweit>(ZWEIT_LEER);
+  const [wunschTour, setWunschTour] = useState<Tour>(TOUR_LEER);
+  const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
   const [neuerBewohner, setNeuerBewohner] = useState({ name: '', wohnbereich: '', rollstuhl: false, hinweis: '' });
   const [bearbeiten, setBearbeiten] = useState<Bewohner | null>(null);
 
@@ -154,11 +182,15 @@ export default function PflegeSeite() {
                       <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id]} rollstuhlOk={!!fz?.rollstuhl}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
+                    {auswahl[a.id] && (
+                      <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
+                    )}
                     <button disabled={!auswahl[a.id]} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
                       onClick={async () => {
                         const zweit = (fz?.maxGaeste ?? 1) >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
-                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
-                          setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER });
+                        const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
+                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
+                          setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER });
                         }
                       }}>
                       Zuordnen
@@ -176,8 +208,9 @@ export default function PflegeSeite() {
             <form className="grid grid-cols-1 sm:grid-cols-2 gap-3" onSubmit={async (e) => {
               e.preventDefault();
               const zweitOk = !wunschFz || wunschFz.maxGaeste >= 2;
-              if (await ausfuehren({ aktion: 'wunsch', ...wunsch, ...(zweitOk ? zweitDaten(wunsch2) : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
-                setWunsch({ ...wunsch, bewohner_id: '', notiz: '' }); setWunsch2(ZWEIT_LEER);
+              const wunschfahrt = tourText(wunschTour);
+              if (await ausfuehren({ aktion: 'wunsch', ...wunsch, ...(zweitOk ? zweitDaten(wunsch2) : {}), ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
+                setWunsch({ ...wunsch, bewohner_id: '', notiz: '' }); setWunsch2(ZWEIT_LEER); setWunschTour(TOUR_LEER);
               }
             }}>
               <label className="sm:col-span-2 text-sm font-semibold">Bewohner
@@ -217,6 +250,9 @@ export default function PflegeSeite() {
                   })}
                 </select>
               </label>
+              <label className="text-sm font-semibold">Wunschfahrt (optional)
+                <WunschfahrtFeld wert={wunschTour} onChange={setWunschTour} />
+              </label>
               <label className="text-sm font-semibold">Hinweis für den Kutscher (optional)
                 <input value={wunsch.notiz} maxLength={500} onChange={(e) => setWunsch({ ...wunsch, notiz: e.target.value })} className={feld} placeholder="z. B. am Haupteingang abholen" />
               </label>
@@ -243,6 +279,7 @@ export default function PflegeSeite() {
                         }).join(' + ')}
                       </div>
                       <div className="text-sm text-gray-600">{tagText(f.datum)}, {zeit(f)}{f.fahrzeug ? ` · ${fahrzeugById(f.fahrzeug)?.name ?? f.fahrzeug}` : ''}</div>
+                      {f.wunschfahrt && <div className="text-sm text-emerald-800">🗺️ {f.wunschfahrt}</div>}
                     </div>
                     {f.pilot
                       ? <span className="text-sm bg-green-100 text-green-800 rounded-full px-3 py-1">✓ Kutscher: {f.pilot}</span>
