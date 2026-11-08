@@ -7,7 +7,7 @@
  */
 import { useEffect, useState } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
-import { zeitPlus, dauerText } from '@/lib/touren';
+import { zeitPlus, dauerText, uhrzeitMinuten } from '@/lib/touren';
 
 const ERLAUBT = ['pilot', 'gfo', 'admin'];
 const MERKEN = 'schnell_kutscher_v1';
@@ -215,16 +215,27 @@ export default function FahrtEintragen() {
         </div>
         <p className="text-sm text-gray-600">{tag ? tagText(tag) : ''}</p>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="text-sm font-semibold">Start
+          <label className="text-sm font-semibold">Von
             <input type="time" value={start} onChange={(e) => setStart(e.target.value)} className="mt-1 block border-2 border-gray-200 rounded-lg px-3 py-2 text-base" />
           </label>
+          <label className="text-sm font-semibold">Bis
+            <input type="time" aria-label="Bis" value={ende ?? ''} onChange={(e) => {
+              // Freie Endzeit: Dauer daraus berechnen (höchstens 10 Std.)
+              const d = (uhrzeitMinuten(e.target.value) ?? 0) - (uhrzeitMinuten(start) ?? 0);
+              if (d > 0 && d <= 600) setDauer(d);
+            }} className="mt-1 block border-2 border-gray-200 rounded-lg px-3 py-2 text-base" />
+          </label>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-gray-600">oder Dauer:</span>
           <div className="flex flex-wrap gap-2">
             {DAUERN.map((d) => (
               <button key={d} type="button" onClick={() => setDauer(d)} className={`${knopf(dauer === d)} py-2`} aria-pressed={dauer === d}>{dauerText(d)}</button>
             ))}
           </div>
         </div>
-        <p className="text-sm text-gray-600">{ende ? `${start}–${ende} Uhr` : 'Startzeit zu spät'}</p>
+        <p className="text-sm text-gray-600">{ende ? `${start}–${ende} Uhr (${dauerText(dauer)})` : 'Startzeit zu spät'}</p>
+        {art === 'angebot' && <p className="text-xs text-gray-500">Tipp: Freie Zeit gern großzügig eintragen, z. B. 10–16 Uhr. Gäste buchen darin kürzere Fahrten, auch mehrere nacheinander.</p>}
       </section>
 
       <section className="bg-white rounded-xl shadow p-5 space-y-3">

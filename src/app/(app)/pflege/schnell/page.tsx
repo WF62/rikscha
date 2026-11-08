@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Bewohner, Buchung, Organisation } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
-import { WUNSCH_TOUREN, tourMinuten, zeitPlus } from '@/lib/touren';
+import { WUNSCH_TOUREN, tourMinuten, zeitPlus, dauerText } from '@/lib/touren';
 import { bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { startOptionen, abschnitteText } from '@/lib/fenster';
@@ -25,6 +25,7 @@ const isoTag = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padSt
 const inTagen = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return isoTag(d); };
 const tagText = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 const hhmm = (z: string) => z.slice(0, 5);
+const DAUER_WAHL = [45, 60, 90, 120, 180, 240];
 const knopf = (an: boolean) => `rounded-lg border-2 px-4 py-3 text-left font-semibold ${an ? 'border-rikscha-green bg-green-50 text-rikscha-green' : 'border-gray-200 bg-white text-gray-800'}`;
 
 type FzWahl = { id: string; name: string; maxGaeste: number; rollstuhl: boolean; frei: boolean; grund?: string };
@@ -129,6 +130,7 @@ export default function SchnellAnmelden() {
   const [tag, setTag] = useState(inTagen(1));
   const [start, setStart] = useState('14:00');
   const [tour, setTour] = useState('');        // '' = egal, sonst Tour-ID
+  const [dauerWahl, setDauerWahl] = useState<number | null>(null);   // null = Dauer der Tour (sonst 1 Std.)
   const [freiId, setFreiId] = useState('');    // gewählte freie Fahrzeit
   const [fensterStart, setFensterStart] = useState('');   // Beginn innerhalb der freien Fahrzeit
   const [hinweis, setHinweis] = useState('');
@@ -190,7 +192,7 @@ export default function SchnellAnmelden() {
   const flotteZuKlein = personen > 1 && !fahrzeuge.some((f) => f.maxGaeste >= personen && (!rollstuhl || f.rollstuhl));
 
   const tourObj = WUNSCH_TOUREN.find((t) => t.id === tour);
-  const dauer = tourMinuten(tour) ?? 60;
+  const dauer = dauerWahl ?? tourMinuten(tour) ?? 60;
   const ende = zeitPlus(start, dauer);
   // Freie Fahrzeiten an dem Tag, in die die Tour passt
   const freie = (daten.angebote ?? [])
@@ -374,6 +376,16 @@ export default function SchnellAnmelden() {
           </div>
         )}
 
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">Wie lange?</p>
+          <div className="flex flex-wrap gap-2">
+            {DAUER_WAHL.map((d) => (
+              <button key={d} type="button" onClick={() => setDauerWahl(d)} className={`${knopf(dauer === d)} py-2`} aria-pressed={dauer === d}>{dauerText(d)}</button>
+            ))}
+          </div>
+          {tourMinuten(tour) !== null && dauer < (tourMinuten(tour) ?? 0) && <p className="text-xs text-orange-800">⚠ Die gewählte Tour dauert ca. {dauerText(tourMinuten(tour) ?? 0)}.</p>}
+        </div>
+
         {freiEintrag && (
           freiEintrag.starts.length ? (
             <label className="block text-sm font-semibold">Beginn in dieser freien Zeit
@@ -395,9 +407,9 @@ export default function SchnellAnmelden() {
       <section className="bg-white rounded-xl shadow p-5 space-y-3">
         {nummer(3, 'Wohin?')}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <button type="button" onClick={() => setTour('')} className={knopf(tour === '')} aria-pressed={tour === ''}>Egal<span className="block text-xs font-normal text-gray-500">Kutscher schlägt etwas vor</span></button>
+          <button type="button" onClick={() => { setTour(''); setDauerWahl(null); }} className={knopf(tour === '')} aria-pressed={tour === ''}>Egal<span className="block text-xs font-normal text-gray-500">Kutscher schlägt etwas vor</span></button>
           {WUNSCH_TOUREN.map((t) => (
-            <button key={t.id} type="button" onClick={() => setTour(t.id)} className={knopf(tour === t.id)} aria-pressed={tour === t.id}>
+            <button key={t.id} type="button" onClick={() => { setTour(t.id); setDauerWahl(null); }} className={knopf(tour === t.id)} aria-pressed={tour === t.id}>
               {t.name}<span className="block text-xs font-normal text-gray-500">{t.dauer}</span>
             </button>
           ))}
