@@ -77,6 +77,7 @@ export default function DatenschutzPage() {
           <h2>5. Fahrten buchen</h2>
           <p>Bei einer Buchung speichern wir Datum, Uhrzeit, Fahrzeug, Kutscher, die Namen der Mitfahrenden sowie freiwillige Angaben wie Notiz, Abholort und Wunschfahrt. Diese Daten dienen nur der Organisation der Rikschafahrten.</p>
           <p>Im öffentlich sichtbaren Kalender erscheinen Mitfahrende nur als „Gast“. Namen und Notizen sehen ausschließlich angemeldete Kutscherinnen und Kutscher (Art. 6 Abs. 1 lit. b DSGVO).</p>
+          <p>Wenn Sie eine freigegebene freie Fahrzeit direkt buchen, speichern wir zusätzlich Ihre Telefonnummer, damit sich die Kutscherin oder der Kutscher bei Änderungen (zum Beispiel wegen Regen) melden kann. Die Telefonnummer sieht nur die Person, die Sie fährt, sowie die Verwaltung. Sie wird 7 Tage nach dem Fahrttag automatisch gelöscht.</p>
         </div>
 
         <div className="block">
@@ -84,6 +85,7 @@ export default function DatenschutzPage() {
           <p>Einrichtungen und Stellen im Quartier (zum Beispiel das Seniorenheim, das Pfarrzentrum oder das Betreute Wohnen) können Fahrten für ihre Bewohnerinnen, Bewohner und Gäste vermitteln, auch als Gruppenfahrt. Dafür speichern sie nur das Nötigste:</p>
           <p>Name, Wohnbereich oder Adresse, auf Wunsch eine Telefonnummer, ob ein Rollstuhl benötigt wird, sowie einen kurzen Hinweis (zum Beispiel „braucht eine Decke“). Diagnosen oder Geburtsdaten werden nicht gespeichert. Die Angabe zum Rollstuhl dient nur dazu, ein passendes Fahrzeug zu wählen.</p>
           <p><strong>Wer sieht was?</strong> Jede vermittelnde Stelle sieht nur die eigenen Fahrgäste. Adresse und Telefonnummer sieht außerdem nur die Kutscherin oder der Kutscher, die bzw. der die Fahrt übernommen hat, sowie die Verwaltung. Andere Kutscher sehen nur Name, Rollstuhlbedarf und Hinweis. Für Rückfragen sehen angemeldete Kutscher außerdem die dienstlichen Kontaktdaten der vermittelnden Stelle (Ansprechperson, Telefon, E-Mail).</p>
+          <p>Einrichtungen können ihre Fahrgäste internen Bereichen (zum Beispiel Etage oder Wohnbereich) und Gruppen (zum Beispiel „Sitztanz“) zuordnen. Für jeden Bereich gibt es einen geheimen Kalender-Link und einen Wochenplan zum Ausdrucken, damit die zuständigen Mitarbeitenden die Fahrten vorbereiten können. Diese enthalten Namen, Zeiten, Abholort und Hinweise und sind nur für den internen Gebrauch der Einrichtung bestimmt.</p>
           <p><strong>Wann wird gelöscht?</strong> Telefonnummer und Adresse werden automatisch 12 Monate nach dem letzten Kontakt gelöscht. Jede neue Fahrt oder Änderung beginnt diese Frist neu. Abholorte vergangener Fahrten werden nach derselben Frist gelöscht. Auf Wunsch löscht die vermittelnde Stelle einen Fahrgast jederzeit vollständig; dabei wird der Name auch aus vergangenen Fahrten entfernt.</p>
           <p>Rechtsgrundlage ist die Einwilligung der Fahrgäste bzw. ihrer Vertretung, die die vermittelnde Stelle einholt (Art. 6 Abs. 1 lit. a und, für die Rollstuhl-Angabe, Art. 9 Abs. 2 lit. a DSGVO). Die Einwilligung kann jederzeit widerrufen werden.</p>
         </div>

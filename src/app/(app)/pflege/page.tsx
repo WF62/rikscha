@@ -7,6 +7,7 @@ import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
 import { WUNSCH_TOUREN, ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
+import { baumListe, bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import FahrzeugPicker from '../FahrzeugPicker';
 
 type Gruppe = { id: string; titel: string; datum: string; organisator: string | null; organisation_id: string | null; fahrten: Buchung[] };
@@ -17,6 +18,8 @@ type Vorlage = {
 type Daten = {
   bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[]; gruppen: Gruppe[]; vorlagen: Vorlage[];
   organisationen: Organisation[]; eigeneOrganisation: string | null; alle: boolean; fristMonate: number;
+  bereiche: Bereich[]; kreise: { id: string; name: string; organisation_id: string }[];
+  mitglieder: { kreis_id: string; bewohner_id: string }[]; strukturFehlt: boolean;
 };
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
 const feld = 'w-full border rounded px-3 py-2 text-base';
@@ -162,7 +165,13 @@ export default function PflegeSeite() {
   const [angebotAbhol, setAngebotAbhol] = useState<Record<string, Abholort>>({});
   const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
   const [angebotFz, setAngebotFz] = useState<Record<string, string>>({}); // Angebot ohne Fahrzeug → gewähltes Fahrzeug
-  const LEER_FG = { name: '', wohnbereich: '', adresse: '', telefon: '', rollstuhl: false, hinweis: '' };
+  const LEER_FG = { name: '', wohnbereich: '', adresse: '', telefon: '', rollstuhl: false, hinweis: '', bereich_id: '', kreise: [] as string[] };
+  const [bearbeitenKreise, setBearbeitenKreise] = useState<string[]>([]);
+  const [filterBereich, setFilterBereich] = useState('');
+  const [filterKreis, setFilterKreis] = useState('');
+  const [neuerBereich, setNeuerBereich] = useState<{ eltern: string; name: string } | null>(null);
+  const [bereichEdit, setBereichEdit] = useState<{ id: string; name: string; hinweis: string; eltern: string } | null>(null);
+  const [neuerKreis, setNeuerKreis] = useState('');
   const [neuerBewohner, setNeuerBewohner] = useState(LEER_FG);
   const [orgWahl, setOrgWahl] = useState('');   // für GFO/Admin: welche Organisation
   const [gruppe, setGruppe] = useState({ titel: '', datum: '', startzeit: '14:00', endzeit: '16:00', notiz: '' });
@@ -227,7 +236,32 @@ export default function PflegeSeite() {
   // GFO/Admin sehen alle Organisationen, arbeiten aber jeweils in der gewählten
   const bewohner = (daten?.bewohner ?? []).filter((b) => !daten?.alle || !orgWahl || b.organisation_id === orgWahl);
   const aktive = bewohner.filter((b) => b.aktiv);
-  const ort = (b?: Bewohner) => (b ? (b.wohnbereich || b.adresse || '') : '');
+  const bereiche = (daten?.bereiche ?? []).filter((x) => !orgWahl || x.organisation_id === orgWahl);
+  const baum = baumListe(bereiche, orgWahl || undefined);
+  const kreise = (daten?.kreise ?? []).filter((x) => !orgWahl || x.organisation_id === orgWahl);
+  const kreiseVon = (id: string) => (daten?.mitglieder ?? []).filter((m) => m.bewohner_id === id).map((m) => m.kreis_id);
+  const ort = (b?: Bewohner) => (b ? (bereichPfad(bereiche, b.bereich_id) || b.wohnbereich || b.adresse || '') : '');
+  /** Fahrgäste eines Bereichs (mit Unterbereichen) oder einer Gruppe */
+  const ausBereich = (id: string) => { const ids = mitUnterbereichen(bereiche, id); return aktive.filter((b) => b.bereich_id && ids.has(b.bereich_id)); };
+  const ausKreis = (id: string) => aktive.filter((b) => kreiseVon(b.id).includes(id));
+  const sichtbar = bewohner.filter((b) => (!filterBereich || (b.bereich_id && mitUnterbereichen(bereiche, filterBereich).has(b.bereich_id)))
+    && (!filterKreis || kreiseVon(b.id).includes(filterKreis)));
+  const bereichAuswahl = (wert: string, onChange: (v: string) => void, label = 'Bereich') => (
+    <select aria-label={label} value={wert} onChange={(e) => onChange(e.target.value)} className={feld}>
+      <option value="">– kein Bereich –</option>
+      {baum.map(({ bereich: x, tiefe }) => <option key={x.id} value={x.id}>{'\u00a0\u00a0'.repeat(tiefe)}{tiefe ? '└ ' : ''}{x.name}</option>)}
+    </select>
+  );
+  const kreisHaken = (gewaehlt: string[], onChange: (v: string[]) => void) => kreise.length > 0 && (
+    <div className="flex flex-wrap gap-2 text-sm">
+      {kreise.map((x) => (
+        <label key={x.id} className={`flex items-center gap-1 border rounded-full px-2 py-0.5 cursor-pointer ${gewaehlt.includes(x.id) ? 'bg-violet-50 border-violet-400' : ''}`}>
+          <input type="checkbox" checked={gewaehlt.includes(x.id)} onChange={(e) => onChange(e.target.checked ? [...gewaehlt, x.id] : gewaehlt.filter((y) => y !== x.id))} />
+          {x.name}
+        </label>
+      ))}
+    </div>
+  );
   const bewohnerById = (id?: string | null) => bewohner.find((b) => b.id === id);
   const wunschFz = wunsch.fahrzeug ? fahrzeugById(wunsch.fahrzeug) : undefined;
 
@@ -304,7 +338,7 @@ export default function PflegeSeite() {
                 return (
                   <div key={a.id} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
-                      <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}</div>
+                      <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}{a.oeffentlich && <span className="ml-2 text-xs font-normal bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">🌿 auch öffentlich buchbar</span>}</div>
                       <div className="text-sm text-gray-600">
                         Kutscher: {a.pilot} · {a.fahrzeug
                           ? <>{fz?.name ?? a.fahrzeug} (max. {plaetze} {plaetze > 1 ? 'Gäste' : 'Gast'}){rolliOk ? ' · ♿ Rollstuhl möglich' : ''}</>
@@ -536,6 +570,18 @@ export default function PflegeSeite() {
               </div>
               <fieldset className="sm:col-span-2 text-sm">
                 <legend className="font-semibold mb-1">Fahrgäste ({gruppeTeilnehmer.length} gewählt)</legend>
+                {(baum.length > 0 || kreise.length > 0) && (
+                  <select aria-label="Alle hinzufügen aus" value="" className="mb-2 border rounded px-2 py-1"
+                    onChange={(e) => {
+                      const [art, id] = e.target.value.split(':');
+                      const neu = (art === 'b' ? ausBereich(id) : ausKreis(id)).map((x) => x.id);
+                      setGruppeTeilnehmer(Array.from(new Set([...gruppeTeilnehmer, ...neu])));
+                    }}>
+                    <option value="">+ Alle hinzufügen aus …</option>
+                    {baum.map(({ bereich: x, tiefe }) => <option key={x.id} value={`b:${x.id}`}>{'\u00a0\u00a0'.repeat(tiefe)}🏢 {x.name} ({ausBereich(x.id).length})</option>)}
+                    {kreise.map((x) => <option key={x.id} value={`k:${x.id}`}>👥 Gruppe {x.name} ({ausKreis(x.id).length})</option>)}
+                  </select>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {aktive.map((b) => (
                     <label key={b.id} className={`flex items-center gap-1 border rounded-full px-3 py-1 cursor-pointer ${gruppeTeilnehmer.includes(b.id) ? 'bg-green-50 border-green-500' : ''}`}>
@@ -631,61 +677,91 @@ export default function PflegeSeite() {
               <label className="text-sm font-semibold">Name
                 <input required maxLength={80} value={neuerBewohner.name} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, name: e.target.value })} className={feld} />
               </label>
-              {quartier ? (
+              {baum.length > 0 ? (
+                <label className="text-sm font-semibold">Bereich
+                  {bereichAuswahl(neuerBewohner.bereich_id, (v) => setNeuerBewohner({ ...neuerBewohner, bereich_id: v }))}
+                </label>
+              ) : !quartier && (
+                <label className="text-sm font-semibold">Wohnbereich
+                  <input maxLength={60} value={neuerBewohner.wohnbereich} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, wohnbereich: e.target.value })} className={feld} />
+                </label>
+              )}
+              {quartier && (
                 <>
-                  <label className="text-sm font-semibold sm:col-span-2">Adresse (optional)
+                  <label className="text-sm font-semibold">Adresse (optional)
                     <input maxLength={160} value={neuerBewohner.adresse} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, adresse: e.target.value })} className={feld} placeholder="Straße Nr., Ort" />
                   </label>
                   <label className="text-sm font-semibold">Telefon (optional)
                     <input maxLength={40} type="tel" value={neuerBewohner.telefon} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, telefon: e.target.value })} className={feld} />
                   </label>
                 </>
-              ) : (
-                <label className="text-sm font-semibold">Wohnbereich
-                  <input maxLength={60} value={neuerBewohner.wohnbereich} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, wohnbereich: e.target.value })} className={feld} />
-                </label>
               )}
-              <label className={`text-sm font-semibold ${quartier ? 'sm:col-span-2' : 'sm:col-span-2'}`}>Hinweis (optional)
+              <label className="text-sm font-semibold sm:col-span-2">Hinweis (optional)
                 <input maxLength={200} value={neuerBewohner.hinweis} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, hinweis: e.target.value })} className={feld} placeholder="z. B. braucht eine Decke" />
               </label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={neuerBewohner.rollstuhl} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, rollstuhl: e.target.checked })} /> ♿ Rollstuhl</label>
               <button type="submit" className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold">+ Anlegen</button>
+              {kreise.length > 0 && <div className="sm:col-span-4">{kreisHaken(neuerBewohner.kreise, (v) => setNeuerBewohner({ ...neuerBewohner, kreise: v }))}</div>}
             </form>
+
+            {(baum.length > 0 || kreise.length > 0) && (
+              <div className="flex flex-wrap gap-2 mb-2 text-sm items-center">
+                <span className="text-gray-500">Anzeigen:</span>
+                {baum.length > 0 && (
+                  <select aria-label="Nach Bereich filtern" value={filterBereich} onChange={(e) => setFilterBereich(e.target.value)} className="border rounded px-2 py-1">
+                    <option value="">alle Bereiche</option>
+                    {baum.map(({ bereich: x, tiefe }) => <option key={x.id} value={x.id}>{'  '.repeat(tiefe)}{x.name}</option>)}
+                  </select>
+                )}
+                {kreise.length > 0 && (
+                  <select aria-label="Nach Gruppe filtern" value={filterKreis} onChange={(e) => setFilterKreis(e.target.value)} className="border rounded px-2 py-1">
+                    <option value="">alle Gruppen</option>
+                    {kreise.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                  </select>
+                )}
+                {(filterBereich || filterKreis) && <span className="text-gray-500">{sichtbar.length} von {bewohner.length}</span>}
+              </div>
+            )}
+
             <div className="divide-y">
-              {bewohner.map((b) => bearbeiten?.id === b.id ? (
+              {sichtbar.map((b) => bearbeiten?.id === b.id ? (
                 <form key={b.id} className="py-2 grid grid-cols-1 sm:grid-cols-4 gap-2 items-end" onSubmit={async (e) => {
                   e.preventDefault();
-                  const { id, name, wohnbereich, adresse, telefon, hinweis, rollstuhl } = bearbeiten;
-                  if (await ausfuehren({ aktion: 'bewohner-aendern', id, name, wohnbereich, adresse, telefon, hinweis, rollstuhl }, 'Gespeichert.')) setBearbeiten(null);
+                  const { id, name, wohnbereich, adresse, telefon, hinweis, rollstuhl, bereich_id } = bearbeiten;
+                  if (await ausfuehren({ aktion: 'bewohner-aendern', id, name, wohnbereich, adresse, telefon, hinweis, rollstuhl, bereich_id: bereich_id ?? '', kreise: bearbeitenKreise }, 'Gespeichert.')) setBearbeiten(null);
                 }}>
                   <input required maxLength={80} aria-label="Name" value={bearbeiten.name} onChange={(e) => setBearbeiten({ ...bearbeiten, name: e.target.value })} className={feld} />
-                  {quartier ? (
+                  {baum.length > 0
+                    ? bereichAuswahl(bearbeiten.bereich_id ?? '', (v) => setBearbeiten({ ...bearbeiten, bereich_id: v || null }))
+                    : !quartier && <input maxLength={60} aria-label="Wohnbereich" value={bearbeiten.wohnbereich ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, wohnbereich: e.target.value })} className={feld} />}
+                  {quartier && (
                     <>
                       <input maxLength={160} aria-label="Adresse" placeholder="Adresse" value={bearbeiten.adresse ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, adresse: e.target.value })} className={feld} />
                       <input maxLength={40} aria-label="Telefon" placeholder="Telefon" value={bearbeiten.telefon ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, telefon: e.target.value })} className={feld} />
                     </>
-                  ) : (
-                    <input maxLength={60} aria-label="Wohnbereich" value={bearbeiten.wohnbereich ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, wohnbereich: e.target.value })} className={feld} />
                   )}
-                  <input maxLength={200} aria-label="Hinweis" placeholder="Hinweis" value={bearbeiten.hinweis ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, hinweis: e.target.value })} className={`${feld} ${quartier ? '' : 'sm:col-span-2'}`} />
+                  <input maxLength={200} aria-label="Hinweis" placeholder="Hinweis" value={bearbeiten.hinweis ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, hinweis: e.target.value })} className={`${feld} sm:col-span-2`} />
                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={bearbeiten.rollstuhl} onChange={(e) => setBearbeiten({ ...bearbeiten, rollstuhl: e.target.checked })} /> ♿ Rollstuhl</label>
                   <div className="flex gap-2">
                     <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 font-semibold">Speichern</button>
                     <button type="button" onClick={() => setBearbeiten(null)} className="text-gray-500 px-2">Abbrechen</button>
                   </div>
+                  {kreise.length > 0 && <div className="sm:col-span-4">{kreisHaken(bearbeitenKreise, setBearbeitenKreise)}</div>}
                 </form>
               ) : (
                 <div key={b.id} className={`py-2 flex flex-wrap items-center gap-2 ${b.aktiv ? '' : 'opacity-50'}`}>
                   <span className="font-medium">{b.name}</span>
-                  {b.wohnbereich && <span className="text-sm text-gray-500">{b.wohnbereich}</span>}
+                  {ort(b) && !b.adresse && <span className="text-sm text-gray-500">🏢 {ort(b)}</span>}
                   {b.adresse && <span className="text-sm text-gray-500">🏡 {b.adresse}</span>}
                   {b.telefon && <span className="text-sm text-gray-500">📞 {b.telefon}</span>}
                   {b.rollstuhl && <span title="Rollstuhl">♿</span>}
+                  {kreiseVon(b.id).map((kid) => <span key={kid} className="text-xs bg-violet-100 text-violet-800 rounded-full px-2">{kreise.find((x) => x.id === kid)?.name}</span>)}
                   {b.hinweis && <span className="text-sm text-gray-500 italic">„{b.hinweis}“</span>}
                   {(b.adresse || b.telefon) && <span className="text-xs text-gray-400">Kontaktdaten bis {plusMonate(b.letzter_kontakt, daten.fristMonate)}</span>}
                   {!b.aktiv && <span className="text-xs bg-gray-100 rounded-full px-2">ausgeblendet</span>}
                   <span className="ml-auto flex gap-3 text-sm">
-                    <button onClick={() => setBearbeiten(b)} className="text-blue-600 underline">Bearbeiten</button>
+                    <a href={`/pflege/wochenplan?fahrgast=${b.id}`} target="_blank" className="text-emerald-700 underline">🗓️ Wochenplan</a>
+                    <button onClick={() => { setBearbeiten(b); setBearbeitenKreise(kreiseVon(b.id)); }} className="text-blue-600 underline">Bearbeiten</button>
                     <button onClick={() => ausfuehren({ aktion: 'bewohner-aendern', id: b.id, aktiv: !b.aktiv }, b.aktiv ? `${b.name} ist ausgeblendet.` : `${b.name} ist wieder sichtbar.`)}
                       className="text-orange-600 underline">{b.aktiv ? 'Ausblenden' : 'Wieder anzeigen'}</button>
                     <button onClick={async () => { if (confirm(`${b.name} endgültig löschen? Künftige Fahrten werden abgesagt, in alten Fahrten wird der Name entfernt.`)) await ausfuehren({ aktion: 'bewohner-loeschen', id: b.id }, `${b.name} wurde gelöscht.`); }}
@@ -695,6 +771,107 @@ export default function PflegeSeite() {
               ))}
               {bewohner.length === 0 && <p className="text-sm text-gray-400 py-2">Noch keine Fahrgäste eingetragen.</p>}
             </div>
+          </section>
+
+          {/* 6. Aufbau der Einrichtung und Gruppen – frei aufbaubar */}
+          <section className="bg-white rounded-xl shadow p-5">
+            <h3 className="font-bold text-lg text-gray-800 mb-1">🏢 Aufbau & Gruppen</h3>
+            <p className="text-sm text-gray-500 mb-3">
+              Bildet euer Haus so ab, wie es ist – nach und nach, beliebig tief (z. B. Haus › Etage › Wohnbereich).
+              Jeder Bereich hat einen eigenen <strong>Kalender-Link</strong> für Outlook/Dienstplan und einen <strong>Wochenplan zum Ausdrucken</strong>.
+              Der <strong>Hinweis für Mitarbeitende</strong> erscheint in jedem Termin des Bereichs und seiner Unterbereiche.
+            </p>
+            {daten.strukturFehlt && <p className="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded px-3 py-2 mb-3">Noch nicht eingerichtet: Bitte einmal supabase/struktur-bereiche-gruppen.sql ausführen.</p>}
+
+            <div className="space-y-1">
+              {baum.map(({ bereich: x, tiefe }) => bereichEdit?.id === x.id ? (
+                <form key={x.id} style={{ marginLeft: tiefe * 20 }} className="border rounded-lg p-2 bg-gray-50 grid grid-cols-1 sm:grid-cols-3 gap-2" onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (await ausfuehren({ aktion: 'bereich-aendern', id: x.id, name: bereichEdit.name, hinweis: bereichEdit.hinweis, eltern_id: bereichEdit.eltern }, 'Gespeichert.')) setBereichEdit(null);
+                }}>
+                  <label className="text-sm font-semibold">Name
+                    <input required maxLength={60} value={bereichEdit.name} onChange={(e) => setBereichEdit({ ...bereichEdit, name: e.target.value })} className={feld} />
+                  </label>
+                  <label className="text-sm font-semibold">Liegt unter
+                    <select value={bereichEdit.eltern} onChange={(e) => setBereichEdit({ ...bereichEdit, eltern: e.target.value })} className={feld}>
+                      <option value="">– oberste Ebene –</option>
+                      {baum.filter(({ bereich: y }) => !mitUnterbereichen(bereiche, x.id).has(y.id)).map(({ bereich: y, tiefe: t }) => (
+                        <option key={y.id} value={y.id}>{'  '.repeat(t)}{y.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-sm font-semibold">Hinweis für Mitarbeitende
+                    <input maxLength={300} value={bereichEdit.hinweis} onChange={(e) => setBereichEdit({ ...bereichEdit, hinweis: e.target.value })} className={feld} placeholder="z. B. 10 Min. vorher im Foyer bereitstellen" />
+                  </label>
+                  <div className="sm:col-span-3 flex flex-wrap gap-3 items-center">
+                    <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 font-semibold">Speichern</button>
+                    <button type="button" onClick={() => setBereichEdit(null)} className="text-gray-500">Abbrechen</button>
+                    <button type="button" className="ml-auto text-sm text-gray-600 underline"
+                      onClick={async () => { if (confirm('Neuen Kalender-Link erzeugen? Der alte Link funktioniert danach nicht mehr.')) { await ausfuehren({ aktion: 'bereich-aendern', id: x.id, neuer_link: true }, 'Neuer Kalender-Link erzeugt – bitte neu einbinden.'); setBereichEdit(null); } }}>
+                      Neuen Kalender-Link erzeugen
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div key={x.id} style={{ marginLeft: tiefe * 20 }} className="flex flex-wrap items-center gap-2 border-l-2 border-gray-200 pl-2 py-1">
+                  <span className="font-medium">{tiefe ? '└ ' : ''}{x.name}</span>
+                  <span className="text-xs text-gray-400">{ausBereich(x.id).length} Fahrgäste</span>
+                  {x.hinweis && <span className="text-xs text-gray-500 italic">„{x.hinweis}“</span>}
+                  <span className="ml-auto flex flex-wrap gap-3 text-sm">
+                    <button className="text-emerald-700 underline" onClick={() => setNeuerBereich({ eltern: x.id, name: '' })}>+ Unterbereich</button>
+                    <a href={`/pflege/wochenplan?bereich=${x.id}`} target="_blank" className="text-emerald-700 underline">🗓️ Wochenplan</a>
+                    {x.kalender_token && (
+                      <button className="text-emerald-700 underline" onClick={async () => {
+                        const url = `${location.origin}/api/ical/bereich/${x.kalender_token}.ics`;
+                        try { await navigator.clipboard.writeText(url); zeige(`Kalender-Link für „${x.name}“ kopiert. In Outlook: Kalender hinzufügen → Aus dem Internet → Link einfügen. Link nur intern weitergeben – er enthält Namen.`); }
+                        catch { prompt('Kalender-Link (nur intern weitergeben):', url); }
+                      }}>📅 Kalender-Link</button>
+                    )}
+                    <button className="text-blue-600 underline" onClick={() => setBereichEdit({ id: x.id, name: x.name, hinweis: x.hinweis ?? '', eltern: x.eltern_id ?? '' })}>Bearbeiten</button>
+                    <button className="text-red-600 underline" onClick={async () => { if (confirm(`Bereich „${x.name}“ löschen?`)) await ausfuehren({ aktion: 'bereich-loeschen', id: x.id }, `„${x.name}“ wurde gelöscht.`); }}>Löschen</button>
+                  </span>
+                </div>
+              ))}
+              {baum.length === 0 && !daten.strukturFehlt && <p className="text-sm text-gray-400">Noch kein Bereich angelegt.</p>}
+            </div>
+
+            {neuerBereich ? (
+              <form className="mt-3 flex flex-wrap gap-2 items-end" onSubmit={async (e) => {
+                e.preventDefault();
+                if (await ausfuehren({ aktion: 'bereich-neu', name: neuerBereich.name, eltern_id: neuerBereich.eltern || undefined, organisation_id: orgWahl }, `„${neuerBereich.name}“ wurde angelegt.`)) setNeuerBereich(null);
+              }}>
+                <label className="text-sm font-semibold flex-1 min-w-[200px]">
+                  {neuerBereich.eltern ? `Neuer Unterbereich in „${bereiche.find((x) => x.id === neuerBereich.eltern)?.name}“` : 'Neuer Bereich (oberste Ebene)'}
+                  <input required autoFocus maxLength={60} value={neuerBereich.name} onChange={(e) => setNeuerBereich({ ...neuerBereich, name: e.target.value })} className={feld} placeholder="z. B. 1. Etage oder Wohnbereich Lindenhof" />
+                </label>
+                <button type="submit" className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold">Anlegen</button>
+                <button type="button" onClick={() => setNeuerBereich(null)} className="text-gray-500 px-2 py-2">Abbrechen</button>
+              </form>
+            ) : !daten.strukturFehlt && (
+              <button className="mt-3 text-sm bg-gray-100 border rounded px-3 py-1.5 font-semibold" onClick={() => setNeuerBereich({ eltern: '', name: '' })}>+ Bereich auf oberster Ebene</button>
+            )}
+
+            <h4 className="font-semibold text-gray-700 mt-6 mb-1">👥 Gruppen</h4>
+            <p className="text-sm text-gray-500 mb-2">Quer zu den Bereichen, z. B. „Sitztanz“ oder „Erzählcafé“. Bitte nach Aktivitäten benennen, nicht nach Krankheiten.</p>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {kreise.map((x) => (
+                <span key={x.id} className="flex items-center gap-2 text-sm bg-violet-50 border border-violet-200 rounded-full px-3 py-1">
+                  {x.name} <span className="text-xs text-gray-500">({ausKreis(x.id).length})</span>
+                  <button title="Umbenennen" className="text-blue-600" onClick={async () => { const n = prompt('Neuer Name der Gruppe:', x.name); if (n && n.trim() && n !== x.name) await ausfuehren({ aktion: 'kreis-aendern', id: x.id, name: n }, 'Umbenannt.'); }}>✎</button>
+                  <button title="Löschen" className="text-red-600" onClick={async () => { if (confirm(`Gruppe „${x.name}“ löschen? Die Fahrgäste bleiben erhalten.`)) await ausfuehren({ aktion: 'kreis-loeschen', id: x.id }, 'Gruppe gelöscht.'); }}>✕</button>
+                </span>
+              ))}
+              {kreise.length === 0 && <span className="text-sm text-gray-400">Noch keine Gruppe.</span>}
+            </div>
+            {!daten.strukturFehlt && (
+              <form className="flex gap-2" onSubmit={async (e) => {
+                e.preventDefault();
+                if (neuerKreis.trim() && await ausfuehren({ aktion: 'kreis-neu', name: neuerKreis, organisation_id: orgWahl }, `Gruppe „${neuerKreis}“ angelegt.`)) setNeuerKreis('');
+              }}>
+                <input maxLength={60} value={neuerKreis} onChange={(e) => setNeuerKreis(e.target.value)} placeholder="Neue Gruppe" className="border rounded px-3 py-1.5 text-sm flex-1" />
+                <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 text-sm font-semibold">+ Gruppe</button>
+              </form>
+            )}
           </section>
         </>
       )}

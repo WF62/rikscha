@@ -108,7 +108,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
       )}
       {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
         <div className="px-1 py-0.5 border-t border-white/60 bg-emerald-100 text-emerald-800">
-          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : '🏠 frei für Bewohner'}</span>
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : b.oeffentlich ? '🌿 frei · öffentlich' : '🏠 frei für Vermittlung'}</span>
         </div>
       )}
       {!schmal && (b.gaeste ?? []).map((g, i) => (
@@ -311,7 +311,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {b.startzeit.slice(0,5)}–{b.endzeit.slice(0,5)} Uhr
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
-        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">FREI FÜR BEWOHNER</span>}
+        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">{b.oeffentlich ? '🌿 FREI · AUCH ÖFFENTLICH' : 'FREIE ZEIT'}</span>}
         {b.gruppe && <span className="text-xs font-bold text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded">👥 GRUPPE: {b.gruppe.titel}</span>}
         {!b.gruppe && (b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 VERMITTELTE FAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
@@ -336,7 +336,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {[b.bewohner, b.bewohner2].filter((x): x is NonNullable<typeof x> => !!x).map((bw, i, alle) => (
         <div key={i} className="px-3 py-2 border-t border-teal-200 bg-teal-50 text-sm text-teal-900 space-y-0.5">
           {alle.length > 1 && <div className="font-semibold">🏠 {bw.name}</div>}
-          {bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
+          {bw.bereich ? <div>Bereich: <strong>{bw.bereich}</strong></div> : bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
           {bw.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
           {bw.adresse && <div>🏡 Adresse: <strong>{bw.adresse}</strong></div>}
           {bw.telefon && <div>📞 Telefon: <a href={`tel:${bw.telefon.replace(/[^+\d]/g, '')}`} className="underline font-semibold">{bw.telefon}</a></div>}
@@ -356,6 +356,22 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       )}
       {b.abholort && (
         <div className="px-3 py-2 border-t border-sky-200 bg-sky-50 text-sm text-sky-900">📍 Abholort: <strong>{b.abholort}</strong></div>
+      )}
+      {b.kontakt_telefon && (
+        <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 text-sm text-gray-800">
+          📞 Gast: <a href={`tel:${b.kontakt_telefon.replace(/[^+\d]/g, '')}`} className="underline font-semibold">{b.kontakt_telefon}</a>
+          <span className="text-xs text-gray-500"> (wird eine Woche nach der Fahrt gelöscht)</span>
+        </div>
+      )}
+      {!b.storniert && b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0 && ichKutscher && (
+        <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm flex items-center gap-2">
+          <span className="flex-1">{b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : 'Nur für Vermittlungsstellen sichtbar'}</span>
+          <button onClick={async () => {
+            const res = await fetch(`/api/buchungen/${b.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ oeffentlich: !b.oeffentlich }) });
+            if (!res.ok) alert('Das hat nicht geklappt.');
+            onUpdated();
+          }} className="text-emerald-800 underline font-semibold">{b.oeffentlich ? 'Nicht mehr öffentlich' : 'Fürs Quartier öffnen'}</button>
+        </div>
       )}
       {b.vermittlung && (
         <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 text-sm text-gray-800">

@@ -7,6 +7,7 @@ import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm, datumDeutsch } from '@/lib/stammdaten';
 import { authHeaders } from '@/lib/authHeaders';
 import { Lockfeld, useFormularStart } from '@/lib/Lockfeld';
+import FreieZeiten from './FreieZeiten';
 
 type TerminTyp = 'normal' | 'offen' | 'gast';
 
@@ -16,6 +17,7 @@ function BuchenFormular() {
   const formularStart = useFormularStart();
   const [lockfeld, setLockfeld] = useState('');
   const [angebot, setAngebot] = useState(false);
+  const [oeffentlich, setOeffentlich] = useState(false);
   const params = useSearchParams();
   const [form, setForm] = useState({
     fahrzeug: params.get('fahrzeug') ?? '',
@@ -84,7 +86,7 @@ function BuchenFormular() {
           endzeit: form.endzeit, notiz: form.notiz,
           ...(istAngehoeriger ? { eigenfahrt: true } : {}),
           website: lockfeld, _t: formularStart,
-          ...(angebot ? { angebot: true } : {}),
+          ...(angebot ? { angebot: true, oeffentlich } : {}),
         }),
       });
       if (res.ok) { router.push('/'); }
@@ -107,6 +109,8 @@ function BuchenFormular() {
 
       <div className="max-w-lg mx-auto" style={{ padding: '2rem 1rem' }}>
         <h2 className="text-2xl font-bold text-rikscha-green mb-4">Fahrt buchen</h2>
+
+        {!istPilot && !istAngehoeriger && <FreieZeiten />}
 
         <form onSubmit={absenden} className="bg-white rounded-xl shadow p-6 space-y-4 relative">
           <Lockfeld wert={lockfeld} onChange={setLockfeld} />
@@ -192,15 +196,26 @@ function BuchenFormular() {
             <p className="text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">{typLabel}</p>
           )}
 
-          {/* Freie Fahrzeit für Bewohner anbieten – nur Kutscher */}
+          {/* Freie Fahrzeit anbieten – nur Kutscher */}
           {istPilot && !istAngehoeriger && (
-            <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer ${angebot ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
-              <input type="checkbox" checked={angebot} onChange={(e) => setAngebot(e.target.checked)} className="mt-1" />
-              <span>
-                <span className="font-semibold">🏠 Als freie Fahrzeit für Bewohner anbieten</span>
-                <span className="block text-xs text-gray-500">Die Pflege sieht die Zeit und ordnet einen oder zwei Gäste zu. Fahrzeug egal? Dann „Folgt noch“ wählen – das passende Fahrzeug wird ausgesucht, wenn die Gäste feststehen.</span>
-              </span>
-            </label>
+            <div className={`p-3 rounded-lg border-2 ${angebot ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" checked={angebot} onChange={(e) => { setAngebot(e.target.checked); if (!e.target.checked) setOeffentlich(false); }} className="mt-1" />
+                <span>
+                  <span className="font-semibold">🏠 Als freie Fahrzeit anbieten</span>
+                  <span className="block text-xs text-gray-500">Seniorenheim, Betreutes Wohnen und die anderen Vermittlungsstellen sehen die Zeit und ordnen einen oder zwei Gäste zu. Fahrzeug egal? Dann „Folgt noch“ wählen – das passende Fahrzeug wird ausgesucht, wenn die Gäste feststehen.</span>
+                </span>
+              </label>
+              {angebot && (
+                <label className="flex items-start gap-3 cursor-pointer mt-3 ml-7">
+                  <input type="checkbox" checked={oeffentlich} onChange={(e) => setOeffentlich(e.target.checked)} className="mt-1" />
+                  <span>
+                    <span className="font-semibold">🌿 Auch für Interessierte aus dem Quartier öffnen</span>
+                    <span className="block text-xs text-gray-500">Die Zeit erscheint dann zusätzlich hier auf der Buchungsseite. Wer zuerst bucht – Vermittlungsstelle oder Interessierte –, fährt mit.</span>
+                  </span>
+                </label>
+              )}
+            </div>
           )}
 
           {/* Gaeste */}

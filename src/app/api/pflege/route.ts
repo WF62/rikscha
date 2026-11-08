@@ -57,6 +57,14 @@ export async function GET(req: NextRequest) {
     return fehler('Die Datenbank ist noch nicht vorbereitet. Bitte supabase/vermittlung-gruppen.sql ausführen.', 503);
   }
 
+  // Struktur (Bereiche, Gruppen) – fehlt die Tabelle noch, bleibt sie leer
+  const [ber, kr, mit] = await Promise.all([
+    sb.from('rikscha_bereiche').select('*').order('reihenfolge').order('name'),
+    sb.from('rikscha_kreise').select('*').order('name'),
+    sb.from('rikscha_kreis_mitglieder').select('*'),
+  ]);
+  const strukturFehlt = !!(ber.error || kr.error || mit.error);
+
   const meineBewohner = (bw.data ?? []).filter((p) => zustaendig(k, p.organisation_id));
   const ids = new Set(meineBewohner.map((p) => p.id));
   const alleGruppen = (gruppen.data ?? []).filter((g) => zustaendig(k, g.organisation_id));
@@ -86,6 +94,10 @@ export async function GET(req: NextRequest) {
     alle: k.alle,
     fristMonate: DATEN_FRIST_MONATE,
     bewohner: meineBewohner,
+    strukturFehlt,
+    bereiche: (ber.data ?? []).filter((b) => zustaendig(k, b.organisation_id)),
+    kreise: (kr.data ?? []).filter((x) => zustaendig(k, x.organisation_id)),
+    mitglieder: (mit.data ?? []).filter((m) => ids.has(m.bewohner_id)),
     // Freie Fahrzeiten: für alle Organisationen gleich sichtbar
     angebote: liste.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0),
     fahrten: liste.filter((b) => !b.gruppe_id && (ids.has(b.bewohner_id) || ids.has(b.bewohner2_id))),
@@ -126,6 +138,93 @@ export async function POST(req: NextRequest) {
     return error ? fehler('Bitte zuerst supabase/organisation-kontakt.sql ausführen.', 500) : NextResponse.json({ ok: true });
   }
 
+  // ── Struktur: Bereiche (Baum) ─────────────────────────────
+  const bereichLaden = async (id: unknown) => {
+    if (!id) return null;
+    const { data } = await sb.from('rikscha_bereiche').select('*').eq('id', String(id)).maybeSingle();
+    return data && zustaendig(k, data.organisation_id) ? data : null;
+  };
+  if (body.aktion === 'bereich-neu') {
+    const name = text(body.name, 60);
+    if (!name) return fehler('Bitte einen Namen eintragen.');
+    let orgId = k.alle ? text(body.organisation_id, 40) : k.orgId;
+    let elternId: string | null = null;
+    if (body.eltern_id) {
+      const eltern = await bereichLaden(body.eltern_id);
+      if (!eltern) return fehler('Den übergeordneten Bereich gibt es nicht.');
+      elternId = eltern.id; orgId = eltern.organisation_id;
+    }
+    if (!orgId || !(await orgLaden(orgId))) return fehler('Bitte eine Organisation wählen.');
+    const { data, error } = await sb.from('rikscha_bereiche').insert({ name, organisation_id: orgId, eltern_id: elternId, hinweis: text(body.hinweis, 300) }).select().single();
+    return error ? fehler('Bitte zuerst supabase/struktur-bereiche-gruppen.sql ausführen.', 500) : NextResponse.json(data, { status: 201 });
+  }
+  if (body.aktion === 'bereich-aendern') {
+    const b = await bereichLaden(body.id);
+    if (!b) return fehler('Diesen Bereich gibt es nicht.', 404);
+    const felder: Record<string, unknown> = {};
+    if (body.name !== undefined) { felder.name = text(body.name, 60); if (!felder.name) return fehler('Bitte einen Namen eintragen.'); }
+    if (body.reihenfolge !== undefined) felder.reihenfolge = Number(body.reihenfolge) || 100;
+    if (body.hinweis !== undefined) felder.hinweis = text(body.hinweis, 300);
+    // Neuer Kalender-Link: der alte funktioniert danach nicht mehr (z. B. wenn er in falsche Hände geraten ist)
+    if (body.neuer_link) felder.kalender_token = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+    if (body.eltern_id !== undefined) {
+      // Verschieben: neuer übergeordneter Bereich derselben Organisation, kein Kreis (nicht unter sich selbst)
+      if (body.eltern_id) {
+        const ziel = await bereichLaden(body.eltern_id);
+        if (!ziel || ziel.organisation_id !== b.organisation_id) return fehler('Dorthin kann der Bereich nicht verschoben werden.');
+        const { data: alle } = await sb.from('rikscha_bereiche').select('id, eltern_id').eq('organisation_id', b.organisation_id);
+        let pruef: string | null = ziel.id;
+        while (pruef) {
+          if (pruef === b.id) return fehler('Ein Bereich kann nicht unter sich selbst liegen.');
+          pruef = (alle ?? []).find((x) => x.id === pruef)?.eltern_id ?? null;
+        }
+        felder.eltern_id = ziel.id;
+      } else felder.eltern_id = null;
+    }
+    const { error } = await sb.from('rikscha_bereiche').update(felder).eq('id', b.id);
+    return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
+  }
+  if (body.aktion === 'bereich-loeschen') {
+    const b = await bereichLaden(body.id);
+    if (!b) return fehler('Diesen Bereich gibt es nicht.', 404);
+    const [{ count: kinder }, { count: leute }] = await Promise.all([
+      sb.from('rikscha_bereiche').select('id', { count: 'exact', head: true }).eq('eltern_id', b.id),
+      sb.from('rikscha_bewohner').select('id', { count: 'exact', head: true }).eq('bereich_id', b.id),
+    ]);
+    if (kinder) return fehler('Bitte zuerst die Unterbereiche löschen oder verschieben.', 409);
+    if (leute) return fehler(`${leute} Fahrgast/Fahrgäste sind diesem Bereich zugeordnet. Bitte zuerst umsetzen.`, 409);
+    const { error } = await sb.from('rikscha_bereiche').delete().eq('id', b.id);
+    return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
+  }
+
+  // ── Struktur: Gruppen (quer zu den Bereichen) ─────────────
+  const kreisLaden = async (id: unknown) => {
+    if (!id) return null;
+    const { data } = await sb.from('rikscha_kreise').select('*').eq('id', String(id)).maybeSingle();
+    return data && zustaendig(k, data.organisation_id) ? data : null;
+  };
+  if (body.aktion === 'kreis-neu' || body.aktion === 'kreis-aendern') {
+    const name = text(body.name, 60);
+    if (!name) return fehler('Bitte einen Namen eintragen.');
+    if (body.aktion === 'kreis-neu') {
+      const orgId = k.alle ? text(body.organisation_id, 40) : k.orgId;
+      if (!orgId || !(await orgLaden(orgId))) return fehler('Bitte eine Organisation wählen.');
+      const { data, error } = await sb.from('rikscha_kreise').insert({ name, organisation_id: orgId }).select().single();
+      if (error) return fehler(error.code === '23505' ? 'Diese Gruppe gibt es schon.' : 'Bitte zuerst supabase/struktur-bereiche-gruppen.sql ausführen.', error.code === '23505' ? 409 : 500);
+      return NextResponse.json(data, { status: 201 });
+    }
+    const kr = await kreisLaden(body.id);
+    if (!kr) return fehler('Diese Gruppe gibt es nicht.', 404);
+    const { error } = await sb.from('rikscha_kreise').update({ name }).eq('id', kr.id);
+    return error ? fehler(error.code === '23505' ? 'Diese Gruppe gibt es schon.' : error.message, 409) : NextResponse.json({ ok: true });
+  }
+  if (body.aktion === 'kreis-loeschen') {
+    const kr = await kreisLaden(body.id);
+    if (!kr) return fehler('Diese Gruppe gibt es nicht.', 404);
+    const { error } = await sb.from('rikscha_kreise').delete().eq('id', kr.id);   // Mitgliedschaften gehen mit
+    return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
+  }
+
   // ── Fahrgäste ──────────────────────────────────────────────
   if (body.aktion === 'bewohner-neu' || body.aktion === 'bewohner-aendern') {
     const felder: Record<string, unknown> = {};
@@ -137,19 +236,38 @@ export async function POST(req: NextRequest) {
     if (body.rollstuhl !== undefined) felder.rollstuhl = !!body.rollstuhl;
     if (body.aktiv !== undefined) felder.aktiv = !!body.aktiv;
     if ('name' in felder && !felder.name) return fehler('Bitte einen Namen eintragen.');
-    felder.letzter_kontakt = heute();   // Bearbeiten zählt als Kontakt → Löschfrist beginnt neu
+    if (body.bereich_id !== undefined) {
+      if (body.bereich_id) {
+        const b = await bereichLaden(body.bereich_id);
+        if (!b) return fehler('Diesen Bereich gibt es nicht.');
+        felder.bereich_id = b.id;
+      } else felder.bereich_id = null;
+    }
+    felder.letzter_kontakt = heute();
+    /** Gruppen-Mitgliedschaften des Fahrgasts ersetzen (nur Gruppen der eigenen Organisation) */
+    const gruppenSetzen = async (bewohnerId: string, orgId: string | null) => {
+      if (!Array.isArray(body.kreise)) return;
+      const { data: erlaubt } = await sb.from('rikscha_kreise').select('id').eq('organisation_id', orgId ?? '');
+      const ids = (body.kreise as unknown[]).map(String).filter((id) => (erlaubt ?? []).some((x) => x.id === id));
+      await sb.from('rikscha_kreis_mitglieder').delete().eq('bewohner_id', bewohnerId);
+      if (ids.length) await sb.from('rikscha_kreis_mitglieder').insert(ids.map((kreis_id) => ({ kreis_id, bewohner_id: bewohnerId })));
+    };   // Bearbeiten zählt als Kontakt → Löschfrist beginnt neu
 
     if (body.aktion === 'bewohner-neu') {
       if (!felder.name) return fehler('Bitte einen Namen eintragen.');
       const orgId = k.alle ? text(body.organisation_id, 40) : k.orgId;
       if (!orgId || !(await orgLaden(orgId))) return fehler('Bitte eine Organisation wählen.');
       const { data, error } = await sb.from('rikscha_bewohner').insert({ ...felder, organisation_id: orgId }).select().single();
-      return error ? fehler(error.message, 500) : NextResponse.json(data, { status: 201 });
+      if (error) return fehler(error.message, 500);
+      await gruppenSetzen(data.id, orgId);
+      return NextResponse.json(data, { status: 201 });
     }
     const { data: alt } = await sb.from('rikscha_bewohner').select('organisation_id').eq('id', String(body.id ?? '')).maybeSingle();
     if (!alt || !zustaendig(k, alt.organisation_id)) return fehler('Diesen Fahrgast gibt es nicht.', 404);
     const { error } = await sb.from('rikscha_bewohner').update(felder).eq('id', body.id);
-    return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
+    if (error) return fehler(error.message, 500);
+    await gruppenSetzen(String(body.id), alt.organisation_id);
+    return NextResponse.json({ ok: true });
   }
 
   // Löschen (z. B. nach Umzug): Name aus Fahrten entfernen, künftige Fahrten absagen

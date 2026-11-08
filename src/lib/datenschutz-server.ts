@@ -25,6 +25,9 @@ export async function aufraeumen(): Promise<void> {
       .lt('letzter_kontakt', grenze).or('telefon.not.is.null,adresse.not.is.null');
     await sb.from('rikscha_buchungen').update({ abholort: null })
       .lt('datum', grenze).not('abholort', 'is', null);
+    // Telefon bei öffentlich gebuchten Zeiten: 7 Tage nach dem Fahrttag löschen
+    await sb.from('rikscha_buchungen').update({ kontakt_telefon: null })
+      .lt('datum', new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10)).not('kontakt_telefon', 'is', null);
     // Spam-Schutz-Zähler nach 2 Tagen löschen
     await sb.from('rikscha_anfragen_log').delete().lt('erstellt_am', new Date(Date.now() - 2 * 86_400_000).toISOString());
   } catch { /* nächstes Mal wieder */ }

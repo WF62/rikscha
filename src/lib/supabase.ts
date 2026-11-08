@@ -33,8 +33,12 @@ export type Buchung = {
   eigenfahrt?: boolean;
   /** Fahrt für einen Bewohner (nur für Kutscher und Pflege sichtbar) */
   bewohner_id?: string | null;
-  /** Freie Fahrzeit, die ein Kutscher für Bewohner anbietet */
+  /** Freie Fahrzeit, die ein Kutscher anbietet (für Vermittlungsstellen) */
   angebot?: boolean;
+  /** Freie Fahrzeit auch für Interessierte aus dem Quartier direkt buchbar */
+  oeffentlich?: boolean;
+  /** Telefon des Gasts bei öffentlich gebuchter Zeit – nur für den Kutscher der Fahrt */
+  kontakt_telefon?: string | null;
   /** Angaben zum Bewohner – nur für Kutscher und Pflege mitgeliefert */
   bewohner?: Fahrgast | null;
   /** Zweiter Bewohner in derselben Fahrt (z. B. Rikscha mit 2 Plätzen) */
@@ -54,6 +58,8 @@ export type Buchung = {
 /** Angaben zu einem Fahrgast, wie Kutscher und Vermittlung sie in einer Fahrt sehen */
 export type Fahrgast = {
   name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null;
+  /** Bereich als Pfad, z. B. „St. Elisabeth › 1. Etage › Lindenhof“ */
+  bereich?: string | null;
   /** Nur für den zuständigen Kutscher, Admin und die eigene Organisation */
   telefon?: string | null; adresse?: string | null;
 };
@@ -76,6 +82,8 @@ export type Bewohner = {
   adresse?: string | null;
   /** Ab diesem Tag läuft die Löschfrist für Telefon und Adresse */
   letzter_kontakt?: string;
+  /** Bereich im frei aufgebauten Haus (z. B. 1. Etage › Lindenhof) */
+  bereich_id?: string | null;
 };
 
 export type Sperre = {
