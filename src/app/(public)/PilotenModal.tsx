@@ -480,7 +480,7 @@ export default function PilotenModal() {
           </div>
         )}
 
-        {/* PFLEGE-BEREICH */}
+        {/* VERMITTLUNGS-BEREICH (Pflege, Quartier …) */}
         {ansicht === 'bereich' && pilotRolle === 'pflege' && (
           <div style={{ maxWidth: 420 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -488,14 +488,14 @@ export default function PilotenModal() {
                 <span style={{ fontSize: '1.8rem' }}>🏠</span>
                 <div>
                   <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.1rem' }}>Hallo, {pilotName}!</div>
-                  <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Bereich für die Pflege</div>
+                  <div style={{ fontSize: '0.78rem', color: '#6B5C44' }}>Fahrten vermitteln</div>
                 </div>
               </div>
               <button onClick={abmelden} style={{ padding: '0.4rem 1rem', border: '1.5px solid #D6CCB8', borderRadius: 8, background: 'transparent', color: '#6B5C44', fontSize: '0.82rem', cursor: 'pointer' }}>Abmelden</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {[
-                { href: '/pflege',   icon: '🏠', titel: 'Bewohnerfahrten', sub: 'Freie Zeiten, Wünsche, Bewohner', border: '#2D6B1E' },
+                { href: '/pflege',   icon: '🏠', titel: 'Fahrten vermitteln', sub: 'Fahrgäste, Wünsche, Gruppen', border: '#2D6B1E' },
                 { href: '/kalender', icon: '📅', titel: 'Kalender',        sub: 'Alle Termine ansehen',            border: '#D6CCB8' },
               ].map(k => (
                 <a key={k.href} href={k.href} target="_blank"

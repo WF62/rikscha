@@ -30,3 +30,6 @@ create index if not exists rikscha_buchungen_bewohner2 on rikscha_buchungen (bew
 
 -- Wunschfahrt (Tour oder eigener Wunsch, z. B. "Zum Rhein")
 alter table rikscha_buchungen add column if not exists wunschfahrt text check (char_length(wunschfahrt) <= 120);
+
+-- Abholort (siehe auch abholort.sql)
+alter table rikscha_buchungen add column if not exists abholort text check (char_length(abholort) <= 120);

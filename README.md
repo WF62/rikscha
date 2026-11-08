@@ -88,3 +88,15 @@ Rolle `pflege` (im Admin-Bereich vergeben) öffnet die Seite `/pflege`:
 
 Bewohnernamen sehen nur Kutscher und Pflege; öffentlich erscheinen sie als „Gast“, in der Team-Mail gar nicht.
 Einmalig `supabase/bewohner-pflege.sql` ausführen.
+
+## Vermittlung durch Organisationen und Gruppenfahrten
+
+- **Organisationen** (Admin-Bereich): z. B. „GFO Seniorenheim“ (Einrichtung, Standard-Abholort „Seniorenheim St. Elisabeth – Eingang Elisabeth“; feste Abholorte: Pfarrzentrum Merten, Seniorenheim St. Elisabeth, Betreutes Wohnen Paulinenhof, „nach Absprache“),
+  Quartiersbüro, Kirchengemeinde (Quartier). Zugänge mit der Rolle „Vermittlung“ gehören zu einer Organisation
+  und sehen nur deren Fahrgäste. Freie Fahrzeiten der Kutscher sehen alle gleich – wer zuerst zuordnet, bekommt sie.
+- **Fahrgäste aus dem Quartier** haben Adresse und Telefon. Beides sehen nur der Kutscher, der die Fahrt übernimmt,
+  Admin/GFO und die eigene Organisation. Es wird **12 Monate nach dem letzten Kontakt** automatisch gelöscht
+  (`DATEN_FRIST_MONATE` in `src/lib/datenschutz-server.ts`); jede neue Fahrt oder Änderung startet die Frist neu.
+- **Gruppenfahrten**: Eine Person plant Tag, Uhrzeit, Fahrgäste und mehrere Fahrzeuge. Die App verteilt alle
+  (Rollstuhl zuerst auf geeignete Fahrzeuge) und legt je Fahrzeug eine Fahrt an, die ein Kutscher übernimmt.
+- Einmalig `supabase/vermittlung-gruppen.sql` ausführen – **vor** dem Code-Update.

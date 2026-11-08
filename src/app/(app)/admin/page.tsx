@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import StammdatenVerwaltung from './StammdatenVerwaltung';
+import OrganisationenVerwaltung from './OrganisationenVerwaltung';
+import type { Organisation } from '@/lib/supabase';
 
-type Person = { id: string; name: string; rolle: string; aktiv: boolean };
+type Person = { id: string; name: string; rolle: string; aktiv: boolean; organisation_id?: string | null };
 type OrdnerDatei = { id: string; kategorie: string; name: string; url: string; groesse: number; typ: string };
 
 const ROLLEN = [
   { value: 'pilot', label: 'Kutscher' },
   { value: 'gfo',   label: 'GFO-Mitarbeiterin' },
-  { value: 'pflege', label: 'Pflege (Bewohnerfahrten)' },
+  { value: 'pflege', label: 'Vermittlung (Pflege, Quartier …)' },
   { value: 'angehoeriger', label: 'Angehörige/r' },
 ];
 const ORDNER_KAT = ['Polizeiliches Führungszeugnis', 'Einweisungsprotokoll', 'Ehrenamtsvertrag', 'Sonstiges'] as const;
@@ -21,7 +23,9 @@ export default function AdminSeite() {
 
   const [personen, setPersonen]     = useState<Person[]>([]);
   const [laden, setLaden]           = useState(false);
-  const [form, setForm]             = useState({ name: '', passwort: '', rolle: 'pilot' });
+  const [form, setForm]             = useState({ name: '', passwort: '', rolle: 'pilot', organisation_id: '' });
+  const [orgs, setOrgs]             = useState<Organisation[]>([]);
+  const [orgFehler, setOrgFehler]   = useState('');
   const [speichern, setSpeichern]   = useState(false);
   const [meldung, setMeldung]       = useState('');
   const [editId, setEditId]         = useState<string | null>(null);
@@ -37,6 +41,8 @@ export default function AdminSeite() {
     setLaden(true);
     const res = await fetch('/api/admin/piloten');
     if (res.ok) setPersonen(await res.json());
+    const o = await fetch('/api/admin/organisationen');
+    if (o.ok) { setOrgs(await o.json()); setOrgFehler(''); } else setOrgFehler((await o.json().catch(() => ({}))).error ?? 'Organisationen konnten nicht geladen werden.');
     setLaden(false);
   }, []);
 
@@ -59,7 +65,7 @@ export default function AdminSeite() {
     });
     if (res.ok) {
       setMeldung(`${form.name} wurde hinzugefügt.`);
-      setForm({ name: '', passwort: '', rolle: 'pilot' });
+      setForm({ name: '', passwort: '', rolle: 'pilot', organisation_id: '' });
       laden_();
     } else {
       const j = await res.json();
@@ -204,6 +210,16 @@ export default function AdminSeite() {
             </select>
           </div>
         </div>
+        {form.rolle === 'pflege' && (
+          <div>
+            <label className="block text-xs font-semibold mb-1">Organisation</label>
+            <select required value={form.organisation_id} onChange={(e) => setForm({ ...form, organisation_id: e.target.value })}
+              className="w-full border rounded px-3 py-2 text-sm">
+              <option value="">Bitte wählen…</option>
+              {orgs.filter((o) => o.aktiv).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold mb-1">Passwort</label>
           <input type="text" required value={form.passwort}
@@ -233,9 +249,20 @@ export default function AdminSeite() {
                 <option value="pilot">Kutscher</option>
                 <option value="gfo">GFO</option>
                 <option value="angehoeriger">Angehörige/r</option>
-                <option value="pflege">Pflege</option>
+                <option value="pflege">Vermittlung</option>
               </select>
               <span className="flex-1 font-medium text-sm">{p.name}</span>
+              {p.rolle === 'pflege' && (
+                <select value={p.organisation_id ?? ''} title="Organisation"
+                  onChange={async (e) => {
+                    await fetch('/api/admin/piloten', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.id, organisation_id: e.target.value }) });
+                    laden_();
+                  }}
+                  className={`text-xs border rounded px-1 py-0.5 ${p.organisation_id ? '' : 'border-red-400 text-red-700'}`}>
+                  <option value="">⚠ keine Organisation</option>
+                  {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                </select>
+              )}
 
               {editId === p.id ? (
                 <div className="flex gap-1">
@@ -277,7 +304,7 @@ export default function AdminSeite() {
                   <option value="pilot">Kutscher</option>
                   <option value="gfo">GFO</option>
                   <option value="angehoeriger">Angehörige/r</option>
-                  <option value="pflege">Pflege</option>
+                  <option value="pflege">Vermittlung</option>
                 </select>
                 <span className="flex-1 text-sm text-gray-400 line-through">{p.name}</span>
                 <button onClick={() => ordnerOeffnen(p.name)} className="text-xs text-purple-400 hover:underline">🗂️ Ordner</button>
@@ -328,6 +355,7 @@ export default function AdminSeite() {
         </div>
       )}
 
+      <OrganisationenVerwaltung liste={orgs} fehler={orgFehler} neuLaden={laden_} />
       <StammdatenVerwaltung />
     </div>
   );

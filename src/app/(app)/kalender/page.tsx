@@ -14,6 +14,8 @@ import { PILOT_FARBE, GAST_FARBE } from '@/lib/constants';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm, datumDeutsch } from '@/lib/stammdaten';
 import AbmeldeButton from '../AbmeldeButton';
+import AktualisierenKnopf from '../AktualisierenKnopf';
+import FahrzeugPicker from '../FahrzeugPicker';
 import { authHeaders } from '@/lib/authHeaders';
 
 const NICHT_ANGEMELDET = 'Bitte melde dich als Kutscherin oder Kutscher an, um Fahrten zu ändern.';
@@ -97,6 +99,11 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
         <div className="flex items-center gap-1 px-1 py-0.5 bg-orange-100 text-orange-800">
           <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-orange-400" />
           <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate`}>{b.startzeit.slice(0,5)} offen</span>
+        </div>
+      )}
+      {b.gruppe && (
+        <div className="px-1 py-0.5 border-t border-white/60 bg-violet-100 text-violet-800">
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold truncate block`}>👥 {schmal ? 'Gruppe' : b.gruppe.titel}</span>
         </div>
       )}
       {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
@@ -280,10 +287,14 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
     const rolle = localStorage.getItem('pilot_rolle');
     setIchKutscher(rolle === 'pilot' || rolle === 'gfo' ? localStorage.getItem('pilot_name') : null);
   }, []);
+  // Hat die Fahrt schon Gäste, aber kein Fahrzeug, wird es beim Übernehmen festgelegt
+  const brauchtFahrzeug = !b.fahrzeug && (b.gaeste ?? []).length > 0;
+  const [neuesFz, setNeuesFz] = useState('');
   const uebernehmen = async () => {
     if (!ichKutscher) return;
     const res = await fetch(`/api/buchungen/${b.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ pilot: ichKutscher }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(brauchtFahrzeug ? { pilot: ichKutscher, fahrzeug: neuesFz } : { pilot: ichKutscher }),
     });
     if (res.status === 401) alert(NICHT_ANGEMELDET);
     else if (!res.ok) { const j = await res.json().catch(() => ({})); alert(j.error ?? 'Das hat nicht geklappt.'); }
@@ -301,7 +312,8 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
         {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">FREI FÜR BEWOHNER</span>}
-        {(b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 BEWOHNERFAHRT</span>}
+        {b.gruppe && <span className="text-xs font-bold text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded">👥 GRUPPE: {b.gruppe.titel}</span>}
+        {!b.gruppe && (b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 VERMITTELTE FAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
       </div>
       {b.pilot ? (
@@ -326,7 +338,9 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {alle.length > 1 && <div className="font-semibold">🏠 {bw.name}</div>}
           {bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
           {bw.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
-          {bw.hinweis && <div>Hinweis der Pflege: {bw.hinweis}</div>}
+          {bw.adresse && <div>🏡 Adresse: <strong>{bw.adresse}</strong></div>}
+          {bw.telefon && <div>📞 Telefon: <a href={`tel:${bw.telefon.replace(/[^+\d]/g, '')}`} className="underline font-semibold">{bw.telefon}</a></div>}
+          {bw.hinweis && <div>Hinweis: {bw.hinweis}</div>}
         </div>
       ))}
       {b.fahrzeug ? (
@@ -340,6 +354,9 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           <span className="text-sm text-orange-600 italic">Fahrzeug noch nicht gewählt</span>
         </div>
       )}
+      {b.abholort && (
+        <div className="px-3 py-2 border-t border-sky-200 bg-sky-50 text-sm text-sky-900">📍 Abholort: <strong>{b.abholort}</strong></div>
+      )}
       {b.wunschfahrt && (
         <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm text-emerald-900">🗺️ Wunschfahrt: <strong>{b.wunschfahrt}</strong></div>
       )}
@@ -351,7 +368,15 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       </div>
       {!b.storniert && !b.pilot && ichKutscher && (
         <div className="px-3 py-2 bg-orange-50 border-t border-orange-200">
-          <button onClick={uebernehmen} className="w-full text-sm font-bold py-2 rounded border-2 bg-rikscha-green text-white border-rikscha-green">
+          {brauchtFahrzeug && (
+            <div className="mb-2 flex flex-col gap-1">
+              <span className="text-xs font-semibold text-gray-700">Mit welchem Fahrzeug? (nur freie und passende)</span>
+              <FahrzeugPicker buchungId={b.id} personen={(b.gaeste ?? []).length}
+                rollstuhl={!!(b.bewohner?.rollstuhl || b.bewohner2?.rollstuhl)} wert={neuesFz} onChange={setNeuesFz} />
+            </div>
+          )}
+          <button onClick={uebernehmen} disabled={brauchtFahrzeug && !neuesFz}
+            className="w-full text-sm font-bold py-2 rounded border-2 bg-rikscha-green text-white border-rikscha-green disabled:opacity-40">
             🙋 Ich übernehme diese Fahrt
           </button>
         </div>
@@ -470,7 +495,7 @@ export default function KalenderSeite() {
       <div style={{ background: '#2D6B1E', padding: '0.7rem 1rem', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: '0.5rem' }}>
         <a href="/" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontSize: '0.9rem' }}>← Website</a>
         <a href="/buchen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>+ Fahrt buchen</a>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}><AbmeldeButton /></div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}><AktualisierenKnopf hell /><AbmeldeButton /></div>
       </div>
       {/* Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">

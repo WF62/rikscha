@@ -69,7 +69,8 @@ function BuchenFormular() {
     if (istPilot && !form.pilot && !form.fahrzeug) { setFehler('Bitte mindestens einen Piloten oder ein Fahrzeug wählen.'); return; }
     if ((istAngehoeriger || !istPilot) && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
-    if (angebot && (!form.pilot || !form.fahrzeug)) { setFehler('Für eine freie Fahrzeit bitte Kutscher und Fahrzeug wählen.'); return; }
+    if (angebot && !form.pilot) { setFehler('Für eine freie Fahrzeit bitte den Kutscher wählen.'); return; }
+    if (!angebot && form.pilot && gaeste.length > 0 && !form.fahrzeug) { setFehler('Kutscher und Gast stehen fest – bitte auch das Fahrzeug wählen, damit es nicht doppelt gebucht wird.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
     if (nochNichtDa && fahrzeug?.verfuegbarAb) { setFehler(`${fahrzeug.name} kann erst ab ${datumDeutsch(fahrzeug.verfuegbarAb)} gebucht werden.`); return; }
     setSpeichern(true); setFehler('');
@@ -197,7 +198,7 @@ function BuchenFormular() {
               <input type="checkbox" checked={angebot} onChange={(e) => setAngebot(e.target.checked)} className="mt-1" />
               <span>
                 <span className="font-semibold">🏠 Als freie Fahrzeit für Bewohner anbieten</span>
-                <span className="block text-xs text-gray-500">Die Pflege sieht die Zeit und ordnet einen Bewohner zu. Bitte Kutscher und Fahrzeug wählen.</span>
+                <span className="block text-xs text-gray-500">Die Pflege sieht die Zeit und ordnet einen oder zwei Gäste zu. Fahrzeug egal? Dann „Folgt noch“ wählen – das passende Fahrzeug wird ausgesucht, wenn die Gäste feststehen.</span>
               </span>
             </label>
           )}
