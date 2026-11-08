@@ -60,7 +60,7 @@ function Anmeldung({ onOk }: { onOk: () => void }) {
       <p className="text-gray-600">Bitte einmal mit dem Zugang eurer Station anmelden. Das Gerät merkt sich das für 3 Monate.</p>
       <label className="block text-sm font-semibold">Zugang
         <select value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full border rounded px-3 py-2 text-base">
-          {namen.map((n) => <option key={n.name} value={n.name}>{n.name}</option>)}
+          {namen.map((n) => <option key={n.name} value={n.name}>{n.name}{n.rolle === 'gfo' ? ' (GFO – alle Einrichtungen)' : ''}</option>)}
         </select>
       </label>
       <label className="block text-sm font-semibold">Passwort
@@ -75,6 +75,7 @@ function Anmeldung({ onOk }: { onOk: () => void }) {
 export default function SchnellAnmelden() {
   const { fahrzeuge, fahrzeugById } = useStammdaten();
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
+  const [wer, setWer] = useState<{ name: string; rolle: string }>({ name: '', rolle: '' });
   const [daten, setDaten] = useState<Daten | null>(null);
   const [fehler, setFehler] = useState('');
   const [bereichId, setBereichId] = useState('');
@@ -99,7 +100,7 @@ export default function SchnellAnmelden() {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setFehler(j.error ?? 'Laden hat nicht geklappt.'); return; }
     setDaten(j); setZugang('ok');
-    setOrgId((alt) => alt || j.eigeneOrganisation || j.organisationen?.[0]?.id || '');
+    setWer({ name: localStorage.getItem('pilot_name') ?? '', rolle: localStorage.getItem('pilot_rolle') ?? '' });
   }, []);
 
   useEffect(() => {
@@ -116,14 +117,17 @@ export default function SchnellAnmelden() {
   const bereiche = daten.bereiche ?? [];
   const bereich = bereiche.find((b) => b.id === bereichId);
   // Bereich aus dem Link legt die Organisation fest
-  const org = daten.organisationen.find((o) => o.id === (bereich?.organisation_id ?? orgId)) ?? null;
+  // Einrichtung: aus dem Etagen-Link, sonst die gewählte (GFO/Admin: '' = alle Einrichtungen)
+  const filterOrg = bereich?.organisation_id ?? (daten.alle ? orgId : daten.eigeneOrganisation ?? '');
+  const orgName = (id: string | null | undefined) => daten.organisationen.find((o) => o.id === id)?.name ?? '';
   const imBereich = bereich ? mitUnterbereichen(bereiche, bereich.id) : null;
   const gaeste = daten.bewohner
-    .filter((b) => b.aktiv && (!daten.alle || !org || b.organisation_id === org.id))
+    .filter((b) => b.aktiv && (!filterOrg || b.organisation_id === filterOrg))
     .filter((b) => !imBereich || (b.bereich_id && imBereich.has(b.bereich_id)))
     .filter((b) => !suche.trim() || b.name.toLowerCase().includes(suche.trim().toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
   const gastObj = daten.bewohner.find((b) => b.id === gast);
+  const org = daten.organisationen.find((o) => o.id === (gastObj?.organisation_id ?? filterOrg)) ?? null;
   // Für die zweite Person: alle aktiven Fahrgäste der Organisation (auch andere Etagen)
   const andere = daten.bewohner
     .filter((b) => b.aktiv && b.id !== gast && (!org || b.organisation_id === org.id))
@@ -213,9 +217,22 @@ export default function SchnellAnmelden() {
         <p className="text-gray-600">{bereich ? <>Für <strong>{bereichPfad(bereiche, bereich.id)}</strong>. </> : null}In drei Schritten fertig.</p>
       </div>
 
+      <div className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${wer.rolle === 'pflege' ? 'bg-sky-50 border-sky-200' : 'bg-amber-50 border-amber-300'}`}>
+        <span className="flex-1">
+          Angemeldet als <strong>{wer.name}</strong>{' – '}
+          {wer.rolle === 'gfo' ? 'GFO, sieht alle Einrichtungen' : wer.rolle === 'admin' ? 'Admin, sieht alle Einrichtungen' : `Vermittlung${orgName(daten.eigeneOrganisation) ? ` ${orgName(daten.eigeneOrganisation)}` : ''}, sieht nur die eigenen Gäste`}
+        </span>
+        <button type="button" onClick={() => {
+          ['pilot_name', 'pilot_pw', 'pilot_rolle'].forEach((k) => localStorage.removeItem(k));
+          window.dispatchEvent(new CustomEvent('pilot-logout'));
+          setDaten(null); setGast(''); setGast2(''); setFreiId(''); setOrgId(''); setZugang('nein');
+        }} className="underline font-semibold text-gray-700">Zugang wechseln</button>
+      </div>
+
       {daten.alle && !bereich && daten.organisationen.length > 1 && (
         <label className="block text-sm font-semibold">Für
-          <select value={orgId} onChange={(e) => { setOrgId(e.target.value); setGast(''); }} className="mt-1 w-full border rounded px-3 py-2 text-base">
+          <select value={orgId} onChange={(e) => { setOrgId(e.target.value); setGast(''); setGast2(''); setFreiId(''); }} className="mt-1 w-full border rounded px-3 py-2 text-base">
+            <option value="">Alle Einrichtungen</option>
             {daten.organisationen.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
           </select>
         </label>
@@ -230,7 +247,10 @@ export default function SchnellAnmelden() {
           {gaeste.map((b) => (
             <button key={b.id} type="button" onClick={() => { setGast(b.id); if (gast2 === b.id) setGast2(''); setFreiId(''); }} className={knopf(gast === b.id)} aria-pressed={gast === b.id}>
               {b.name}{b.rollstuhl ? ' ♿' : ''}
-              {!bereich && bereichPfad(bereiche, b.bereich_id) && <span className="block text-xs font-normal text-gray-500">{bereichPfad(bereiche, b.bereich_id)}</span>}
+              {!bereich && (() => {
+                const wo = [!filterOrg && daten.alle ? orgName(b.organisation_id) : '', bereichPfad(bereiche, b.bereich_id)].filter(Boolean).join(' · ');
+                return wo ? <span className="block text-xs font-normal text-gray-500">{wo}</span> : null;
+              })()}
             </button>
           ))}
         </div>
