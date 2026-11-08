@@ -3,11 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import { createServiceClient } from '@/lib/supabase';
 
+function getRpId(req: NextRequest) {
+  const host = req.headers.get('host') ?? '';
+  return host.split(':')[0];
+}
+
 export async function POST(req: NextRequest) {
   const { pilot } = await req.json();
   if (!pilot) return NextResponse.json({ error: 'Kein Pilot.' }, { status: 400 });
 
   const db = createServiceClient();
+  const rpID = getRpId(req);
 
   const { data: credentials } = await db
     .from('rikscha_passkeys')
@@ -19,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   const options = await generateAuthenticationOptions({
-    rpID: process.env.PASSKEY_RP_ID ?? 'localhost',
+    rpID,
     userVerification: 'preferred',
     allowCredentials: credentials.map(c => ({
       id: c.credential_id,
