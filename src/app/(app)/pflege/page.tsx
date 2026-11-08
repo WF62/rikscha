@@ -174,6 +174,7 @@ export default function PflegeSeite() {
   const [gruppeAbhol, setGruppeAbhol] = useState<Abholort>(ABHOL_LEER);
   const [wiederholDatum, setWiederholDatum] = useState<Record<string, string>>({});   // Vorlage-ID → neues Datum
   const [wiederholt, setWiederholt] = useState<string | null>(null);
+  const [kontakt, setKontakt] = useState<{ ansprechperson: string; telefon: string; email: string } | null>(null);   // in Bearbeitung
   const [bearbeiten, setBearbeiten] = useState<Bewohner | null>(null);
 
   const laden = useCallback(async () => {
@@ -246,6 +247,38 @@ export default function PflegeSeite() {
           <a href="/kalender" className="text-sm text-rikscha-green underline">Zum Kalender</a>
         </span>
       </div>
+
+      {org && (
+        <div className="bg-white rounded-xl shadow px-5 py-3 text-sm">
+          {kontakt ? (
+            <form className="flex flex-wrap gap-2 items-end" onSubmit={async (e) => {
+              e.preventDefault();
+              if (await ausfuehren({ aktion: 'organisation-kontakt', organisation_id: org.id, ...kontakt }, 'Kontaktdaten gespeichert.')) setKontakt(null);
+            }}>
+              <label className="font-semibold">Ansprechperson
+                <input maxLength={80} value={kontakt.ansprechperson} onChange={(e) => setKontakt({ ...kontakt, ansprechperson: e.target.value })} className="block border rounded px-2 py-1.5" />
+              </label>
+              <label className="font-semibold">Telefon
+                <input maxLength={40} type="tel" value={kontakt.telefon} onChange={(e) => setKontakt({ ...kontakt, telefon: e.target.value })} className="block border rounded px-2 py-1.5" />
+              </label>
+              <label className="font-semibold">E-Mail
+                <input maxLength={120} type="email" value={kontakt.email} onChange={(e) => setKontakt({ ...kontakt, email: e.target.value })} className="block border rounded px-2 py-1.5" />
+              </label>
+              <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 font-semibold">Speichern</button>
+              <button type="button" onClick={() => setKontakt(null)} className="text-gray-500 px-2 py-1.5">Abbrechen</button>
+            </form>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-gray-600">Kontakt für die Kutscher:</span>
+              {org.ansprechperson || org.telefon || org.email
+                ? <span className="font-medium">{[org.ansprechperson, org.telefon, org.email].filter(Boolean).join(' · ')}</span>
+                : <span className="text-amber-700">noch nicht eingetragen – bitte ergänzen, damit Kutscher bei Rückfragen anrufen können</span>}
+              <button onClick={() => setKontakt({ ansprechperson: org.ansprechperson ?? '', telefon: org.telefon ?? '', email: org.email ?? '' })}
+                className="text-blue-600 underline ml-auto">Bearbeiten</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {meldung && (
         <div role="status" className={`rounded-lg px-4 py-2 text-sm border ${meldung.ok ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>

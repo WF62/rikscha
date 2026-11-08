@@ -58,42 +58,68 @@ export default function DatenschutzPage() {
         </div>
 
         <div className="block">
-          <h2>2. Erhebung und Speicherung personenbezogener Daten</h2>
-          <p>Beim Besuch dieser Website werden automatisch technische Zugriffsdaten gespeichert (Server-Logs). Diese enthalten IP-Adresse, Datum und Uhrzeit des Abrufs, aufgerufene URL sowie den verwendeten Browser. Diese Daten werden ausschließlich zur Sicherstellung des Betriebs der Website verwendet und nach 7 Tagen gelöscht.</p>
+          <h2>2. Besuch der Website</h2>
+          <p>Beim Besuch dieser Website werden automatisch technische Zugriffsdaten gespeichert (Server-Logs): IP-Adresse, Datum und Uhrzeit des Abrufs, aufgerufene Adresse und verwendeter Browser. Diese Daten dienen nur dem sicheren Betrieb der Website und werden nach 7 Tagen gelöscht (Art. 6 Abs. 1 lit. f DSGVO).</p>
         </div>
 
         <div className="block">
-          <h2>3. Kontaktformular</h2>
-          <p>Wenn Sie uns über das Kontaktformular eine Nachricht senden, werden Ihre Angaben (Name, E-Mail-Adresse, Nachricht) zur Bearbeitung Ihrer Anfrage gespeichert. Diese Daten werden nicht an Dritte weitergegeben und nach Abschluss der Kommunikation gelöscht.</p>
+          <h2>3. Schutz vor Missbrauch (Spam-Schutz)</h2>
+          <p>Damit Formulare nicht massenhaft missbraucht werden, zählen wir Anfragen pro Gerät (Buchen, Kontakt, Foto-Upload, Abstimmen, Anmeldeversuche). Dafür speichern wir keine IP-Adresse, sondern nur einen daraus berechneten, gekürzten Code, aus dem sich die IP-Adresse nicht zurückrechnen lässt. Diese Einträge werden nach spätestens 2 Tagen gelöscht (Art. 6 Abs. 1 lit. f DSGVO).</p>
         </div>
 
         <div className="block">
-          <h2>4. Bildergalerie</h2>
-          <p>Fotos, die von Piloten über die Galerie-Funktion hochgeladen werden, werden in unserem Cloud-Speicher (Supabase) gespeichert und öffentlich angezeigt. Durch das Hochladen stimmen Sie der Veröffentlichung zu. Fotos können auf Anfrage jederzeit entfernt werden.</p>
+          <h2>4. Kontaktformular und E-Mails</h2>
+          <p>Wenn Sie uns über das Kontaktformular schreiben, verarbeiten wir Name, E-Mail-Adresse und Nachricht, um Ihre Anfrage zu beantworten. Die Nachricht wird per E-Mail an unser Team weitergeleitet und nach Abschluss der Kommunikation gelöscht.</p>
+          <p>Für den Versand dieser E-Mails und von Buchungs-Benachrichtigungen an unser Team nutzen wir den Dienst Resend (Resend, Inc., USA). Benachrichtigungen über vermittelte Fahrten enthalten keine Namen, Adressen oder Telefonnummern der Fahrgäste.</p>
         </div>
 
         <div className="block">
-          <h2>5. Fahrtenbuchungen</h2>
-          <p>Bei Buchungen über das System werden Name, Datum und Fahrtdetails gespeichert. Diese Daten dienen ausschließlich der Koordination der Rikschafahrten und werden nicht an Dritte weitergegeben.</p>
+          <h2>5. Fahrten buchen</h2>
+          <p>Bei einer Buchung speichern wir Datum, Uhrzeit, Fahrzeug, Kutscher, die Namen der Mitfahrenden sowie freiwillige Angaben wie Notiz, Abholort und Wunschfahrt. Diese Daten dienen nur der Organisation der Rikschafahrten.</p>
+          <p>Im öffentlich sichtbaren Kalender erscheinen Mitfahrende nur als „Gast“. Namen und Notizen sehen ausschließlich angemeldete Kutscherinnen und Kutscher (Art. 6 Abs. 1 lit. b DSGVO).</p>
         </div>
 
         <div className="block">
-          <h2>6. Hosting</h2>
-          <p>Diese Website wird bei Vercel Inc., 340 Pine Street, Suite 900, San Francisco, CA 94104, USA gehostet. Datenbankdienste werden über Supabase bereitgestellt. Beide Dienste verarbeiten Daten auf Basis eines Auftragsverarbeitungsvertrags gemäß Art. 28 DSGVO.</p>
+          <h2>6. Vermittelte Fahrten und Gruppenfahrten</h2>
+          <p>Einrichtungen und Stellen im Quartier (zum Beispiel das Seniorenheim, das Pfarrzentrum oder das Betreute Wohnen) können Fahrten für ihre Bewohnerinnen, Bewohner und Gäste vermitteln, auch als Gruppenfahrt. Dafür speichern sie nur das Nötigste:</p>
+          <p>Name, Wohnbereich oder Adresse, auf Wunsch eine Telefonnummer, ob ein Rollstuhl benötigt wird, sowie einen kurzen Hinweis (zum Beispiel „braucht eine Decke“). Diagnosen oder Geburtsdaten werden nicht gespeichert. Die Angabe zum Rollstuhl dient nur dazu, ein passendes Fahrzeug zu wählen.</p>
+          <p><strong>Wer sieht was?</strong> Jede vermittelnde Stelle sieht nur die eigenen Fahrgäste. Adresse und Telefonnummer sieht außerdem nur die Kutscherin oder der Kutscher, die bzw. der die Fahrt übernommen hat, sowie die Verwaltung. Andere Kutscher sehen nur Name, Rollstuhlbedarf und Hinweis. Für Rückfragen sehen angemeldete Kutscher außerdem die dienstlichen Kontaktdaten der vermittelnden Stelle (Ansprechperson, Telefon, E-Mail).</p>
+          <p><strong>Wann wird gelöscht?</strong> Telefonnummer und Adresse werden automatisch 12 Monate nach dem letzten Kontakt gelöscht. Jede neue Fahrt oder Änderung beginnt diese Frist neu. Abholorte vergangener Fahrten werden nach derselben Frist gelöscht. Auf Wunsch löscht die vermittelnde Stelle einen Fahrgast jederzeit vollständig; dabei wird der Name auch aus vergangenen Fahrten entfernt.</p>
+          <p>Rechtsgrundlage ist die Einwilligung der Fahrgäste bzw. ihrer Vertretung, die die vermittelnde Stelle einholt (Art. 6 Abs. 1 lit. a und, für die Rollstuhl-Angabe, Art. 9 Abs. 2 lit. a DSGVO). Die Einwilligung kann jederzeit widerrufen werden.</p>
         </div>
 
         <div className="block">
-          <h2>7. Cookies</h2>
-          <p>Diese Website verwendet keine Tracking-Cookies. Es werden lediglich technisch notwendige Session-Informationen im Arbeitsspeicher des Browsers gespeichert (localStorage), die beim Schließen des Tabs automatisch gelöscht werden.</p>
+          <h2>7. Bildergalerie und Foto-Wettbewerb</h2>
+          <p>Fotos, die Kutscher oder Gäste hochladen, werden in unserem Cloud-Speicher (Supabase) gespeichert. Gäste-Fotos werden erst nach Prüfung veröffentlicht; dabei wird der angegebene Name gezeigt. Durch das Hochladen stimmen Sie der Veröffentlichung zu. Fotos entfernen wir auf Anfrage jederzeit. Beim Abstimmen zählen wir eine Stimme pro Gerät und Tag (siehe Abschnitt 3).</p>
         </div>
 
         <div className="block">
-          <h2>8. Ihre Rechte</h2>
-          <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer personenbezogenen Daten sowie das Recht auf Datenübertragbarkeit. Wenden Sie sich hierfür an: <a href="mailto:platzhalter@beispiel.de"><span className="placeholder">email@beispiel.de</span></a></p>
-          <p>Sie haben außerdem das Recht, sich bei der zuständigen Datenschutzbehörde zu beschweren. In NRW: Landesbeauftragte für Datenschutz und Informationsfreiheit NRW, <a href="https://www.ldi.nrw.de" target="_blank">www.ldi.nrw.de</a>.</p>
+          <h2>8. Anmeldung für Kutscher und vermittelnde Stellen</h2>
+          <p>Für die Anmeldung speichern wir Name und Rolle. Passwörter werden nur verschlüsselt (als nicht umkehrbarer Hash) gespeichert. Nach der Anmeldung legt der Browser einen Anmelde-Schlüssel im lokalen Speicher (localStorage) ab, damit Sie angemeldet bleiben. Er gilt höchstens 90 Tage, wird beim Abmelden entfernt und wird ungültig, sobald das Passwort geändert wird.</p>
         </div>
 
-        <p style={{fontSize:'0.8rem',marginTop:'2rem'}}>Stand: Juli 2025</p>
+        <div className="block">
+          <h2>9. Tourenkarte</h2>
+          <p>Wenn Sie die Tourenkarte öffnen, lädt Ihr Browser Kartenbilder von OpenStreetMap (OpenStreetMap Foundation, Großbritannien), Streckenberechnungen von project-osrm.org und Höhendaten von opentopodata.org. Dabei wird technisch bedingt Ihre IP-Adresse an diese Dienste übertragen. Weitere Daten geben wir nicht weiter (Art. 6 Abs. 1 lit. f DSGVO).</p>
+        </div>
+
+        <div className="block">
+          <h2>10. Hosting und Datenbank</h2>
+          <p>Diese Website wird bei Vercel Inc., 340 Pine Street, Suite 900, San Francisco, CA 94104, USA gehostet. Die Datenbank und der Dateispeicher werden von Supabase bereitgestellt; die Daten liegen in einem Rechenzentrum in der EU (Irland). Beide Dienste verarbeiten Daten in unserem Auftrag auf Grundlage eines Auftragsverarbeitungsvertrags nach Art. 28 DSGVO.</p>
+        </div>
+
+        <div className="block">
+          <h2>11. Cookies und lokaler Speicher</h2>
+          <p>Diese Website verwendet keine Tracking- oder Werbe-Cookies. Für den Verwaltungsbereich wird ein technisch notwendiges Sitzungs-Cookie gesetzt (8 Stunden gültig). Im lokalen Speicher des Browsers liegen nur technisch notwendige Angaben, zum Beispiel der Anmelde-Schlüssel (siehe Abschnitt 8) oder Ihre bereits abgegebenen Stimmen in der Galerie.</p>
+        </div>
+
+        <div className="block">
+          <h2>12. Ihre Rechte</h2>
+          <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer personenbezogenen Daten, auf Datenübertragbarkeit sowie auf Widerspruch und auf Widerruf einer Einwilligung. Wenden Sie sich hierfür an: <a href="mailto:platzhalter@beispiel.de"><span className="placeholder">email@beispiel.de</span></a></p>
+          <p>Sie haben außerdem das Recht, sich bei der zuständigen Datenschutzbehörde zu beschweren. In NRW: Landesbeauftragte für Datenschutz und Informationsfreiheit NRW, <a href="https://www.ldi.nrw.de" target="_blank" rel="noopener noreferrer">www.ldi.nrw.de</a>.</p>
+        </div>
+
+        <p style={{fontSize:'0.8rem',marginTop:'2rem'}}>Stand: November 2026</p>
       </div>
     </>
   );

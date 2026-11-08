@@ -12,7 +12,7 @@ function stichtag(): string {
 let zuletzt = 0;
 
 /**
- * Löscht abgelaufene Kontaktdaten (Telefon, Adresse) und alte Abholorte vergangener Fahrten.
+ * Löscht abgelaufene Kontaktdaten (Telefon, Adresse), alte Abholorte vergangener Fahrten und alte Spam-Schutz-Zähler.
  * Läuft nebenbei bei normalen Seitenaufrufen, höchstens einmal pro Stunde je Server.
  */
 export async function aufraeumen(): Promise<void> {
@@ -25,6 +25,8 @@ export async function aufraeumen(): Promise<void> {
       .lt('letzter_kontakt', grenze).or('telefon.not.is.null,adresse.not.is.null');
     await sb.from('rikscha_buchungen').update({ abholort: null })
       .lt('datum', grenze).not('abholort', 'is', null);
+    // Spam-Schutz-Zähler nach 2 Tagen löschen
+    await sb.from('rikscha_anfragen_log').delete().lt('erstellt_am', new Date(Date.now() - 2 * 86_400_000).toISOString());
   } catch { /* nächstes Mal wieder */ }
 }
 

@@ -47,6 +47,8 @@ export type Buchung = {
   /** Gehört zu einer Gruppenfahrt (mehrere Fahrzeuge) */
   gruppe_id?: string | null;
   gruppe?: { titel: string } | null;
+  /** Vermittelnde Stelle mit Kontakt – nur für angemeldete Kutscher und Vermittlung */
+  vermittlung?: { name: string; ansprechperson: string | null; telefon: string | null; email: string | null } | null;
 };
 
 /** Angaben zu einem Fahrgast, wie Kutscher und Vermittlung sie in einer Fahrt sehen */
@@ -58,6 +60,8 @@ export type Fahrgast = {
 
 export type Organisation = {
   id: string; name: string; art: 'einrichtung' | 'quartier'; standard_abholort: string | null; aktiv: boolean;
+  /** Kontakt für Rückfragen der Kutscher */
+  ansprechperson?: string | null; telefon?: string | null; email?: string | null;
 };
 
 export type Bewohner = {
