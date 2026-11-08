@@ -101,6 +101,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Für eine freie Fahrzeit bitte den Kutscher wählen.' }, { status: 400 });
   }
   if (angebot) gaeste.length = 0;
+  // Kutscher und Gast stehen fest → Fahrzeug muss feststehen, sonst droht Überbuchung
+  if (pilot && gaeste.length > 0 && !fahrzeug) {
+    return NextResponse.json({ error: 'Wenn Kutscher und Gast feststehen, bitte auch das Fahrzeug wählen – sonst kann es doppelt gebucht werden.' }, { status: 400 });
+  }
   if (pilot && !vertraut && !(rolle === 'angehoeriger' && pilot === angemeldet)
       && !stamm.kutscher.some((k) => k.name === pilot)) {
     return NextResponse.json({ error: 'Unbekannter Kutscher.' }, { status: 400 });

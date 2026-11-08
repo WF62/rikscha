@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfFahrtenVerwalten, istAdmin } from '@/lib/pilotAuth';
-import { fahrzeugFehler, ladeStammdaten } from '@/lib/stammdaten-server';
+import { fahrzeugFehler, fahrzeugAuswahl, rollstuhlNoetig } from '@/lib/stammdaten-server';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -30,26 +30,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.startzeit !== undefined) update.startzeit = body.startzeit;
   if (body.endzeit   !== undefined) update.endzeit   = body.endzeit;
 
-  // Neues Fahrzeug oder neues Datum: Fahrzeug muss an dem Tag buchbar sein
-  if (body.fahrzeug !== undefined || body.datum !== undefined) {
+  // Fahrzeug prüfen, sobald Kutscher, Gäste, Fahrzeug oder Zeit geändert werden
+  const betrifftFahrzeug = ['fahrzeug', 'datum', 'startzeit', 'endzeit', 'gaeste', 'pilot'].some((k) => body[k] !== undefined);
+  if (betrifftFahrzeug && !update.storniert) {
     const { data: alt } = await sb.from('rikscha_buchungen').select('*').eq('id', id).maybeSingle();
-    const fz = (body.fahrzeug ?? alt?.fahrzeug ?? '') as string;
-    const tag = (body.datum ?? alt?.datum) as string | undefined;
-    const fzFehler = await fahrzeugFehler(fz, tag);
-    if (fzFehler) return NextResponse.json({ error: fzFehler }, { status: 409 });
-    // Passen alle Fahrgäste ins neue Fahrzeug?
-    const anzahl = ((body.gaeste ?? alt?.gaeste ?? []) as string[]).length;
-    const f = fz ? (await ladeStammdaten(true)).fahrzeuge.find((x) => x.id === fz) : undefined;
-    if (body.fahrzeug && f && anzahl > f.maxGaeste) {
-      return NextResponse.json({ error: `${f.name} hat nur ${f.maxGaeste} Platz${f.maxGaeste === 1 ? '' : 'e'}, gebucht sind ${anzahl} Personen.` }, { status: 409 });
-    }
-    // Bewohner im Rollstuhl nur mit geeignetem Fahrzeug
-    const ids = [alt?.bewohner_id, alt?.bewohner2_id].filter(Boolean) as string[];
-    if (body.fahrzeug && f && !f.rollstuhl && ids.length) {
-      const { data: rolli } = await sb.from('rikscha_bewohner').select('name').in('id', ids).eq('rollstuhl', true);
-      if (rolli?.length) {
-        return NextResponse.json({ error: `${f.name} ist nicht für Rollstühle geeignet (${rolli.map((r) => r.name).join(', ')}).` }, { status: 409 });
+    if (!alt) return NextResponse.json({ error: 'Diese Fahrt gibt es nicht.' }, { status: 404 });
+    const neu = { ...alt, ...update } as Record<string, unknown> & { fahrzeug: string; pilot: string; gaeste: string[]; datum: string; startzeit: string; endzeit: string; storniert: boolean };
+    const anzahl = (neu.gaeste ?? []).length;
+    if (!neu.storniert && neu.fahrzeug) {
+      const fzFehler = await fahrzeugFehler(neu.fahrzeug, neu.datum);
+      if (fzFehler) return NextResponse.json({ error: fzFehler }, { status: 409 });
+      const rollstuhl = await rollstuhlNoetig([alt.bewohner_id, alt.bewohner2_id]);
+      const wahl = (await fahrzeugAuswahl(neu.datum, neu.startzeit, neu.endzeit, { anzahl: Math.max(1, anzahl), rollstuhl, ausserId: id }))
+        .find((x) => x.id === neu.fahrzeug);
+      if (wahl && !wahl.frei) {
+        return NextResponse.json({ error: `${wahl.name} geht hier nicht: ${wahl.grund}.` }, { status: 409 });
       }
+    } else if (!neu.storniert && neu.pilot && anzahl > 0) {
+      // Kutscher und Gast stehen fest → Fahrzeug muss feststehen, sonst droht Überbuchung
+      return NextResponse.json({ error: 'Kutscher und Gast stehen fest – bitte jetzt ein Fahrzeug wählen, damit es nicht doppelt gebucht wird.' }, { status: 409 });
     }
   }
 

@@ -70,6 +70,7 @@ function BuchenFormular() {
     if ((istAngehoeriger || !istPilot) && !form.fahrzeug) { setFehler('Bitte ein Fahrzeug wählen.'); return; }
     if (!form.datum)  { setFehler('Bitte ein Datum wählen.'); return; }
     if (angebot && !form.pilot) { setFehler('Für eine freie Fahrzeit bitte den Kutscher wählen.'); return; }
+    if (!angebot && form.pilot && gaeste.length > 0 && !form.fahrzeug) { setFehler('Kutscher und Gast stehen fest – bitte auch das Fahrzeug wählen, damit es nicht doppelt gebucht wird.'); return; }
     if (gesperrt)     { setFehler('Dieses Fahrzeug ist an dem Tag gesperrt.'); return; }
     if (nochNichtDa && fahrzeug?.verfuegbarAb) { setFehler(`${fahrzeug.name} kann erst ab ${datumDeutsch(fahrzeug.verfuegbarAb)} gebucht werden.`); return; }
     setSpeichern(true); setFehler('');

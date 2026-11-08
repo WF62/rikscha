@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfBewohnerVerwalten } from '@/lib/pilotAuth';
-import { ladeStammdaten, fahrzeugFehler } from '@/lib/stammdaten-server';
+import { ladeStammdaten, fahrzeugFehler, fahrzeugAuswahl } from '@/lib/stammdaten-server';
 import { sendBuchungEmail } from '@/lib/email';
 
 /**
@@ -179,11 +179,17 @@ export async function POST(req: NextRequest) {
     if (zweit.fehler) return fehler(zweit.fehler);
     const personen = zweit.person ? [bew, zweit.person] : [bew];
     const gaeste = [bew.name, ...(zweit.person ? [zweit.person.name] : zweit.begleitung ? [zweit.begleitung] : [])];
-    const rf = await fahrgastFehler(personen, gaeste.length, b.fahrzeug);
-    if (rf) return fehler(rf, 409);
+    // Spätestens jetzt (Kutscher + Gast stehen fest) muss das Fahrzeug feststehen
+    const fahrzeug = String(b.fahrzeug || body.fahrzeug || '');
+    if (!fahrzeug) return fehler('Bitte ein Fahrzeug wählen – Kutscher und Gast stehen jetzt fest.');
+    const wahl = (await fahrzeugAuswahl(b.datum, b.startzeit, b.endzeit, {
+      anzahl: gaeste.length, rollstuhl: personen.some((x) => x.rollstuhl), ausserId: b.id,
+    })).find((x) => x.id === fahrzeug);
+    if (!wahl) return fehler('Dieses Fahrzeug gibt es nicht.');
+    if (!wahl.frei) return fehler(`${wahl.name} geht hier nicht: ${wahl.grund}.`, 409);
     // Nur belegen, wenn noch frei (gleichzeitiges Belegen verhindern)
     const { data: neu, error } = await sb.from('rikscha_buchungen')
-      .update({ bewohner_id: bew.id, gaeste, notiz: text(body.notiz, 500) ?? b.notiz, ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}), ...(wunschfahrt ? { wunschfahrt } : {}) })
+      .update({ bewohner_id: bew.id, fahrzeug, gaeste, notiz: text(body.notiz, 500) ?? b.notiz, ...(zweit.person ? { bewohner2_id: zweit.person.id } : {}), ...(wunschfahrt ? { wunschfahrt } : {}) })
       .eq('id', b.id).is('bewohner_id', null).select().maybeSingle();
     if (error) return fehler(error.message, 500);
     if (!neu) return fehler('Diese Fahrzeit wurde gerade vergeben.', 409);

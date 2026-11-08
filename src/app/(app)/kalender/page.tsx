@@ -15,6 +15,7 @@ import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm, datumDeutsch } from '@/lib/stammdaten';
 import AbmeldeButton from '../AbmeldeButton';
 import AktualisierenKnopf from '../AktualisierenKnopf';
+import FahrzeugPicker from '../FahrzeugPicker';
 import { authHeaders } from '@/lib/authHeaders';
 
 const NICHT_ANGEMELDET = 'Bitte melde dich als Kutscherin oder Kutscher an, um Fahrten zu ändern.';
@@ -281,10 +282,14 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
     const rolle = localStorage.getItem('pilot_rolle');
     setIchKutscher(rolle === 'pilot' || rolle === 'gfo' ? localStorage.getItem('pilot_name') : null);
   }, []);
+  // Hat die Fahrt schon Gäste, aber kein Fahrzeug, wird es beim Übernehmen festgelegt
+  const brauchtFahrzeug = !b.fahrzeug && (b.gaeste ?? []).length > 0;
+  const [neuesFz, setNeuesFz] = useState('');
   const uebernehmen = async () => {
     if (!ichKutscher) return;
     const res = await fetch(`/api/buchungen/${b.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ pilot: ichKutscher }),
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(brauchtFahrzeug ? { pilot: ichKutscher, fahrzeug: neuesFz } : { pilot: ichKutscher }),
     });
     if (res.status === 401) alert(NICHT_ANGEMELDET);
     else if (!res.ok) { const j = await res.json().catch(() => ({})); alert(j.error ?? 'Das hat nicht geklappt.'); }
@@ -352,7 +357,15 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       </div>
       {!b.storniert && !b.pilot && ichKutscher && (
         <div className="px-3 py-2 bg-orange-50 border-t border-orange-200">
-          <button onClick={uebernehmen} className="w-full text-sm font-bold py-2 rounded border-2 bg-rikscha-green text-white border-rikscha-green">
+          {brauchtFahrzeug && (
+            <div className="mb-2 flex flex-col gap-1">
+              <span className="text-xs font-semibold text-gray-700">Mit welchem Fahrzeug? (nur freie und passende)</span>
+              <FahrzeugPicker buchungId={b.id} personen={(b.gaeste ?? []).length}
+                rollstuhl={!!(b.bewohner?.rollstuhl || b.bewohner2?.rollstuhl)} wert={neuesFz} onChange={setNeuesFz} />
+            </div>
+          )}
+          <button onClick={uebernehmen} disabled={brauchtFahrzeug && !neuesFz}
+            className="w-full text-sm font-bold py-2 rounded border-2 bg-rikscha-green text-white border-rikscha-green disabled:opacity-40">
             🙋 Ich übernehme diese Fahrt
           </button>
         </div>

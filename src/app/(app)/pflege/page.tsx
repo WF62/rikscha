@@ -7,6 +7,7 @@ import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
 import { WUNSCH_TOUREN } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
+import FahrzeugPicker from '../FahrzeugPicker';
 
 type Daten = { bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[] };
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
@@ -106,6 +107,7 @@ export default function PflegeSeite() {
   const [wunsch2, setWunsch2] = useState<Zweit>(ZWEIT_LEER);
   const [wunschTour, setWunschTour] = useState<Tour>(TOUR_LEER);
   const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
+  const [angebotFz, setAngebotFz] = useState<Record<string, string>>({}); // Angebot ohne Fahrzeug → gewähltes Fahrzeug
   const [neuerBewohner, setNeuerBewohner] = useState({ name: '', wohnbereich: '', rollstuhl: false, hinweis: '' });
   const [bearbeiten, setBearbeiten] = useState<Bewohner | null>(null);
 
@@ -202,11 +204,22 @@ export default function PflegeSeite() {
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
                     <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
-                    <button disabled={!auswahl[a.id]} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
+                    {!a.fahrzeug && auswahl[a.id] && (() => {
+                      // Kutscher + Gast stehen fest → jetzt Fahrzeug festlegen
+                      const z = auswahl2[a.id] ?? ZWEIT_LEER;
+                      const zweiterBw = z.wahl && z.wahl !== BEGLEITUNG ? bewohnerById(z.wahl) : undefined;
+                      return (
+                        <FahrzeugPicker buchungId={a.id} personen={1 + zweitAnzahl(z)}
+                          rollstuhl={!!bewohnerById(auswahl[a.id])?.rollstuhl || !!zweiterBw?.rollstuhl}
+                          wert={angebotFz[a.id] ?? ''} onChange={(id) => setAngebotFz((v) => ({ ...v, [a.id]: id }))} />
+                      );
+                    })()}
+                    <button disabled={!auswahl[a.id] || (!a.fahrzeug && !angebotFz[a.id])} className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40"
                       onClick={async () => {
                         const zweit = plaetze >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
                         const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
-                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
+                        const fzWahl = !a.fahrzeug ? { fahrzeug: angebotFz[a.id] } : {};
+                        if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
                           setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER });
                         }
                       }}>
