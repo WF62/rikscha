@@ -10,8 +10,12 @@ import AktualisierenKnopf from '../AktualisierenKnopf';
 import FahrzeugPicker from '../FahrzeugPicker';
 
 type Gruppe = { id: string; titel: string; datum: string; organisator: string | null; organisation_id: string | null; fahrten: Buchung[] };
+type Vorlage = {
+  id: string; titel: string; datum: string; startzeit: string | null; endzeit: string | null;
+  abholort: string | null; wunschfahrt: string | null; personen: number; fahrzeuge: string[];
+};
 type Daten = {
-  bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[]; gruppen: Gruppe[];
+  bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[]; gruppen: Gruppe[]; vorlagen: Vorlage[];
   organisationen: Organisation[]; eigeneOrganisation: string | null; alle: boolean; fristMonate: number;
 };
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
@@ -168,6 +172,8 @@ export default function PflegeSeite() {
   const [gruppeFzListe, setGruppeFzListe] = useState<{ id: string; name: string; maxGaeste: number; rollstuhl: boolean; frei: boolean; grund?: string }[] | null>(null);
   const [gruppeTour, setGruppeTour] = useState<Tour>(TOUR_LEER);
   const [gruppeAbhol, setGruppeAbhol] = useState<Abholort>(ABHOL_LEER);
+  const [wiederholDatum, setWiederholDatum] = useState<Record<string, string>>({});   // Vorlage-ID → neues Datum
+  const [wiederholt, setWiederholt] = useState<string | null>(null);
   const [bearbeiten, setBearbeiten] = useState<Bewohner | null>(null);
 
   const laden = useCallback(async () => {
@@ -419,7 +425,50 @@ export default function PflegeSeite() {
 
           {/* 4. Gruppenfahrten */}
           <section className="bg-white rounded-xl shadow p-5">
-            <h3 className="font-bold text-lg text-gray-800 mb-1">👥 Gruppenfahrt planen</h3>
+            {(daten.vorlagen ?? []).length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-bold text-lg text-gray-800 mb-1">🔁 Regelmäßige Gruppenfahrten</h3>
+                <p className="text-sm text-gray-500 mb-3">Schon einmal gefahren? Neues Datum eintragen und „Wiederholen“ tippen. Teilnehmende, Fahrzeuge, Uhrzeit und Treffpunkt werden übernommen. Ist ein Fahrzeug an dem Tag belegt, nimmt die App ein anderes freies.</p>
+                <div className="space-y-2">
+                  {daten.vorlagen.map((v) => (
+                    <div key={v.id} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
+                      <div className="flex-1 min-w-[200px]">
+                        <div className="font-semibold">👥 {v.titel}</div>
+                        <div className="text-sm text-gray-600">
+                          zuletzt {tagText(v.datum)}{v.startzeit && v.endzeit ? `, ${v.startzeit.slice(0, 5)}–${v.endzeit.slice(0, 5)} Uhr` : ''}
+                          {' · '}{v.personen} Personen · {v.fahrzeuge.map((id) => fahrzeugById(id)?.name ?? id).join(', ')}
+                        </div>
+                        {(v.abholort || v.wunschfahrt) && <div className="text-sm text-gray-500">{v.abholort ? `📍 ${v.abholort}` : ''}{v.abholort && v.wunschfahrt ? ' · ' : ''}{v.wunschfahrt ? `🗺️ ${v.wunschfahrt}` : ''}</div>}
+                      </div>
+                      <label className="text-sm font-semibold">Neues Datum
+                        <input type="date" aria-label={`Neues Datum für ${v.titel}`} value={wiederholDatum[v.id] ?? ''}
+                          onChange={(e) => setWiederholDatum({ ...wiederholDatum, [v.id]: e.target.value })} className="block border rounded px-2 py-2" />
+                      </label>
+                      <button disabled={!wiederholDatum[v.id] || wiederholt === v.id}
+                        className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold disabled:opacity-40 self-end"
+                        onClick={async () => {
+                          setWiederholt(v.id);
+                          const r = await fetch('/api/pflege', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                            body: JSON.stringify({ aktion: 'gruppe-wiederholen', gruppe_id: v.id, datum: wiederholDatum[v.id] }),
+                          });
+                          const j = await r.json().catch(() => ({}));
+                          setWiederholt(null);
+                          if (!r.ok) { zeige(j.error ?? 'Das hat nicht geklappt.', false); return; }
+                          const verteilung = (j.fahrzeuge ?? []).map((f: { name: string; personen: string[] }) => `${f.name}: ${f.personen.join(', ')}`).join(' · ');
+                          zeige(`„${v.titel}“ am ${tagText(wiederholDatum[v.id])} angelegt. ${verteilung}${j.ersetzt?.length ? ` (statt ${j.ersetzt.join(', ')}, da belegt)` : ''}`);
+                          setWiederholDatum({ ...wiederholDatum, [v.id]: '' });
+                          await laden();
+                        }}>
+                        {wiederholt === v.id ? '…' : '🔁 Wiederholen'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <h3 className="font-bold text-lg text-gray-800 mb-1">👥 Neue Gruppenfahrt planen</h3>
             <p className="text-sm text-gray-500 mb-3">Mehrere Fahrgäste, mehrere Fahrzeuge: Die App verteilt alle auf die gewählten Fahrzeuge. Für jedes Fahrzeug sucht sich ein Kutscher die Fahrt im Kalender aus.</p>
             <form className="grid grid-cols-1 sm:grid-cols-2 gap-3" onSubmit={async (e) => {
               e.preventDefault();

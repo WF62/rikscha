@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     sb.from('rikscha_buchungen').select('*').eq('storniert', false).gte('datum', heute()).lte('datum', bis)
       .or('angebot.eq.true,bewohner_id.not.is.null,bewohner2_id.not.is.null,gruppe_id.not.is.null')
       .order('datum').order('startzeit'),
-    sb.from('rikscha_gruppen').select('*').gte('datum', heute()).order('datum'),
+    sb.from('rikscha_gruppen').select('*').gte('datum', new Date(Date.now() - 400 * 86_400_000).toISOString().slice(0, 10)).order('datum'),
   ]);
   if (orgs.error || bw.error || gruppen.error || fahrten.error) {
     return fehler('Die Datenbank ist noch nicht vorbereitet. Bitte supabase/vermittlung-gruppen.sql ausführen.', 503);
@@ -59,8 +59,26 @@ export async function GET(req: NextRequest) {
 
   const meineBewohner = (bw.data ?? []).filter((p) => zustaendig(k, p.organisation_id));
   const ids = new Set(meineBewohner.map((p) => p.id));
-  const meineGruppen = (gruppen.data ?? []).filter((g) => zustaendig(k, g.organisation_id));
+  const alleGruppen = (gruppen.data ?? []).filter((g) => zustaendig(k, g.organisation_id));
+  const meineGruppen = alleGruppen.filter((g) => g.datum >= heute());
   const liste = fahrten.data ?? [];
+
+  // Vorlagen zum Wiederholen: je Name die neueste Gruppenfahrt, mit Eckdaten aus ihren Fahrten
+  const neueste = new Map<string, (typeof alleGruppen)[number]>();
+  for (const g of alleGruppen) neueste.set(g.titel, g);   // nach Datum sortiert → die letzte gewinnt
+  const vorlagenIds = Array.from(neueste.values()).map((g) => g.id);
+  const { data: vorlagenFahrten } = vorlagenIds.length
+    ? await sb.from('rikscha_buchungen').select('gruppe_id, fahrzeug, gaeste, startzeit, endzeit, abholort, wunschfahrt, storniert').in('gruppe_id', vorlagenIds)
+    : { data: [] as { gruppe_id: string; fahrzeug: string; gaeste: string[]; startzeit: string; endzeit: string; abholort: string | null; wunschfahrt: string | null; storniert: boolean }[] };
+  const vorlagen = Array.from(neueste.values()).map((g) => {
+    const alle = (vorlagenFahrten ?? []).filter((b) => b.gruppe_id === g.id);
+    const f = alle.filter((b) => !b.storniert).length ? alle.filter((b) => !b.storniert) : alle;
+    return {
+      id: g.id, titel: g.titel, datum: g.datum,
+      startzeit: f[0]?.startzeit ?? null, endzeit: f[0]?.endzeit ?? null, abholort: f[0]?.abholort ?? null, wunschfahrt: f[0]?.wunschfahrt ?? null,
+      personen: f.reduce((s, b) => s + (b.gaeste ?? []).length, 0), fahrzeuge: Array.from(new Set(f.map((b) => b.fahrzeug))),
+    };
+  }).filter((v) => v.fahrzeuge.length).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 
   return NextResponse.json({
     organisationen: (orgs.data ?? []).filter((o) => k.alle || o.id === k.orgId),
@@ -71,6 +89,7 @@ export async function GET(req: NextRequest) {
     // Freie Fahrzeiten: für alle Organisationen gleich sichtbar
     angebote: liste.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0),
     fahrten: liste.filter((b) => !b.gruppe_id && (ids.has(b.bewohner_id) || ids.has(b.bewohner2_id))),
+    vorlagen,
     gruppen: meineGruppen
       .map((g) => ({ ...g, fahrten: liste.filter((b) => b.gruppe_id === g.id) }))
       .filter((g) => g.fahrten.length > 0),
@@ -260,68 +279,71 @@ export async function POST(req: NextRequest) {
     return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
   }
 
-  // ── Gruppenfahrt planen: mehrere Fahrzeuge, Fahrgäste, Kutscher ──
-  if (body.aktion === 'gruppe-neu') {
-    const titel = text(body.titel, 80);
-    if (!titel) return fehler('Bitte einen Namen für die Gruppenfahrt eintragen.');
-    const { datum, startzeit, endzeit } = body;
-    const zf = zeitPruefen(datum, startzeit, endzeit);
-    if (zf) return fehler(zf);
-
-    // Teilnehmende: Fahrgäste aus der Liste + weitere Personen (nur Name)
-    const ids: string[] = Array.isArray(body.teilnehmer) ? body.teilnehmer.map(String) : [];
-    const personen: Person[] = [];
-    for (const id of Array.from(new Set(ids))) {
-      const p = await personLaden(id);
-      if (!p) return fehler('Ein gewählter Fahrgast ist nicht verfügbar.');
-      personen.push(p);
-    }
-    const weitere = (Array.isArray(body.weitere) ? body.weitere : []).map((n: unknown) => text(n, 80)).filter(Boolean) as string[];
-    const gesamt = personen.length + weitere.length;
+  // ── Gruppenfahrt anlegen (neu oder als Wiederholung) ───────
+  type Plan = {
+    titel: string; datum: string; startzeit: string; endzeit: string; personen: Person[]; weitere: string[];
+    fahrzeuge: string[]; abholort: string | null; wunschfahrt: string | null; notiz: string | null; orgId: string | null;
+    /** true: belegte Fahrzeuge automatisch durch andere freie ersetzen (bei Wiederholung) */
+    ersetzen?: boolean;
+  };
+  const gruppeAnlegen = async (plan: Plan) => {
+    const gesamt = plan.personen.length + plan.weitere.length;
     if (!gesamt) return fehler('Bitte Teilnehmende auswählen.');
     if (gesamt > 30) return fehler('Höchstens 30 Personen pro Gruppenfahrt.');
+    if (!plan.fahrzeuge.length) return fehler('Bitte Fahrzeuge auswählen.');
 
     // Fahrzeuge: müssen zu der Zeit frei sein
-    const fzIds = Array.from(new Set((Array.isArray(body.fahrzeuge) ? body.fahrzeuge : []).map(String))) as string[];
-    if (!fzIds.length) return fehler('Bitte Fahrzeuge auswählen.');
-    const auswahl = await fahrzeugAuswahl(datum, startzeit, endzeit, { anzahl: 1 });
-    const autos: { id: string; name: string; maxGaeste: number; rollstuhl: boolean; plaetze: { name: string; id?: string }[] }[] = [];
-    for (const id of fzIds) {
+    const auswahl = await fahrzeugAuswahl(plan.datum, plan.startzeit, plan.endzeit, { anzahl: 1 });
+    type Auto = { id: string; name: string; maxGaeste: number; rollstuhl: boolean; plaetze: { name: string; id?: string }[] };
+    const autos: Auto[] = [];
+    const ersetzt: string[] = [];
+    for (const id of plan.fahrzeuge) {
       const w = auswahl.find((x) => x.id === id);
-      if (!w) return fehler('Ein gewähltes Fahrzeug gibt es nicht.');
-      if (!w.frei) return fehler(`${w.name} geht hier nicht: ${w.grund}.`, 409);
-      autos.push({ id: w.id, name: w.name, maxGaeste: w.maxGaeste, rollstuhl: w.rollstuhl, plaetze: [] });
+      if (w?.frei) { autos.push({ ...w, plaetze: [] }); continue; }
+      if (!plan.ersetzen) return fehler(w ? `${w.name} geht hier nicht: ${w.grund}.` : 'Ein gewähltes Fahrzeug gibt es nicht.', 409);
+      if (w) ersetzt.push(w.name);
     }
+    if (plan.ersetzen) {
+      // Ersatz: weitere freie Fahrzeuge (Rollstuhl-geeignete zuerst), bis alle Platz haben
+      const reserve = auswahl.filter((x) => x.frei && !autos.some((a) => a.id === x.id))
+        .sort((a, b) => Number(b.rollstuhl) - Number(a.rollstuhl) || b.maxGaeste - a.maxGaeste);
+      const rolli = plan.personen.filter((x) => x.rollstuhl).length;
+      while (reserve.length && (autos.reduce((s, a) => s + a.maxGaeste, 0) < gesamt
+        || autos.filter((a) => a.rollstuhl).reduce((s, a) => s + a.maxGaeste, 0) < rolli)) {
+        const r = reserve.shift()!;
+        autos.push({ ...r, plaetze: [] });
+      }
+    }
+    if (!autos.length) return fehler('An diesem Tag ist kein Fahrzeug frei.', 409);
 
     // Verteilen: erst Rollstuhl-Fahrgäste auf geeignete Fahrzeuge, dann alle anderen der Reihe nach
-    const frei = (a: typeof autos[number]) => a.maxGaeste - a.plaetze.length;
-    for (const p of personen.filter((x) => x.rollstuhl)) {
+    const frei = (a: Auto) => a.maxGaeste - a.plaetze.length;
+    for (const p of plan.personen.filter((x) => x.rollstuhl)) {
       const a = autos.find((x) => x.rollstuhl && frei(x) > 0);
-      if (!a) return fehler(`Für ${p.name} (Rollstuhl) ist kein geeignetes Fahrzeug dabei.`, 409);
+      if (!a) return fehler(`Für ${p.name} (Rollstuhl) ist kein geeignetes Fahrzeug frei.`, 409);
       a.plaetze.push({ name: p.name, id: p.id });
     }
-    const rest = [...personen.filter((x) => !x.rollstuhl).map((x) => ({ name: x.name, id: x.id })), ...weitere.map((name) => ({ name }))];
+    const rest = [...plan.personen.filter((x) => !x.rollstuhl).map((x) => ({ name: x.name, id: x.id })), ...plan.weitere.map((name) => ({ name }))];
     for (const g of rest) {
       const a = autos.find((x) => frei(x) > 0);
-      if (!a) return fehler(`Zu wenig Plätze: ${gesamt} Personen, aber nur ${autos.reduce((s, x) => s + x.maxGaeste, 0)} Plätze.`, 409);
+      if (!a) return fehler(`Zu wenig Plätze: ${gesamt} Personen, aber nur ${autos.reduce((s, x) => s + x.maxGaeste, 0)} freie Plätze an diesem Tag.`, 409);
       a.plaetze.push(g);
     }
     const genutzt = autos.filter((a) => a.plaetze.length > 0);
 
-    const orgId = k.alle ? (personen[0]?.organisation_id ?? text(body.organisation_id, 40)) : k.orgId;
-    const org = await orgLaden(orgId);
-    const abholort = text(body.abholort, 120) ?? org?.standard_abholort ?? null;
+    const org = await orgLaden(plan.orgId);
+    const abholort = plan.abholort ?? org?.standard_abholort ?? null;
     if (!abholort) return fehler('Bitte einen Treffpunkt angeben.');
 
     const { data: gruppe, error: ge } = await sb.from('rikscha_gruppen')
-      .insert({ titel, organisation_id: orgId, organisator: k.name, datum }).select().single();
+      .insert({ titel: plan.titel, organisation_id: plan.orgId, organisator: k.name, datum: plan.datum }).select().single();
     if (ge || !gruppe) return fehler(ge?.message ?? 'Die Gruppe konnte nicht angelegt werden.', 500);
 
     const zeilen = genutzt.map((a) => {
       const mitAngaben = a.plaetze.filter((x) => x.id);
       return {
-        fahrzeug: a.id, pilot: '', datum, startzeit, endzeit, gruppe_id: gruppe.id, abholort, wunschfahrt,
-        gaeste: a.plaetze.map((x) => x.name), notiz: text(body.notiz, 500),
+        fahrzeug: a.id, pilot: '', datum: plan.datum, startzeit: plan.startzeit, endzeit: plan.endzeit, gruppe_id: gruppe.id,
+        abholort, wunschfahrt: plan.wunschfahrt, gaeste: a.plaetze.map((x) => x.name), notiz: plan.notiz,
         // Je Fahrzeug bis zu zwei Fahrgäste mit Angaben (Rollstuhl, Hinweis), weitere nur mit Namen
         bewohner_id: mitAngaben[0]?.id ?? null, bewohner2_id: mitAngaben[1]?.id ?? null,
       };
@@ -331,17 +353,75 @@ export async function POST(req: NextRequest) {
       await sb.from('rikscha_gruppen').delete().eq('id', gruppe.id);
       return fehler(error.message, 500);
     }
-    await kontaktVermerken(personen.map((x) => x.id), datum);
+    await kontaktVermerken(plan.personen.map((x) => x.id), plan.datum);
     sendBuchungEmail({
-      fahrzeug: genutzt.map((a) => a.name).join(', '), pilot: '', datum, startzeit, endzeit,
-      gaeste: [`Gruppenfahrt „${titel}“ – ${gesamt} Personen, ${genutzt.length} Kutscher gesucht`],
-      notiz: wunschfahrt ? `Wunschfahrt: ${wunschfahrt}` : null,
+      fahrzeug: genutzt.map((a) => a.name).join(', '), pilot: '', datum: plan.datum, startzeit: plan.startzeit, endzeit: plan.endzeit,
+      gaeste: [`Gruppenfahrt „${plan.titel}“ – ${gesamt} Personen, ${genutzt.length} Kutscher gesucht`],
+      notiz: plan.wunschfahrt ? `Wunschfahrt: ${plan.wunschfahrt}` : null,
     }).catch(() => {});
     return NextResponse.json({
       gruppe,
       fahrzeuge: genutzt.map((a) => ({ name: a.name, personen: a.plaetze.map((x) => x.name) })),
       nichtGebraucht: autos.filter((a) => !a.plaetze.length).map((a) => a.name),
+      ersetzt,
     }, { status: 201 });
+  };
+
+  if (body.aktion === 'gruppe-neu') {
+    const titel = text(body.titel, 80);
+    if (!titel) return fehler('Bitte einen Namen für die Gruppenfahrt eintragen.');
+    const { datum, startzeit, endzeit } = body;
+    const zf = zeitPruefen(datum, startzeit, endzeit);
+    if (zf) return fehler(zf);
+    // Teilnehmende: Fahrgäste aus der Liste + weitere Personen (nur Name)
+    const ids: string[] = Array.isArray(body.teilnehmer) ? body.teilnehmer.map(String) : [];
+    const personen: Person[] = [];
+    for (const id of Array.from(new Set(ids))) {
+      const p = await personLaden(id);
+      if (!p) return fehler('Ein gewählter Fahrgast ist nicht verfügbar.');
+      personen.push(p);
+    }
+    const weitere = (Array.isArray(body.weitere) ? body.weitere : []).map((n: unknown) => text(n, 80)).filter(Boolean) as string[];
+    const fahrzeuge = Array.from(new Set((Array.isArray(body.fahrzeuge) ? body.fahrzeuge : []).map(String))) as string[];
+    const orgId = k.alle ? (personen[0]?.organisation_id ?? text(body.organisation_id, 40)) : k.orgId;
+    return gruppeAnlegen({
+      titel, datum, startzeit, endzeit, personen, weitere, fahrzeuge, orgId,
+      abholort: text(body.abholort, 120), wunschfahrt, notiz: text(body.notiz, 500),
+    });
+  }
+
+  // Wiederholen: gleiche Gruppe, neues Datum (Uhrzeit optional neu) – Kutscher werden neu gesucht
+  if (body.aktion === 'gruppe-wiederholen') {
+    const { data: g } = await sb.from('rikscha_gruppen').select('*').eq('id', String(body.gruppe_id ?? '')).maybeSingle();
+    if (!g || !zustaendig(k, g.organisation_id)) return fehler('Diese Gruppenfahrt gibt es nicht.', 404);
+    const { data: alte } = await sb.from('rikscha_buchungen').select('*').eq('gruppe_id', g.id).order('erstellt_am');
+    const vorlage = (alte ?? []).filter((b) => !b.storniert);
+    const quelle = vorlage.length ? vorlage : alte ?? [];
+    if (!quelle.length) return fehler('Zu dieser Gruppenfahrt sind keine Fahrten mehr gespeichert.', 404);
+    const erste = quelle[0];
+    const datum = String(body.datum ?? '');
+    const startzeit = String(body.startzeit || erste.startzeit).slice(0, 5);
+    const endzeit = String(body.endzeit || erste.endzeit).slice(0, 5);
+    const zf = zeitPruefen(datum, startzeit, endzeit);
+    if (zf) return fehler(zf);
+
+    // Teilnehmende wiederfinden: über die gespeicherten Fahrgäste, sonst über den Namen in der eigenen Organisation
+    const { data: orgLeute } = await sb.from('rikscha_bewohner').select('*').eq('aktiv', true).eq('organisation_id', g.organisation_id ?? '');
+    const personen: Person[] = [];
+    const weitere: string[] = [];
+    for (const b of quelle) {
+      for (const name of (b.gaeste ?? []) as string[]) {
+        if (!name || ['Fahrgast', 'Gast', 'Bewohner'].includes(name)) continue;   // gelöschte Personen
+        const p = (orgLeute ?? []).find((x) => (x.id === b.bewohner_id || x.id === b.bewohner2_id) && x.name === name)
+          ?? (orgLeute ?? []).find((x) => x.name === name);
+        if (p) { if (!personen.some((x) => x.id === p.id)) personen.push(p); } else weitere.push(name);
+      }
+    }
+    return gruppeAnlegen({
+      titel: g.titel, datum, startzeit, endzeit, personen, weitere, orgId: g.organisation_id,
+      fahrzeuge: Array.from(new Set(quelle.map((b) => b.fahrzeug).filter(Boolean))) as string[],
+      abholort: erste.abholort ?? null, wunschfahrt: erste.wunschfahrt ?? null, notiz: erste.notiz ?? null, ersetzen: true,
+    });
   }
 
   if (body.aktion === 'gruppe-absagen') {
