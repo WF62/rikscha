@@ -5,6 +5,7 @@ import { sendBuchungEmail } from '@/lib/email';
 import { rolleAusAnfrage, anmeldungAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten, istAdmin } from '@/lib/pilotAuth';
 import { aufraeumen } from '@/lib/datenschutz-server';
 import { ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
+import { bereichPfad, type Bereich } from '@/lib/struktur';
 import { fahrzeugFehler, ladeStammdaten } from '@/lib/stammdaten-server';
 import { formularPruefen, begrenzen, ZU_VIELE, NEU_LADEN } from '@/lib/spamschutz';
 
@@ -38,11 +39,12 @@ export async function GET(req: NextRequest) {
   aufraeumen();
 
   // Fahrgast-Angaben nur für Kutscher und Vermittlung
-  type Fahrgast = { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null; telefon?: string | null; adresse?: string | null; organisation_id: string | null };
+  type Fahrgast = { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null; telefon?: string | null; adresse?: string | null; organisation_id: string | null; bereich_id?: string | null };
   const ids = Array.from(new Set((data ?? []).flatMap((b) => [b.bewohner_id, b.bewohner2_id]).filter(Boolean))) as string[];
   const fahrgaeste = new Map<string, Fahrgast>();
   const gruppen = new Map<string, { titel: string; organisation_id: string | null }>();
   let standardOrte = new Set<string>();
+  let bereichListe: Bereich[] = [];
   const stellen = new Map<string, { name: string; ansprechperson: string | null; telefon: string | null; email: string | null }>();
   if (voll || vermittlung) {
     const gIds = Array.from(new Set((data ?? []).map((b) => b.gruppe_id).filter(Boolean))) as string[];
@@ -52,6 +54,12 @@ export async function GET(req: NextRequest) {
       sb.from('rikscha_organisationen').select('*'),
     ]);
     for (const x of (bw.data ?? []) as (Fahrgast & { id: string })[]) fahrgaeste.set(x.id, x);
+    // Bereiche der beteiligten Einrichtungen (für den Pfad „Haus › Etage › Wohnbereich“)
+    const orgIds = Array.from(new Set(Array.from(fahrgaeste.values()).map((x) => x.organisation_id).filter(Boolean))) as string[];
+    if (orgIds.length) {
+      const { data: ber } = await sb.from('rikscha_bereiche').select('*').in('organisation_id', orgIds);
+      bereichListe = (ber ?? []) as Bereich[];
+    }
     for (const x of (gr.data ?? []) as { id: string; titel: string; organisation_id: string | null }[]) gruppen.set(x.id, x);
     standardOrte = new Set(((orgs.data ?? []) as { standard_abholort: string | null }[]).map((o) => o.standard_abholort).filter(Boolean) as string[]);
     for (const o of (orgs.data ?? []) as { id: string; name: string; ansprechperson?: string | null; telefon?: string | null; email?: string | null }[]) {
@@ -70,6 +78,7 @@ export async function GET(req: NextRequest) {
       const nah = admin || eigeneOrg || (voll && !!b.pilot && b.pilot === name);
       const angaben = (x?: Fahrgast) => x ? {
         name: x.name, wohnbereich: x.wohnbereich, rollstuhl: x.rollstuhl, hinweis: x.hinweis,
+        bereich: x.bereich_id ? bereichPfad(bereichListe, x.bereich_id) || null : null,
         telefon: nah ? x.telefon ?? null : null, adresse: nah ? x.adresse ?? null : null,
       } : null;
       const oeffentlich = !b.abholort || standardOrte.has(b.abholort) || (ABHOLORTE as readonly string[]).includes(b.abholort) || b.abholort === NACH_ABSPRACHE;

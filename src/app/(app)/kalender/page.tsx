@@ -336,7 +336,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {[b.bewohner, b.bewohner2].filter((x): x is NonNullable<typeof x> => !!x).map((bw, i, alle) => (
         <div key={i} className="px-3 py-2 border-t border-teal-200 bg-teal-50 text-sm text-teal-900 space-y-0.5">
           {alle.length > 1 && <div className="font-semibold">🏠 {bw.name}</div>}
-          {bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
+          {bw.bereich ? <div>Bereich: <strong>{bw.bereich}</strong></div> : bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
           {bw.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
           {bw.adresse && <div>🏡 Adresse: <strong>{bw.adresse}</strong></div>}
           {bw.telefon && <div>📞 Telefon: <a href={`tel:${bw.telefon.replace(/[^+\d]/g, '')}`} className="underline font-semibold">{bw.telefon}</a></div>}
