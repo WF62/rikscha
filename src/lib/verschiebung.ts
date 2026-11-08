@@ -1,14 +1,14 @@
 /** Verschiebung einer Fahrt anfragen – gemeinsame Regeln für Server und Seiten */
 import { uhrzeitMinuten, zeitPlus } from './touren';
 
-/** So weit darf höchstens verschoben werden (früher oder später) */
-export const MAX_VERSCHIEBUNG_MIN = 3 * 60;
+/** So weit darf höchstens verschoben werden (früher oder später): 5 Std. */
+export const MAX_VERSCHIEBUNG_MIN = 5 * 60;
 export const SCHRITT_MIN = 30;
 export const GRUENDE = ['☀️ Hitze', '🌧️ Regen droht', '💨 Wind/Sturm'] as const;
 
 const hhmm = (z: string) => String(z).slice(0, 5);
 
-/** Mögliche neue Zeiten: gleiche Dauer, bis 3 Std. früher/später, am selben Tag (07:00–21:00) */
+/** Mögliche neue Zeiten: gleiche Dauer, bis 5 Std. früher/später, am selben Tag (07:00–21:00) */
 export function verschiebeOptionen(start: string, ende: string) {
   const s = uhrzeitMinuten(start) ?? 0, e = uhrzeitMinuten(ende) ?? 0, dauer = e - s;
   const liste: { start: string; ende: string; diff: number }[] = [];

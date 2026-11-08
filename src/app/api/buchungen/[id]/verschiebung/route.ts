@@ -61,7 +61,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const body = await req.json().catch(() => ({}));
   const start = hhmm(String(body.start ?? ''));
   const ende = verschiebungPruefen(b.startzeit, b.endzeit, start);
-  if (!ende) return fehler('Bitte eine neue Zeit bis 3 Stunden früher oder später wählen.');
+  if (!ende) return fehler('Bitte eine neue Zeit bis 5 Stunden früher oder später wählen (zwischen 7 und 21 Uhr).');
   const grund = String(body.grund ?? '').trim().slice(0, 120) || null;
   const belegt = await fahrzeugFrei(b, start, ende);
   if (belegt) return fehler(belegt, 409);
