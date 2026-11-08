@@ -17,13 +17,51 @@ type Daten = {
   bewohner: Bewohner[]; angebote: Buchung[]; bereiche: Bereich[];
   organisationen: Organisation[]; eigeneOrganisation: string | null; alle: boolean;
 };
-type Ergebnis = { name: string; zweit: string; tag: string; zeit: string; tour: string; abholort: string; freieZeit: boolean };
+type Ergebnis = { name: string; zweit: string; fahrzeug: string; tag: string; zeit: string; tour: string; abholort: string; freieZeit: boolean };
 
 const isoTag = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const inTagen = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return isoTag(d); };
 const tagText = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 const hhmm = (z: string) => z.slice(0, 5);
 const knopf = (an: boolean) => `rounded-lg border-2 px-4 py-3 text-left font-semibold ${an ? 'border-rikscha-green bg-green-50 text-rikscha-green' : 'border-gray-200 bg-white text-gray-800'}`;
+
+type FzWahl = { id: string; name: string; maxGaeste: number; rollstuhl: boolean; frei: boolean; grund?: string };
+
+/** Fahrzeug wählen: lädt, was zu der Zeit frei ist und passt. '' = egal */
+function FahrzeugWahl({ url, wert, onChange, knopf }: { url: string | null; wert: string; onChange: (id: string) => void; knopf: (an: boolean) => string }) {
+  const [liste, setListe] = useState<FzWahl[] | null>(null);
+  useEffect(() => {
+    if (!url) { setListe(null); return; }
+    let aktiv = true;
+    setListe(null);
+    fetch(url, { headers: authHeaders() }).then((r) => (r.ok ? r.json() : [])).then((l: FzWahl[]) => {
+      if (!aktiv) return;
+      setListe(l);
+      if (wert && !l.some((x) => x.id === wert && x.frei)) onChange('');   // gewähltes passt nicht mehr
+    }).catch(() => aktiv && setListe([]));
+    return () => { aktiv = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
+  if (!url) return <p className="text-sm text-gray-500">Erst Fahrgast und Zeit wählen.</p>;
+  if (!liste) return <p className="text-sm text-gray-400">Fahrzeuge werden geprüft …</p>;
+  const frei = liste.filter((x) => x.frei);
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <button type="button" onClick={() => onChange('')} className={knopf(wert === '')} aria-pressed={wert === ''}>
+          Egal<span className="block text-xs font-normal text-gray-500">Kutscher bzw. App wählt ein passendes</span>
+        </button>
+        {liste.map((f) => (
+          <button key={f.id} type="button" disabled={!f.frei} onClick={() => onChange(f.id)} className={`${knopf(wert === f.id)} disabled:opacity-50`} aria-pressed={wert === f.id}>
+            🚲 {f.name}{f.rollstuhl ? ' ♿' : ''}
+            <span className="block text-xs font-normal text-gray-500">{f.frei ? `${f.maxGaeste} ${f.maxGaeste > 1 ? 'Plätze' : 'Platz'} · frei` : f.grund ?? 'nicht frei'}</span>
+          </button>
+        ))}
+      </div>
+      {frei.length === 0 && <p role="alert" className="text-sm text-orange-800">⚠ Zu dieser Zeit ist kein passendes Fahrzeug frei. Bitte eine andere Zeit wählen.</p>}
+    </div>
+  );
+}
 
 /** Anmeldung direkt auf der Seite, damit der Link aus dem Kalender sofort funktioniert */
 function Anmeldung({ onOk }: { onOk: () => void }) {
@@ -91,6 +129,7 @@ export default function SchnellAnmelden() {
   const [tour, setTour] = useState('');        // '' = egal, sonst Tour-ID
   const [freiId, setFreiId] = useState('');    // gewählte freie Fahrzeit
   const [hinweis, setHinweis] = useState('');
+  const [fzWahl, setFzWahl] = useState('');    // '' = egal
   const [sendet, setSendet] = useState(false);
   const [fertig, setFertig] = useState<Ergebnis | null>(null);
 
@@ -105,6 +144,8 @@ export default function SchnellAnmelden() {
 
   useEffect(() => {
     setBereichId(new URLSearchParams(window.location.search).get('bereich') ?? '');
+    // Letzte Angaben vorauswählen (nur auf diesem Gerät)
+    try { const m = JSON.parse(localStorage.getItem('schnell_pflege_v1') ?? '{}'); if (m.start) setStart(m.start); if (m.tour) setTour(m.tour); } catch { /* egal */ }
     const rolle = localStorage.getItem('pilot_rolle');
     if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     laden();
@@ -152,6 +193,13 @@ export default function SchnellAnmelden() {
   const passtIn = (a: Buchung) => { const fz = a.fahrzeug ? fahrzeugById(a.fahrzeug) : undefined; return !fz || (fz.maxGaeste >= personen && (!rollstuhl || fz.rollstuhl)); };
   const frei = freie.map((x) => x.a).find((a) => a.id === freiId && passtIn(a));
   const abholort = org?.standard_abholort || gastObj?.adresse || 'nach Absprache';
+  // Fahrzeugliste: bei freier Fahrzeit zu deren Zeit, sonst zur eigenen Zeit
+  const fzFix = frei?.fahrzeug ? fahrzeugById(frei.fahrzeug) : undefined;
+  const fzParams = `personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`;
+  const fzUrl = !gastObj ? null
+    : frei ? (frei.fahrzeug ? null : `/api/fahrzeuge-frei?buchung=${frei.id}&${fzParams}`)
+    : ende && tag ? `/api/fahrzeuge-frei?datum=${tag}&von=${start}&bis=${ende}&${fzParams}` : null;
+  const fzName = fzFix?.name ?? (fzWahl ? fahrzeuge.find((f) => f.id === fzWahl)?.name ?? fzWahl : '');
 
   const absenden = async () => {
     if (!gastObj) return;
@@ -159,8 +207,8 @@ export default function SchnellAnmelden() {
     try {
       let body: Record<string, unknown>;
       if (frei) {
-        let fahrzeug: string | undefined;
-        if (!frei.fahrzeug) {
+        let fahrzeug: string | undefined = frei.fahrzeug ? undefined : fzWahl || undefined;
+        if (!frei.fahrzeug && !fahrzeug) {
           // Fahrzeug passend zum Gast wählen (Plätze, Rollstuhl, frei zu der Zeit)
           const l = await fetch(`/api/fahrzeuge-frei?buchung=${frei.id}&personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`, { headers: authHeaders() }).then((r) => (r.ok ? r.json() : []));
           fahrzeug = l.find((x: { frei: boolean }) => x.frei)?.id;
@@ -169,15 +217,16 @@ export default function SchnellAnmelden() {
         body = { aktion: 'belegen', buchung_id: frei.id, bewohner_id: gastObj.id, ...zweitDaten, ...(fahrzeug ? { fahrzeug } : {}), ...(tourObj ? { wunschfahrt: tourObj.name } : {}), ...(hinweis.trim() ? { notiz: hinweis.trim() } : {}) };
       } else {
         if (!ende) { setFehler('Bitte eine frühere Startzeit wählen.'); return; }
-        body = { aktion: 'wunsch', bewohner_id: gastObj.id, ...zweitDaten, datum: tag, startzeit: start, endzeit: ende, fahrzeug: '', notiz: hinweis.trim(), ...(tourObj ? { wunschfahrt: tourObj.name } : {}) };
+        body = { aktion: 'wunsch', bewohner_id: gastObj.id, ...zweitDaten, datum: tag, startzeit: start, endzeit: ende, fahrzeug: fzWahl, notiz: hinweis.trim(), ...(tourObj ? { wunschfahrt: tourObj.name } : {}) };
       }
       const r = await fetch('/api/pflege', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { setFehler(j.error ?? 'Das hat nicht geklappt. Bitte nochmal versuchen.'); return; }
+      try { if (!frei) localStorage.setItem('schnell_pflege_v1', JSON.stringify({ start, tour })); } catch { /* egal */ }
       setFertig({
         name: gastObj.name, zweit: zweitName, tag: tagText(frei?.datum ?? tag),
         zeit: frei ? `${hhmm(frei.startzeit)}–${hhmm(frei.endzeit)} Uhr` : `${start}–${ende} Uhr`,
-        tour: tourObj?.name ?? 'Kutscher schlägt etwas vor', abholort: j.abholort ?? abholort, freieZeit: !!frei,
+        tour: tourObj?.name ?? 'Kutscher schlägt etwas vor', fahrzeug: fzName || (frei ? '' : 'sucht der Kutscher aus'), abholort: j.abholort ?? abholort, freieZeit: !!frei,
       });
       await laden();
     } catch { setFehler('Keine Verbindung – bitte nochmal versuchen.'); } finally { setSendet(false); }
@@ -191,6 +240,7 @@ export default function SchnellAnmelden() {
           <div><strong>{fertig.name}</strong>{fertig.zweit && <> und <strong>{fertig.zweit}</strong></>}</div>
           <div>{fertig.tag}, {fertig.zeit}</div>
           <div>🗺️ {fertig.tour}</div>
+          {fertig.fahrzeug && <div>🚲 Fahrzeug: {fertig.fahrzeug}</div>}
           <div>📍 Abholung: {fertig.abholort}</div>
         </div>
         <p className="text-gray-600">
@@ -199,7 +249,7 @@ export default function SchnellAnmelden() {
             : 'Ein Kutscher wird gesucht. Die Fahrt erscheint gleich im Kalender eures Bereichs – erst mit „Kutscher offen“, dann mit Namen.'}
         </p>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => { setFertig(null); setGast(''); setZweitArt(''); setGast2(''); setBegleitung(''); setFreiId(''); setHinweis(''); setTour(''); }} className="bg-rikscha-green text-white rounded-lg px-4 py-3 font-semibold">Noch eine Fahrt anmelden</button>
+          <button onClick={() => { setFertig(null); setGast(''); setZweitArt(''); setGast2(''); setBegleitung(''); setFreiId(''); setHinweis(''); setFzWahl(''); }} className="bg-rikscha-green text-white rounded-lg px-4 py-3 font-semibold">Noch eine Fahrt anmelden</button>
           <a href={bereich ? `/pflege/wochenplan?bereich=${bereich.id}` : `/pflege/wochenplan?fahrgast=${gast}`} className="border rounded-lg px-4 py-3 font-semibold text-gray-700">🗓️ Wochenplan</a>
         </div>
       </div>
@@ -214,7 +264,7 @@ export default function SchnellAnmelden() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div>
         <h2 className="text-2xl font-bold text-rikscha-green">🚲 Rikscha anmelden</h2>
-        <p className="text-gray-600">{bereich ? <>Für <strong>{bereichPfad(bereiche, bereich.id)}</strong>. </> : null}In drei Schritten fertig.</p>
+        <p className="text-gray-600">{bereich ? <>Für <strong>{bereichPfad(bereiche, bereich.id)}</strong>. </> : null}In wenigen Schritten fertig.</p>
       </div>
 
       <div className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${wer.rolle === 'pflege' ? 'bg-sky-50 border-sky-200' : 'bg-amber-50 border-amber-300'}`}>
@@ -331,9 +381,17 @@ export default function SchnellAnmelden() {
       </section>
 
       <section className="bg-white rounded-xl shadow p-5 space-y-3">
+        {nummer(4, 'Womit?')}<span className="text-sm text-gray-500 -mt-2 block">optional</span>
+        {fzFix
+          ? <p className="text-gray-800">🚲 <strong>{fzFix.name}</strong> – steht für diese freie Fahrzeit schon fest.</p>
+          : <FahrzeugWahl url={fzUrl} wert={fzWahl} onChange={setFzWahl} knopf={knopf} />}
+      </section>
+
+      <section className="bg-white rounded-xl shadow p-5 space-y-3">
         <div className="text-gray-800 space-y-1">
           <div>👤 {gastObj ? <><strong>{gastObj.name}</strong>{zweitName && <> und <strong>{zweitName}</strong></>}</> : <span className="text-gray-400">noch niemand gewählt</span>}</div>
           <div>🕑 {tagText(tag)}, {frei ? `${hhmm(frei.startzeit)}–${hhmm(frei.endzeit)} Uhr (freie Fahrzeit)` : ende ? `${start}–${ende} Uhr` : 'Startzeit zu spät'}</div>
+          <div>🚲 Fahrzeug: {fzName || 'egal'}</div>
           <div>📍 Abholung: {abholort}</div>
         </div>
         {fehler && <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">⚠ {fehler}</p>}

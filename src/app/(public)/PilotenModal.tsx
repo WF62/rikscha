@@ -524,8 +524,9 @@ export default function PilotenModal() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               {[
+                { href: '/fahrt-eintragen', icon: '⚡', titel: 'Schnell eintragen', sub: 'Freie Zeit oder Fahrt – in 3 Schritten', border: '#2D6B1E' },
                 { href: '/kalender',   icon: '📅', titel: 'Fahrtenkalender',   sub: 'Termine buchen & verwalten',       border: '#D6CCB8' },
-                { href: '/buchen',     icon: '➕', titel: 'Als Kutscher buchen', sub: 'Neuen Termin eintragen',           border: '#2D6B1E' },
+                { href: '/buchen',     icon: '➕', titel: 'Als Kutscher buchen', sub: 'Ausführliches Formular',          border: '#D6CCB8' },
                 { href: '/bearbeiten', icon: '✏️', titel: 'Inhalte bearbeiten', sub: 'Texte, Flyer & Banner',            border: '#C8881A' },
                 { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
                 { href: '#ordner',     icon: '🗂️', titel: 'Mein Ordner',        sub: 'Führungszeugnis, Vertrag & mehr',  border: '#D6CCB8' },
