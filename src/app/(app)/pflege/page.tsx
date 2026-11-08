@@ -9,6 +9,7 @@ import { WUNSCH_TOUREN, ABHOLORTE, NACH_ABSPRACHE, tourMinuten, zeitPlus, zeitWa
 import AktualisierenKnopf from '../AktualisierenKnopf';
 import { baumListe, bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import FahrzeugPicker from '../FahrzeugPicker';
+import OffenHinweis from '../../OffenHinweis';
 
 type Gruppe = { id: string; titel: string; datum: string; organisator: string | null; organisation_id: string | null; fahrten: Buchung[] };
 type Vorlage = {
@@ -298,6 +299,7 @@ export default function PflegeSeite() {
           <a href="/kalender" className="text-sm text-rikscha-green underline">Zum Kalender</a>
         </span>
       </div>
+      <OffenHinweis />
       <a href="/pflege/schnell" className="flex items-center justify-between gap-3 bg-rikscha-green text-white rounded-xl shadow px-5 py-4 hover:opacity-90">
         <span><span className="block text-lg font-bold">🚲 Rikscha schnell anmelden</span><span className="text-sm opacity-90">Wer? Wann? Wohin? – fertig in drei Schritten</span></span>
         <span className="text-2xl" aria-hidden>→</span>

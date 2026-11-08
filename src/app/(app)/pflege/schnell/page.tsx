@@ -11,6 +11,7 @@ import { authHeaders } from '@/lib/authHeaders';
 import { WUNSCH_TOUREN, tourMinuten, zeitPlus, uhrzeitMinuten } from '@/lib/touren';
 import { bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import { useStammdaten } from '@/lib/useStammdaten';
+import OffenHinweis from '../../../OffenHinweis';
 
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
 type Daten = {
@@ -143,9 +144,13 @@ export default function SchnellAnmelden() {
   }, []);
 
   useEffect(() => {
-    setBereichId(new URLSearchParams(window.location.search).get('bereich') ?? '');
+    const q = new URLSearchParams(window.location.search);
+    setBereichId(q.get('bereich') ?? '');
     // Letzte Angaben vorauswählen (nur auf diesem Gerät)
     try { const m = JSON.parse(localStorage.getItem('schnell_pflege_v1') ?? '{}'); if (m.start) setStart(m.start); if (m.tour) setTour(m.tour); } catch { /* egal */ }
+    // Aus dem Hinweis „Bald und noch offen“: Tag und freie Fahrzeit vorauswählen
+    if (/^\d{4}-\d{2}-\d{2}$/.test(q.get('datum') ?? '')) setTag(q.get('datum')!);
+    if (q.get('frei')) setFreiId(q.get('frei')!);
     const rolle = localStorage.getItem('pilot_rolle');
     if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     laden();
@@ -267,6 +272,7 @@ export default function SchnellAnmelden() {
         <p className="text-gray-600">{bereich ? <>Für <strong>{bereichPfad(bereiche, bereich.id)}</strong>. </> : null}In wenigen Schritten fertig.</p>
       </div>
 
+      <OffenHinweis key={wer.name} />
       <div className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${wer.rolle === 'pflege' ? 'bg-sky-50 border-sky-200' : 'bg-amber-50 border-amber-300'}`}>
         <span className="flex-1">
           Angemeldet als <strong>{wer.name}</strong>{' – '}

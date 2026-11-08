@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import OffenHinweis from '../OffenHinweis';
 
 /**
  * Startseite: Wer schon angemeldet ist (Kutscher, Büro/GFO, Vermittlung), sieht oben
@@ -47,6 +48,7 @@ export default function SchnellStart() {
   return (
     <section aria-label="Schnellzugang" style={{ background: '#EAF3E6', borderBottom: '1px solid #CFE3C7', padding: '1rem' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <OffenHinweis key={wer.name} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>
           <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-piloten-modal'))}

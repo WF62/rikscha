@@ -1,6 +1,7 @@
 'use client';
 
 import { zeitWarnung } from '@/lib/touren';
+import OffenHinweis from '../../OffenHinweis';
 import { useEffect, useState, useCallback } from 'react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
@@ -439,6 +440,11 @@ export default function KalenderSeite() {
   const [teamupVerfuegbar, setTeamupVerfuegbar] = useState(true);
   const [loading, setLoading]     = useState(true);
   const [ausgewaehlt, setAusgewaehlt] = useState<Date | null>(null);
+  // ?datum=YYYY-MM-DD (z. B. aus „Bald und noch offen“): diesen Tag öffnen
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('datum') ?? '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(t)) { const d = parseISO(t); setDatum(d); setAusgewaehlt(d); }
+  }, []);
   const [filterFahrzeug, setFilterFahrzeug] = useState('');
   const [filterPilot, setFilterPilot]       = useState('');
   const [filterNurMitGaesten, setFilterNurMitGaesten] = useState(false);
@@ -521,10 +527,13 @@ export default function KalenderSeite() {
       {/* Schlichter Header */}
       <div style={{ background: '#2D6B1E', padding: '0.7rem 1rem', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: '0.5rem' }}>
         <a href="/" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontSize: '0.9rem' }}>← Website</a>
-        <a href="/fahrt-eintragen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>⚡ Schnell</a>
-        <a href="/buchen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>+ Fahrt buchen</a>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <a href="/fahrt-eintragen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>⚡ Schnell</a>
+          <a href="/buchen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>+ Fahrt buchen</a>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}><AktualisierenKnopf hell /><AbmeldeButton /></div>
       </div>
+      <OffenHinweis />
       {/* Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
