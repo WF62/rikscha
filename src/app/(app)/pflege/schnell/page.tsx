@@ -144,6 +144,8 @@ export default function SchnellAnmelden() {
 
   useEffect(() => {
     setBereichId(new URLSearchParams(window.location.search).get('bereich') ?? '');
+    // Letzte Angaben vorauswählen (nur auf diesem Gerät)
+    try { const m = JSON.parse(localStorage.getItem('schnell_pflege_v1') ?? '{}'); if (m.start) setStart(m.start); if (m.tour) setTour(m.tour); } catch { /* egal */ }
     const rolle = localStorage.getItem('pilot_rolle');
     if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     laden();
@@ -220,6 +222,7 @@ export default function SchnellAnmelden() {
       const r = await fetch('/api/pflege', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { setFehler(j.error ?? 'Das hat nicht geklappt. Bitte nochmal versuchen.'); return; }
+      try { if (!frei) localStorage.setItem('schnell_pflege_v1', JSON.stringify({ start, tour })); } catch { /* egal */ }
       setFertig({
         name: gastObj.name, zweit: zweitName, tag: tagText(frei?.datum ?? tag),
         zeit: frei ? `${hhmm(frei.startzeit)}–${hhmm(frei.endzeit)} Uhr` : `${start}–${ende} Uhr`,
@@ -246,7 +249,7 @@ export default function SchnellAnmelden() {
             : 'Ein Kutscher wird gesucht. Die Fahrt erscheint gleich im Kalender eures Bereichs – erst mit „Kutscher offen“, dann mit Namen.'}
         </p>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => { setFertig(null); setGast(''); setZweitArt(''); setGast2(''); setBegleitung(''); setFreiId(''); setHinweis(''); setTour(''); setFzWahl(''); }} className="bg-rikscha-green text-white rounded-lg px-4 py-3 font-semibold">Noch eine Fahrt anmelden</button>
+          <button onClick={() => { setFertig(null); setGast(''); setZweitArt(''); setGast2(''); setBegleitung(''); setFreiId(''); setHinweis(''); setFzWahl(''); }} className="bg-rikscha-green text-white rounded-lg px-4 py-3 font-semibold">Noch eine Fahrt anmelden</button>
           <a href={bereich ? `/pflege/wochenplan?bereich=${bereich.id}` : `/pflege/wochenplan?fahrgast=${gast}`} className="border rounded-lg px-4 py-3 font-semibold text-gray-700">🗓️ Wochenplan</a>
         </div>
       </div>

@@ -521,6 +521,7 @@ export default function KalenderSeite() {
       {/* Schlichter Header */}
       <div style={{ background: '#2D6B1E', padding: '0.7rem 1rem', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: '0.5rem' }}>
         <a href="/" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'none', fontSize: '0.9rem' }}>← Website</a>
+        <a href="/fahrt-eintragen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>⚡ Schnell</a>
         <a href="/buchen" style={{ background: '#fff', color: '#2D6B1E', fontWeight: 700, fontSize: '0.85rem', padding: '0.3rem 0.9rem', borderRadius: '6px', textDecoration: 'none' }}>+ Fahrt buchen</a>
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}><AktualisierenKnopf hell /><AbmeldeButton /></div>
       </div>
