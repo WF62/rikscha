@@ -94,6 +94,7 @@ export async function GET(req: NextRequest) {
     return {
       ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null, bewohner2_id: null,
       wunschfahrt: null, abholort: null, kontakt_telefon: null, gruppe: b.gruppe_id ? { titel: 'Gruppenfahrt' } : null,
+      verschiebung_von: null, verschiebung_grund: null, verschiebung_ergebnis: null,
     };
   });
   return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });

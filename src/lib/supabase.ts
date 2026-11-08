@@ -39,6 +39,14 @@ export type Buchung = {
   oeffentlich?: boolean;
   /** Telefon des Gasts bei öffentlich gebuchter Zeit – nur für den Kutscher der Fahrt */
   kontakt_telefon?: string | null;
+  /** Angefragte Verschiebung (wartet auf Bestätigung der anderen Seite) */
+  verschiebung_start?: string | null;
+  verschiebung_ende?: string | null;
+  verschiebung_grund?: string | null;
+  verschiebung_von?: string | null;
+  verschiebung_seite?: 'kutscher' | 'vermittlung' | null;
+  verschiebung_am?: string | null;
+  verschiebung_ergebnis?: string | null;
   /** Angaben zum Bewohner – nur für Kutscher und Pflege mitgeliefert */
   bewohner?: Fahrgast | null;
   /** Zweiter Bewohner in derselben Fahrt (z. B. Rikscha mit 2 Plätzen) */

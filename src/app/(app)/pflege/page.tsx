@@ -10,6 +10,7 @@ import AktualisierenKnopf from '../AktualisierenKnopf';
 import { baumListe, bereichPfad, mitUnterbereichen, type Bereich } from '@/lib/struktur';
 import FahrzeugPicker from '../FahrzeugPicker';
 import OffenHinweis from '../../OffenHinweis';
+import VerschiebenAnfrage from '../../VerschiebenAnfrage';
 
 type Gruppe = { id: string; titel: string; datum: string; organisator: string | null; organisation_id: string | null; fahrten: Buchung[] };
 type Vorlage = {
@@ -227,6 +228,12 @@ export default function PflegeSeite() {
     const rolle = localStorage.getItem('pilot_rolle');
     if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     setZugang('ok'); laden();
+  }, [laden]);
+  // Nach Antworten im Hinweis-Kasten neu laden
+  useEffect(() => {
+    const neu = () => { laden(); };
+    window.addEventListener('rikscha-neu-laden', neu);
+    return () => window.removeEventListener('rikscha-neu-laden', neu);
   }, [laden]);
 
   // Erfolg verschwindet nach 5 s, Fehler bleiben stehen, bis man sie wegtippt
@@ -505,6 +512,7 @@ export default function PflegeSeite() {
                       {f.abholort && <div className="text-sm text-sky-800">📍 {f.abholort}</div>}
                       {f.wunschfahrt && <div className="text-sm text-emerald-800">🗺️ {f.wunschfahrt}</div>}
                       {zeitWarnung(f.wunschfahrt, f.startzeit, f.endzeit) && <div className="text-sm text-orange-800">⚠ {zeitWarnung(f.wunschfahrt, f.startzeit, f.endzeit)}</div>}
+                      <div className="mt-1"><VerschiebenAnfrage b={f} onDone={laden} meldung={zeige} /></div>
                     </div>
                     {f.pilot
                       ? <span className="text-sm bg-green-100 text-green-800 rounded-full px-3 py-1">✓ Kutscher: {f.pilot}</span>
