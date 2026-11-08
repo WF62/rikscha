@@ -185,16 +185,19 @@ export async function POST(req: NextRequest) {
     return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
   }
   if (body.aktion === 'bereich-loeschen') {
+    // Löschen geht immer: Unterbereiche und Fahrgäste rücken eine Ebene nach oben (zum übergeordneten Bereich,
+    // auf oberster Ebene: Unterbereiche werden selbst oberste Ebene, Fahrgäste sind dann ohne Bereich)
     const b = await bereichLaden(body.id);
     if (!b) return fehler('Diesen Bereich gibt es nicht.', 404);
-    const [{ count: kinder }, { count: leute }] = await Promise.all([
-      sb.from('rikscha_bereiche').select('id', { count: 'exact', head: true }).eq('eltern_id', b.id),
-      sb.from('rikscha_bewohner').select('id', { count: 'exact', head: true }).eq('bereich_id', b.id),
+    const nachOben = b.eltern_id ?? null;
+    const [k, l] = await Promise.all([
+      sb.from('rikscha_bereiche').update({ eltern_id: nachOben }).eq('eltern_id', b.id).select('id'),
+      sb.from('rikscha_bewohner').update({ bereich_id: nachOben }).eq('bereich_id', b.id).select('id'),
     ]);
-    if (kinder) return fehler('Bitte zuerst die Unterbereiche löschen oder verschieben.', 409);
-    if (leute) return fehler(`${leute} Fahrgast/Fahrgäste sind diesem Bereich zugeordnet. Bitte zuerst umsetzen.`, 409);
+    if (k.error || l.error) return fehler((k.error ?? l.error)!.message, 500);
     const { error } = await sb.from('rikscha_bereiche').delete().eq('id', b.id);
-    return error ? fehler(error.message, 500) : NextResponse.json({ ok: true });
+    if (error) return fehler(error.message, 500);
+    return NextResponse.json({ ok: true, unterbereiche: k.data?.length ?? 0, fahrgaeste: l.data?.length ?? 0 });
   }
 
   // ── Struktur: Gruppen (quer zu den Bereichen) ─────────────

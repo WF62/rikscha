@@ -212,7 +212,8 @@ export default function PflegeSeite() {
     setZugang('ok'); laden();
   }, [laden]);
 
-  const zeige = (text: string, ok = true) => { setMeldung({ text, ok }); setTimeout(() => setMeldung(null), 4000); };
+  // Erfolg verschwindet nach 5 s, Fehler bleiben stehen, bis man sie wegtippt
+  const zeige = (text: string, ok = true) => { setMeldung({ text, ok }); if (ok) setTimeout(() => setMeldung((m) => (m?.text === text ? null : m)), 5000); };
   const ausfuehren = async (body: Record<string, unknown>, ok: string) => {
     const f = await senden(body);
     if (f) { zeige(f, false); return false; }
@@ -315,8 +316,10 @@ export default function PflegeSeite() {
       )}
 
       {meldung && (
-        <div role="status" className={`rounded-lg px-4 py-2 text-sm border ${meldung.ok ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-          {meldung.text}
+        <div role={meldung.ok ? 'status' : 'alert'}
+          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,640px)] rounded-xl px-4 py-3 text-base shadow-lg border-2 flex items-start gap-3 ${meldung.ok ? 'bg-green-50 border-green-500 text-green-900' : 'bg-red-50 border-red-500 text-red-900'}`}>
+          <span className="flex-1">{meldung.ok ? '✓ ' : '⚠ '}{meldung.text}</span>
+          <button onClick={() => setMeldung(null)} aria-label="Meldung schließen" className="font-bold px-1">✕</button>
         </div>
       )}
       {ladeFehler && <div className="rounded-lg px-4 py-3 text-sm bg-amber-50 border border-amber-300 text-amber-900">{ladeFehler}</div>}
@@ -828,7 +831,16 @@ export default function PflegeSeite() {
                       }}>📅 Kalender-Link</button>
                     )}
                     <button className="text-blue-600 underline" onClick={() => setBereichEdit({ id: x.id, name: x.name, hinweis: x.hinweis ?? '', eltern: x.eltern_id ?? '' })}>Bearbeiten</button>
-                    <button className="text-red-600 underline" onClick={async () => { if (confirm(`Bereich „${x.name}“ löschen?`)) await ausfuehren({ aktion: 'bereich-loeschen', id: x.id }, `„${x.name}“ wurde gelöscht.`); }}>Löschen</button>
+                    <button className="text-red-600 underline" onClick={async () => {
+                      const kinder = bereiche.filter((y) => y.eltern_id === x.id).length;
+                      const direkt = bewohner.filter((y) => y.bereich_id === x.id).length;
+                      const oben = bereiche.find((y) => y.id === x.eltern_id)?.name;
+                      const folgen = [
+                        kinder ? `${kinder} Unterbereich(e) rücken ${oben ? `zu „${oben}“` : 'auf die oberste Ebene'}.` : '',
+                        direkt ? `${direkt} Fahrgast/Fahrgäste ${oben ? `kommen zu „${oben}“` : 'sind danach ohne Bereich'}.` : '',
+                      ].filter(Boolean).join('\n');
+                      if (confirm(`Bereich „${x.name}“ löschen?${folgen ? `\n\n${folgen}` : ''}`)) await ausfuehren({ aktion: 'bereich-loeschen', id: x.id }, `„${x.name}“ wurde gelöscht.`);
+                    }}>Löschen</button>
                   </span>
                 </div>
               ))}
