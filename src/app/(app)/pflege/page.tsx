@@ -267,7 +267,20 @@ export default function PflegeSeite() {
   const baum = baumListe(bereiche, orgWahl || undefined);
   const kreise = (daten?.kreise ?? []).filter((x) => !orgWahl || x.organisation_id === orgWahl);
   const kreiseVon = (id: string) => (daten?.mitglieder ?? []).filter((m) => m.bewohner_id === id).map((m) => m.kreis_id);
-  const ort = (b?: Bewohner) => (b ? (bereichPfad(bereiche, b.bereich_id) || b.wohnbereich || b.adresse || '') : '');
+  const ort = (b?: Bewohner) => (b ? (bereichPfad(daten?.bereiche ?? bereiche, b.bereich_id) || b.wohnbereich || b.adresse || '') : '');
+  // GFO/Admin: beim Zuordnen Gäste aller Einrichtungen, nach Einrichtung gruppiert (gewählte zuerst)
+  const waehlbar = daten?.alle ? (daten?.bewohner ?? []).filter((b) => b.aktiv) : aktive;
+  const orgName = (id?: string | null) => daten?.organisationen.find((o) => o.id === id)?.name ?? 'Ohne Einrichtung';
+  const gruppiert = (liste: Bewohner[]) => {
+    const ids = Array.from(new Set(liste.map((b) => b.organisation_id ?? '')))
+      .sort((x, y) => (x === orgWahl ? -1 : y === orgWahl ? 1 : orgName(x).localeCompare(orgName(y), 'de')));
+    return ids.map((id) => ({ id, name: orgName(id), leute: liste.filter((b) => (b.organisation_id ?? '') === id) }));
+  };
+  // Abholort-Vorgabe aus der Einrichtung des gewählten Gasts
+  const standardFuer = (id?: string | null) => {
+    const b = (daten?.bewohner ?? []).find((x) => x.id === id);
+    return (b && daten?.organisationen.find((o) => o.id === b.organisation_id)?.standard_abholort) ?? standardOrt;
+  };
   /** Fahrgäste eines Bereichs (mit Unterbereichen) oder einer Gruppe */
   const ausBereich = (id: string) => { const ids = mitUnterbereichen(bereiche, id); return aktive.filter((b) => b.bereich_id && ids.has(b.bereich_id)); };
   const ausKreis = (id: string) => aktive.filter((b) => kreiseVon(b.id).includes(id));
@@ -289,7 +302,7 @@ export default function PflegeSeite() {
       ))}
     </div>
   );
-  const bewohnerById = (id?: string | null) => bewohner.find((b) => b.id === id);
+  const bewohnerById = (id?: string | null) => (daten?.bewohner ?? bewohner).find((b) => b.id === id);
   const wunschFz = wunsch.fahrzeug ? fahrzeugById(wunsch.fahrzeug) : undefined;
 
   return (
@@ -389,14 +402,17 @@ export default function PflegeSeite() {
                     <select aria-label="Fahrgast wählen" value={auswahl[a.id] ?? ''} onChange={(e) => setAuswahl({ ...auswahl, [a.id]: e.target.value })}
                       className="border rounded px-2 py-2">
                       <option value="">Fahrgast wählen…</option>
-                      {aktive.map((b) => (
-                        <option key={b.id} value={b.id} disabled={b.rollstuhl && !rolliOk}>
-                          {b.name}{ort(b) ? ` (${ort(b)})` : ''}{b.rollstuhl ? ' ♿' : ''}{b.rollstuhl && !rolliOk ? ' – Fahrzeug passt nicht' : ''}
-                        </option>
-                      ))}
+                      {gruppiert(waehlbar).map((g) => {
+                        const opts = g.leute.map((b) => (
+                          <option key={b.id} value={b.id} disabled={b.rollstuhl && !rolliOk}>
+                            {b.name}{ort(b) ? ` (${ort(b)})` : ''}{b.rollstuhl ? ' ♿' : ''}{b.rollstuhl && !rolliOk ? ' – Fahrzeug passt nicht' : ''}
+                          </option>
+                        ));
+                        return daten.alle ? <optgroup key={g.id} label={g.name}>{opts}</optgroup> : opts;
+                      })}
                     </select>
                     {plaetze >= 2 && (
-                      <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id] ?? ''} rollstuhlOk={rolliOk}
+                      <ZweitePerson bewohner={waehlbar} ersteId={auswahl[a.id] ?? ''} rollstuhlOk={rolliOk}
                         gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Fahrgast wählen'}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
@@ -408,7 +424,7 @@ export default function PflegeSeite() {
                       </select>
                     ) : <span className="text-sm text-orange-800">⚠ Diese Tour passt nicht mehr in die freie Zeit.</span>}
                     <AbholortFeld wert={angebotAbhol[a.id] ?? ABHOL_LEER} onChange={(v) => setAngebotAbhol({ ...angebotAbhol, [a.id]: v })}
-                      standard={standardOrt} adresse={bewohnerById(auswahl[a.id])?.adresse} />
+                      standard={standardFuer(auswahl[a.id])} adresse={bewohnerById(auswahl[a.id])?.adresse} />
                     {!a.fahrzeug && auswahl[a.id] && (() => {
                       // Kutscher + Gast stehen fest → jetzt Fahrzeug festlegen
                       const z = auswahl2[a.id] ?? ZWEIT_LEER;
@@ -425,7 +441,7 @@ export default function PflegeSeite() {
                         const zweit = plaetze >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
                         const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
                         const fzWahl = !a.fahrzeug ? { fahrzeug: angebotFz[a.id] } : {};
-                        const abholort = abholText(angebotAbhol[a.id] ?? ABHOL_LEER, standardOrt, bewohnerById(auswahl[a.id])?.adresse);
+                        const abholort = abholText(angebotAbhol[a.id] ?? ABHOL_LEER, standardFuer(auswahl[a.id]), bewohnerById(auswahl[a.id])?.adresse);
                         if (!abholort) { zeige('Bitte einen Abholort eintragen.', false); return; }
                         if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, abholort, startzeit: beginn, endzeit: ende, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
                           setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER }); setAngebotAbhol({ ...angebotAbhol, [a.id]: ABHOL_LEER });
@@ -447,7 +463,7 @@ export default function PflegeSeite() {
               e.preventDefault();
               const zweitOk = !wunschFz || wunschFz.maxGaeste >= 2;
               const wunschfahrt = tourText(wunschTour);
-              const abholort = abholText(wunschAbhol, standardOrt, bewohnerById(wunsch.bewohner_id)?.adresse);
+              const abholort = abholText(wunschAbhol, standardFuer(wunsch.bewohner_id), bewohnerById(wunsch.bewohner_id)?.adresse);
               if (!abholort) { zeige('Bitte einen Abholort eintragen.', false); return; }
               if (await ausfuehren({ aktion: 'wunsch', ...wunsch, abholort, ...(zweitOk ? zweitDaten(wunsch2) : {}), ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
                 setWunsch({ ...wunsch, bewohner_id: '', notiz: '' }); setWunsch2(ZWEIT_LEER); setWunschTour(TOUR_LEER); setWunschAbhol(ABHOL_LEER);
@@ -456,11 +472,14 @@ export default function PflegeSeite() {
               <label className="sm:col-span-2 text-sm font-semibold">Fahrgast
                 <select required value={wunsch.bewohner_id} onChange={(e) => setWunsch({ ...wunsch, bewohner_id: e.target.value })} className={feld}>
                   <option value="">Bitte wählen…</option>
-                  {aktive.map((b) => <option key={b.id} value={b.id}>{b.name}{ort(b) ? ` (${ort(b)})` : ''}{b.rollstuhl ? ' ♿' : ''}</option>)}
+                  {gruppiert(waehlbar).map((g) => {
+                    const opts = g.leute.map((b) => <option key={b.id} value={b.id}>{b.name}{ort(b) ? ` (${ort(b)})` : ''}{b.rollstuhl ? ' ♿' : ''}</option>);
+                    return daten.alle ? <optgroup key={g.id} label={g.name}>{opts}</optgroup> : opts;
+                  })}
                 </select>
               </label>
               <label className="sm:col-span-2 text-sm font-semibold">Zweite Person (optional)
-                <ZweitePerson bewohner={aktive} ersteId={wunsch.bewohner_id} rollstuhlOk={wunschFz ? wunschFz.rollstuhl : fahrzeuge.some((x) => x.rollstuhl)}
+                <ZweitePerson bewohner={waehlbar} ersteId={wunsch.bewohner_id} rollstuhlOk={wunschFz ? wunschFz.rollstuhl : fahrzeuge.some((x) => x.rollstuhl)}
                   gesperrt={!wunsch.bewohner_id ? 'Erst oben einen Fahrgast wählen'
                     : wunschFz && wunschFz.maxGaeste < 2 ? `${wunschFz.name} hat nur 1 Platz – für zwei Personen z. B. die Rikscha wählen` : undefined}
                   wert={wunsch2} onChange={setWunsch2} />
@@ -496,7 +515,7 @@ export default function PflegeSeite() {
                 {tourMinuten(wunschTour.wahl) !== null && <span className="block text-xs font-normal text-gray-500 mt-1">Die Endzeit wird passend zur Tour gesetzt.</span>}
               </label>
               <label className="text-sm font-semibold">Abholort
-                <AbholortFeld wert={wunschAbhol} onChange={setWunschAbhol} standard={standardOrt} adresse={bewohnerById(wunsch.bewohner_id)?.adresse} />
+                <AbholortFeld wert={wunschAbhol} onChange={setWunschAbhol} standard={standardFuer(wunsch.bewohner_id)} adresse={bewohnerById(wunsch.bewohner_id)?.adresse} />
               </label>
               <label className="text-sm font-semibold">Hinweis für den Kutscher (optional)
                 <input value={wunsch.notiz} maxLength={500} onChange={(e) => setWunsch({ ...wunsch, notiz: e.target.value })} className={feld} placeholder="z. B. bitte klingeln, 2. Stock" />
