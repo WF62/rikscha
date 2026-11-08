@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { startRegistration, startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser';
 
 type Ansicht = 'login' | 'pw-aendern' | 'bereich' | 'banner' | 'fahrzeugfotos' | 'mein-foto' | 'homepage-galerie' | 'dokumente' | 'mein-ordner';
 const ORDNER_KATEGORIEN = ['Polizeiliches Führungszeugnis', 'Einweisungsprotokoll', 'Ehrenamtsvertrag', 'Sonstiges'] as const;
@@ -39,6 +40,8 @@ export default function PilotenModal() {
   const [dokUploading, setDokUploading] = useState(false);
   const [dokKategorie, setDokKategorie] = useState('');
   const [dokMsg, setDokMsg] = useState('');
+  const [passkeyLaden, setPasskeyLaden] = useState(false);
+  const [passkeyMsg, setPasskeyMsg] = useState('');
   const dokInputRef = useRef<HTMLInputElement>(null);
   const pwInputRef = useRef<HTMLInputElement>(null);
 
@@ -144,6 +147,88 @@ export default function PilotenModal() {
       setFehler('Verbindungsfehler — bitte nochmal versuchen.');
     }
     setLaden(false);
+  }
+
+  async function passKeyAnmelden() {
+    setFehler('');
+    if (!gewaehlterPilot) { setFehler('Bitte zuerst den Namen wählen.'); return; }
+    setPasskeyLaden(true);
+    try {
+      const optRes = await fetch('/api/passkey/challenge-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pilot: gewaehlterPilot }),
+      });
+      if (!optRes.ok) {
+        const j = await optRes.json();
+        setFehler(j.error ?? 'Kein Fingerabdruck registriert.');
+        setPasskeyLaden(false);
+        return;
+      }
+      const options = await optRes.json();
+      const credential = await startAuthentication({ optionsJSON: options });
+      const authRes = await fetch('/api/passkey/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pilot: gewaehlterPilot, credential }),
+      });
+      const j = await authRes.json();
+      if (authRes.ok) {
+        localStorage.setItem('pilot_name', j.pilot);
+        localStorage.setItem('pilot_pw', '');
+        localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
+        window.dispatchEvent(new CustomEvent('pilot-login'));
+        setPilotName(j.pilot);
+        setPilotPw('');
+        setPilotRolle(j.rolle ?? 'pilot');
+        setErstanmeldung(false);
+        setAnsicht('bereich');
+      } else {
+        setFehler(j.error ?? 'Fingerabdruck nicht erkannt.');
+      }
+    } catch (e: unknown) {
+      if ((e as Error)?.name === 'NotAllowedError') {
+        setFehler('Fingerabdruck abgebrochen.');
+      } else {
+        setFehler('Fingerabdruck fehlgeschlagen.');
+      }
+    }
+    setPasskeyLaden(false);
+  }
+
+  async function passKeyRegistrieren() {
+    setPasskeyMsg('');
+    setPasskeyLaden(true);
+    try {
+      const optRes = await fetch('/api/passkey/challenge-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pilot: pilotName }),
+      });
+      if (!optRes.ok) { setPasskeyMsg('Fehler beim Starten der Registrierung.'); setPasskeyLaden(false); return; }
+      const options = await optRes.json();
+      const credential = await startRegistration({ optionsJSON: options });
+      const geraet = navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? 'iOS' :
+        navigator.userAgent.includes('Android') ? 'Android' : 'Desktop';
+      const regRes = await fetch('/api/passkey/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pilot: pilotName, credential, geraet }),
+      });
+      const j = await regRes.json();
+      if (regRes.ok) {
+        setPasskeyMsg('✅ Fingerabdruck gespeichert! Nächstes Mal einfach antippen.');
+      } else {
+        setPasskeyMsg(j.error ?? 'Registrierung fehlgeschlagen.');
+      }
+    } catch (e: unknown) {
+      if ((e as Error)?.name === 'NotAllowedError') {
+        setPasskeyMsg('Fingerabdruck abgebrochen.');
+      } else {
+        setPasskeyMsg('Fingerabdruck nicht unterstützt oder fehlgeschlagen.');
+      }
+    }
+    setPasskeyLaden(false);
   }
 
   async function ladeBanner() {
@@ -364,12 +449,21 @@ export default function PilotenModal() {
               style={{ width: '100%', border: '1.5px solid #d0c8bc', borderRadius: 8, padding: '0.65rem 1rem', fontSize: '1rem', background: '#fff', color: '#1a1208', marginBottom: '0.75rem', outline: 'none' }}
             />
             {fehler && <div style={{ color: '#c0392b', fontSize: '0.82rem', marginBottom: '0.75rem' }}>{fehler}</div>}
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.6rem' }}>
               <button onClick={() => setOffen(false)} style={{ flex: 1, padding: '0.6rem', border: '1.5px solid #d0c8bc', borderRadius: 8, background: 'transparent', color: '#333', cursor: 'pointer' }}>Abbrechen</button>
               <button onClick={anmelden} disabled={laden} style={{ flex: 1, padding: '0.6rem', border: 'none', borderRadius: 8, background: '#2D6B1E', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
                 {laden ? '…' : 'Anmelden'}
               </button>
             </div>
+            {browserSupportsWebAuthn() && (
+              <button
+                onClick={passKeyAnmelden}
+                disabled={passkeyLaden || !gewaehlterPilot}
+                style={{ width: '100%', padding: '0.6rem', border: '1.5px solid #2D6B1E', borderRadius: 8, background: '#F5F9F3', color: '#2D6B1E', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+              >
+                {passkeyLaden ? '…' : <><span>🔐</span> Mit Fingerabdruck anmelden</>}
+              </button>
+            )}
           </>
         )}
 
@@ -562,6 +656,24 @@ export default function PilotenModal() {
                 <li>· Die Fahrten sind kostenlos — Spendenhinweis nicht vergessen</li>
               </ul>
             </div>
+            {browserSupportsWebAuthn() && (
+              <div style={{ marginTop: '1rem', background: '#F5F9F3', borderRadius: 12, border: '1.5px solid #2D6B1E33', padding: '1rem 1.25rem' }}>
+                <div style={{ fontWeight: 700, marginBottom: '0.4rem', color: '#2D6B1E', fontSize: '0.9rem' }}>🔐 Fingerabdruck-Anmeldung</div>
+                <p style={{ fontSize: '0.8rem', color: '#6B5C44', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                  Registriere dieses Gerät, um dich beim nächsten Mal mit Fingerabdruck oder Face ID anzumelden — kein Passwort nötig.
+                </p>
+                {passkeyMsg && (
+                  <div style={{ fontSize: '0.82rem', color: passkeyMsg.startsWith('✅') ? '#2D6B1E' : '#c0392b', marginBottom: '0.5rem' }}>{passkeyMsg}</div>
+                )}
+                <button
+                  onClick={passKeyRegistrieren}
+                  disabled={passkeyLaden}
+                  style={{ padding: '0.55rem 1.1rem', border: '1.5px solid #2D6B1E', borderRadius: 8, background: '#fff', color: '#2D6B1E', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  {passkeyLaden ? '…' : 'Fingerabdruck für dieses Gerät speichern'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
