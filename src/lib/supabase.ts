@@ -33,14 +33,28 @@ export type Buchung = {
   /** Freie Fahrzeit, die ein Kutscher für Bewohner anbietet */
   angebot?: boolean;
   /** Angaben zum Bewohner – nur für Kutscher und Pflege mitgeliefert */
-  bewohner?: { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null } | null;
+  bewohner?: Fahrgast | null;
   /** Zweiter Bewohner in derselben Fahrt (z. B. Rikscha mit 2 Plätzen) */
   bewohner2_id?: string | null;
   /** Gewünschte Tour, z. B. "Fahrt zum Rhein" */
   wunschfahrt?: string | null;
   /** Wo der Gast abgeholt wird (Standard: GFO, Eingang Elisabeth) */
   abholort?: string | null;
-  bewohner2?: { name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null } | null;
+  bewohner2?: Fahrgast | null;
+  /** Gehört zu einer Gruppenfahrt (mehrere Fahrzeuge) */
+  gruppe_id?: string | null;
+  gruppe?: { titel: string } | null;
+};
+
+/** Angaben zu einem Fahrgast, wie Kutscher und Vermittlung sie in einer Fahrt sehen */
+export type Fahrgast = {
+  name: string; wohnbereich: string | null; rollstuhl: boolean; hinweis: string | null;
+  /** Nur für den zuständigen Kutscher, Admin und die eigene Organisation */
+  telefon?: string | null; adresse?: string | null;
+};
+
+export type Organisation = {
+  id: string; name: string; art: 'einrichtung' | 'quartier'; standard_abholort: string | null; aktiv: boolean;
 };
 
 export type Bewohner = {
@@ -50,6 +64,11 @@ export type Bewohner = {
   rollstuhl: boolean;
   hinweis: string | null;
   aktiv: boolean;
+  organisation_id?: string | null;
+  telefon?: string | null;
+  adresse?: string | null;
+  /** Ab diesem Tag läuft die Löschfrist für Telefon und Adresse */
+  letzter_kontakt?: string;
 };
 
 export type Sperre = {

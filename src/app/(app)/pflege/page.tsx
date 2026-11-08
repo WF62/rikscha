@@ -1,15 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import type { Bewohner, Buchung } from '@/lib/supabase';
+import type { Bewohner, Buchung, Organisation } from '@/lib/supabase';
 import { authHeaders } from '@/lib/authHeaders';
 import { useStammdaten } from '@/lib/useStammdaten';
 import { istBuchbarAm } from '@/lib/stammdaten';
-import { WUNSCH_TOUREN, STANDARD_ABHOLORT } from '@/lib/touren';
+import { WUNSCH_TOUREN } from '@/lib/touren';
 import AktualisierenKnopf from '../AktualisierenKnopf';
 import FahrzeugPicker from '../FahrzeugPicker';
 
-type Daten = { bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[] };
+type Gruppe = { id: string; titel: string; datum: string; organisator: string | null; organisation_id: string | null; fahrten: Buchung[] };
+type Daten = {
+  bewohner: Bewohner[]; angebote: Buchung[]; fahrten: Buchung[]; gruppen: Gruppe[];
+  organisationen: Organisation[]; eigeneOrganisation: string | null; alle: boolean; fristMonate: number;
+};
 const ERLAUBT = ['pflege', 'gfo', 'admin'];
 const feld = 'w-full border rounded px-3 py-2 text-base';
 
@@ -95,26 +99,42 @@ function WunschfahrtFeld({ wert, onChange }: { wert: Tour; onChange: (t: Tour) =
   );
 }
 
-type Abholort = { anders: boolean; text: string };
-const ABHOL_LEER: Abholort = { anders: false, text: '' };
-const abholText = (a: Abholort) => (a.anders && a.text.trim() ? a.text.trim() : STANDARD_ABHOLORT);
+type Abholort = { wahl: '' | 'standard' | 'adresse' | 'anders'; text: string };
+const ABHOL_LEER: Abholort = { wahl: '', text: '' };
+/** Text des Abholorts; '' = nichts Passendes gewählt */
+function abholText(a: Abholort, standard: string | null, adresse: string | null | undefined): string {
+  const wahl = a.wahl || (standard ? 'standard' : adresse ? 'adresse' : 'anders');
+  if (wahl === 'standard') return standard ?? '';
+  if (wahl === 'adresse') return adresse ?? '';
+  return a.text.trim();
+}
 
-/** Abholort: Standard „GFO, Eingang Elisabeth“ oder ein anderer Ort */
-function AbholortFeld({ wert, onChange }: { wert: Abholort; onChange: (a: Abholort) => void }) {
+/** Abholort: Standard der Organisation, Wohnadresse des Fahrgasts oder ein anderer Ort */
+function AbholortFeld({ wert, onChange, standard, adresse, label = 'Abholort' }: {
+  wert: Abholort; onChange: (a: Abholort) => void; standard: string | null; adresse?: string | null; label?: string;
+}) {
+  const wahl = wert.wahl || (standard ? 'standard' : adresse ? 'adresse' : 'anders');
   return (
     <div className="flex flex-col gap-1">
-      <select aria-label="Abholort" value={wert.anders ? 'anders' : 'standard'} onChange={(e) => onChange({ ...wert, anders: e.target.value === 'anders' })}
+      <select aria-label={label} value={wahl} onChange={(e) => onChange({ ...wert, wahl: e.target.value as Abholort['wahl'] })}
         className="border rounded px-2 py-2">
-        <option value="standard">📍 {STANDARD_ABHOLORT}</option>
-        <option value="anders">Anderer Abholort …</option>
+        {standard && <option value="standard">📍 {standard}</option>}
+        {adresse && <option value="adresse">🏡 Zuhause: {adresse}</option>}
+        <option value="anders">Anderer Ort …</option>
       </select>
-      {wert.anders && (
-        <input aria-label="Anderer Abholort" maxLength={120} value={wert.text} placeholder="z. B. Haupteingang, Café, Adresse"
+      {wahl === 'anders' && (
+        <input aria-label={`${label}: anderer Ort`} maxLength={120} value={wert.text} placeholder="z. B. Kirchplatz, Café, Adresse"
           onChange={(e) => onChange({ ...wert, text: e.target.value })} className="border rounded px-2 py-2" />
       )}
     </div>
   );
 }
+
+const plusMonate = (iso: string | undefined, monate: number) => {
+  if (!iso) return '';
+  const d = new Date(iso + 'T12:00:00'); d.setMonth(d.getMonth() + monate);
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
 export default function PflegeSeite() {
   const { fahrzeuge, fahrzeugById } = useStammdaten();
@@ -131,7 +151,16 @@ export default function PflegeSeite() {
   const [angebotAbhol, setAngebotAbhol] = useState<Record<string, Abholort>>({});
   const [angebotTour, setAngebotTour] = useState<Record<string, Tour>>({});
   const [angebotFz, setAngebotFz] = useState<Record<string, string>>({}); // Angebot ohne Fahrzeug → gewähltes Fahrzeug
-  const [neuerBewohner, setNeuerBewohner] = useState({ name: '', wohnbereich: '', rollstuhl: false, hinweis: '' });
+  const LEER_FG = { name: '', wohnbereich: '', adresse: '', telefon: '', rollstuhl: false, hinweis: '' };
+  const [neuerBewohner, setNeuerBewohner] = useState(LEER_FG);
+  const [orgWahl, setOrgWahl] = useState('');   // für GFO/Admin: welche Organisation
+  const [gruppe, setGruppe] = useState({ titel: '', datum: '', startzeit: '14:00', endzeit: '16:00', notiz: '' });
+  const [gruppeTeilnehmer, setGruppeTeilnehmer] = useState<string[]>([]);
+  const [gruppeWeitere, setGruppeWeitere] = useState('');
+  const [gruppeFz, setGruppeFz] = useState<string[]>([]);
+  const [gruppeFzListe, setGruppeFzListe] = useState<{ id: string; name: string; maxGaeste: number; rollstuhl: boolean; frei: boolean; grund?: string }[] | null>(null);
+  const [gruppeTour, setGruppeTour] = useState<Tour>(TOUR_LEER);
+  const [gruppeAbhol, setGruppeAbhol] = useState<Abholort>(ABHOL_LEER);
   const [bearbeiten, setBearbeiten] = useState<Bewohner | null>(null);
 
   const laden = useCallback(async () => {
@@ -140,7 +169,19 @@ export default function PflegeSeite() {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setLadeFehler(j.error ?? 'Laden fehlgeschlagen.'); return; }
     setLadeFehler(''); setDaten(j);
+    setOrgWahl((alt) => alt || j.eigeneOrganisation || j.organisationen?.[0]?.id || '');
   }, []);
+
+  // Gruppenfahrt: freie Fahrzeuge zur gewählten Zeit laden
+  useEffect(() => {
+    if (!gruppe.datum || !gruppe.startzeit || !gruppe.endzeit || gruppe.endzeit <= gruppe.startzeit) { setGruppeFzListe(null); return; }
+    let aktiv = true;
+    fetch(`/api/fahrzeuge-frei?datum=${gruppe.datum}&von=${gruppe.startzeit}&bis=${gruppe.endzeit}`, { headers: authHeaders() })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((l) => { if (aktiv) { setGruppeFzListe(l); setGruppeFz((alt) => alt.filter((id) => l.some((x: { id: string; frei: boolean }) => x.id === id && x.frei))); } })
+      .catch(() => aktiv && setGruppeFzListe([]));
+    return () => { aktiv = false; };
+  }, [gruppe.datum, gruppe.startzeit, gruppe.endzeit]);
 
   useEffect(() => {
     const rolle = localStorage.getItem('pilot_rolle');
@@ -159,22 +200,34 @@ export default function PflegeSeite() {
   if (zugang === 'nein') {
     return (
       <div className="max-w-md mx-auto mt-16 bg-white rounded-xl shadow p-6 text-center space-y-3">
-        <h2 className="text-xl font-bold text-rikscha-green">Bereich für die Pflege</h2>
-        <p className="text-gray-600">Bitte melde dich auf der Startseite mit deinem Pflege-Zugang an (Menü „Kutscher-Bereich“).</p>
+        <h2 className="text-xl font-bold text-rikscha-green">Fahrten vermitteln</h2>
+        <p className="text-gray-600">Bitte melde dich auf der Startseite mit deinem Vermittlungs-Zugang an (Menü „Kutscher-Bereich“).</p>
         <a href="/" className="inline-block bg-rikscha-green text-white rounded px-4 py-2 font-semibold">Zur Startseite</a>
       </div>
     );
   }
 
-  const bewohner = daten?.bewohner ?? [];
+  const org = daten?.organisationen.find((o) => o.id === orgWahl) ?? null;
+  const quartier = org?.art === 'quartier';
+  const standardOrt = org?.standard_abholort ?? null;
+  // GFO/Admin sehen alle Organisationen, arbeiten aber jeweils in der gewählten
+  const bewohner = (daten?.bewohner ?? []).filter((b) => !daten?.alle || !orgWahl || b.organisation_id === orgWahl);
   const aktive = bewohner.filter((b) => b.aktiv);
+  const ort = (b?: Bewohner) => (b ? (b.wohnbereich || b.adresse || '') : '');
   const bewohnerById = (id?: string | null) => bewohner.find((b) => b.id === id);
   const wunschFz = wunsch.fahrzeug ? fahrzeugById(wunsch.fahrzeug) : undefined;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-2xl font-bold text-rikscha-green">🚲 Rikscha-Fahrten für Bewohner</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-rikscha-green">🚲 Fahrten vermitteln</h2>
+          {daten && (daten.alle && daten.organisationen.length > 1 ? (
+            <select aria-label="Organisation" value={orgWahl} onChange={(e) => setOrgWahl(e.target.value)} className="mt-1 border rounded px-2 py-1 text-sm">
+              {daten.organisationen.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+          ) : org && <div className="text-sm text-gray-600">{org.name}</div>)}
+        </div>
         <span className="flex items-center gap-3 flex-wrap">
           <AktualisierenKnopf />
           <a href="/kalender" className="text-sm text-rikscha-green underline">Zum Kalender</a>
@@ -194,7 +247,7 @@ export default function PflegeSeite() {
           {/* 1. Freie Fahrzeiten der Kutscher */}
           <section className="bg-white rounded-xl shadow p-5">
             <h3 className="font-bold text-lg text-gray-800 mb-1">Freie Fahrzeiten der Kutscher</h3>
-            <p className="text-sm text-gray-500 mb-3">Kutscher bieten diese Zeiten an. Wähle einen Bewohner und tippe auf „Zuordnen“.</p>
+            <p className="text-sm text-gray-500 mb-3">Kutscher bieten diese Zeiten für alle an. Wer zuerst zuordnet, bekommt die Zeit. Wähle einen Fahrgast und tippe auf „Zuordnen“.</p>
             {daten.angebote.length === 0 && <p className="text-sm text-gray-400">Im Moment sind keine freien Zeiten eingetragen.</p>}
             <div className="space-y-3">
               {daten.angebote.map((a) => {
@@ -212,22 +265,23 @@ export default function PflegeSeite() {
                           : <>Fahrzeug egal – wird passend zu den Gästen gewählt</>}
                       </div>
                     </div>
-                    <select aria-label="Bewohner wählen" value={auswahl[a.id] ?? ''} onChange={(e) => setAuswahl({ ...auswahl, [a.id]: e.target.value })}
+                    <select aria-label="Fahrgast wählen" value={auswahl[a.id] ?? ''} onChange={(e) => setAuswahl({ ...auswahl, [a.id]: e.target.value })}
                       className="border rounded px-2 py-2">
-                      <option value="">Bewohner wählen…</option>
+                      <option value="">Fahrgast wählen…</option>
                       {aktive.map((b) => (
                         <option key={b.id} value={b.id} disabled={b.rollstuhl && !rolliOk}>
-                          {b.name}{b.wohnbereich ? ` (${b.wohnbereich})` : ''}{b.rollstuhl ? ' ♿' : ''}{b.rollstuhl && !rolliOk ? ' – Fahrzeug passt nicht' : ''}
+                          {b.name}{ort(b) ? ` (${ort(b)})` : ''}{b.rollstuhl ? ' ♿' : ''}{b.rollstuhl && !rolliOk ? ' – Fahrzeug passt nicht' : ''}
                         </option>
                       ))}
                     </select>
                     {plaetze >= 2 && (
                       <ZweitePerson bewohner={aktive} ersteId={auswahl[a.id] ?? ''} rollstuhlOk={rolliOk}
-                        gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Bewohner wählen'}
+                        gesperrt={auswahl[a.id] ? undefined : 'Zweite Person: erst Fahrgast wählen'}
                         wert={auswahl2[a.id] ?? ZWEIT_LEER} onChange={(z) => setAuswahl2({ ...auswahl2, [a.id]: z })} />
                     )}
                     <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => setAngebotTour({ ...angebotTour, [a.id]: t })} />
-                    <AbholortFeld wert={angebotAbhol[a.id] ?? ABHOL_LEER} onChange={(v) => setAngebotAbhol({ ...angebotAbhol, [a.id]: v })} />
+                    <AbholortFeld wert={angebotAbhol[a.id] ?? ABHOL_LEER} onChange={(v) => setAngebotAbhol({ ...angebotAbhol, [a.id]: v })}
+                      standard={standardOrt} adresse={bewohnerById(auswahl[a.id])?.adresse} />
                     {!a.fahrzeug && auswahl[a.id] && (() => {
                       // Kutscher + Gast stehen fest → jetzt Fahrzeug festlegen
                       const z = auswahl2[a.id] ?? ZWEIT_LEER;
@@ -243,7 +297,8 @@ export default function PflegeSeite() {
                         const zweit = plaetze >= 2 ? zweitDaten(auswahl2[a.id] ?? ZWEIT_LEER) : {};
                         const wunschfahrt = tourText(angebotTour[a.id] ?? TOUR_LEER);
                         const fzWahl = !a.fahrzeug ? { fahrzeug: angebotFz[a.id] } : {};
-                        const abholort = abholText(angebotAbhol[a.id] ?? ABHOL_LEER);
+                        const abholort = abholText(angebotAbhol[a.id] ?? ABHOL_LEER, standardOrt, bewohnerById(auswahl[a.id])?.adresse);
+                        if (!abholort) { zeige('Bitte einen Abholort eintragen.', false); return; }
                         if (await ausfuehren({ aktion: 'belegen', buchung_id: a.id, bewohner_id: auswahl[a.id], ...zweit, ...fzWahl, abholort, ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Zugeordnet. Der Kutscher sieht die Fahrt im Kalender.')) {
                           setAuswahl({ ...auswahl, [a.id]: '' }); setAuswahl2({ ...auswahl2, [a.id]: ZWEIT_LEER }); setAngebotTour({ ...angebotTour, [a.id]: TOUR_LEER }); setAngebotAbhol({ ...angebotAbhol, [a.id]: ABHOL_LEER });
                         }
@@ -264,19 +319,21 @@ export default function PflegeSeite() {
               e.preventDefault();
               const zweitOk = !wunschFz || wunschFz.maxGaeste >= 2;
               const wunschfahrt = tourText(wunschTour);
-              if (await ausfuehren({ aktion: 'wunsch', ...wunsch, abholort: abholText(wunschAbhol), ...(zweitOk ? zweitDaten(wunsch2) : {}), ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
+              const abholort = abholText(wunschAbhol, standardOrt, bewohnerById(wunsch.bewohner_id)?.adresse);
+              if (!abholort) { zeige('Bitte einen Abholort eintragen.', false); return; }
+              if (await ausfuehren({ aktion: 'wunsch', ...wunsch, abholort, ...(zweitOk ? zweitDaten(wunsch2) : {}), ...(wunschfahrt ? { wunschfahrt } : {}) }, 'Fahrtwunsch gemeldet. Das Rikscha-Team wird benachrichtigt.')) {
                 setWunsch({ ...wunsch, bewohner_id: '', notiz: '' }); setWunsch2(ZWEIT_LEER); setWunschTour(TOUR_LEER); setWunschAbhol(ABHOL_LEER);
               }
             }}>
-              <label className="sm:col-span-2 text-sm font-semibold">Bewohner
+              <label className="sm:col-span-2 text-sm font-semibold">Fahrgast
                 <select required value={wunsch.bewohner_id} onChange={(e) => setWunsch({ ...wunsch, bewohner_id: e.target.value })} className={feld}>
                   <option value="">Bitte wählen…</option>
-                  {aktive.map((b) => <option key={b.id} value={b.id}>{b.name}{b.wohnbereich ? ` (${b.wohnbereich})` : ''}{b.rollstuhl ? ' ♿' : ''}</option>)}
+                  {aktive.map((b) => <option key={b.id} value={b.id}>{b.name}{ort(b) ? ` (${ort(b)})` : ''}{b.rollstuhl ? ' ♿' : ''}</option>)}
                 </select>
               </label>
               <label className="sm:col-span-2 text-sm font-semibold">Zweite Person (optional)
                 <ZweitePerson bewohner={aktive} ersteId={wunsch.bewohner_id} rollstuhlOk={wunschFz ? wunschFz.rollstuhl : fahrzeuge.some((x) => x.rollstuhl)}
-                  gesperrt={!wunsch.bewohner_id ? 'Erst oben einen Bewohner wählen'
+                  gesperrt={!wunsch.bewohner_id ? 'Erst oben einen Fahrgast wählen'
                     : wunschFz && wunschFz.maxGaeste < 2 ? `${wunschFz.name} hat nur 1 Platz – für zwei Personen z. B. die Rikscha wählen` : undefined}
                   wert={wunsch2} onChange={setWunsch2} />
                 {!wunschFz && zweitAnzahl(wunsch2) > 0 && <span className="block text-xs font-normal text-gray-500 mt-1">Für zwei Personen braucht der Kutscher ein Fahrzeug mit 2 Plätzen (z. B. Rikscha).</span>}
@@ -309,10 +366,10 @@ export default function PflegeSeite() {
                 <WunschfahrtFeld wert={wunschTour} onChange={setWunschTour} />
               </label>
               <label className="text-sm font-semibold">Abholort
-                <AbholortFeld wert={wunschAbhol} onChange={setWunschAbhol} />
+                <AbholortFeld wert={wunschAbhol} onChange={setWunschAbhol} standard={standardOrt} adresse={bewohnerById(wunsch.bewohner_id)?.adresse} />
               </label>
               <label className="text-sm font-semibold">Hinweis für den Kutscher (optional)
-                <input value={wunsch.notiz} maxLength={500} onChange={(e) => setWunsch({ ...wunsch, notiz: e.target.value })} className={feld} placeholder="z. B. am Haupteingang abholen" />
+                <input value={wunsch.notiz} maxLength={500} onChange={(e) => setWunsch({ ...wunsch, notiz: e.target.value })} className={feld} placeholder="z. B. bitte klingeln, 2. Stock" />
               </label>
               <div className="sm:col-span-2">
                 <button type="submit" className="bg-rikscha-green text-white rounded px-5 py-2 font-semibold">Wunsch melden</button>
@@ -322,7 +379,7 @@ export default function PflegeSeite() {
 
           {/* 3. Geplante Bewohnerfahrten */}
           <section className="bg-white rounded-xl shadow p-5">
-            <h3 className="font-bold text-lg text-gray-800 mb-3">Geplante Bewohnerfahrten ({daten.fahrten.length})</h3>
+            <h3 className="font-bold text-lg text-gray-800 mb-3">Geplante Fahrten ({daten.fahrten.length})</h3>
             {daten.fahrten.length === 0 && <p className="text-sm text-gray-400">Noch keine Fahrten geplant.</p>}
             <div className="space-y-2">
               {daten.fahrten.map((f) => {
@@ -331,7 +388,7 @@ export default function PflegeSeite() {
                   <div key={f.id} className="border rounded-lg p-3 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
                       <div className="font-semibold">
-                        {(f.gaeste?.length ? f.gaeste : [bw?.name ?? 'Bewohner']).map((g) => {
+                        {(f.gaeste?.length ? f.gaeste : [bw?.name ?? 'Fahrgast']).map((g) => {
                           const p = bewohner.find((x) => x.name === g && (x.id === f.bewohner_id || x.id === f.bewohner2_id));
                           return p ? `${g}${p.rollstuhl ? ' ♿' : ''}` : `${g} (Begleitung)`;
                         }).join(' + ')}
@@ -344,7 +401,7 @@ export default function PflegeSeite() {
                       ? <span className="text-sm bg-green-100 text-green-800 rounded-full px-3 py-1">✓ Kutscher: {f.pilot}</span>
                       : <span className="text-sm bg-orange-100 text-orange-800 rounded-full px-3 py-1">Kutscher gesucht</span>}
                     <button className="text-sm text-red-600 underline"
-                      onClick={async () => { if (confirm(`Fahrt für ${(f.gaeste ?? []).join(' und ') || bw?.name || 'den Bewohner'} absagen?`)) await ausfuehren({ aktion: 'absagen', buchung_id: f.id }, 'Die Fahrt wurde abgesagt.'); }}>
+                      onClick={async () => { if (confirm(`Fahrt für ${(f.gaeste ?? []).join(' und ') || bw?.name || 'den Fahrgast'} absagen?`)) await ausfuehren({ aktion: 'absagen', buchung_id: f.id }, 'Die Fahrt wurde abgesagt.'); }}>
                       Absagen
                     </button>
                   </div>
@@ -353,35 +410,175 @@ export default function PflegeSeite() {
             </div>
           </section>
 
-          {/* 4. Bewohner */}
+          {/* 4. Gruppenfahrten */}
           <section className="bg-white rounded-xl shadow p-5">
-            <h3 className="font-bold text-lg text-gray-800 mb-1">Bewohner ({aktive.length})</h3>
-            <p className="text-sm text-gray-500 mb-3">Nur das Nötigste eintragen: keine Diagnosen, kein Geburtsdatum. Kutscher sehen Name, Wohnbereich, Rollstuhl und Hinweis.</p>
+            <h3 className="font-bold text-lg text-gray-800 mb-1">👥 Gruppenfahrt planen</h3>
+            <p className="text-sm text-gray-500 mb-3">Mehrere Fahrgäste, mehrere Fahrzeuge: Die App verteilt alle auf die gewählten Fahrzeuge. Für jedes Fahrzeug sucht sich ein Kutscher die Fahrt im Kalender aus.</p>
+            <form className="grid grid-cols-1 sm:grid-cols-2 gap-3" onSubmit={async (e) => {
+              e.preventDefault();
+              const weitere = gruppeWeitere.split('\n').map((x) => x.trim()).filter(Boolean);
+              const abholort = abholText(gruppeAbhol, standardOrt, null);
+              if (!abholort) { zeige('Bitte einen Treffpunkt eintragen.', false); return; }
+              const wunschfahrt = tourText(gruppeTour);
+              const r = await fetch('/api/pflege', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ aktion: 'gruppe-neu', ...gruppe, teilnehmer: gruppeTeilnehmer, weitere, fahrzeuge: gruppeFz, abholort, organisation_id: orgWahl, ...(wunschfahrt ? { wunschfahrt } : {}) }),
+              });
+              const j = await r.json().catch(() => ({}));
+              if (!r.ok) { zeige(j.error ?? 'Das hat nicht geklappt.', false); return; }
+              const verteilung = (j.fahrzeuge ?? []).map((f: { name: string; personen: string[] }) => `${f.name}: ${f.personen.join(', ')}`).join(' · ');
+              zeige(`Gruppenfahrt angelegt. ${verteilung}${j.nichtGebraucht?.length ? ` (nicht gebraucht: ${j.nichtGebraucht.join(', ')})` : ''}`);
+              setGruppe({ ...gruppe, titel: '', notiz: '' }); setGruppeTeilnehmer([]); setGruppeWeitere(''); setGruppeFz([]); setGruppeTour(TOUR_LEER); setGruppeAbhol(ABHOL_LEER);
+              await laden();
+            }}>
+              <label className="sm:col-span-2 text-sm font-semibold">Name der Fahrt
+                <input required maxLength={80} value={gruppe.titel} onChange={(e) => setGruppe({ ...gruppe, titel: e.target.value })} className={feld} placeholder="z. B. Ausflug zum Rhein" />
+              </label>
+              <label className="text-sm font-semibold">Tag
+                <input required type="date" value={gruppe.datum} onChange={(e) => setGruppe({ ...gruppe, datum: e.target.value })} className={feld} />
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-sm font-semibold">Von
+                  <input required type="time" value={gruppe.startzeit} onChange={(e) => setGruppe({ ...gruppe, startzeit: e.target.value })} className={feld} />
+                </label>
+                <label className="text-sm font-semibold">Bis
+                  <input required type="time" value={gruppe.endzeit} onChange={(e) => setGruppe({ ...gruppe, endzeit: e.target.value })} className={feld} />
+                </label>
+              </div>
+              <fieldset className="sm:col-span-2 text-sm">
+                <legend className="font-semibold mb-1">Fahrgäste ({gruppeTeilnehmer.length} gewählt)</legend>
+                <div className="flex flex-wrap gap-2">
+                  {aktive.map((b) => (
+                    <label key={b.id} className={`flex items-center gap-1 border rounded-full px-3 py-1 cursor-pointer ${gruppeTeilnehmer.includes(b.id) ? 'bg-green-50 border-green-500' : ''}`}>
+                      <input type="checkbox" checked={gruppeTeilnehmer.includes(b.id)}
+                        onChange={(e) => setGruppeTeilnehmer(e.target.checked ? [...gruppeTeilnehmer, b.id] : gruppeTeilnehmer.filter((x) => x !== b.id))} />
+                      {b.name}{b.rollstuhl ? ' ♿' : ''}
+                    </label>
+                  ))}
+                  {aktive.length === 0 && <span className="text-gray-400">Noch keine Fahrgäste eingetragen (unten).</span>}
+                </div>
+              </fieldset>
+              <label className="sm:col-span-2 text-sm font-semibold">Weitere Personen (optional, eine pro Zeile)
+                <textarea rows={2} value={gruppeWeitere} onChange={(e) => setGruppeWeitere(e.target.value)} className={feld} placeholder={'z. B. Begleitperson\nAngehörige'} />
+              </label>
+              <fieldset className="sm:col-span-2 text-sm">
+                {(() => {
+                  const personen = gruppeTeilnehmer.length + gruppeWeitere.split('\n').filter((x) => x.trim()).length;
+                  const plaetze = (gruppeFzListe ?? []).filter((f) => gruppeFz.includes(f.id)).reduce((s, f) => s + f.maxGaeste, 0);
+                  return <legend className="font-semibold mb-1">Fahrzeuge – Plätze: <span className={plaetze >= personen && personen > 0 ? 'text-green-700' : 'text-orange-700'}>{plaetze} von {personen} nötig</span></legend>;
+                })()}
+                {!gruppeFzListe && <span className="text-gray-400">Erst Tag und Uhrzeit wählen – dann siehst du die freien Fahrzeuge.</span>}
+                <div className="flex flex-wrap gap-2">
+                  {(gruppeFzListe ?? []).map((f) => (
+                    <label key={f.id} className={`flex items-center gap-1 border rounded-full px-3 py-1 ${f.frei ? 'cursor-pointer' : 'opacity-50'} ${gruppeFz.includes(f.id) ? 'bg-green-50 border-green-500' : ''}`}>
+                      <input type="checkbox" disabled={!f.frei} checked={gruppeFz.includes(f.id)}
+                        onChange={(e) => setGruppeFz(e.target.checked ? [...gruppeFz, f.id] : gruppeFz.filter((x) => x !== f.id))} />
+                      🚲 {f.name} ({f.maxGaeste}){f.rollstuhl ? ' ♿' : ''}{f.grund ? ` – ${f.grund}` : ''}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <label className="text-sm font-semibold">Treffpunkt
+                <AbholortFeld wert={gruppeAbhol} onChange={setGruppeAbhol} standard={standardOrt} label="Treffpunkt" />
+              </label>
+              <label className="text-sm font-semibold">Wunschfahrt (optional)
+                <WunschfahrtFeld wert={gruppeTour} onChange={setGruppeTour} />
+              </label>
+              <label className="sm:col-span-2 text-sm font-semibold">Hinweis für die Kutscher (optional)
+                <input value={gruppe.notiz} maxLength={500} onChange={(e) => setGruppe({ ...gruppe, notiz: e.target.value })} className={feld} />
+              </label>
+              <div className="sm:col-span-2">
+                <button type="submit" disabled={!gruppeFz.length} className="bg-rikscha-green text-white rounded px-5 py-2 font-semibold disabled:opacity-40">Gruppenfahrt anlegen</button>
+              </div>
+            </form>
+
+            {daten.gruppen.length > 0 && (
+              <div className="mt-5 space-y-3">
+                <h4 className="font-semibold text-gray-700">Geplante Gruppenfahrten</h4>
+                {daten.gruppen.map((g) => {
+                  const erste = g.fahrten[0];
+                  const besetzt = g.fahrten.filter((f) => f.pilot).length;
+                  return (
+                    <div key={g.id} className="border-2 border-violet-200 rounded-lg p-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold">👥 {g.titel}</span>
+                        <span className="text-sm text-gray-600">{erste ? `${tagText(erste.datum)}, ${zeit(erste)}` : tagText(g.datum)}</span>
+                        <span className={`text-xs rounded-full px-2 py-0.5 ${besetzt === g.fahrten.length ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                          {besetzt} von {g.fahrten.length} Kutschern gefunden
+                        </span>
+                        <button className="ml-auto text-sm text-red-600 underline"
+                          onClick={async () => { if (confirm(`Gruppenfahrt „${g.titel}“ ganz absagen?`)) await ausfuehren({ aktion: 'gruppe-absagen', gruppe_id: g.id }, 'Die Gruppenfahrt wurde abgesagt.'); }}>
+                          Ganze Gruppe absagen
+                        </button>
+                      </div>
+                      {erste?.abholort && <div className="text-sm text-sky-800 mt-1">📍 {erste.abholort}{erste.wunschfahrt ? ` · 🗺️ ${erste.wunschfahrt}` : ''}</div>}
+                      <ul className="mt-2 text-sm space-y-1">
+                        {g.fahrten.map((f) => (
+                          <li key={f.id} className="flex flex-wrap gap-2">
+                            <span className="font-medium">🚲 {fahrzeugById(f.fahrzeug)?.name ?? f.fahrzeug}:</span>
+                            <span>{(f.gaeste ?? []).join(', ')}</span>
+                            <span className={f.pilot ? 'text-green-700' : 'text-orange-700'}>{f.pilot ? `✓ ${f.pilot}` : 'Kutscher gesucht'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* 5. Fahrgäste */}
+          <section className="bg-white rounded-xl shadow p-5">
+            <h3 className="font-bold text-lg text-gray-800 mb-1">Fahrgäste ({aktive.length})</h3>
+            <p className="text-sm text-gray-500 mb-3">
+              Nur das Nötigste eintragen: keine Diagnosen, kein Geburtsdatum.
+              {quartier && <> Telefon und Adresse sieht nur der Kutscher, der die Fahrt übernimmt. Sie werden <strong>{daten.fristMonate} Monate nach dem letzten Kontakt automatisch gelöscht</strong> – jede neue Fahrt oder Änderung startet die Frist neu.</>}
+            </p>
             <form className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 items-end" onSubmit={async (e) => {
               e.preventDefault();
-              if (await ausfuehren({ aktion: 'bewohner-neu', ...neuerBewohner }, `${neuerBewohner.name} wurde angelegt.`)) setNeuerBewohner({ name: '', wohnbereich: '', rollstuhl: false, hinweis: '' });
+              if (await ausfuehren({ aktion: 'bewohner-neu', ...neuerBewohner, organisation_id: orgWahl }, `${neuerBewohner.name} wurde angelegt.`)) setNeuerBewohner(LEER_FG);
             }}>
               <label className="text-sm font-semibold">Name
                 <input required maxLength={80} value={neuerBewohner.name} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, name: e.target.value })} className={feld} />
               </label>
-              <label className="text-sm font-semibold">Wohnbereich
-                <input maxLength={60} value={neuerBewohner.wohnbereich} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, wohnbereich: e.target.value })} className={feld} />
-              </label>
-              <label className="text-sm font-semibold sm:col-span-2">Hinweis (optional)
+              {quartier ? (
+                <>
+                  <label className="text-sm font-semibold sm:col-span-2">Adresse (optional)
+                    <input maxLength={160} value={neuerBewohner.adresse} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, adresse: e.target.value })} className={feld} placeholder="Straße Nr., Ort" />
+                  </label>
+                  <label className="text-sm font-semibold">Telefon (optional)
+                    <input maxLength={40} type="tel" value={neuerBewohner.telefon} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, telefon: e.target.value })} className={feld} />
+                  </label>
+                </>
+              ) : (
+                <label className="text-sm font-semibold">Wohnbereich
+                  <input maxLength={60} value={neuerBewohner.wohnbereich} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, wohnbereich: e.target.value })} className={feld} />
+                </label>
+              )}
+              <label className={`text-sm font-semibold ${quartier ? 'sm:col-span-2' : 'sm:col-span-2'}`}>Hinweis (optional)
                 <input maxLength={200} value={neuerBewohner.hinweis} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, hinweis: e.target.value })} className={feld} placeholder="z. B. braucht eine Decke" />
               </label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={neuerBewohner.rollstuhl} onChange={(e) => setNeuerBewohner({ ...neuerBewohner, rollstuhl: e.target.checked })} /> ♿ Rollstuhl</label>
-              <button type="submit" className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold sm:col-span-1">+ Anlegen</button>
+              <button type="submit" className="bg-rikscha-green text-white rounded px-4 py-2 font-semibold">+ Anlegen</button>
             </form>
             <div className="divide-y">
               {bewohner.map((b) => bearbeiten?.id === b.id ? (
                 <form key={b.id} className="py-2 grid grid-cols-1 sm:grid-cols-4 gap-2 items-end" onSubmit={async (e) => {
                   e.preventDefault();
-                  if (await ausfuehren({ aktion: 'bewohner-aendern', ...bearbeiten }, 'Gespeichert.')) setBearbeiten(null);
+                  const { id, name, wohnbereich, adresse, telefon, hinweis, rollstuhl } = bearbeiten;
+                  if (await ausfuehren({ aktion: 'bewohner-aendern', id, name, wohnbereich, adresse, telefon, hinweis, rollstuhl }, 'Gespeichert.')) setBearbeiten(null);
                 }}>
                   <input required maxLength={80} aria-label="Name" value={bearbeiten.name} onChange={(e) => setBearbeiten({ ...bearbeiten, name: e.target.value })} className={feld} />
-                  <input maxLength={60} aria-label="Wohnbereich" value={bearbeiten.wohnbereich ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, wohnbereich: e.target.value })} className={feld} />
-                  <input maxLength={200} aria-label="Hinweis" value={bearbeiten.hinweis ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, hinweis: e.target.value })} className={`${feld} sm:col-span-2`} />
+                  {quartier ? (
+                    <>
+                      <input maxLength={160} aria-label="Adresse" placeholder="Adresse" value={bearbeiten.adresse ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, adresse: e.target.value })} className={feld} />
+                      <input maxLength={40} aria-label="Telefon" placeholder="Telefon" value={bearbeiten.telefon ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, telefon: e.target.value })} className={feld} />
+                    </>
+                  ) : (
+                    <input maxLength={60} aria-label="Wohnbereich" value={bearbeiten.wohnbereich ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, wohnbereich: e.target.value })} className={feld} />
+                  )}
+                  <input maxLength={200} aria-label="Hinweis" placeholder="Hinweis" value={bearbeiten.hinweis ?? ''} onChange={(e) => setBearbeiten({ ...bearbeiten, hinweis: e.target.value })} className={`${feld} ${quartier ? '' : 'sm:col-span-2'}`} />
                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={bearbeiten.rollstuhl} onChange={(e) => setBearbeiten({ ...bearbeiten, rollstuhl: e.target.checked })} /> ♿ Rollstuhl</label>
                   <div className="flex gap-2">
                     <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 font-semibold">Speichern</button>
@@ -392,8 +589,11 @@ export default function PflegeSeite() {
                 <div key={b.id} className={`py-2 flex flex-wrap items-center gap-2 ${b.aktiv ? '' : 'opacity-50'}`}>
                   <span className="font-medium">{b.name}</span>
                   {b.wohnbereich && <span className="text-sm text-gray-500">{b.wohnbereich}</span>}
+                  {b.adresse && <span className="text-sm text-gray-500">🏡 {b.adresse}</span>}
+                  {b.telefon && <span className="text-sm text-gray-500">📞 {b.telefon}</span>}
                   {b.rollstuhl && <span title="Rollstuhl">♿</span>}
                   {b.hinweis && <span className="text-sm text-gray-500 italic">„{b.hinweis}“</span>}
+                  {(b.adresse || b.telefon) && <span className="text-xs text-gray-400">Kontaktdaten bis {plusMonate(b.letzter_kontakt, daten.fristMonate)}</span>}
                   {!b.aktiv && <span className="text-xs bg-gray-100 rounded-full px-2">ausgeblendet</span>}
                   <span className="ml-auto flex gap-3 text-sm">
                     <button onClick={() => setBearbeiten(b)} className="text-blue-600 underline">Bearbeiten</button>
@@ -404,7 +604,7 @@ export default function PflegeSeite() {
                   </span>
                 </div>
               ))}
-              {bewohner.length === 0 && <p className="text-sm text-gray-400 py-2">Noch keine Bewohner eingetragen.</p>}
+              {bewohner.length === 0 && <p className="text-sm text-gray-400 py-2">Noch keine Fahrgäste eingetragen.</p>}
             </div>
           </section>
         </>

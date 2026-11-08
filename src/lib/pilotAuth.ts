@@ -25,15 +25,20 @@ export function zugangAusAnfrage(req: NextRequest): { name: string; password: st
 
 const FEHL_GRENZE = [{ max: 10, minuten: 15 }, { max: 30, minuten: 1440 }];
 
-/** Prüft die mitgesendeten Zugangsdaten und liefert Name und Rolle (oder null). Falsche Versuche zählen mit. */
-export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string; rolle: string | null }> {
+/** Prüft die mitgesendeten Zugangsdaten: Name, Rolle und Organisation (oder rolle null). Falsche Versuche zählen mit. */
+export async function anmeldungAusAnfrage(req: NextRequest): Promise<{ name: string; rolle: string | null; organisationId: string | null }> {
   const { name, password } = zugangAusAnfrage(req);
-  if (!name || !password) return { name, rolle: null };
+  if (!name || !password) return { name, rolle: null, organisationId: null };
   // Abgelaufene Tokens zählen nicht als Fehlversuch (sie sind nicht zu erraten)
   const token = istToken(password);
-  if (!token && await zuViele(req, 'login-fehler', FEHL_GRENZE)) return { name, rolle: null };
-  const rolle = await getPilotRolle(name, password);
-  if (!rolle && !token) await merke(req, 'login-fehler');
+  if (!token && await zuViele(req, 'login-fehler', FEHL_GRENZE)) return { name, rolle: null, organisationId: null };
+  const a = await anmelden(name, password);
+  if (!a && !token) await merke(req, 'login-fehler');
+  return { name, rolle: a?.rolle ?? null, organisationId: a?.organisationId ?? null };
+}
+
+export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string; rolle: string | null }> {
+  const { name, rolle } = await anmeldungAusAnfrage(req);
   return { name, rolle };
 }
 
@@ -42,7 +47,10 @@ export function darfFahrtenVerwalten(rolle: string | null) {
   return rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
 }
 
-/** Pflege, GFO und Admin pflegen Bewohner und buchen Bewohnerfahrten. */
+/**
+ * Vermittlung: Pflege, Quartiersbüro & Co. (Rolle 'pflege'), dazu GFO und Admin.
+ * Sie pflegen Fahrgäste ihrer Organisation und buchen Fahrten und Gruppenfahrten für sie.
+ */
 export function darfBewohnerVerwalten(rolle: string | null) {
   return rolle === 'pflege' || rolle === 'gfo' || rolle === 'admin';
 }

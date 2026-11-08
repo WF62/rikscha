@@ -101,6 +101,11 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
           <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate`}>{b.startzeit.slice(0,5)} offen</span>
         </div>
       )}
+      {b.gruppe && (
+        <div className="px-1 py-0.5 border-t border-white/60 bg-violet-100 text-violet-800">
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold truncate block`}>👥 {schmal ? 'Gruppe' : b.gruppe.titel}</span>
+        </div>
+      )}
       {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
         <div className="px-1 py-0.5 border-t border-white/60 bg-emerald-100 text-emerald-800">
           <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : '🏠 frei für Bewohner'}</span>
@@ -307,7 +312,8 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
         {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">FREI FÜR BEWOHNER</span>}
-        {(b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 BEWOHNERFAHRT</span>}
+        {b.gruppe && <span className="text-xs font-bold text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded">👥 GRUPPE: {b.gruppe.titel}</span>}
+        {!b.gruppe && (b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 VERMITTELTE FAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
       </div>
       {b.pilot ? (
@@ -332,7 +338,9 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {alle.length > 1 && <div className="font-semibold">🏠 {bw.name}</div>}
           {bw.wohnbereich && <div>Wohnbereich: <strong>{bw.wohnbereich}</strong></div>}
           {bw.rollstuhl && <div>♿ <strong>Rollstuhl</strong> – bitte passendes Fahrzeug nehmen</div>}
-          {bw.hinweis && <div>Hinweis der Pflege: {bw.hinweis}</div>}
+          {bw.adresse && <div>🏡 Adresse: <strong>{bw.adresse}</strong></div>}
+          {bw.telefon && <div>📞 Telefon: <a href={`tel:${bw.telefon.replace(/[^+\d]/g, '')}`} className="underline font-semibold">{bw.telefon}</a></div>}
+          {bw.hinweis && <div>Hinweis: {bw.hinweis}</div>}
         </div>
       ))}
       {b.fahrzeug ? (
