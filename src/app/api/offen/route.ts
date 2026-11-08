@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { mitFreienAbschnitten } from '@/lib/fenster-server';
 import { anmeldungAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten } from '@/lib/pilotAuth';
 
 /** Wie viele Tage im Voraus gewarnt wird (heute + 2 Tage) */
@@ -38,9 +39,11 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const kommend = (data ?? []).filter((b) => b.datum > tag || String(b.startzeit).slice(0, 5) >= zeit);
 
+  // Freie Fahrzeiten (Zeitfenster) mit noch freien Abschnitten
   const freieZeiten = vermittlung
-    ? kommend.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && !(b.gaeste ?? []).length)
-      .map((b) => ({ id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, pilot: b.pilot, fahrzeug: b.fahrzeug }))
+    ? (await mitFreienAbschnitten(kommend.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && !(b.gaeste ?? []).length)))
+      .filter((b) => b.frei.length > 0)
+      .map((b) => ({ id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, pilot: b.pilot, fahrzeug: b.fahrzeug, frei: b.frei, gebucht: b.gebucht }))
     : [];
 
   let ohne = kommend.filter((b) => !b.pilot && (b.bewohner_id || (b.gaeste ?? []).length));

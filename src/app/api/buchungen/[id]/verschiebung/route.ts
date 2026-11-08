@@ -43,7 +43,7 @@ async function laden(req: NextRequest, id: string) {
 async function fahrzeugFrei(b: Record<string, unknown> & { id: string; fahrzeug: string; datum: string; gaeste: string[]; bewohner_id: string | null; bewohner2_id: string | null }, start: string, ende: string) {
   if (!b.fahrzeug) return null;
   const rollstuhl = await rollstuhlNoetig([b.bewohner_id, b.bewohner2_id]);
-  const wahl = (await fahrzeugAuswahl(b.datum, start, ende, { anzahl: Math.max(1, (b.gaeste ?? []).length), rollstuhl, ausserId: b.id }))
+  const wahl = (await fahrzeugAuswahl(b.datum, start, ende, { anzahl: Math.max(1, (b.gaeste ?? []).length), rollstuhl, ausserId: b.id, fensterId: (b.angebot_id as string | null) ?? null }))
     .find((x) => x.id === b.fahrzeug);
   return wahl && !wahl.frei ? `${wahl.name} ist zu der Zeit nicht frei (${wahl.grund}).` : null;
 }

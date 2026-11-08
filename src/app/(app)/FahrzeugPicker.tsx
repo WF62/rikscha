@@ -7,14 +7,19 @@ import type { FahrzeugWahl } from '@/lib/stammdaten-server';
  * Fahrzeugauswahl für eine Fahrt: zeigt nur, was zu der Zeit frei ist und passt
  * (Plätze, Rollstuhl, Sperren, andere Fahrten). Wählt das erste freie Fahrzeug vor.
  */
-export default function FahrzeugPicker({ buchungId, personen, rollstuhl, wert, onChange }: {
+export default function FahrzeugPicker({ buchungId, personen, rollstuhl, wert, onChange, zeit }: {
   buchungId: string; personen: number; rollstuhl: boolean; wert: string; onChange: (id: string) => void;
+  /** Fahrt innerhalb eines Zeitfensters: diese Zeit prüfen statt der ganzen freien Fahrzeit */
+  zeit?: { datum: string; von: string; bis: string };
 }) {
   const [liste, setListe] = useState<FahrzeugWahl[] | null>(null);
   useEffect(() => {
     let aktiv = true;
     setListe(null);
-    fetch(`/api/fahrzeuge-frei?buchung=${encodeURIComponent(buchungId)}&personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`, { headers: authHeaders() })
+    const url = zeit
+      ? `/api/fahrzeuge-frei?datum=${zeit.datum}&von=${zeit.von}&bis=${zeit.bis}&fenster=${encodeURIComponent(buchungId)}`
+      : `/api/fahrzeuge-frei?buchung=${encodeURIComponent(buchungId)}`;
+    fetch(`${url}&personen=${personen}${rollstuhl ? '&rollstuhl=1' : ''}`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : []))
       .then((l: FahrzeugWahl[]) => {
         if (!aktiv) return;
@@ -25,7 +30,7 @@ export default function FahrzeugPicker({ buchungId, personen, rollstuhl, wert, o
       .catch(() => aktiv && setListe([]));
     return () => { aktiv = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buchungId, personen, rollstuhl]);
+  }, [buchungId, personen, rollstuhl, zeit?.datum, zeit?.von, zeit?.bis]);
 
   if (!liste) return <span className="text-sm text-gray-400 py-2">Fahrzeuge werden geprüft…</span>;
   const frei = liste.filter((x) => x.frei);

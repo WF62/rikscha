@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { mitFreienAbschnitten } from '@/lib/fenster-server';
 import { sendBuchungEmail } from '@/lib/email';
 import { rolleAusAnfrage, anmeldungAusAnfrage, darfFahrtenVerwalten, darfBewohnerVerwalten, istAdmin } from '@/lib/pilotAuth';
 import { aufraeumen, kontaktVermerken } from '@/lib/datenschutz-server';
@@ -97,6 +98,12 @@ export async function GET(req: NextRequest) {
       verschiebung_von: null, verschiebung_grund: null, verschiebung_ergebnis: null,
     };
   });
+  // Freie Fahrzeiten (Zeitfenster): noch freie Abschnitte anhängen
+  const fenster = liste.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && (data ?? []).some((x) => x.id === b.id && !(x.gaeste ?? []).length));
+  if (fenster.length) {
+    const mitFrei = new Map((await mitFreienAbschnitten(fenster)).map((f) => [f.id, f]));
+    for (const b of liste) { const f = mitFrei.get(b.id); if (f) Object.assign(b, { frei: f.frei, gebucht: f.gebucht }); }
+  }
   return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });
 }
 

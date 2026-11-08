@@ -39,6 +39,11 @@ export type Buchung = {
   oeffentlich?: boolean;
   /** Telefon des Gasts bei öffentlich gebuchter Zeit – nur für den Kutscher der Fahrt */
   kontakt_telefon?: string | null;
+  /** Gebucht innerhalb dieses Zeitfensters (freie Fahrzeit) */
+  angebot_id?: string | null;
+  /** Nur bei Zeitfenstern: noch freie Abschnitte und Zahl der Buchungen */
+  frei?: { von: string; bis: string }[];
+  gebucht?: number;
   /** Angefragte Verschiebung (wartet auf Bestätigung der anderen Seite) */
   verschiebung_start?: string | null;
   verschiebung_ende?: string | null;

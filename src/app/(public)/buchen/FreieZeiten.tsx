@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { Lockfeld, useFormularStart } from '@/lib/Lockfeld';
-import { ABHOLORTE, NACH_ABSPRACHE } from '@/lib/touren';
+import { ABHOLORTE, NACH_ABSPRACHE, zeitPlus, dauerText } from '@/lib/touren';
+import { startOptionen, abschnitteText } from '@/lib/fenster';
 
-type Zeit = { id: string; datum: string; startzeit: string; endzeit: string; kutscher: string; fahrzeug: string | null; plaetze: number };
+type Zeit = { id: string; datum: string; startzeit: string; endzeit: string; frei?: { von: string; bis: string }[]; kutscher: string; fahrzeug: string | null; plaetze: number };
+const DAUERN = [45, 60, 90, 120];
 
 const tag = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 const uhr = (z: Zeit) => `${z.startzeit.slice(0, 5)}–${z.endzeit.slice(0, 5)} Uhr`;
@@ -13,6 +15,8 @@ const uhr = (z: Zeit) => `${z.startzeit.slice(0, 5)}–${z.endzeit.slice(0, 5)} 
 export default function FreieZeiten() {
   const [zeiten, setZeiten] = useState<Zeit[] | null>(null);
   const [gewaehlt, setGewaehlt] = useState<Zeit | null>(null);
+  const [dauer, setDauer] = useState(60);
+  const [beginn, setBeginn] = useState('');
   const [form, setForm] = useState({ name: '', begleitung: '', telefon: '', abholort: ABHOLORTE[0] as string, notiz: '' });
   const [fehler, setFehler] = useState('');
   const [fertig, setFertig] = useState<{ datum: string; startzeit: string; endzeit: string; kutscher: string; fahrzeug: string; abholort: string } | null>(null);
@@ -40,25 +44,31 @@ export default function FreieZeiten() {
   return (
     <section className="bg-white rounded-xl shadow p-5 mb-6 border-2 border-emerald-200">
       <h3 className="text-lg font-bold text-rikscha-green">🌿 Freie Fahrzeiten – einfach mitfahren</h3>
-      <p className="text-sm text-gray-600 mb-3">Diese Zeiten haben Kutscherinnen und Kutscher für Interessierte aus dem Quartier freigehalten. Zeit antippen, Namen und Telefon eintragen – fertig.</p>
+      <p className="text-sm text-gray-600 mb-3">Diese Zeiten haben Kutscherinnen und Kutscher für Interessierte aus dem Quartier freigehalten. Zeit antippen, Beginn und Dauer wählen, Namen und Telefon eintragen – fertig. Die übrige Zeit bleibt für andere frei.</p>
       <div className="space-y-2">
         {zeiten.map((z) => (
-          <button key={z.id} type="button" onClick={() => { setGewaehlt(z); setFehler(''); }}
+          <button key={z.id} type="button" onClick={() => { setGewaehlt(z); setFehler(''); setBeginn(''); }}
             className={`w-full text-left border-2 rounded-lg p-3 ${gewaehlt?.id === z.id ? 'border-rikscha-green bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}>
-            <span className="font-semibold">{tag(z.datum)}, {uhr(z)}</span>
+            <span className="font-semibold">{tag(z.datum)}, {z.frei?.length ? `frei: ${abschnitteText(z.frei)} Uhr` : uhr(z)}</span>
             <span className="block text-sm text-gray-600">mit {z.kutscher}{z.fahrzeug ? ` · ${z.fahrzeug}` : ''} · bis {z.plaetze} {z.plaetze > 1 ? 'Personen' : 'Person'}</span>
           </button>
         ))}
       </div>
 
-      {gewaehlt && (
+      {gewaehlt && (() => {
+        const abschnitte = gewaehlt.frei?.length ? gewaehlt.frei : [{ von: gewaehlt.startzeit.slice(0, 5), bis: gewaehlt.endzeit.slice(0, 5) }];
+        const moeglich = DAUERN.filter((d) => startOptionen(abschnitte, d).length > 0);
+        const d = moeglich.includes(dauer) ? dauer : moeglich[moeglich.length - 1] ?? 60;
+        const starts = startOptionen(abschnitte, d);
+        const s = starts.includes(beginn) ? beginn : starts[0] ?? '';
+        return (
         <form className="mt-4 space-y-3 relative" onSubmit={async (e) => {
           e.preventDefault();
           setSenden(true); setFehler('');
           try {
             const r = await fetch('/api/freie-zeiten', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ buchung_id: gewaehlt.id, ...form, begleitung: gewaehlt.plaetze > 1 ? form.begleitung : '', website: lockfeld, _t: start }),
+              body: JSON.stringify({ buchung_id: gewaehlt.id, startzeit: s, dauer: d, ...form, begleitung: gewaehlt.plaetze > 1 ? form.begleitung : '', website: lockfeld, _t: start }),
             });
             const j = await r.json().catch(() => ({}));
             if (r.ok && j.datum) setFertig(j);
@@ -68,7 +78,19 @@ export default function FreieZeiten() {
           setSenden(false);
         }}>
           <Lockfeld wert={lockfeld} onChange={setLockfeld} />
-          <p className="text-sm font-semibold text-gray-700">Deine Fahrt am {tag(gewaehlt.datum)}, {uhr(gewaehlt)}</p>
+          <p className="text-sm font-semibold text-gray-700">Deine Fahrt am {tag(gewaehlt.datum)}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block text-sm font-semibold">Wie lange?
+              <select value={d} onChange={(e) => setDauer(Number(e.target.value))} className="w-full border rounded px-3 py-2">
+                {moeglich.map((x) => <option key={x} value={x}>{dauerText(x)}</option>)}
+              </select>
+            </label>
+            <label className="block text-sm font-semibold">Ab wann?
+              <select value={s} onChange={(e) => setBeginn(e.target.value)} className="w-full border rounded px-3 py-2">
+                {starts.map((x) => <option key={x} value={x}>{x}–{zeitPlus(x, d)} Uhr</option>)}
+              </select>
+            </label>
+          </div>
           <label className="block text-sm font-semibold">Dein Name
             <input required maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border rounded px-3 py-2" />
           </label>
@@ -92,7 +114,8 @@ export default function FreieZeiten() {
             {senden ? 'Wird gebucht…' : 'Mitfahren'}
           </button>
         </form>
-      )}
+        );
+      })()}
     </section>
   );
 }

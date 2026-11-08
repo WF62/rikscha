@@ -9,7 +9,7 @@ import VerschiebenAnfrage from './VerschiebenAnfrage';
  * freie Fahrzeiten ohne Gast und angemeldete Fahrten ohne Kutscher.
  * Zeigt nichts, wenn nichts offen ist oder niemand angemeldet ist.
  */
-type Frei = { id: string; datum: string; startzeit: string; endzeit: string; pilot: string };
+type Frei = { id: string; datum: string; startzeit: string; endzeit: string; pilot: string; frei?: { von: string; bis: string }[]; gebucht?: number };
 type Ohne = { id: string; datum: string; startzeit: string; endzeit: string; wunschfahrt: string | null; gaeste: string[]; personen: number };
 type Daten = { heute: string; freieZeiten: Frei[]; ohneKutscher: Ohne[]; anfragen?: Buchung[]; ergebnisse?: { id: string; datum: string; text: string }[]; rolle: string };
 
@@ -63,10 +63,10 @@ export default function OffenHinweis() {
 
       {d.freieZeiten.length > 0 && (
         <div style={{ marginBottom: '0.4rem' }}>
-          <div style={{ fontWeight: 600 }}>Freie Fahrzeiten – noch kein Gast:</div>
+          <div style={{ fontWeight: 600 }}>Freie Fahrzeiten – noch Platz für Gäste:</div>
           {d.freieZeiten.map((f) => (
             <div key={f.id} style={zeile}>
-              <span>{tagText(f.datum, d.heute)} · {hhmm(f.startzeit)}–{hhmm(f.endzeit)} Uhr · {f.pilot}</span>
+              <span>{tagText(f.datum, d.heute)} · {f.pilot} · {f.gebucht ? `noch frei: ${(f.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ')} Uhr` : `${hhmm(f.startzeit)}–${hhmm(f.endzeit)} Uhr`}</span>
               {vermittlung && <a href={`/pflege/schnell?datum=${f.datum}&frei=${f.id}`} style={link}>Gast eintragen →</a>}
             </div>
           ))}

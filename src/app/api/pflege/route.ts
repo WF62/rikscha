@@ -1,5 +1,8 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+import { mitFreienAbschnitten } from '@/lib/fenster-server';
+import { passtInFenster, abschnitteText } from '@/lib/fenster';
+import { tourMinuten, zeitPlus } from '@/lib/touren';
 import { createServiceClient } from '@/lib/supabase';
 import { anmeldungAusAnfrage, darfBewohnerVerwalten } from '@/lib/pilotAuth';
 import { ladeStammdaten, fahrzeugFehler, fahrzeugAuswahl } from '@/lib/stammdaten-server';
@@ -88,6 +91,10 @@ export async function GET(req: NextRequest) {
     };
   }).filter((v) => v.fahrzeuge.length).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 
+  // Freie Fahrzeiten = Zeitfenster: mit noch freien Abschnitten, ausgebuchte weglassen
+  const angebote = (await mitFreienAbschnitten(liste.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0)))
+    .filter((b) => b.frei.length > 0);
+
   return NextResponse.json({
     organisationen: (orgs.data ?? []).filter((o) => k.alle || o.id === k.orgId),
     eigeneOrganisation: k.orgId,
@@ -99,7 +106,7 @@ export async function GET(req: NextRequest) {
     kreise: (kr.data ?? []).filter((x) => zustaendig(k, x.organisation_id)),
     mitglieder: (mit.data ?? []).filter((m) => ids.has(m.bewohner_id)),
     // Freie Fahrzeiten: für alle Organisationen gleich sichtbar
-    angebote: liste.filter((b) => b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0),
+    angebote,
     fahrten: liste.filter((b) => !b.gruppe_id && (ids.has(b.bewohner_id) || ids.has(b.bewohner2_id))),
     vorlagen,
     gruppen: meineGruppen
@@ -378,22 +385,47 @@ export async function POST(req: NextRequest) {
     if (zweit.fehler) return fehler(zweit.fehler);
     const personen = zweit.person ? [p1, zweit.person] : [p1];
     const gaeste = [p1.name, ...(zweit.person ? [zweit.person.name] : zweit.begleitung ? [zweit.begleitung] : [])];
+
+    // Freie Fahrzeit = Zeitfenster: Die Fahrt bekommt ihre eigene Zeit darin, der Rest bleibt frei
+    const [fenster] = await mitFreienAbschnitten([b]);
+    if (!fenster.frei.length) return fehler('Diese freie Fahrzeit ist schon ausgebucht.', 409);
+    let startzeit = ZEIT.test(String(body.startzeit ?? '')) ? String(body.startzeit).slice(0, 5) : '';
+    let endzeit = ZEIT.test(String(body.endzeit ?? '')) ? String(body.endzeit).slice(0, 5) : '';
+    if (!startzeit || !endzeit) {
+      // Ohne Angabe: Anfang des ersten freien Abschnitts, Dauer der Tour (sonst 1 Std.)
+      const a = fenster.frei[0];
+      const dauer = tourMinuten(wunschfahrt) ?? 60;
+      startzeit = a.von;
+      endzeit = zeitPlus(a.von, dauer) ?? a.bis;
+      if (endzeit > a.bis) endzeit = a.bis;
+    }
+    if (!passtInFenster(fenster.frei, startzeit, endzeit)) {
+      return fehler(`Diese Zeit passt nicht mehr in die freie Fahrzeit. Noch frei: ${abschnitteText(fenster.frei)} Uhr.`, 409);
+    }
     // Spätestens jetzt (Kutscher + Gast stehen fest) muss das Fahrzeug feststehen
     const fahrzeug = String(b.fahrzeug || body.fahrzeug || '');
     if (!fahrzeug) return fehler('Bitte ein Fahrzeug wählen – Kutscher und Gast stehen jetzt fest.');
-    const wahl = (await fahrzeugAuswahl(b.datum, b.startzeit, b.endzeit, {
-      anzahl: gaeste.length, rollstuhl: personen.some((x) => x.rollstuhl), ausserId: b.id,
+    const wahl = (await fahrzeugAuswahl(b.datum, startzeit, endzeit, {
+      anzahl: gaeste.length, rollstuhl: personen.some((x) => x.rollstuhl), fensterId: b.id,
     })).find((x) => x.id === fahrzeug);
     if (!wahl) return fehler('Dieses Fahrzeug gibt es nicht.');
     if (!wahl.frei) return fehler(`${wahl.name} geht hier nicht: ${wahl.grund}.`, 409);
     const abholort = await abholortFuer(p1);
     if (!abholort) return fehler('Bitte einen Abholort angeben.');
-    // Nur belegen, wenn noch frei (gleichzeitiges Belegen verhindern)
-    const { data: neu, error } = await sb.from('rikscha_buchungen')
-      .update({ bewohner_id: p1.id, bewohner2_id: zweit.person?.id ?? null, fahrzeug, gaeste, abholort, wunschfahrt, notiz: text(body.notiz, 500) ?? b.notiz })
-      .eq('id', b.id).is('bewohner_id', null).select().maybeSingle();
-    if (error) return fehler(error.message, 500);
-    if (!neu) return fehler('Diese Fahrzeit wurde gerade vergeben.', 409);
+    const { data: neu, error } = await sb.from('rikscha_buchungen').insert({
+      pilot: b.pilot, fahrzeug, gaeste, datum: b.datum, startzeit, endzeit, abholort, wunschfahrt,
+      notiz: text(body.notiz, 500), bewohner_id: p1.id, bewohner2_id: zweit.person?.id ?? null, angebot_id: b.id,
+    }).select().single();
+    if (error) {
+      return fehler(error.message.includes('angebot_id') ? 'Datenbank noch nicht vorbereitet: bitte supabase/zeitfenster.sql ausführen.' : error.message, 500);
+    }
+    // Gleichzeitig gebucht? Dann die spätere Buchung wieder entfernen
+    const { data: doppelt } = await sb.from('rikscha_buchungen').select('id').eq('angebot_id', b.id).eq('storniert', false)
+      .neq('id', neu.id).lt('startzeit', endzeit).gt('endzeit', startzeit);
+    if (doppelt?.length) {
+      await sb.from('rikscha_buchungen').delete().eq('id', neu.id);
+      return fehler('Diese Zeit wurde gerade vergeben. Bitte neu laden und eine andere wählen.', 409);
+    }
     await kontaktVermerken(personen.map((x) => x.id), b.datum);
     return NextResponse.json(neu);
   }
