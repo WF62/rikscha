@@ -34,8 +34,9 @@ const ZEITZONE = [
   'END:VTIMEZONE',
 ];
 
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { token: string } }) {
   const token = String(params.token ?? '').replace(/\.ics$/, '');
+  const anmeldeLink = `${new URL(req.url).origin}/pflege/schnell`;
   if (!/^[a-f0-9]{32,80}$/.test(token)) return new NextResponse('Nicht gefunden', { status: 404 });
   const sb = createServiceClient();
   const { data: bereich } = await sb.from('rikscha_bereiche').select('*').eq('kalender_token', token).maybeSingle();
@@ -99,6 +100,7 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
     }
     if (b.storniert) zeilen.unshift('⚠ Diese Fahrt wurde ABGESAGT.', '');
     if (kontakt) { zeilen.push(''); zeilen.push(`Rückfragen: ${kontakt}`); }
+    zeilen.push('', `Weitere Rikscha-Fahrt anmelden: ${anmeldeLink}?bereich=${bereich.id}`);
 
     const titel = `${b.storniert ? 'ABGESAGT: ' : ''}🚲 Rikscha: ${namen || 'Fahrgast'}${b.pilot ? '' : ' (Kutscher offen)'}`;
     return [
