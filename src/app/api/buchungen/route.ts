@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   const pflege = darfBewohnerVerwalten(rolle);
 
   // Bewohner-Angaben nur für Kutscher und Pflege
-  const bewohnerIds = Array.from(new Set((data ?? []).map((b) => b.bewohner_id).filter(Boolean))) as string[];
+  const bewohnerIds = Array.from(new Set((data ?? []).flatMap((b) => [b.bewohner_id, b.bewohner2_id]).filter(Boolean))) as string[];
   const bewohner = new Map<string, unknown>();
   if ((voll || pflege) && bewohnerIds.length) {
     const { data: bw } = await sb.from('rikscha_bewohner').select('id, name, wohnbereich, rollstuhl, hinweis').in('id', bewohnerIds);
@@ -43,11 +43,15 @@ export async function GET(req: NextRequest) {
 
   let gekuerzt = false;
   const liste = (data ?? []).map((b) => {
-    if (voll || (pflege && b.bewohner_id) || (rolle === 'angehoeriger' && b.pilot === name)) {
-      return { ...b, bewohner: b.bewohner_id ? bewohner.get(b.bewohner_id) ?? null : null };
+    if (voll || (pflege && (b.bewohner_id || b.bewohner2_id)) || (rolle === 'angehoeriger' && b.pilot === name)) {
+      return {
+        ...b,
+        bewohner: b.bewohner_id ? bewohner.get(b.bewohner_id) ?? null : null,
+        bewohner2: b.bewohner2_id ? bewohner.get(b.bewohner2_id) ?? null : null,
+      };
     }
     gekuerzt = true;
-    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null };
+    return { ...b, gaeste: (b.gaeste ?? []).map(() => 'Gast'), notiz: null, bewohner_id: null, bewohner2_id: null, wunschfahrt: null };
   });
   return NextResponse.json(liste, { headers: gekuerzt ? { 'x-rikscha-anonym': '1' } : {} });
 }
