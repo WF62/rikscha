@@ -75,6 +75,7 @@ function Anmeldung({ onOk }: { onOk: () => void }) {
 export default function SchnellAnmelden() {
   const { fahrzeuge, fahrzeugById } = useStammdaten();
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
+  const [wer, setWer] = useState<{ name: string; rolle: string }>({ name: '', rolle: '' });
   const [daten, setDaten] = useState<Daten | null>(null);
   const [fehler, setFehler] = useState('');
   const [bereichId, setBereichId] = useState('');
@@ -99,6 +100,7 @@ export default function SchnellAnmelden() {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setFehler(j.error ?? 'Laden hat nicht geklappt.'); return; }
     setDaten(j); setZugang('ok');
+    setWer({ name: localStorage.getItem('pilot_name') ?? '', rolle: localStorage.getItem('pilot_rolle') ?? '' });
   }, []);
 
   useEffect(() => {
@@ -213,6 +215,18 @@ export default function SchnellAnmelden() {
       <div>
         <h2 className="text-2xl font-bold text-rikscha-green">🚲 Rikscha anmelden</h2>
         <p className="text-gray-600">{bereich ? <>Für <strong>{bereichPfad(bereiche, bereich.id)}</strong>. </> : null}In drei Schritten fertig.</p>
+      </div>
+
+      <div className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${wer.rolle === 'pflege' ? 'bg-sky-50 border-sky-200' : 'bg-amber-50 border-amber-300'}`}>
+        <span className="flex-1">
+          Angemeldet als <strong>{wer.name}</strong>{' – '}
+          {wer.rolle === 'gfo' ? 'GFO, sieht alle Einrichtungen' : wer.rolle === 'admin' ? 'Admin, sieht alle Einrichtungen' : `Vermittlung${orgName(daten.eigeneOrganisation) ? ` ${orgName(daten.eigeneOrganisation)}` : ''}, sieht nur die eigenen Gäste`}
+        </span>
+        <button type="button" onClick={() => {
+          ['pilot_name', 'pilot_pw', 'pilot_rolle'].forEach((k) => localStorage.removeItem(k));
+          window.dispatchEvent(new CustomEvent('pilot-logout'));
+          setDaten(null); setGast(''); setGast2(''); setFreiId(''); setOrgId(''); setZugang('nein');
+        }} className="underline font-semibold text-gray-700">Zugang wechseln</button>
       </div>
 
       {daten.alle && !bereich && daten.organisationen.length > 1 && (
