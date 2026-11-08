@@ -9,6 +9,7 @@ const LEER: Entwurf = { name: '', art: 'quartier', standard_abholort: '', anspre
 async function senden(method: 'POST' | 'PATCH', body: Record<string, unknown>) {
   const r = await fetch('/api/admin/organisationen', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (r.ok) return null;
+  if (r.status === 401) return 'Die Anmeldung ist abgelaufen. Bitte die Seite neu laden und im Admin-Bereich neu anmelden.';
   const j = await r.json().catch(() => ({}));
   return (j.error as string) ?? 'Fehler beim Speichern.';
 }
@@ -20,6 +21,8 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
   const [neu, setNeu] = useState<Entwurf>(LEER);
   const [bearbeiten, setBearbeiten] = useState<(Entwurf & { id: string }) | null>(null);
   const [meldung, setMeldung] = useState('');
+  const [fehlerNeu, setFehlerNeu] = useState('');
+  const [fehlerEdit, setFehlerEdit] = useState('');
   const zeige = (t: string) => { setMeldung(t); setTimeout(() => setMeldung(''), 3500); };
   const feld = 'border rounded px-2 py-1.5 text-sm';
 
@@ -36,7 +39,7 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
       <form className="flex flex-wrap gap-2 items-end mb-4" onSubmit={async (e) => {
         e.preventDefault();
         const f = await senden('POST', neu);
-        if (f) zeige('Fehler: ' + f); else { zeige(`${neu.name} wurde angelegt.`); setNeu(LEER); neuLaden(); }
+        if (f) setFehlerNeu(f); else { setFehlerNeu(''); zeige(`${neu.name} wurde angelegt.`); setNeu(LEER); neuLaden(); }
       }}>
         <input required maxLength={80} placeholder="Name, z. B. Quartiersbüro Merten" value={neu.name} onChange={(e) => setNeu({ ...neu, name: e.target.value })} className={`${feld} flex-1 min-w-[180px]`} />
         <select value={neu.art} onChange={(e) => setNeu({ ...neu, art: e.target.value as Entwurf['art'] })} className={feld} aria-label="Art">
@@ -45,28 +48,30 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
         </select>
         <input maxLength={120} placeholder="Standard-Abholort (optional)" value={neu.standard_abholort} onChange={(e) => setNeu({ ...neu, standard_abholort: e.target.value })} className={`${feld} flex-1 min-w-[160px]`} />
         <input maxLength={80} placeholder="Ansprechperson" value={neu.ansprechperson} onChange={(e) => setNeu({ ...neu, ansprechperson: e.target.value })} className={`${feld} flex-1 min-w-[140px]`} />
-        <input maxLength={40} type="tel" placeholder="Telefon" value={neu.telefon} onChange={(e) => setNeu({ ...neu, telefon: e.target.value })} className={`${feld} w-36`} />
-        <input maxLength={120} type="email" placeholder="E-Mail" value={neu.email} onChange={(e) => setNeu({ ...neu, email: e.target.value })} className={`${feld} flex-1 min-w-[160px]`} />
+        <input maxLength={40} type="tel" autoComplete="off" placeholder="Telefon" value={neu.telefon} onChange={(e) => setNeu({ ...neu, telefon: e.target.value })} className={`${feld} w-36`} />
+        <input maxLength={120} type="text" inputMode="email" autoComplete="off" placeholder="E-Mail" value={neu.email} onChange={(e) => setNeu({ ...neu, email: e.target.value })} className={`${feld} flex-1 min-w-[160px]`} />
         <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 text-sm font-semibold">+ Anlegen</button>
+        {fehlerNeu && <p role="alert" className="w-full text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">⚠ {fehlerNeu}</p>}
       </form>
       <div className="divide-y">
         {liste.map((o) => bearbeiten?.id === o.id ? (
           <form key={o.id} className="py-2 flex flex-wrap gap-2 items-center" onSubmit={async (e) => {
             e.preventDefault();
             const f = await senden('PATCH', bearbeiten);
-            if (f) zeige('Fehler: ' + f); else { zeige('Gespeichert.'); setBearbeiten(null); neuLaden(); }
+            if (f) setFehlerEdit(f); else { setFehlerEdit(''); zeige('Gespeichert.'); setBearbeiten(null); neuLaden(); }
           }}>
-            <input required maxLength={80} aria-label="Name" value={bearbeiten.name} onChange={(e) => setBearbeiten({ ...bearbeiten, name: e.target.value })} className={`${feld} flex-1`} />
-            <select aria-label="Art" value={bearbeiten.art} onChange={(e) => setBearbeiten({ ...bearbeiten, art: e.target.value as Entwurf['art'] })} className={feld}>
+            <input required maxLength={80} aria-label="Name" value={bearbeiten.name} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, name: e.target.value }); }} className={`${feld} flex-1`} />
+            <select aria-label="Art" value={bearbeiten.art} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, art: e.target.value as Entwurf['art'] }); }} className={feld}>
               <option value="quartier">Quartier</option>
               <option value="einrichtung">Einrichtung</option>
             </select>
-            <input maxLength={120} aria-label="Standard-Abholort" placeholder="Standard-Abholort" value={bearbeiten.standard_abholort} onChange={(e) => setBearbeiten({ ...bearbeiten, standard_abholort: e.target.value })} className={`${feld} flex-1`} />
-            <input maxLength={80} aria-label="Ansprechperson" placeholder="Ansprechperson" value={bearbeiten.ansprechperson} onChange={(e) => setBearbeiten({ ...bearbeiten, ansprechperson: e.target.value })} className={`${feld} flex-1`} />
-            <input maxLength={40} type="tel" aria-label="Telefon" placeholder="Telefon" value={bearbeiten.telefon} onChange={(e) => setBearbeiten({ ...bearbeiten, telefon: e.target.value })} className={`${feld} w-36`} />
-            <input maxLength={120} type="email" aria-label="E-Mail" placeholder="E-Mail" value={bearbeiten.email} onChange={(e) => setBearbeiten({ ...bearbeiten, email: e.target.value })} className={`${feld} flex-1`} />
+            <input maxLength={120} aria-label="Standard-Abholort" placeholder="Standard-Abholort" value={bearbeiten.standard_abholort} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, standard_abholort: e.target.value }); }} className={`${feld} flex-1`} />
+            <input maxLength={80} aria-label="Ansprechperson" placeholder="Ansprechperson" value={bearbeiten.ansprechperson} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, ansprechperson: e.target.value }); }} className={`${feld} flex-1`} />
+            <input maxLength={40} type="tel" autoComplete="off" aria-label="Telefon" placeholder="Telefon" value={bearbeiten.telefon} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, telefon: e.target.value }); }} className={`${feld} w-36`} />
+            <input maxLength={120} type="text" inputMode="email" autoComplete="off" aria-label="E-Mail" placeholder="E-Mail" value={bearbeiten.email} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, email: e.target.value }); }} className={`${feld} flex-1`} />
             <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 text-sm font-semibold">Speichern</button>
-            <button type="button" onClick={() => setBearbeiten(null)} className="text-sm text-gray-500">Abbrechen</button>
+            <button type="button" onClick={() => { setBearbeiten(null); setFehlerEdit(''); }} className="text-sm text-gray-500">Abbrechen</button>
+            {fehlerEdit && <p role="alert" className="w-full text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">⚠ Nicht gespeichert: {fehlerEdit}</p>}
           </form>
         ) : (
           <div key={o.id} className={`py-2 flex flex-wrap items-center gap-2 ${o.aktiv ? '' : 'opacity-50'}`}>
