@@ -298,6 +298,10 @@ export default function PflegeSeite() {
           <a href="/kalender" className="text-sm text-rikscha-green underline">Zum Kalender</a>
         </span>
       </div>
+      <a href="/pflege/schnell" className="flex items-center justify-between gap-3 bg-rikscha-green text-white rounded-xl shadow px-5 py-4 hover:opacity-90">
+        <span><span className="block text-lg font-bold">🚲 Rikscha schnell anmelden</span><span className="text-sm opacity-90">Wer? Wann? Wohin? – fertig in drei Schritten</span></span>
+        <span className="text-2xl" aria-hidden>→</span>
+      </a>
 
       {org && (
         <div className="bg-white rounded-xl shadow px-5 py-3 text-sm">
@@ -845,6 +849,11 @@ export default function PflegeSeite() {
                   <span className="ml-auto flex flex-wrap gap-3 text-sm">
                     <button className="text-emerald-700 underline" onClick={() => setNeuerBereich({ eltern: x.id, name: '' })}>+ Unterbereich</button>
                     <a href={`/pflege/wochenplan?bereich=${x.id}`} target="_blank" className="text-emerald-700 underline">🗓️ Wochenplan</a>
+                    <button className="text-emerald-700 underline" onClick={async () => {
+                      const url = `${location.origin}/pflege/schnell?bereich=${x.id}`;
+                      try { await navigator.clipboard.writeText(url); zeige(`Anmelde-Link für „${x.name}“ kopiert. Als Lesezeichen, im Intranet oder im Dienstplan ablegen – damit melden Pflegekräfte eine Fahrt in drei Schritten an.`); }
+                      catch { prompt('Anmelde-Link:', url); }
+                    }}>🚲 Anmelde-Link</button>
                     {x.kalender_token && (
                       <button className="text-emerald-700 underline" onClick={async () => {
                         const url = `${location.origin}/api/ical/bereich/${x.kalender_token}.ics`;
