@@ -495,7 +495,8 @@ export default function PilotenModal() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {[
-                { href: '/pflege',   icon: '🏠', titel: 'Fahrten vermitteln', sub: 'Fahrgäste, Wünsche, Gruppen', border: '#2D6B1E' },
+                { href: '/pflege/schnell', icon: '🚲', titel: 'Rikscha anmelden', sub: 'Schnell: Wer? Wann? Wohin?', border: '#2D6B1E' },
+                { href: '/pflege',   icon: '🏠', titel: 'Fahrten vermitteln', sub: 'Fahrgäste, Wünsche, Gruppen', border: '#D6CCB8' },
                 { href: '/kalender', icon: '📅', titel: 'Kalender',        sub: 'Alle Termine ansehen',            border: '#D6CCB8' },
               ].map(k => (
                 <a key={k.href} href={k.href} target="_blank"
@@ -529,6 +530,9 @@ export default function PilotenModal() {
                 { href: '#fotos',      icon: '🖼️', titel: 'Fotos & Galerie',   sub: 'Galerie, Fahrzeug & Mein Foto',    border: '#D6CCB8' },
                 { href: '#ordner',     icon: '🗂️', titel: 'Mein Ordner',        sub: 'Führungszeugnis, Vertrag & mehr',  border: '#D6CCB8' },
                 { href: '#ablage',     icon: '📂', titel: 'Ablage',             sub: 'Ordner, Dateien & Dokumente',      border: '#D6CCB8' },
+                ...(pilotRolle === 'admin' || pilotRolle === 'gfo' ? [
+                  { href: '/pflege',   icon: '🏠', titel: 'Fahrten vermitteln', sub: 'Fahrgäste, Etagen, Gruppen',      border: '#2D6B1E' },
+                ] : []),
                 { href: '/admin',      icon: '⚙️', titel: 'Verwaltung',         sub: 'Kutscher & Einstellungen',         border: '#D6CCB8' },
                 { href: '/anleitung',  icon: '📖', titel: 'Kutscher-Anleitung', sub: 'Hilfe & Schritt-für-Schritt',      border: '#D6CCB8' },
               ].map(k => (
