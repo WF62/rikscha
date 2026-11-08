@@ -357,6 +357,14 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {b.abholort && (
         <div className="px-3 py-2 border-t border-sky-200 bg-sky-50 text-sm text-sky-900">📍 Abholort: <strong>{b.abholort}</strong></div>
       )}
+      {b.vermittlung && (
+        <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 text-sm text-gray-800">
+          🤝 Vermittelt von <strong>{b.vermittlung.name}</strong>
+          {b.vermittlung.ansprechperson && <> · {b.vermittlung.ansprechperson}</>}
+          {b.vermittlung.telefon && <> · 📞 <a href={`tel:${b.vermittlung.telefon.replace(/[^+\d]/g, '')}`} className="underline">{b.vermittlung.telefon}</a></>}
+          {b.vermittlung.email && <> · ✉️ <a href={`mailto:${b.vermittlung.email}`} className="underline">{b.vermittlung.email}</a></>}
+        </div>
+      )}
       {b.wunschfahrt && (
         <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm text-emerald-900">🗺️ Wunschfahrt: <strong>{b.wunschfahrt}</strong></div>
       )}

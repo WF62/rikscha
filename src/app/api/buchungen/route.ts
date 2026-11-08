@@ -43,16 +43,20 @@ export async function GET(req: NextRequest) {
   const fahrgaeste = new Map<string, Fahrgast>();
   const gruppen = new Map<string, { titel: string; organisation_id: string | null }>();
   let standardOrte = new Set<string>();
+  const stellen = new Map<string, { name: string; ansprechperson: string | null; telefon: string | null; email: string | null }>();
   if (voll || vermittlung) {
     const gIds = Array.from(new Set((data ?? []).map((b) => b.gruppe_id).filter(Boolean))) as string[];
     const [bw, gr, orgs] = await Promise.all([
       ids.length ? sb.from('rikscha_bewohner').select('*').in('id', ids) : Promise.resolve({ data: [] as Record<string, never>[] }),
       gIds.length ? sb.from('rikscha_gruppen').select('id, titel, organisation_id').in('id', gIds) : Promise.resolve({ data: [] as Record<string, never>[] }),
-      sb.from('rikscha_organisationen').select('standard_abholort'),
+      sb.from('rikscha_organisationen').select('*'),
     ]);
     for (const x of (bw.data ?? []) as (Fahrgast & { id: string })[]) fahrgaeste.set(x.id, x);
     for (const x of (gr.data ?? []) as { id: string; titel: string; organisation_id: string | null }[]) gruppen.set(x.id, x);
     standardOrte = new Set(((orgs.data ?? []) as { standard_abholort: string | null }[]).map((o) => o.standard_abholort).filter(Boolean) as string[]);
+    for (const o of (orgs.data ?? []) as { id: string; name: string; ansprechperson?: string | null; telefon?: string | null; email?: string | null }[]) {
+      stellen.set(o.id, { name: o.name, ansprechperson: o.ansprechperson ?? null, telefon: o.telefon ?? null, email: o.email ?? null });
+    }
   }
 
   let gekuerzt = false;
@@ -70,7 +74,9 @@ export async function GET(req: NextRequest) {
       } : null;
       const oeffentlich = !b.abholort || standardOrte.has(b.abholort) || (ABHOLORTE as readonly string[]).includes(b.abholort) || b.abholort === NACH_ABSPRACHE;
       const abholort = nah || oeffentlich ? b.abholort : 'Im Quartier – sichtbar nach Übernahme';
-      return { ...b, abholort, bewohner: angaben(leute[0]), bewohner2: angaben(leute[1]), gruppe: gruppe ? { titel: gruppe.titel } : null };
+      const orgId = gruppe?.organisation_id ?? leute.find((x) => x?.organisation_id)?.organisation_id ?? null;
+      const vermittlung = orgId && (voll || eigeneOrg) ? stellen.get(orgId) ?? null : null;
+      return { ...b, abholort, bewohner: angaben(leute[0]), bewohner2: angaben(leute[1]), gruppe: gruppe ? { titel: gruppe.titel } : null, vermittlung };
     }
     gekuerzt = true;
     return {

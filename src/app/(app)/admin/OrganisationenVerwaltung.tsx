@@ -3,8 +3,8 @@
 import type { Organisation } from '@/lib/supabase';
 import { useState } from 'react';
 
-type Entwurf = { name: string; art: 'einrichtung' | 'quartier'; standard_abholort: string };
-const LEER: Entwurf = { name: '', art: 'quartier', standard_abholort: '' };
+type Entwurf = { name: string; art: 'einrichtung' | 'quartier'; standard_abholort: string; ansprechperson: string; telefon: string; email: string };
+const LEER: Entwurf = { name: '', art: 'quartier', standard_abholort: '', ansprechperson: '', telefon: '', email: '' };
 
 async function senden(method: 'POST' | 'PATCH', body: Record<string, unknown>) {
   const r = await fetch('/api/admin/organisationen', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -29,6 +29,7 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
       <p className="text-xs text-gray-500 mb-3">
         Stellen, die Fahrten für andere organisieren. Jede sieht nur ihre eigenen Fahrgäste. „Einrichtung“: Bewohner mit Wohnbereich.
         „Quartier“: Fahrgäste mit Adresse und Telefon (werden automatisch nach der Frist gelöscht).
+        Ansprechperson, Telefon und E-Mail sehen die Kutscher bei jeder vermittelten Fahrt – für Rückfragen und kurzfristige Absagen.
       </p>
       {fehler && <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2 mb-3">{fehler}</p>}
       {meldung && <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded px-3 py-2 mb-3">{meldung}</p>}
@@ -43,6 +44,9 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
           <option value="einrichtung">Einrichtung</option>
         </select>
         <input maxLength={120} placeholder="Standard-Abholort (optional)" value={neu.standard_abholort} onChange={(e) => setNeu({ ...neu, standard_abholort: e.target.value })} className={`${feld} flex-1 min-w-[160px]`} />
+        <input maxLength={80} placeholder="Ansprechperson" value={neu.ansprechperson} onChange={(e) => setNeu({ ...neu, ansprechperson: e.target.value })} className={`${feld} flex-1 min-w-[140px]`} />
+        <input maxLength={40} type="tel" placeholder="Telefon" value={neu.telefon} onChange={(e) => setNeu({ ...neu, telefon: e.target.value })} className={`${feld} w-36`} />
+        <input maxLength={120} type="email" placeholder="E-Mail" value={neu.email} onChange={(e) => setNeu({ ...neu, email: e.target.value })} className={`${feld} flex-1 min-w-[160px]`} />
         <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 text-sm font-semibold">+ Anlegen</button>
       </form>
       <div className="divide-y">
@@ -58,6 +62,9 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
               <option value="einrichtung">Einrichtung</option>
             </select>
             <input maxLength={120} aria-label="Standard-Abholort" placeholder="Standard-Abholort" value={bearbeiten.standard_abholort} onChange={(e) => setBearbeiten({ ...bearbeiten, standard_abholort: e.target.value })} className={`${feld} flex-1`} />
+            <input maxLength={80} aria-label="Ansprechperson" placeholder="Ansprechperson" value={bearbeiten.ansprechperson} onChange={(e) => setBearbeiten({ ...bearbeiten, ansprechperson: e.target.value })} className={`${feld} flex-1`} />
+            <input maxLength={40} type="tel" aria-label="Telefon" placeholder="Telefon" value={bearbeiten.telefon} onChange={(e) => setBearbeiten({ ...bearbeiten, telefon: e.target.value })} className={`${feld} w-36`} />
+            <input maxLength={120} type="email" aria-label="E-Mail" placeholder="E-Mail" value={bearbeiten.email} onChange={(e) => setBearbeiten({ ...bearbeiten, email: e.target.value })} className={`${feld} flex-1`} />
             <button type="submit" className="bg-rikscha-green text-white rounded px-3 py-1.5 text-sm font-semibold">Speichern</button>
             <button type="button" onClick={() => setBearbeiten(null)} className="text-sm text-gray-500">Abbrechen</button>
           </form>
@@ -66,8 +73,12 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
             <span className="font-medium text-sm">{o.name}</span>
             <span className={`text-xs rounded-full px-2 ${o.art === 'quartier' ? 'bg-sky-100 text-sky-800' : 'bg-teal-100 text-teal-800'}`}>{o.art === 'quartier' ? 'Quartier' : 'Einrichtung'}</span>
             {o.standard_abholort && <span className="text-xs text-gray-500">📍 {o.standard_abholort}</span>}
+            {(o.ansprechperson || o.telefon || o.email) && (
+              <span className="text-xs text-gray-500">👤 {[o.ansprechperson, o.telefon, o.email].filter(Boolean).join(' · ')}</span>
+            )}
+            {!o.ansprechperson && !o.telefon && !o.email && <span className="text-xs text-amber-700">Kontakt fehlt</span>}
             <span className="ml-auto flex gap-3 text-xs">
-              <button onClick={() => setBearbeiten({ id: o.id, name: o.name, art: o.art, standard_abholort: o.standard_abholort ?? '' })} className="text-blue-600 hover:underline">Bearbeiten</button>
+              <button onClick={() => setBearbeiten({ id: o.id, name: o.name, art: o.art, standard_abholort: o.standard_abholort ?? '', ansprechperson: o.ansprechperson ?? '', telefon: o.telefon ?? '', email: o.email ?? '' })} className="text-blue-600 hover:underline">Bearbeiten</button>
               <button onClick={async () => { const f = await senden('PATCH', { id: o.id, aktiv: !o.aktiv }); if (f) zeige('Fehler: ' + f); else neuLaden(); }}
                 className="text-orange-500 hover:underline">{o.aktiv ? 'Deaktivieren' : 'Aktivieren'}</button>
             </span>

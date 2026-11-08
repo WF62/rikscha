@@ -114,6 +114,18 @@ export async function POST(req: NextRequest) {
     return data && zustaendig(k, data.organisation_id) ? data : null;
   };
 
+  // ── Kontaktdaten der eigenen Stelle ───────────────────────
+  if (body.aktion === 'organisation-kontakt') {
+    const orgId = k.alle ? text(body.organisation_id, 40) : k.orgId;
+    if (!orgId) return fehler('Keine Organisation gewählt.');
+    const email = text(body.email, 120);
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fehler('Bitte eine gültige E-Mail-Adresse eintragen.');
+    const { error } = await sb.from('rikscha_organisationen').update({
+      ansprechperson: text(body.ansprechperson, 80), telefon: text(body.telefon, 40), email,
+    }).eq('id', orgId);
+    return error ? fehler('Bitte zuerst supabase/organisation-kontakt.sql ausführen.', 500) : NextResponse.json({ ok: true });
+  }
+
   // ── Fahrgäste ──────────────────────────────────────────────
   if (body.aktion === 'bewohner-neu' || body.aktion === 'bewohner-aendern') {
     const felder: Record<string, unknown> = {};
