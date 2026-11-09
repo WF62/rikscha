@@ -101,7 +101,7 @@ export default function FahrtEintragen() {
   const fehlt = !ende ? 'Bitte eine frühere Startzeit wählen.'
     : art === 'gast' && !namen.length ? 'Bitte einen Gast wählen oder den Namen eintragen.'
     : art === 'gast' && gewaehlt.length === 2 && gewaehlt[0].id === gewaehlt[1].id ? 'Bitte zwei verschiedene Gäste wählen.'
-    : !fahrzeug ? 'Bitte ein Fahrzeug wählen – so gilt dasselbe Fahrzeug für alle Fahrten in diesem Termin.'
+    : art === 'gast' && !fahrzeug ? 'Mit Gast bitte ein Fahrzeug wählen – sonst kann es doppelt gebucht werden.'
     : '';
 
   const absenden = async () => {
@@ -245,6 +245,11 @@ export default function FahrtEintragen() {
         {nummer(3, 'Womit?')}
         {!liste ? <p className="text-sm text-gray-400">Fahrzeuge werden geprüft …</p> : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {art === 'angebot' && (
+              <button type="button" onClick={() => setFahrzeug('')} className={knopf(fahrzeug === '')} aria-pressed={fahrzeug === ''}>
+                Egal<span className="block text-xs font-normal text-gray-500">wird passend zum Gast gewählt</span>
+              </button>
+            )}
             {liste.map((f) => (
               <button key={f.id} type="button" disabled={!f.frei} onClick={() => setFahrzeug(f.id)} className={`${knopf(fahrzeug === f.id)} disabled:opacity-50`} aria-pressed={fahrzeug === f.id}>
                 🚲 {f.name}{f.rollstuhl ? ' ♿' : ''}
