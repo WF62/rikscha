@@ -593,8 +593,7 @@ export default function KalenderSeite() {
             <span style={{ backgroundColor: f.farbeHex }} className="w-2 h-2 rounded-full" />{f.name}
           </button>
         ))}
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-amber-200 border-amber-500 text-amber-900"><span className="w-2 h-2 rounded-full bg-amber-500" />Feiertag</span>
-        <span className="flex items-center gap-1 px-2 py-1 rounded border bg-blue-200 border-blue-500 text-blue-900"><span className="w-2 h-2 rounded-full bg-blue-500" />WE</span>
+
         <span className="flex items-center gap-1 px-2 py-1 rounded border border-dashed border-orange-400 bg-orange-50 text-orange-800"><span className="w-2 h-2 rounded-full bg-orange-400" />Offen</span>
       </div>
       <div className="flex flex-wrap gap-2 mb-2 text-xs">
