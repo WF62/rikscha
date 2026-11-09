@@ -102,9 +102,14 @@ function BuchenFormular() {
       {/* Schlichter Header */}
       <header style={{ background: '#2D6B1E', padding: '0.9rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <a href="/" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>← Zurück zur Website</a>
-        {(istPilot || istAngehoeriger) && (
-          <a href="/kalender" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>Kalender</a>
-        )}
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {(istPilot || istAngehoeriger) && (
+            <a href="/fahrt-eintragen" style={{ color: '#fff', textDecoration: 'none', fontSize: '0.9rem', background: 'rgba(255,255,255,0.15)', padding: '0.3rem 0.75rem', borderRadius: '6px' }}>⚡ Schnellformular</a>
+          )}
+          {(istPilot || istAngehoeriger) && (
+            <a href="/kalender" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '0.9rem' }}>Kalender</a>
+          )}
+        </div>
       </header>
 
       <div className="max-w-lg mx-auto" style={{ padding: '2rem 1rem' }}>

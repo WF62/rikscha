@@ -152,9 +152,12 @@ export default function FahrtEintragen() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold text-rikscha-green">⚡ Fahrt schnell eintragen</h2>
-        <p className="text-gray-600">Kutscher: <strong>{ich}</strong>. Deine letzten Angaben sind schon vorausgewählt.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-rikscha-green">⚡ Fahrt schnell eintragen</h2>
+          <p className="text-gray-600">Kutscher: <strong>{ich}</strong>. Deine letzten Angaben sind schon vorausgewählt.</p>
+        </div>
+        <a href="/buchen" className="shrink-0 text-sm font-semibold text-rikscha-green border-2 border-rikscha-green rounded-lg px-3 py-2 hover:bg-green-50">📋 Ausführlich</a>
       </div>
 
       <section className="bg-white rounded-xl shadow p-5 space-y-3">
@@ -261,7 +264,7 @@ export default function FahrtEintragen() {
           className="w-full bg-rikscha-green text-white rounded-lg px-4 py-4 text-lg font-bold disabled:opacity-40">
           {sendet ? 'Wird eingetragen …' : 'Eintragen'}
         </button>
-        <p className="text-xs text-gray-500">Für Sonderfälle gibt es weiter das <a href="/buchen" className="underline">ausführliche Formular</a>.</p>
+        <p className="text-xs text-gray-500">Für Sonderfälle: <a href="/buchen" className="underline">ausführliches Formular</a></p>
       </section>
     </div>
   );
