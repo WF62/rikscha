@@ -95,7 +95,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
         <div style={{ backgroundColor: b.eigenfahrt ? '#F5E5D8' : PILOT_FARBE.bgHex }} className={`flex items-center gap-1 px-1 py-0.5 ${b.eigenfahrt ? 'text-[#A63228]' : PILOT_FARBE.textClass}`}>
           <span style={{ backgroundColor: b.eigenfahrt ? '#A63228' : PILOT_FARBE.dotHex }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
           <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
-            {b.startzeit.slice(0,5)} {b.eigenfahrt ? '🚲 ' : (schmal ? '' : 'P: ')}{b.pilot}
+            {b.startzeit.slice(0,5)} {b.eigenfahrt ? '🚲 ' : (schmal ? '' : 'K: ')}{b.pilot}
           </span>
         </div>
       ) : (
@@ -323,7 +323,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {b.pilot ? (
         <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 ${PILOT_FARBE.textClass}`}>
           <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
-          <span className="text-sm font-bold">P: {b.pilot}</span>
+          <span className="text-sm font-bold">K: {b.pilot}</span>
         </div>
       ) : (
         <div className="flex items-center gap-2 px-3 py-2 bg-orange-50">
@@ -605,7 +605,7 @@ export default function KalenderSeite() {
             className={`flex items-center gap-1 px-2 py-1 rounded border-2 font-semibold ${
               filterPilot === name ? 'scale-105 shadow ring-2 ring-gray-600 border-gray-700' : 'border-gray-400 opacity-90 hover:opacity-100'
             } ${PILOT_FARBE.textClass}`}>
-            <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />P: {name}
+            <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />K: {name}
           </button>
         ))}
       </div>
