@@ -92,7 +92,7 @@ export default function SponsorenPage() {
       `}</style>
 
       <nav className="page-nav">
-        <a href="/">← Startseite</a>
+        <a href="/#foerderer">← Startseite</a>
         <span className="sep">›</span>
         <span style={{color:'#fff',fontSize:'0.88rem'}}>Förderer & Sponsoren</span>
       </nav>
