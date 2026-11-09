@@ -28,7 +28,8 @@ export async function GET() {
   const { fahrzeuge } = await ladeStammdaten(false);
   const maxPlaetze = Math.max(1, ...fahrzeuge.map((f) => f.maxGaeste));
   const fenster = await mitFreienAbschnitten((data ?? []).filter((b) => !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0));
-  return NextResponse.json(fenster.filter((b) => b.frei.length > 0).map((b) => {
+  // Fenster mit Einrichtungs-Buchungen (Bewohner/Gruppe) nicht mehr im Quartier anbieten
+  return NextResponse.json(fenster.filter((b) => b.frei.length > 0 && !b.einrichtungGebucht).map((b) => {
     const f = fahrzeuge.find((x) => x.id === b.fahrzeug);
     return { id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, frei: b.frei, kutscher: b.pilot, fahrzeug: f?.name ?? null, plaetze: f ? f.maxGaeste : maxPlaetze };
   }));
@@ -56,6 +57,11 @@ export async function POST(req: NextRequest) {
   const { data: b } = await sb.from('rikscha_buchungen').select('*').eq('id', String(body.buchung_id ?? '')).maybeSingle();
   if (!b || !b.angebot || !b.oeffentlich || b.storniert || b.datum < heute() || b.bewohner_id || b.gruppe_id || (b.gaeste ?? []).length) {
     return NextResponse.json({ error: 'Diese Zeit ist leider schon vergeben. Bitte wähle eine andere.' }, { status: 409 });
+  }
+  // Einrichtung hat bereits gebucht → kein Quartier mehr
+  const { data: einrichtungKinder } = await sb.from('rikscha_buchungen').select('id').eq('angebot_id', b.id).eq('storniert', false).or('bewohner_id.not.is.null,gruppe_id.not.is.null').limit(1);
+  if (einrichtungKinder?.length) {
+    return NextResponse.json({ error: 'Diese Zeit ist bereits für Fahrgäste einer Einrichtung reserviert.' }, { status: 409 });
   }
   const gaeste = begleitung ? [name, begleitung] : [name];
 
