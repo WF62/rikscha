@@ -17,7 +17,7 @@ function BuchenFormular() {
   const formularStart = useFormularStart();
   const [lockfeld, setLockfeld] = useState('');
   const [angebot, setAngebot] = useState(false);
-  const [oeffentlich, setOeffentlich] = useState(false);
+  const [oeffentlich] = useState(true);
   const params = useSearchParams();
   const [form, setForm] = useState({
     fahrzeug: params.get('fahrzeug') ?? '',
@@ -212,13 +212,7 @@ function BuchenFormular() {
                 </span>
               </label>
               {angebot && (
-                <label className="flex items-start gap-3 cursor-pointer mt-3 ml-7">
-                  <input type="checkbox" checked={oeffentlich} onChange={(e) => setOeffentlich(e.target.checked)} className="mt-1" />
-                  <span>
-                    <span className="font-semibold">🌿 Auch für Interessierte aus dem Quartier öffnen</span>
-                    <span className="block text-xs text-gray-500">Die Zeit erscheint dann zusätzlich hier auf der Buchungsseite. Wer zuerst bucht – Vermittlungsstelle oder Interessierte –, fährt mit.</span>
-                  </span>
-                </label>
+                <p className="text-sm text-emerald-700 mt-3 ml-7">🌿 Die Zeit erscheint auch auf der Buchungsseite für Interessierte aus dem Quartier. Wer zuerst bucht, fährt mit.</p>
               )}
             </div>
           )}
