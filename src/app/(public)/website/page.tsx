@@ -28,7 +28,7 @@ const DEFAULTS: Record<string, string> = {
   tour_1_text:       'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg (mit Sondergenehmigung!), Biergarten am Schloss Ludwigslust.',
   tour_2_titel:      'Mertener Heide & Natur',
   tour_2_text:       'Vorbei an Pferdekoppeln, Ziegenweiden und Alpakas ins Grüne. Frische Luft, vertraute und neue Lieblingsorte.',
-  tour_3_titel:      'Kirche, Rhein & Repair-Café',
+  tour_3_titel:      'Zum Rhein',
   tour_3_text:       'Kurze, gemütliche Fahrten zu vertrauten Orten im Quartier. Ideal für Menschen, die einfach mal raus möchten.',
   tour_4_titel:      'Baggerseen & Gutshöfe',
   tour_4_text:       'Immer mit dem Ziel, schöne Stunden in der Natur zu verbringen und gemeinsam besondere Momente zu erleben.',
@@ -324,7 +324,7 @@ export default async function WebsitePage() {
             <p>{t.gruppenfahrten_2}</p>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon">🎂</span>Geburtstage & Jubiläen</div>
-              <div className="anlass"><span className="anlass-icon">💒</span>Hochzeiten & Polterabend</div>
+              <div className="anlass"><span className="anlass-icon">💒</span>Hochzeiten</div>
               <div className="anlass"><span className="anlass-icon">🏢</span>Firmen & Teamausflüge</div>
               <div className="anlass"><span className="anlass-icon">👨‍👩‍👧‍👦</span>Familienausflüge</div>
               <div className="anlass"><span className="anlass-icon">🎉</span>Vereinsfeste & Events</div>
@@ -416,7 +416,7 @@ export default async function WebsitePage() {
           <div className="zukunft-grid" style={{marginTop:'2rem'}}>
             <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>{t.tour_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_1_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_4_text}</p></div>
           </div>
         </div>

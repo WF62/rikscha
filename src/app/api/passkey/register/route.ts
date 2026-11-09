@@ -22,8 +22,10 @@ export async function POST(req: NextRequest) {
 
   if (!ch) return NextResponse.json({ error: 'Keine gültige Challenge.' }, { status: 400 });
 
-  const rpID = process.env.PASSKEY_RP_ID ?? 'localhost';
-  const origin = process.env.PASSKEY_ORIGIN ?? `https://${rpID}`;
+  const host = req.headers.get('host') ?? '';
+  const rpID = host.split(':')[0];
+  const proto = req.headers.get('x-forwarded-proto') ?? 'https';
+  const origin = `${proto}://${host}`;
 
   let verification;
   try {

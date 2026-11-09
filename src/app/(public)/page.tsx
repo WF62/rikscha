@@ -50,7 +50,7 @@ const DEFAULTS: Record<string, string> = {
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
   piter_text:        'Kutscher und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
-  team_h2:           'Elf Kutscher mit Herzblut',
+  team_h2:           'Zwölf Kutscher mit Herzblut',
   team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
   touren_h2:         'Frischer Wind und wunderbare Ausblicke',
   touren_intro:      'Ob zur Mertener Heide, durch Gemüsefelder oder zu Alpakas — unsere Ausflüge sind so vielfältig wie die Wünsche unserer Gäste.',
@@ -58,7 +58,7 @@ const DEFAULTS: Record<string, string> = {
   tour_1_text:       'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg (mit Sondergenehmigung!), Biergarten am Schloss Ludwigslust.',
   tour_2_titel:      'Mertener Heide & Natur',
   tour_2_text:       'Vorbei an Pferdekoppeln, Ziegenweiden und Alpakas ins Grüne. Frische Luft, vertraute und neue Lieblingsorte.',
-  tour_3_titel:      'Kirche, Rhein & Repair-Café',
+  tour_3_titel:      'Zum Rhein',
   tour_3_text:       'Kurze, gemütliche Fahrten zu vertrauten Orten im Quartier. Ideal für Menschen, die einfach mal raus möchten.',
   tour_4_titel:      'Baggerseen & Gutshöfe',
   tour_4_text:       'Immer mit dem Ziel, schöne Stunden in der Natur zu verbringen und gemeinsam besondere Momente zu erleben.',
@@ -601,9 +601,6 @@ export default async function WebsitePage() {
       </nav>
       <Banner />
 
-      <main id="main-content" tabIndex={-1}>
-      <SchnellStart />
-
       {/* Aktion Mensch Laufband */}
       <div className="am-ticker" aria-label="Wichtige Ankündigung">
         <div className="am-ticker-track">
@@ -631,6 +628,9 @@ export default async function WebsitePage() {
           ))}
         </div>
       </div>
+
+      <main id="main-content" tabIndex={-1}>
+      <SchnellStart />
 
       {/* Hero */}
       <section className="hero">
@@ -698,7 +698,7 @@ export default async function WebsitePage() {
             </div>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
-              <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">👨‍👩‍👧‍👦</span><span className="anlass-label">Familienausflüge</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎉</span><span className="anlass-label">Vereinsfeste & Events</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🌳</span><span className="anlass-label">Einfach so — zum Spaß</span></div>
@@ -747,7 +747,7 @@ export default async function WebsitePage() {
           <div className="zukunft-grid" style={{marginTop:'2rem'}}>
             <div className="zukunft-card"><span className="zukunft-icon">🏰</span><h3>{t.tour_1_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_1_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌿</span><h3>{t.tour_2_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_2_text}</p></div>
-            <div className="zukunft-card"><span className="zukunft-icon">⛪</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
+            <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_3_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_3_text}</p></div>
             <div className="zukunft-card"><span className="zukunft-icon">🌊</span><h3>{t.tour_4_titel}</h3><p style={{fontSize:'0.9rem'}}>{t.tour_4_text}</p></div>
           </div>
 
@@ -891,7 +891,7 @@ export default async function WebsitePage() {
             <span className="einfach-neu-block">Alle machen das freiwillig und ohne Bezahlung. Sie fahren gerne Fahrrad und haben Freude daran, Menschen zu helfen.</span>
           </p>
           <div className="piloten-grid">
-            {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
+            {['A|Antje','D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
               const [initials, name] = p.split('|');
               const fotoKey = `foto_pilot_${name.toLowerCase().replace(/-/g, '_')}`;
               const fotoUrl = t[fotoKey];
