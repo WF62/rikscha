@@ -601,9 +601,6 @@ export default async function WebsitePage() {
       </nav>
       <Banner />
 
-      <main id="main-content" tabIndex={-1}>
-      <SchnellStart />
-
       {/* Aktion Mensch Laufband */}
       <div className="am-ticker" aria-label="Wichtige Ankündigung">
         <div className="am-ticker-track">
@@ -631,6 +628,9 @@ export default async function WebsitePage() {
           ))}
         </div>
       </div>
+
+      <main id="main-content" tabIndex={-1}>
+      <SchnellStart />
 
       {/* Hero */}
       <section className="hero">
