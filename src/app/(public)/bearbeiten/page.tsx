@@ -113,7 +113,7 @@ const WEBSITE_DEFAULTS: Record<string, string> = {
   tour_1_text:       'Durch Gemüsefelder nach Walberberg, Eispause in Brühl, durch den Schlosspark Augustusburg (mit Sondergenehmigung!), Biergarten am Schloss Ludwigslust.',
   tour_2_titel:      'Mertener Heide & Natur',
   tour_2_text:       'Vorbei an Pferdekoppeln, Ziegenweiden und Alpakas ins Grüne. Frische Luft, vertraute und neue Lieblingsorte.',
-  tour_3_titel:      'Kirche, Rhein & Repair-Café',
+  tour_3_titel:      'Zum Rhein',
   tour_3_text:       'Kurze, gemütliche Fahrten zu vertrauten Orten im Quartier. Ideal für Menschen, die einfach mal raus möchten.',
   tour_4_titel:      'Baggerseen & Gutshöfe',
   tour_4_text:       'Immer mit dem Ziel, schöne Stunden in der Natur zu verbringen und gemeinsam besondere Momente zu erleben.',
