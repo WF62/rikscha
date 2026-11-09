@@ -25,7 +25,7 @@ const isoTag = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padSt
 const inTagen = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return isoTag(d); };
 const tagText = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 const hhmm = (z: string) => z.slice(0, 5);
-const DAUER_WAHL = [45, 60, 90, 120, 180, 240];
+const DAUER_WAHL = [30, 60, 90, 120, 150, 180, 210, 240];
 const knopf = (an: boolean) => `rounded-lg border-2 px-4 py-3 text-left font-semibold ${an ? 'border-rikscha-green bg-green-50 text-rikscha-green' : 'border-gray-200 bg-white text-gray-800'}`;
 
 type FzWahl = { id: string; name: string; maxGaeste: number; rollstuhl: boolean; frei: boolean; grund?: string };

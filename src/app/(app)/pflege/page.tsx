@@ -420,7 +420,7 @@ export default function PflegeSeite() {
                     <WunschfahrtFeld wert={angebotTour[a.id] ?? TOUR_LEER} onChange={(t) => { setAngebotTour({ ...angebotTour, [a.id]: t }); setAngebotDauer(({ [a.id]: _alt, ...rest }) => rest); }}
                       verfuegbar={laengster} />
                     <select aria-label="Dauer" value={dauer} onChange={(e) => setAngebotDauer({ ...angebotDauer, [a.id]: Number(e.target.value) })} className="border rounded px-2 py-2">
-                      {[45, 60, 90, 120, 180, 240].map((d) => <option key={d} value={d} disabled={d > laengster}>{dauerText(d)}{d > laengster ? ' – passt nicht' : ''}</option>)}
+                      {[30, 60, 90, 120, 150, 180, 210, 240].map((d) => <option key={d} value={d} disabled={d > laengster}>{dauerText(d)}{d > laengster ? ' – passt nicht' : ''}</option>)}
                     </select>
                     {starts.length > 0 ? (
                       <select aria-label="Beginn" value={beginn} onChange={(e) => setAngebotStart({ ...angebotStart, [a.id]: e.target.value })} className="border rounded px-2 py-2">
