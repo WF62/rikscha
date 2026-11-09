@@ -111,7 +111,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
       )}
       {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
         <div className="px-1 py-0.5 border-t border-white/60 bg-emerald-100 text-emerald-800">
-          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : b.oeffentlich ? '🌿 frei · öffentlich' : '🏠 frei für Vermittlung'}</span>
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : b.oeffentlich ? '🌿 frei · öffentlich' : '🏠 frei für Seniorenheim'}</span>
           {!schmal && !!b.gebucht && <span className="text-[10px] block">{b.gebucht} gebucht · frei {(b.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ') || '–'}</span>}
         </div>
       )}
@@ -315,7 +315,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {b.startzeit.slice(0,5)}–{b.endzeit.slice(0,5)} Uhr
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
-        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">{b.oeffentlich ? '🌿 FREI · AUCH ÖFFENTLICH' : 'FREIE ZEIT'}</span>}
+        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">{b.oeffentlich ? '🌿 FREI · AUCH ÖFFENTLICH' : '🏠 FREI FÜR SENIORENHEIM'}</span>}
         {b.gruppe && <span className="text-xs font-bold text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded">👥 GRUPPE: {b.gruppe.titel}</span>}
         {!b.gruppe && (b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 VERMITTELTE FAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
@@ -370,7 +370,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {!b.storniert && b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0 && ichKutscher && (
         <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm flex items-center gap-2">
           <span className="flex-1">
-            {b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : 'Nur für Vermittlungsstellen sichtbar'}
+            {b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : '🏠 Nur für das Seniorenheim sichtbar'}
             <span className="block text-xs text-gray-600">Zeitfenster: Gäste buchen darin kürzere Fahrten, auch mehrere nacheinander.{b.gebucht ? ` Schon ${b.gebucht} gebucht – noch frei: ${(b.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ') || 'nichts'}.` : ''}</span>
           </span>
           <button onClick={async () => {
