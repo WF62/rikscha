@@ -324,7 +324,7 @@ export default async function WebsitePage() {
             <p>{t.gruppenfahrten_2}</p>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon">🎂</span>Geburtstage & Jubiläen</div>
-              <div className="anlass"><span className="anlass-icon">💒</span>Hochzeiten & Polterabend</div>
+              <div className="anlass"><span className="anlass-icon">💒</span>Hochzeiten</div>
               <div className="anlass"><span className="anlass-icon">🏢</span>Firmen & Teamausflüge</div>
               <div className="anlass"><span className="anlass-icon">👨‍👩‍👧‍👦</span>Familienausflüge</div>
               <div className="anlass"><span className="anlass-icon">🎉</span>Vereinsfeste & Events</div>

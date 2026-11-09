@@ -698,7 +698,7 @@ export default async function WebsitePage() {
             </div>
             <div className="anlaesse-grid">
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎂</span><span className="anlass-label">Geburtstage & Jubiläen</span></div>
-              <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten & Polterabend</span></div>
+              <div className="anlass"><span className="anlass-icon" aria-hidden="true">💒</span><span className="anlass-label">Hochzeiten</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">👨‍👩‍👧‍👦</span><span className="anlass-label">Familienausflüge</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🎉</span><span className="anlass-label">Vereinsfeste & Events</span></div>
               <div className="anlass"><span className="anlass-icon" aria-hidden="true">🌳</span><span className="anlass-label">Einfach so — zum Spaß</span></div>
