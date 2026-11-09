@@ -32,5 +32,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falscher Name oder Passwort.' }, { status: 401, headers: CORS });
   }
   // token: wird im Browser statt des Passworts gespeichert (fehlt nur vor der Passwort-Migration)
-  return NextResponse.json({ ok: true, pilot: a.name, rolle: a.rolle, muss_pw_aendern: a.muss_pw_aendern, token: a.token }, { headers: CORS });
+  return NextResponse.json({ ok: true, pilot: a.name, rolle: a.rolle, muss_pw_aendern: a.muss_pw_aendern, token: a.token, fahrzeug: a.fahrzeug }, { headers: CORS });
 }

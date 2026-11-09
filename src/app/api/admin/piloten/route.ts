@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     .order('name');
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   // Keine Passwortfelder an den Browser
-  return NextResponse.json((data ?? []).map(({ id, name, rolle, aktiv, created_at, organisation_id }) => ({ id, name, rolle, aktiv, created_at, organisation_id: organisation_id ?? null })));
+  return NextResponse.json((data ?? []).map(({ id, name, rolle, aktiv, created_at, organisation_id, fahrzeug }) => ({ id, name, rolle, aktiv, created_at, organisation_id: organisation_id ?? null, fahrzeug: fahrzeug ?? null })));
 }
 
 export async function POST(req: NextRequest) {
@@ -35,13 +35,14 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   if (!checkAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { id, name, rolle, aktiv, passwort, organisation_id } = await req.json();
+  const { id, name, rolle, aktiv, passwort, organisation_id, fahrzeug } = await req.json();
   if (!id) return NextResponse.json({ error: 'ID fehlt.' }, { status: 400 });
   const fields: Record<string, unknown> = {};
   if (name !== undefined) fields.name = name;
   if (rolle !== undefined) fields.rolle = rolle;
   if (aktiv !== undefined) fields.aktiv = aktiv;
   if (organisation_id !== undefined) fields.organisation_id = organisation_id || null;
+  if (fahrzeug !== undefined) fields.fahrzeug = fahrzeug || null;
   // Neues Passwort vom Admin: gehasht speichern, Person muss es beim nächsten Login ändern
   if (passwort) Object.assign(fields, await passwortFelder(String(passwort)), { muss_pw_aendern: true });
   const db = createServiceClient();

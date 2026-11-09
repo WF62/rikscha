@@ -100,6 +100,7 @@ export default function PilotenModal() {
         const zugang = j.token ?? passwort; // Token statt Passwort speichern
         localStorage.setItem('pilot_pw', zugang);
         localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
+        if (j.fahrzeug) localStorage.setItem('pilot_fahrzeug', j.fahrzeug); else localStorage.removeItem('pilot_fahrzeug');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw(zugang);
@@ -177,6 +178,7 @@ export default function PilotenModal() {
         localStorage.setItem('pilot_name', j.pilot);
         localStorage.setItem('pilot_pw', '');
         localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
+        if (j.fahrzeug) localStorage.setItem('pilot_fahrzeug', j.fahrzeug); else localStorage.removeItem('pilot_fahrzeug');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw('');

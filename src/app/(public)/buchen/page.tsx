@@ -40,7 +40,8 @@ function BuchenFormular() {
     const rolle = localStorage.getItem('pilot_rolle');
     if (rolle === 'angehoeriger' && name) {
       setIstAngehoeriger(true);
-      setForm(f => ({ ...f, pilot: name }));
+      const fahrzeug = localStorage.getItem('pilot_fahrzeug') ?? '';
+      setForm(f => ({ ...f, pilot: name, fahrzeug }));
     } else {
       setIstPilot(!!name && rolle !== 'gast' && rolle !== 'pflege');
     }
@@ -131,17 +132,20 @@ function BuchenFormular() {
           {/* Fahrzeug */}
           <fieldset className="border-0 p-0 m-0">
             <legend className="block text-sm font-semibold mb-1">Fahrzeug</legend>
+            {istAngehoeriger && form.fahrzeug && (
+              <p className="text-sm text-gray-500 mb-2">Dein eingewiesenes Fahrzeug ist vorausgewählt.</p>
+            )}
             <div className="grid grid-cols-1 gap-2">
-              {fahrzeuge.map((f) => {
+              {fahrzeuge.filter((f) => !istAngehoeriger || f.id === form.fahrzeug).map((f) => {
                 const zu = !istBuchbarAm(f, form.datum);
                 return (
                 <label key={f.id}
                   style={form.fahrzeug === f.id ? { backgroundColor: f.bgHex } : {}}
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${zu ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${zu ? 'opacity-50 cursor-not-allowed' : istAngehoeriger ? 'cursor-default' : 'cursor-pointer'} ${
                     form.fahrzeug === f.id ? 'border-gray-600 shadow' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
-                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id} disabled={zu}
-                    onChange={(e) => setForm({ ...form, fahrzeug: e.target.value })} className="sr-only" />
+                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id} disabled={zu || istAngehoeriger}
+                    onChange={(e) => !istAngehoeriger && setForm({ ...form, fahrzeug: e.target.value })} className="sr-only" />
                   <span style={{ backgroundColor: f.farbeHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
                   <div>
                     <p className="font-semibold">{f.name}</p>

@@ -5,7 +5,8 @@ import StammdatenVerwaltung from './StammdatenVerwaltung';
 import OrganisationenVerwaltung from './OrganisationenVerwaltung';
 import type { Organisation } from '@/lib/supabase';
 
-type Person = { id: string; name: string; rolle: string; aktiv: boolean; organisation_id?: string | null };
+type Person = { id: string; name: string; rolle: string; aktiv: boolean; organisation_id?: string | null; fahrzeug?: string | null };
+type FzOption = { id: string; name: string };
 type OrdnerDatei = { id: string; kategorie: string; name: string; url: string; groesse: number; typ: string };
 
 const ROLLEN = [
@@ -26,6 +27,7 @@ export default function AdminSeite() {
   const [form, setForm]             = useState({ name: '', passwort: '', rolle: 'pilot', organisation_id: '' });
   const [orgs, setOrgs]             = useState<Organisation[]>([]);
   const [orgFehler, setOrgFehler]   = useState('');
+  const [fahrzeugListe, setFahrzeugListe] = useState<FzOption[]>([]);
   const [speichern, setSpeichern]   = useState(false);
   const [meldung, setMeldung]       = useState('');
   const [editId, setEditId]         = useState<string | null>(null);
@@ -43,6 +45,8 @@ export default function AdminSeite() {
     if (res.ok) setPersonen(await res.json());
     const o = await fetch('/api/admin/organisationen');
     if (o.ok) { setOrgs(await o.json()); setOrgFehler(''); } else setOrgFehler((await o.json().catch(() => ({}))).error ?? 'Organisationen konnten nicht geladen werden.');
+    const fz = await fetch('/api/stammdaten');
+    if (fz.ok) { const d = await fz.json(); setFahrzeugListe((d.fahrzeuge ?? []).map((f: { id: string; name: string }) => ({ id: f.id, name: f.name }))); }
     setLaden(false);
   }, []);
 
@@ -264,6 +268,17 @@ export default function AdminSeite() {
                   className={`text-xs border rounded px-1 py-0.5 ${p.organisation_id ? '' : 'border-red-400 text-red-700'}`}>
                   <option value="">⚠ keine Organisation</option>
                   {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                </select>
+              )}
+              {p.rolle === 'angehoeriger' && (
+                <select value={p.fahrzeug ?? ''} title="Eingewiesenes Fahrzeug"
+                  onChange={async (e) => {
+                    await fetch('/api/admin/piloten', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.id, fahrzeug: e.target.value || null }) });
+                    laden_();
+                  }}
+                  className={`text-xs border rounded px-1 py-0.5 ${p.fahrzeug ? '' : 'border-orange-400 text-orange-700'}`}>
+                  <option value="">⚠ kein Fahrzeug</option>
+                  {fahrzeugListe.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               )}
 

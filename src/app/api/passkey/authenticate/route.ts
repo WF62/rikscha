@@ -68,12 +68,12 @@ export async function POST(req: NextRequest) {
   // Pilot-Daten zurückgeben (wie pilot-login)
   const { data: pilotData } = await db
     .from('piloten_zugang')
-    .select('name, rolle, muss_pw_aendern')
+    .select('name, rolle, muss_pw_aendern, fahrzeug')
     .eq('name', pilot)
     .eq('aktiv', true)
     .maybeSingle();
 
   if (!pilotData) return NextResponse.json({ error: 'Pilot nicht aktiv.' }, { status: 403 });
 
-  return NextResponse.json({ ok: true, pilot: pilotData.name, rolle: pilotData.rolle, muss_pw_aendern: pilotData.muss_pw_aendern ?? false });
+  return NextResponse.json({ ok: true, pilot: pilotData.name, rolle: pilotData.rolle, muss_pw_aendern: pilotData.muss_pw_aendern ?? false, fahrzeug: pilotData.fahrzeug ?? null });
 }
