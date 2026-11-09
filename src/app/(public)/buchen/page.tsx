@@ -209,7 +209,7 @@ function BuchenFormular() {
           {istPilot && !istAngehoeriger && (
             <div className={`p-3 rounded-lg border-2 ${angebot ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={angebot} onChange={(e) => { setAngebot(e.target.checked); if (!e.target.checked) setOeffentlich(false); }} className="mt-1" />
+                <input type="checkbox" checked={angebot} onChange={(e) => setAngebot(e.target.checked)} className="mt-1" />
                 <span>
                   <span className="font-semibold">🏠 Als freie Fahrzeit anbieten</span>
                   <span className="block text-xs text-gray-500">Seniorenheim, Betreutes Wohnen und die anderen Vermittlungsstellen sehen die Zeit und ordnen einen oder zwei Gäste zu. Fahrzeug egal? Dann „Folgt noch“ wählen – das passende Fahrzeug wird ausgesucht, wenn die Gäste feststehen.</span>
