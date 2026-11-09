@@ -50,7 +50,7 @@ const DEFAULTS: Record<string, string> = {
   lotte_text:        'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flitzer_text:      'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen mit geistiger Fitness — wer mag, kann sogar mittreten! Der Flinker Flitzer bietet eine völlig neue Perspektive: nah am Boden, nah am Leben.',
   piter_text:        'Kutscher und Gast fahren Seite an Seite — besonders geeignet für Menschen mit Demenz, die körperlich fit sind. Das Nebeneinander schafft Sicherheit, Nähe und echte Gespräche auf Augenhöhe.',
-  team_h2:           'Elf Kutscher mit Herzblut',
+  team_h2:           'Zwölf Kutscher mit Herzblut',
   team_text:         'Alle ehrenamtlich, alle begeisterte Radfahrer — und alle aus der Überzeugung dabei, dass gemeinsame Erlebnisse verbinden. Woche für Woche bringen sie Menschen zusammen.',
   touren_h2:         'Frischer Wind und wunderbare Ausblicke',
   touren_intro:      'Ob zur Mertener Heide, durch Gemüsefelder oder zu Alpakas — unsere Ausflüge sind so vielfältig wie die Wünsche unserer Gäste.',
@@ -891,7 +891,7 @@ export default async function WebsitePage() {
             <span className="einfach-neu-block">Alle machen das freiwillig und ohne Bezahlung. Sie fahren gerne Fahrrad und haben Freude daran, Menschen zu helfen.</span>
           </p>
           <div className="piloten-grid">
-            {['D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
+            {['A|Antje','D|Doro','G|Guido','HH|Hans-Heinrich','H|Helenah','H|Heribert','Ho|Holger','L|Lucia','R|Rolf','S|Sabine','W|Walter','We|Werner'].map(p => {
               const [initials, name] = p.split('|');
               const fotoKey = `foto_pilot_${name.toLowerCase().replace(/-/g, '_')}`;
               const fotoUrl = t[fotoKey];
