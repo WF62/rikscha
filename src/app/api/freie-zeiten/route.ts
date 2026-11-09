@@ -27,9 +27,31 @@ export async function GET() {
   if (error) return NextResponse.json([]);   // Spalte fehlt noch → keine freien Zeiten anzeigen
   const { fahrzeuge } = await ladeStammdaten(false);
   const maxPlaetze = Math.max(1, ...fahrzeuge.map((f) => f.maxGaeste));
-  const fenster = await mitFreienAbschnitten((data ?? []).filter((b) => !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0));
-  // Fenster mit Einrichtungs-Buchungen (Bewohner/Gruppe) nicht mehr im Quartier anbieten
-  return NextResponse.json(fenster.filter((b) => b.frei.length > 0 && !b.einrichtungGebucht).map((b) => {
+  const kandidaten = (data ?? []).filter((b) => !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0);
+
+  // Prüfen welche Fahrzeuge an welchen Tagen bereits Einrichtungs-Buchungen haben
+  const fzDaten = [...new Set(kandidaten.filter((b) => b.fahrzeug).map((b) => `${b.fahrzeug}|${b.datum}`))];
+  let einrichtungBelegtSet = new Set<string>();
+  if (fzDaten.length) {
+    const fzIds = [...new Set(kandidaten.map((b) => b.fahrzeug).filter(Boolean))];
+    const datumsRange = { von: kandidaten[0]?.datum ?? heute(), bis: kandidaten[kandidaten.length - 1]?.datum ?? heute() };
+    const { data: einrBuch } = await sb.from('rikscha_buchungen')
+      .select('fahrzeug, datum, startzeit, endzeit')
+      .in('fahrzeug', fzIds).eq('storniert', false)
+      .gte('datum', datumsRange.von).lte('datum', datumsRange.bis)
+      .or('bewohner_id.not.is.null,gruppe_id.not.is.null');
+    for (const eb of (einrBuch ?? [])) {
+      // Alle Angebots-Fenster markieren, die zeitlich mit dieser Einrichtungs-Buchung überlappen
+      for (const k of kandidaten) {
+        if (k.fahrzeug === eb.fahrzeug && k.datum === eb.datum && k.startzeit < eb.endzeit && k.endzeit > eb.startzeit) {
+          einrichtungBelegtSet.add(k.id);
+        }
+      }
+    }
+  }
+
+  const fenster = await mitFreienAbschnitten(kandidaten.filter((b) => !einrichtungBelegtSet.has(b.id)));
+  return NextResponse.json(fenster.filter((b) => b.frei.length > 0).map((b) => {
     const f = fahrzeuge.find((x) => x.id === b.fahrzeug);
     return { id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, frei: b.frei, kutscher: b.pilot, fahrzeug: f?.name ?? null, plaetze: f ? f.maxGaeste : maxPlaetze };
   }));
@@ -58,10 +80,12 @@ export async function POST(req: NextRequest) {
   if (!b || !b.angebot || !b.oeffentlich || b.storniert || b.datum < heute() || b.bewohner_id || b.gruppe_id || (b.gaeste ?? []).length) {
     return NextResponse.json({ error: 'Diese Zeit ist leider schon vergeben. Bitte wähle eine andere.' }, { status: 409 });
   }
-  // Einrichtung hat bereits gebucht → kein Quartier mehr
-  const { data: einrichtungKinder } = await sb.from('rikscha_buchungen').select('id').eq('angebot_id', b.id).eq('storniert', false).or('bewohner_id.not.is.null,gruppe_id.not.is.null').limit(1);
-  if (einrichtungKinder?.length) {
-    return NextResponse.json({ error: 'Diese Zeit ist bereits für Fahrgäste einer Einrichtung reserviert.' }, { status: 409 });
+  // Einrichtung hat das Fahrzeug in diesem Zeitfenster bereits gebucht → kein Quartier mehr
+  if (b.fahrzeug) {
+    const { data: einrBuch } = await sb.from('rikscha_buchungen').select('id').eq('fahrzeug', b.fahrzeug).eq('datum', b.datum).eq('storniert', false).lt('startzeit', b.endzeit).gt('endzeit', b.startzeit).or('bewohner_id.not.is.null,gruppe_id.not.is.null').limit(1);
+    if (einrBuch?.length) {
+      return NextResponse.json({ error: 'Diese Zeit ist bereits für Fahrgäste einer Einrichtung reserviert.' }, { status: 409 });
+    }
   }
   const gaeste = begleitung ? [name, begleitung] : [name];
 
