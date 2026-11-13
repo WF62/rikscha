@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getPilotRolle, istAdmin, darfWebBearbeiten } from '@/lib/pilotAuth';
+import { getPilotRolle, darfFahrtenVerwalten, darfWebBearbeiten } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -32,13 +32,19 @@ export async function POST(req: NextRequest) {
   }
 
   const rolle = await getPilotRolle(pilot, password);
-  if (!rolle) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
+  if (!rolle || !darfFahrtenVerwalten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
 
   const db = createServiceClient();
   const ts = new Date().toISOString();
 
-  // Nur kutscher-admin, gfo und admin dürfen Website-Inhalte ändern
-  if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Keine Berechtigung für Website-Änderungen.' }, { status: 403, headers: CORS });
+  // Kutscher (ohne Admin-Rechte) → Entwurf einreichen zur Freigabe
+  if (!darfWebBearbeiten(rolle)) {
+    const { error: draftErr } = await db.from('rikscha_inhalte_entwurf').insert({
+      schluessel, wert, eingereicht_von: pilot, status: 'offen',
+    });
+    if (draftErr) return NextResponse.json({ error: draftErr.message }, { status: 500, headers: CORS });
+    return NextResponse.json({ ok: true, entwurf: true }, { headers: CORS });
+  }
 
   // Admin → alten Wert in Verlauf sichern, dann direkt speichern
   const { data: alt } = await db.from('inhalte').select('wert').eq('schluessel', schluessel).maybeSingle();
