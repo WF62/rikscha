@@ -86,7 +86,7 @@ export async function anmelden(name: string, eingabe: string): Promise<Anmeldung
   const adminPw = process.env.ADMIN_PASSWORD;
   if (adminPw && name === adminName) {
     const ok = istToken(eingabe) ? pruefeToken(eingabe, adminName, adminPw) : gleich(eingabe, adminPw);
-    if (ok) return { name: adminName, rolle: 'admin', muss_pw_aendern: false, token: erstelleToken(adminName, adminPw), organisationId: null };
+    if (ok) return { name: adminName, rolle: 'admin', muss_pw_aendern: false, token: erstelleToken(adminName, adminPw), organisationId: null, fahrzeug: null };
   }
 
   const { data } = await createServiceClient()
