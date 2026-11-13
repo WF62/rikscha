@@ -44,7 +44,7 @@ export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string;
 
 /** Kutscher, GFO und Admin dürfen Fahrten und Sperren verwalten – Gäste, Angehörige und Pflege nicht. */
 export function darfFahrtenVerwalten(rolle: string | null) {
-  return rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
+  return rolle === 'kutscher' || rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
 }
 
 /**

@@ -17,7 +17,7 @@ function BuchenFormular() {
   const formularStart = useFormularStart();
   const [lockfeld, setLockfeld] = useState('');
   const [angebot, setAngebot] = useState(false);
-  const [oeffentlich, setOeffentlich] = useState(false);
+  const [oeffentlich] = useState(true);
   const params = useSearchParams();
   const [form, setForm] = useState({
     fahrzeug: params.get('fahrzeug') ?? '',
@@ -40,7 +40,8 @@ function BuchenFormular() {
     const rolle = localStorage.getItem('pilot_rolle');
     if (rolle === 'angehoeriger' && name) {
       setIstAngehoeriger(true);
-      setForm(f => ({ ...f, pilot: name }));
+      const fahrzeug = localStorage.getItem('pilot_fahrzeug') ?? '';
+      setForm(f => ({ ...f, pilot: name, fahrzeug }));
     } else {
       setIstPilot(!!name && rolle !== 'gast' && rolle !== 'pflege');
     }
@@ -131,17 +132,20 @@ function BuchenFormular() {
           {/* Fahrzeug */}
           <fieldset className="border-0 p-0 m-0">
             <legend className="block text-sm font-semibold mb-1">Fahrzeug</legend>
+            {istAngehoeriger && form.fahrzeug && (
+              <p className="text-sm text-gray-500 mb-2">Dein eingewiesenes Fahrzeug ist vorausgewählt.</p>
+            )}
             <div className="grid grid-cols-1 gap-2">
-              {fahrzeuge.map((f) => {
+              {fahrzeuge.filter((f) => !istAngehoeriger || f.id === form.fahrzeug).map((f) => {
                 const zu = !istBuchbarAm(f, form.datum);
                 return (
                 <label key={f.id}
                   style={form.fahrzeug === f.id ? { backgroundColor: f.bgHex } : {}}
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${zu ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${zu ? 'opacity-50 cursor-not-allowed' : istAngehoeriger ? 'cursor-default' : 'cursor-pointer'} ${
                     form.fahrzeug === f.id ? 'border-gray-600 shadow' : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}>
-                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id} disabled={zu}
-                    onChange={(e) => setForm({ ...form, fahrzeug: e.target.value })} className="sr-only" />
+                  <input type="radio" name="fahrzeug" value={f.id} checked={form.fahrzeug === f.id} disabled={zu || istAngehoeriger}
+                    onChange={(e) => !istAngehoeriger && setForm({ ...form, fahrzeug: e.target.value })} className="sr-only" />
                   <span style={{ backgroundColor: f.farbeHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
                   <div>
                     <p className="font-semibold">{f.name}</p>
@@ -205,20 +209,14 @@ function BuchenFormular() {
           {istPilot && !istAngehoeriger && (
             <div className={`p-3 rounded-lg border-2 ${angebot ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={angebot} onChange={(e) => { setAngebot(e.target.checked); if (!e.target.checked) setOeffentlich(false); }} className="mt-1" />
+                <input type="checkbox" checked={angebot} onChange={(e) => setAngebot(e.target.checked)} className="mt-1" />
                 <span>
                   <span className="font-semibold">🏠 Als freie Fahrzeit anbieten</span>
                   <span className="block text-xs text-gray-500">Seniorenheim, Betreutes Wohnen und die anderen Vermittlungsstellen sehen die Zeit und ordnen einen oder zwei Gäste zu. Fahrzeug egal? Dann „Folgt noch“ wählen – das passende Fahrzeug wird ausgesucht, wenn die Gäste feststehen.</span>
                 </span>
               </label>
               {angebot && (
-                <label className="flex items-start gap-3 cursor-pointer mt-3 ml-7">
-                  <input type="checkbox" checked={oeffentlich} onChange={(e) => setOeffentlich(e.target.checked)} className="mt-1" />
-                  <span>
-                    <span className="font-semibold">🌿 Auch für Interessierte aus dem Quartier öffnen</span>
-                    <span className="block text-xs text-gray-500">Die Zeit erscheint dann zusätzlich hier auf der Buchungsseite. Wer zuerst bucht – Vermittlungsstelle oder Interessierte –, fährt mit.</span>
-                  </span>
-                </label>
+                <p className="text-sm text-emerald-700 mt-3 ml-7">🌿 Die Zeit erscheint auch auf der Buchungsseite für Interessierte aus dem Quartier. Wer zuerst bucht, fährt mit.</p>
               )}
             </div>
           )}

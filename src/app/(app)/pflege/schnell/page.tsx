@@ -90,6 +90,7 @@ function Anmeldung({ onOk }: { onOk: () => void }) {
       localStorage.setItem('pilot_name', j.pilot);
       localStorage.setItem('pilot_pw', j.token ?? pw);
       localStorage.setItem('pilot_rolle', j.rolle);
+      if (j.fahrzeug) localStorage.setItem('pilot_fahrzeug', j.fahrzeug); else localStorage.removeItem('pilot_fahrzeug');
       window.dispatchEvent(new CustomEvent('pilot-login'));
       if (j.muss_pw_aendern) { setFehler('Bitte zuerst auf der Startseite (Menü „Kutscher-Bereich“) ein eigenes Passwort festlegen. Danach geht es hier weiter.'); return; }
       onOk();

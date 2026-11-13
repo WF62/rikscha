@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
 import { zeitPlus, dauerText, uhrzeitMinuten } from '@/lib/touren';
 
-const ERLAUBT = ['pilot', 'gfo', 'admin'];
+const ERLAUBT = ['kutscher', 'pilot', 'gfo', 'admin'];
 const MERKEN = 'schnell_kutscher_v1';
 type Art = 'angebot' | 'gast';
 type Merk = { art: Art; start: string; dauer: number; fahrzeug: string; oeffentlich: boolean };
@@ -41,7 +41,7 @@ export default function FahrtEintragen() {
   const [fahrzeug, setFahrzeug] = useState('');
   const [plaetze, setPlaetze] = useState<Platz[]>([{ bw: '', text: '' }, { bw: '', text: '' }]);
   const [leute, setLeute] = useState<Person[]>([]);
-  const [oeffentlich, setOeffentlich] = useState(false);
+  const [oeffentlich] = useState(true);
   const [notiz, setNotiz] = useState('');
   const [liste, setListe] = useState<FzWahl[] | null>(null);
   const [fehler, setFehler] = useState('');
@@ -58,7 +58,6 @@ export default function FahrtEintragen() {
     if (m.start) setStart(m.start);
     if (m.dauer) setDauer(m.dauer);
     if (m.fahrzeug) setFahrzeug(m.fahrzeug);
-    if (m.oeffentlich) setOeffentlich(true);
     setZugang('ok');
     // Namensliste der Fahrgäste (nur Name, Einrichtung, Bereich, ♿)
     fetch('/api/bewohner-liste', { headers: authHeaders() }).then((r) => (r.ok ? r.json() : [])).then(setLeute).catch(() => setLeute([]));
@@ -201,10 +200,7 @@ export default function FahrtEintragen() {
           </div>
         )}
         {art === 'angebot' && (
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" checked={oeffentlich} onChange={(e) => setOeffentlich(e.target.checked)} className="mt-1" />
-            <span>Auch für Interessierte aus dem Quartier öffentlich buchbar</span>
-          </label>
+          <p className="text-sm text-emerald-700">🌿 Diese freie Zeit wird auch für Interessierte aus dem Quartier öffentlich buchbar.</p>
         )}
       </section>
 

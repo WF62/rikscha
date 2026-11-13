@@ -95,7 +95,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
         <div style={{ backgroundColor: b.eigenfahrt ? '#F5E5D8' : PILOT_FARBE.bgHex }} className={`flex items-center gap-1 px-1 py-0.5 ${b.eigenfahrt ? 'text-[#A63228]' : PILOT_FARBE.textClass}`}>
           <span style={{ backgroundColor: b.eigenfahrt ? '#A63228' : PILOT_FARBE.dotHex }} className="flex-shrink-0 w-1.5 h-1.5 rounded-full" />
           <span className={`${schmal ? 'text-[9px]' : 'text-[11px]'} font-bold truncate ${b.storniert ? 'line-through' : ''}`}>
-            {b.startzeit.slice(0,5)} {b.eigenfahrt ? '🚲 ' : (schmal ? '' : 'P: ')}{b.pilot}
+            {b.startzeit.slice(0,5)} {b.eigenfahrt ? '🚲 ' : (schmal ? '' : 'K: ')}{b.pilot}
           </span>
         </div>
       ) : (
@@ -111,7 +111,7 @@ function BuchungKarte({ b, schmal, onClick }: { b: Buchung; schmal?: boolean; on
       )}
       {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && (
         <div className="px-1 py-0.5 border-t border-white/60 bg-emerald-100 text-emerald-800">
-          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : b.oeffentlich ? '🌿 frei · öffentlich' : '🏠 frei für Vermittlung'}</span>
+          <span className={`${schmal ? 'text-[9px]' : 'text-[10px]'} font-bold`}>{schmal ? 'frei' : b.oeffentlich ? '🌿 frei · öffentlich' : '🏠 frei für Seniorenheim'}</span>
           {!schmal && !!b.gebucht && <span className="text-[10px] block">{b.gebucht} gebucht · frei {(b.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ') || '–'}</span>}
         </div>
       )}
@@ -315,7 +315,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
           {b.startzeit.slice(0,5)}–{b.endzeit.slice(0,5)} Uhr
         </span>
         {istOffen && <span className="text-xs font-bold text-orange-700 bg-orange-200 px-1.5 py-0.5 rounded">OFFEN</span>}
-        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">{b.oeffentlich ? '🌿 FREI · AUCH ÖFFENTLICH' : 'FREIE ZEIT'}</span>}
+        {b.angebot && !b.bewohner_id && (b.gaeste ?? []).length === 0 && <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">{b.oeffentlich ? '🌿 FREI · AUCH ÖFFENTLICH' : '🏠 FREI FÜR SENIORENHEIM'}</span>}
         {b.gruppe && <span className="text-xs font-bold text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded">👥 GRUPPE: {b.gruppe.titel}</span>}
         {!b.gruppe && (b.bewohner || b.bewohner2) && <span className="text-xs font-bold text-teal-800 bg-teal-100 px-1.5 py-0.5 rounded">🏠 VERMITTELTE FAHRT</span>}
         {b.storniert && <span className="text-xs font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded">STORNIERT</span>}
@@ -323,7 +323,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {b.pilot ? (
         <div style={{ backgroundColor: PILOT_FARBE.bgHex }} className={`flex items-center gap-2 px-3 py-2 ${PILOT_FARBE.textClass}`}>
           <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-3 h-3 rounded-full flex-shrink-0" />
-          <span className="text-sm font-bold">P: {b.pilot}</span>
+          <span className="text-sm font-bold">K: {b.pilot}</span>
         </div>
       ) : (
         <div className="flex items-center gap-2 px-3 py-2 bg-orange-50">
@@ -370,7 +370,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
       {!b.storniert && b.angebot && !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0 && ichKutscher && (
         <div className="px-3 py-2 border-t border-emerald-200 bg-emerald-50 text-sm flex items-center gap-2">
           <span className="flex-1">
-            {b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : 'Nur für Vermittlungsstellen sichtbar'}
+            {b.oeffentlich ? '🌿 Auch für Interessierte aus dem Quartier buchbar' : '🏠 Nur für das Seniorenheim sichtbar'}
             <span className="block text-xs text-gray-600">Zeitfenster: Gäste buchen darin kürzere Fahrten, auch mehrere nacheinander.{b.gebucht ? ` Schon ${b.gebucht} gebucht – noch frei: ${(b.frei ?? []).map((x) => `${x.von}–${x.bis}`).join(', ') || 'nichts'}.` : ''}</span>
           </span>
           <button onClick={async () => {
@@ -605,7 +605,7 @@ export default function KalenderSeite() {
             className={`flex items-center gap-1 px-2 py-1 rounded border-2 font-semibold ${
               filterPilot === name ? 'scale-105 shadow ring-2 ring-gray-600 border-gray-700' : 'border-gray-400 opacity-90 hover:opacity-100'
             } ${PILOT_FARBE.textClass}`}>
-            <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />P: {name}
+            <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />K: {name}
           </button>
         ))}
       </div>
