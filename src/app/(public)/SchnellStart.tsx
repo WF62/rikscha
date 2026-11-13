@@ -13,8 +13,9 @@ function kachelnFuer(rolle: string): Kachel[] {
   const anmelden: Kachel = { href: '/pflege/schnell', icon: '🚲', titel: 'Rikscha anmelden', sub: 'Wer? Wann? Wohin?', haupt: true };
   const kalender: Kachel = { href: '/kalender', icon: '📅', titel: 'Kalender', sub: 'Alle Fahrten' };
   const vermitteln: Kachel = { href: '/pflege', icon: '🏠', titel: 'Fahrten vermitteln', sub: 'Gäste, Etagen, Gruppen' };
-  if (rolle === 'kutscher' || rolle === 'pilot') return [eintragen, kalender];
-  if (rolle === 'kutscher-admin') return [eintragen, kalender];
+  const touren: Kachel = { href: '/touren', icon: '🗺️', titel: 'Touren verwalten', sub: 'GPX hochladen & benennen' };
+  if (rolle === 'kutscher' || rolle === 'pilot') return [eintragen, kalender, touren];
+  if (rolle === 'kutscher-admin') return [eintragen, kalender, touren];
   if (rolle === 'pflege') return [anmelden, vermitteln];
   if (rolle === 'gfo' || rolle === 'admin') return [eintragen, { ...anmelden, haupt: false }, kalender, vermitteln];
   return [];
