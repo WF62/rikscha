@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getPilotRolle, istAdmin } from '@/lib/pilotAuth';
+import { getPilotRolle, istAdmin, darfWebBearbeiten } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -37,14 +37,8 @@ export async function POST(req: NextRequest) {
   const db = createServiceClient();
   const ts = new Date().toISOString();
 
-  // Reguläre Piloten → Entwurf einreichen, nicht direkt speichern
-  if (!istAdmin(rolle)) {
-    const { error: draftErr } = await db.from('rikscha_inhalte_entwurf').insert({
-      schluessel, wert, eingereicht_von: pilot, status: 'offen',
-    });
-    if (draftErr) return NextResponse.json({ error: draftErr.message }, { status: 500, headers: CORS });
-    return NextResponse.json({ ok: true, entwurf: true }, { headers: CORS });
-  }
+  // Nur kutscher-admin, gfo und admin dürfen Website-Inhalte ändern
+  if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Keine Berechtigung für Website-Änderungen.' }, { status: 403, headers: CORS });
 
   // Admin → alten Wert in Verlauf sichern, dann direkt speichern
   const { data: alt } = await db.from('inhalte').select('wert').eq('schluessel', schluessel).maybeSingle();

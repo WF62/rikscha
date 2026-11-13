@@ -42,9 +42,14 @@ export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string;
   return { name, rolle };
 }
 
-/** Kutscher, GFO und Admin dürfen Fahrten und Sperren verwalten – Gäste, Angehörige und Pflege nicht. */
+/** Kutscher (alle Stufen), GFO und Admin dürfen Fahrten und Sperren verwalten. */
 export function darfFahrtenVerwalten(rolle: string | null) {
-  return rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
+  return rolle === 'kutscher' || rolle === 'kutscher-admin' || rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
+}
+
+/** Nur Kutscher-Admin, GFO und Admin dürfen Website-Inhalte, Flyer und Handouts bearbeiten. */
+export function darfWebBearbeiten(rolle: string | null) {
+  return rolle === 'kutscher-admin' || rolle === 'gfo' || rolle === 'admin';
 }
 
 /**
