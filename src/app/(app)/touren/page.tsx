@@ -176,6 +176,7 @@ export default function TourenVerwaltung() {
               {(t.beschreibung) && <span style={{ display: 'block', fontSize: '0.78rem', color: '#5C4E38' }}>{t.beschreibung.slice(0, 80)}{t.beschreibung.length > 80 ? '…' : ''}</span>}
               <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>von {t.erstellt_von}</span>
             </span>
+            <a href={`/touren/${t.id}`} style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 7, padding: '0.25rem 0.65rem', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', cursor: 'pointer' }}>Bearbeiten</a>
             <button onClick={() => loeschen(t.id, t.name)} style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}>Löschen</button>
           </div>
         ))}
