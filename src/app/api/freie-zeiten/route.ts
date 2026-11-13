@@ -30,10 +30,10 @@ export async function GET() {
   const kandidaten = (data ?? []).filter((b) => !b.bewohner_id && !b.gruppe_id && (b.gaeste ?? []).length === 0);
 
   // Prüfen welche Fahrzeuge an welchen Tagen bereits Einrichtungs-Buchungen haben
-  const fzDaten = [...new Set(kandidaten.filter((b) => b.fahrzeug).map((b) => `${b.fahrzeug}|${b.datum}`))];
+  const fzDaten = Array.from(new Set(kandidaten.filter((b) => b.fahrzeug).map((b) => `${b.fahrzeug}|${b.datum}`)));
   let einrichtungBelegtSet = new Set<string>();
   if (fzDaten.length) {
-    const fzIds = [...new Set(kandidaten.map((b) => b.fahrzeug).filter(Boolean))];
+    const fzIds = Array.from(new Set(kandidaten.map((b) => b.fahrzeug).filter(Boolean)));
     const datumsRange = { von: kandidaten[0]?.datum ?? heute(), bis: kandidaten[kandidaten.length - 1]?.datum ?? heute() };
     const { data: einrBuch } = await sb.from('rikscha_buchungen')
       .select('fahrzeug, datum, startzeit, endzeit')
