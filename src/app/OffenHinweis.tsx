@@ -51,7 +51,7 @@ export default function OffenHinweis() {
   );
   if (!d.freieZeiten.length && !d.ohneKutscher.length) return anfragenBox || null;
   const vermittlung = ['pflege', 'gfo', 'admin'].includes(d.rolle);
-  const kutscher = ['pilot', 'gfo', 'admin'].includes(d.rolle);
+  const kutscher = ['kutscher', 'pilot', 'gfo', 'admin'].includes(d.rolle);
   const zeile: React.CSSProperties = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.25rem 0.75rem', padding: '0.4rem 0', borderTop: '1px solid #F3D9A4' };
   const link: React.CSSProperties = { color: '#2D6B1E', fontWeight: 700, textDecoration: 'underline', marginLeft: 'auto' };
 

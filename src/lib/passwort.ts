@@ -97,7 +97,7 @@ export async function anmelden(name: string, eingabe: string): Promise<Anmeldung
     if (await passt(z, eingabe)) {
       return {
         name: z.name,
-        rolle: z.rolle ?? 'pilot',
+        rolle: z.rolle ?? 'kutscher',
         muss_pw_aendern: !!z.muss_pw_aendern,
         token: z.passwort_hash ? erstelleToken(z.name, z.passwort_hash) : null,
         organisationId: z.organisation_id ?? null,

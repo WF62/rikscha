@@ -282,7 +282,7 @@ export default function BearbeitenPage() {
   const [felder, setFelder]   = useState<Inhaltsfeld[]>([]);
   const [fehler, setFehler]   = useState('');
   const [laden, setLaden]     = useState(false);
-  const [pilotRolle, setPilotRolle] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_rolle') ?? 'pilot' : 'pilot');
+  const [pilotRolle, setPilotRolle] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_rolle') ?? 'kutscher' : 'pilot');
   const istAdminUser = pilotRolle === 'gfo' || pilotRolle === 'admin';
   const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner' | 'aktuelles' | 'entwuerfe' | 'verlauf'>('website');
   type AktuellEintrag = { id: string; datum: string; titel: string; text: string; aktiv: boolean; erstellt_von: string };
@@ -403,7 +403,7 @@ export default function BearbeitenPage() {
         const zugang = j.token ?? password; // Token statt Passwort speichern
         localStorage.setItem('pilot_pw', zugang);
         setPassword(zugang);
-        const rolle = j.rolle ?? 'pilot';
+        const rolle = j.rolle ?? 'kutscher';
         localStorage.setItem('pilot_rolle', rolle);
         setPilotRolle(rolle);
         setEingeloggt(true);

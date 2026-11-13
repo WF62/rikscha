@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     const meins = (b: { pilot: string; bewohner_id: string | null; bewohner2_id: string | null }) =>
       alle || (rolle === 'pilot' && b.pilot === name) || (rolle === 'pflege' && eigeneGaeste(b));
     anfragen = vs.filter((b) => b.verschiebung_start && meins(b) && b.verschiebung_von !== name
-      && (alle || (rolle === 'pilot' ? b.verschiebung_seite === 'vermittlung' : b.verschiebung_seite === 'kutscher')))
+      && (alle || ((rolle === 'kutscher' || rolle === 'pilot') ? b.verschiebung_seite === 'vermittlung' : b.verschiebung_seite === 'kutscher')))
       .map((b) => ({
         id: b.id, datum: b.datum, startzeit: b.startzeit, endzeit: b.endzeit, pilot: b.pilot, fahrzeug: b.fahrzeug,
         gaeste: b.gaeste, bewohner_id: b.bewohner_id, bewohner2_id: b.bewohner2_id, storniert: false,
