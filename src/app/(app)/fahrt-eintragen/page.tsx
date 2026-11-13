@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
 import { zeitPlus, dauerText, uhrzeitMinuten } from '@/lib/touren';
 
-const ERLAUBT = ['pilot', 'gfo', 'admin'];
+const ERLAUBT = ['kutscher', 'kutscher-admin', 'pilot', 'gfo', 'admin'];
 const MERKEN = 'schnell_kutscher_v1';
 type Art = 'angebot' | 'gast';
 type Merk = { art: Art; start: string; dauer: number; fahrzeug: string; oeffentlich: boolean };

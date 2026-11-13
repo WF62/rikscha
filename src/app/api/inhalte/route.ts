@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getPilotRolle, istAdmin } from '@/lib/pilotAuth';
+import { getPilotRolle, darfFahrtenVerwalten, darfWebBearbeiten } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -32,13 +32,13 @@ export async function POST(req: NextRequest) {
   }
 
   const rolle = await getPilotRolle(pilot, password);
-  if (!rolle) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
+  if (!rolle || !darfFahrtenVerwalten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401, headers: CORS });
 
   const db = createServiceClient();
   const ts = new Date().toISOString();
 
-  // Reguläre Piloten → Entwurf einreichen, nicht direkt speichern
-  if (!istAdmin(rolle)) {
+  // Kutscher (ohne Admin-Rechte) → Entwurf einreichen zur Freigabe
+  if (!darfWebBearbeiten(rolle)) {
     const { error: draftErr } = await db.from('rikscha_inhalte_entwurf').insert({
       schluessel, wert, eingereicht_von: pilot, status: 'offen',
     });
