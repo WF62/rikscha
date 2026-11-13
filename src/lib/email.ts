@@ -2,6 +2,36 @@ import { Resend } from 'resend';
 
 const FROM = 'Mertener Rikschakutscher <onboarding@resend.dev>';
 
+export async function sendSchadenEmail(e: {
+  kutscher: string; fahrzeug: string; datum: string;
+  beschreibung: string; bemerkungen?: string;
+}) {
+  const resend = getResend();
+  const to = process.env.SCHADEN_EMAIL ?? process.env.NOTIFY_EMAIL ?? '';
+  if (!resend || !to) return;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `⚠️ Schaden/Wartung gemeldet: ${e.fahrzeug} am ${e.datum}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a18;">
+        <div style="background:#B45309;color:#fff;padding:1.2rem 1.5rem;border-radius:8px 8px 0 0;">
+          <h2 style="margin:0;font-size:1.1rem;">⚠️ Schaden / Wartungsbedarf gemeldet</h2>
+        </div>
+        <div style="background:#f7f5f0;padding:1.5rem;border-radius:0 0 8px 8px;border:1px solid #ddd9d0;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.95rem;">
+            <tr><td style="padding:0.4rem 0;color:#5a5a52;width:120px;">Fahrzeug</td><td style="padding:0.4rem 0;font-weight:600;">${e.fahrzeug}</td></tr>
+            <tr><td style="padding:0.4rem 0;color:#5a5a52;">Datum</td><td style="padding:0.4rem 0;">${e.datum}</td></tr>
+            <tr><td style="padding:0.4rem 0;color:#5a5a52;">Kutscher</td><td style="padding:0.4rem 0;">${e.kutscher}</td></tr>
+          </table>
+          <div style="margin-top:1rem;padding:1rem;background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;font-size:0.95rem;line-height:1.6;white-space:pre-wrap;"><strong>Beschreibung:</strong><br>${e.beschreibung}</div>
+          ${e.bemerkungen ? `<div style="margin-top:0.75rem;padding:1rem;background:#fff;border-radius:6px;border:1px solid #ddd9d0;font-size:0.9rem;line-height:1.6;"><strong>Bemerkungen:</strong><br>${e.bemerkungen}</div>` : ''}
+        </div>
+      </div>
+    `,
+  });
+}
+
 function getResend() {
   const key = process.env.RESEND_API_KEY;
   if (!key) return null;

@@ -13,7 +13,8 @@ type FahrtenbuchEintrag = {
   id?: string; buchung_id?: string; fahrzeug: string; datum: string;
   startzeit?: string; endzeit?: string; kutscher: string; fahrttyp: string;
   gast_name?: string; anzahl_fahrgaeste: number; km_start?: number; km_ende?: number;
-  spenden: number; wetter: string; schaden: boolean; schaden_beschreibung?: string; bemerkungen?: string;
+  spenden: number; ausgaben?: number; ausgaben_beschreibung?: string;
+  wetter: string; schaden: boolean; schaden_beschreibung?: string; bemerkungen?: string;
 };
 
 function formatDatum(d: string) {
@@ -44,6 +45,8 @@ export default function FahrtenbuchEintragen() {
   const [kmEnde, setKmEnde] = useState('');
   const [spenden, setSpenden] = useState('');
   const [wetter, setWetter] = useState('');
+  const [ausgaben, setAusgaben] = useState('');
+  const [ausgabenBeschreibung, setAusgabenBeschreibung] = useState('');
   const [schaden, setSchaden] = useState(false);
   const [schadenBeschreibung, setSchadenBeschreibung] = useState('');
   const [bemerkungen, setBemerkungen] = useState('');
@@ -103,6 +106,8 @@ export default function FahrtenbuchEintragen() {
       km_start: kmStart ? parseInt(kmStart) : undefined,
       km_ende: kmEnde ? parseInt(kmEnde) : undefined,
       spenden: spenden ? parseFloat(spenden) : 0,
+      ausgaben: ausgaben ? parseFloat(ausgaben) : 0,
+      ausgaben_beschreibung: ausgabenBeschreibung.trim() || undefined,
       wetter,
       schaden,
       schaden_beschreibung: schaden ? schadenBeschreibung.trim() : undefined,
@@ -200,6 +205,16 @@ export default function FahrtenbuchEintragen() {
               <label style={lbl}>Spenden / Einnahmen (€)</label>
               <input style={inp} type="number" min={0} step={0.01} value={spenden} onChange={e => setSpenden(e.target.value)} placeholder="0,00" />
             </div>
+            <div>
+              <label style={lbl}>Ausgaben (€)</label>
+              <input style={inp} type="number" min={0} step={0.01} value={ausgaben} onChange={e => setAusgaben(e.target.value)} placeholder="0,00" />
+            </div>
+            {ausgaben && parseFloat(ausgaben) > 0 && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={lbl}>Ausgaben-Beschreibung</label>
+                <input style={inp} value={ausgabenBeschreibung} onChange={e => setAusgabenBeschreibung(e.target.value)} placeholder="z.B. Reifenreparatur, Reinigungsmittel …" />
+              </div>
+            )}
             <div>
               <label style={lbl}>Wetter</label>
               <select style={inp} value={wetter} onChange={e => setWetter(e.target.value)}>

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getPilotRolle, darfFahrtenVerwalten, darfWebBearbeiten } from '@/lib/pilotAuth';
+import { sendSchadenEmail } from '@/lib/email';
 
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   const nurEigen = searchParams.get('eigen') === '1';
 
   let q = db.from('rikscha_fahrtenbuch')
-    .select('id, buchung_id, fahrzeug, datum, startzeit, endzeit, kutscher, fahrttyp, gast_name, anzahl_fahrgaeste, km_start, km_ende, spenden, wetter, schaden, schaden_beschreibung, bemerkungen, eingetragen_von, eingetragen_am')
+    .select('id, buchung_id, fahrzeug, datum, startzeit, endzeit, kutscher, fahrttyp, gast_name, anzahl_fahrgaeste, km_start, km_ende, spenden, ausgaben, ausgaben_beschreibung, wetter, schaden, schaden_beschreibung, bemerkungen, eingetragen_von, eingetragen_am')
     .order('datum', { ascending: false })
     .order('startzeit', { ascending: false });
 
@@ -34,6 +35,41 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(data ?? [], { headers: CORS });
 }
 
+async function kassenbuchEintragAnlegen(
+  db: ReturnType<typeof createServiceClient>,
+  fahrtenbuchId: string,
+  felder: Record<string, unknown>,
+  pilot: string
+) {
+  const datum = felder.datum as string;
+  const fahrzeug = felder.fahrzeug as string;
+  const promises: Promise<unknown>[] = [];
+
+  if (felder.spenden && Number(felder.spenden) > 0) {
+    promises.push(Promise.resolve(db.from('rikscha_kassenbuch').insert({
+      typ: 'einnahme',
+      betrag: Number(felder.spenden),
+      datum,
+      beschreibung: `Spende – ${fahrzeug}${felder.gast_name ? ` (${felder.gast_name})` : ''}`,
+      kategorie: 'Spende',
+      fahrtenbuch_id: fahrtenbuchId,
+      eingetragen_von: pilot,
+    })));
+  }
+  if (felder.ausgaben && Number(felder.ausgaben) > 0) {
+    promises.push(Promise.resolve(db.from('rikscha_kassenbuch').insert({
+      typ: 'ausgabe',
+      betrag: Number(felder.ausgaben),
+      datum,
+      beschreibung: (felder.ausgaben_beschreibung as string) || `Ausgabe – ${fahrzeug}`,
+      kategorie: 'Fahrtkosten',
+      fahrtenbuch_id: fahrtenbuchId,
+      eingetragen_von: pilot,
+    })));
+  }
+  await Promise.all(promises);
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { pilot, password, ...felder } = body;
@@ -43,7 +79,6 @@ export async function POST(req: NextRequest) {
 
   const db = createServiceClient();
 
-  // Doppeleintrag verhindern: gleiche buchung_id darf nur einmal vorkommen
   if (felder.buchung_id) {
     const { data: existing } = await db.from('rikscha_fahrtenbuch').select('id').eq('buchung_id', felder.buchung_id).single();
     if (existing) return NextResponse.json({ error: 'Für diese Fahrt existiert bereits ein Eintrag.', existing_id: existing.id }, { status: 409, headers: CORS });
@@ -54,6 +89,21 @@ export async function POST(req: NextRequest) {
     eingetragen_von: pilot,
   }).select('id').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+
+  // Kassenbuch-Einträge automatisch anlegen
+  await kassenbuchEintragAnlegen(db, data.id, felder, pilot);
+
+  // Schaden-E-Mail an Rolf
+  if (felder.schaden && felder.schaden_beschreibung) {
+    sendSchadenEmail({
+      kutscher: pilot,
+      fahrzeug: felder.fahrzeug as string,
+      datum: felder.datum as string,
+      beschreibung: felder.schaden_beschreibung as string,
+      bemerkungen: felder.bemerkungen as string | undefined,
+    }).catch(() => {});
+  }
+
   return NextResponse.json({ ok: true, id: data.id }, { status: 201, headers: CORS });
 }
 
@@ -65,7 +115,6 @@ export async function PUT(req: NextRequest) {
 
   const db = createServiceClient();
 
-  // Kutscher darf nur eigene Einträge bearbeiten, kutscher-admin/admin alle
   if (!darfWebBearbeiten(rolle)) {
     const { data: eintrag } = await db.from('rikscha_fahrtenbuch').select('kutscher').eq('id', id).single();
     if (!eintrag || eintrag.kutscher !== pilot) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 403 });
