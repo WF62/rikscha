@@ -14,11 +14,13 @@ import { createServiceClient } from './supabase';
 const TOKEN_TAGE = 90;
 const PRAEFIX = 't1.';
 
-type Zeile = { id: string; name: string; rolle: string | null; aktiv: boolean | null; muss_pw_aendern?: boolean | null; passwort?: string | null; passwort_hash?: string | null; organisation_id?: string | null };
+type Zeile = { id: string; name: string; rolle: string | null; aktiv: boolean | null; muss_pw_aendern?: boolean | null; passwort?: string | null; passwort_hash?: string | null; organisation_id?: string | null; fahrzeug?: string | null };
 
 export type Anmeldung = { name: string; rolle: string; muss_pw_aendern: boolean; token: string | null;
   /** Organisation eines Vermittlungs-Zugangs (Pflege, Quartiersbüro …) */
-  organisationId: string | null };
+  organisationId: string | null;
+  /** Fahrzeug eines Angehörigen – fest hinterlegt, wird beim Buchen vorausgewählt */
+  fahrzeug: string | null };
 
 function geheimnis() {
   const s = process.env.SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -86,7 +88,7 @@ export async function anmelden(name: string, eingabe: string): Promise<Anmeldung
   const adminPw = process.env.ADMIN_PASSWORD;
   if (adminPw && name === adminName) {
     const ok = istToken(eingabe) ? pruefeToken(eingabe, adminName, adminPw) : gleich(eingabe, adminPw);
-    if (ok) return { name: adminName, rolle: 'admin', muss_pw_aendern: false, token: erstelleToken(adminName, adminPw), organisationId: null };
+    if (ok) return { name: adminName, rolle: 'admin', muss_pw_aendern: false, token: erstelleToken(adminName, adminPw), organisationId: null, fahrzeug: null };
   }
 
   const { data } = await createServiceClient()
@@ -99,6 +101,7 @@ export async function anmelden(name: string, eingabe: string): Promise<Anmeldung
         muss_pw_aendern: !!z.muss_pw_aendern,
         token: z.passwort_hash ? erstelleToken(z.name, z.passwort_hash) : null,
         organisationId: z.organisation_id ?? null,
+        fahrzeug: z.fahrzeug ?? null,
       };
     }
   }
