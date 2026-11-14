@@ -7,7 +7,7 @@ export default function ZurueckLeiste() {
   if (pfad?.startsWith('/kalender')) return null;
   const zurueck = () => {
     // Zurück zur vorigen Seite der App – sonst zur Startseite (z. B. wenn die Seite in einem neuen Tab geöffnet wurde)
-    if (window.history.length > 1 && document.referrer.startsWith(location.origin)) window.history.back();
+    if (window.history.length > 1) window.history.back();
     else window.location.href = '/';
   };
   return (
