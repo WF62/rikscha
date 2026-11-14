@@ -4,17 +4,30 @@ import { useEffect, useState } from 'react';
 const ERLAUBT = ['kutscher-admin', 'gfo', 'admin'];
 const KATEGORIEN_EINNAHME = ['Spende', 'Förderung', 'Mitgliedsbeitrag', 'Sonstiges'];
 const KATEGORIEN_AUSGABE = ['Fahrtkosten', 'Wartung/Reparatur', 'Material', 'Versicherung', 'Verwaltung', 'Sonstiges'];
+const KOSTENTRAEGER = [
+  { wert: 'selbst', label: 'Gruppe selbst' },
+  { wert: 'gfo', label: 'GFO / Seniorenheim' },
+  { wert: 'foerderverein', label: 'Förderverein' },
+];
 
 type Eintrag = {
   id: string; typ: 'einnahme' | 'ausgabe'; betrag: number; datum: string;
   beschreibung: string; kategorie?: string; fahrtenbuch_id?: string;
-  eingetragen_von: string; eingetragen_am: string;
+  eingetragen_von: string; eingetragen_am: string; kostentraeger?: string;
 };
 
 function formatDatum(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 function euro(n: number) { return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
+function kostentraegerLabel(k?: string) {
+  return { selbst: 'Gruppe', gfo: 'GFO', foerderverein: 'Förderverein' }[k ?? 'selbst'] ?? 'Gruppe';
+}
+function kostentraegerColor(k?: string): React.CSSProperties {
+  if (k === 'gfo') return { background: '#EDE9FE', color: '#5B21B6' };
+  if (k === 'foerderverein') return { background: '#FEF3C7', color: '#92400E' };
+  return { background: '#F0FDF4', color: '#166534' };
+}
 
 export default function Kassenbuch() {
   const [zugang, setZugang] = useState<'laden' | 'nein' | 'ja'>('laden');
@@ -27,6 +40,7 @@ export default function Kassenbuch() {
   const [filterVon, setFilterVon] = useState(`${jetzt.getFullYear()}-01-01`);
   const [filterBis, setFilterBis] = useState(jetzt.toISOString().slice(0, 10));
   const [filterTyp, setFilterTyp] = useState('');
+  const [filterTraeger, setFilterTraeger] = useState('');
 
   // Neuer Eintrag
   const [neTyp, setNeTyp] = useState<'einnahme' | 'ausgabe'>('ausgabe');
@@ -34,6 +48,7 @@ export default function Kassenbuch() {
   const [neDatum, setNeDatum] = useState(jetzt.toISOString().slice(0, 10));
   const [neBeschreibung, setNeBeschreibung] = useState('');
   const [neKategorie, setNeKategorie] = useState('');
+  const [neKostentraeger, setNeKostentraeger] = useState('selbst');
   const [speichert, setSpeichert] = useState(false);
   const [fehler, setFehler] = useState('');
   const [erfolg, setErfolg] = useState('');
@@ -53,10 +68,11 @@ export default function Kassenbuch() {
     setLaedt(true);
     const p = new URLSearchParams({ pilot, password: pw, von: filterVon, bis: filterBis });
     if (filterTyp) p.set('typ', filterTyp);
+    if (filterTraeger) p.set('kostentraeger', filterTraeger);
     fetch(`/api/kassenbuch?${p}`).then(r => r.json()).then(d => { setEintraege(Array.isArray(d) ? d : []); setLaedt(false); }).catch(() => setLaedt(false));
   };
 
-  useEffect(() => { if (zugang === 'ja') laden(); }, [zugang, filterVon, filterBis, filterTyp]);
+  useEffect(() => { if (zugang === 'ja') laden(); }, [zugang, filterVon, filterBis, filterTyp, filterTraeger]);
 
   const speichern = async () => {
     if (!neBetrag || !neBeschreibung.trim()) { setFehler('Betrag und Beschreibung sind erforderlich.'); return; }
@@ -64,12 +80,12 @@ export default function Kassenbuch() {
     const res = await fetch('/api/kassenbuch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pilot, password: pw, typ: neTyp, betrag: parseFloat(neBetrag), datum: neDatum, beschreibung: neBeschreibung.trim(), kategorie: neKategorie || null }),
+      body: JSON.stringify({ pilot, password: pw, typ: neTyp, betrag: parseFloat(neBetrag), datum: neDatum, beschreibung: neBeschreibung.trim(), kategorie: neKategorie || null, kostentraeger: neKostentraeger }),
     });
     setSpeichert(false);
     if (!res.ok) { const d = await res.json(); setFehler(d.error ?? 'Fehler.'); return; }
     setErfolg('Eintrag gespeichert.');
-    setNeBetrag(''); setNeBeschreibung(''); setNeKategorie('');
+    setNeBetrag(''); setNeBeschreibung(''); setNeKategorie(''); setNeKostentraeger('selbst');
     laden();
   };
 
@@ -80,10 +96,11 @@ export default function Kassenbuch() {
   };
 
   const csvExport = () => {
-    const header = ['Datum', 'Typ', 'Betrag (€)', 'Beschreibung', 'Kategorie', 'Eingetragen von'];
+    const header = ['Datum', 'Typ', 'Betrag (€)', 'Beschreibung', 'Kategorie', 'Kostenträger', 'Eingetragen von'];
     const rows = eintraege.map(e => [
       formatDatum(e.datum), e.typ === 'einnahme' ? 'Einnahme' : 'Ausgabe',
-      e.betrag.toFixed(2).replace('.', ','), e.beschreibung, e.kategorie ?? '', e.eingetragen_von,
+      e.betrag.toFixed(2).replace('.', ','), e.beschreibung, e.kategorie ?? '',
+      kostentraegerLabel(e.kostentraeger), e.eingetragen_von,
     ]);
     const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
@@ -97,6 +114,13 @@ export default function Kassenbuch() {
   const einnahmen = eintraege.filter(e => e.typ === 'einnahme').reduce((s, e) => s + e.betrag, 0);
   const ausgaben = eintraege.filter(e => e.typ === 'ausgabe').reduce((s, e) => s + e.betrag, 0);
   const saldo = einnahmen - ausgaben;
+
+  // Aufschlüsselung nach Kostenträger
+  const ausgabenNachTraeger = {
+    selbst: eintraege.filter(e => e.typ === 'ausgabe' && (!e.kostentraeger || e.kostentraeger === 'selbst')).reduce((s, e) => s + e.betrag, 0),
+    gfo: eintraege.filter(e => e.typ === 'ausgabe' && e.kostentraeger === 'gfo').reduce((s, e) => s + e.betrag, 0),
+    foerderverein: eintraege.filter(e => e.typ === 'ausgabe' && e.kostentraeger === 'foerderverein').reduce((s, e) => s + e.betrag, 0),
+  };
 
   const inp: React.CSSProperties = { border: '1.5px solid #D6CCB8', borderRadius: 7, padding: '0.45rem 0.6rem', fontSize: '0.88rem', background: '#fff', width: '100%', boxSizing: 'border-box' };
   const lbl: React.CSSProperties = { display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#5C4E38', marginBottom: '0.25rem' };
@@ -119,23 +143,39 @@ export default function Kassenbuch() {
           <option value="einnahme">Nur Einnahmen</option>
           <option value="ausgabe">Nur Ausgaben</option>
         </select>
+        <select style={{ ...inp, width: 'auto' }} value={filterTraeger} onChange={e => setFilterTraeger(e.target.value)}>
+          <option value="">Alle Kostenträger</option>
+          {KOSTENTRAEGER.map(k => <option key={k.wert} value={k.wert}>{k.label}</option>)}
+        </select>
         {laedt && <span style={{ fontSize: '0.82rem', color: '#9CA3AF' }}>⏳</span>}
       </div>
 
       {/* Saldo-Kacheln */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         <div style={{ background: '#D1FAE5', border: '1.5px solid #6EE7B7', borderRadius: 10, padding: '0.75rem 1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#065F46' }}>{euro(einnahmen)}</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#065F46' }}>{euro(einnahmen)}</div>
           <div style={{ fontSize: '0.75rem', color: '#065F46' }}>Einnahmen</div>
         </div>
         <div style={{ background: '#FEE2E2', border: '1.5px solid #FCA5A5', borderRadius: 10, padding: '0.75rem 1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#991B1B' }}>{euro(ausgaben)}</div>
-          <div style={{ fontSize: '0.75rem', color: '#991B1B' }}>Ausgaben</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#991B1B' }}>{euro(ausgaben)}</div>
+          <div style={{ fontSize: '0.75rem', color: '#991B1B' }}>Ausgaben gesamt</div>
         </div>
         <div style={{ background: saldo >= 0 ? '#EFF6FF' : '#FEF3C7', border: `1.5px solid ${saldo >= 0 ? '#93C5FD' : '#FCD34D'}`, borderRadius: 10, padding: '0.75rem 1rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: saldo >= 0 ? '#1D4ED8' : '#B45309' }}>{euro(saldo)}</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: saldo >= 0 ? '#1D4ED8' : '#B45309' }}>{euro(saldo)}</div>
           <div style={{ fontSize: '0.75rem', color: saldo >= 0 ? '#1D4ED8' : '#B45309' }}>Saldo</div>
         </div>
+        {ausgabenNachTraeger.gfo > 0 && (
+          <div style={{ background: '#EDE9FE', border: '1.5px solid #C4B5FD', borderRadius: 10, padding: '0.75rem 1rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#5B21B6' }}>{euro(ausgabenNachTraeger.gfo)}</div>
+            <div style={{ fontSize: '0.75rem', color: '#5B21B6' }}>Trägt GFO</div>
+          </div>
+        )}
+        {ausgabenNachTraeger.foerderverein > 0 && (
+          <div style={{ background: '#FEF3C7', border: '1.5px solid #FCD34D', borderRadius: 10, padding: '0.75rem 1rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#92400E' }}>{euro(ausgabenNachTraeger.foerderverein)}</div>
+            <div style={{ fontSize: '0.75rem', color: '#92400E' }}>Trägt Förderverein</div>
+          </div>
+        )}
       </div>
 
       {/* Neuer Eintrag */}
@@ -164,6 +204,12 @@ export default function Kassenbuch() {
               {(neTyp === 'einnahme' ? KATEGORIEN_EINNAHME : KATEGORIEN_AUSGABE).map(k => <option key={k} value={k}>{k}</option>)}
             </select>
           </div>
+          <div>
+            <label style={lbl}>Kostenträger</label>
+            <select style={inp} value={neKostentraeger} onChange={e => setNeKostentraeger(e.target.value)}>
+              {KOSTENTRAEGER.map(k => <option key={k.wert} value={k.wert}>{k.label}</option>)}
+            </select>
+          </div>
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={lbl}>Beschreibung *</label>
             <input style={inp} value={neBeschreibung} onChange={e => setNeBeschreibung(e.target.value)} placeholder="z.B. Ersatzteile Rikscha 1" />
@@ -183,7 +229,7 @@ export default function Kassenbuch() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ background: '#F7F3EC', borderBottom: '2px solid #D6CCB8' }}>
-                {['Datum', 'Typ', 'Beschreibung', 'Kategorie', 'Betrag', 'Von', ''].map(h => (
+                {['Datum', 'Typ', 'Beschreibung', 'Kategorie', 'Kostenträger', 'Betrag', 'Von', ''].map(h => (
                   <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: h === 'Betrag' ? 'right' : 'left', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -197,11 +243,16 @@ export default function Kassenbuch() {
                       {e.typ === 'einnahme' ? '+ Einnahme' : '− Ausgabe'}
                     </span>
                   </td>
-                  <td style={{ padding: '0.45rem 0.6rem', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '0.45rem 0.6rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {e.beschreibung}
                     {e.fahrtenbuch_id && <span style={{ marginLeft: '0.4rem', fontSize: '0.72rem', color: '#9CA3AF' }}>📒</span>}
                   </td>
                   <td style={{ padding: '0.45rem 0.6rem', color: '#5C4E38', fontSize: '0.8rem' }}>{e.kategorie ?? ''}</td>
+                  <td style={{ padding: '0.45rem 0.6rem' }}>
+                    <span style={{ ...kostentraegerColor(e.kostentraeger), borderRadius: 5, padding: '0.1rem 0.5rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                      {kostentraegerLabel(e.kostentraeger)}
+                    </span>
+                  </td>
                   <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', fontWeight: 700, color: e.typ === 'einnahme' ? '#065F46' : '#991B1B', whiteSpace: 'nowrap' }}>
                     {e.typ === 'einnahme' ? '+' : '−'} {euro(e.betrag)}
                   </td>

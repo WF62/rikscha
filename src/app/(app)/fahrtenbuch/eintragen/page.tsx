@@ -15,12 +15,54 @@ type FahrtenbuchEintrag = {
   gast_name?: string; anzahl_fahrgaeste: number; km_start?: number; km_ende?: number;
   spenden: number; ausgaben?: number; ausgaben_beschreibung?: string;
   wetter: string; schaden: boolean; schaden_beschreibung?: string; bemerkungen?: string;
+  status?: string; checkliste_vor?: string[]; checkliste_nach?: string[];
 };
+
+const CHECKLISTE_VOR = [
+  { id: 'reifendruck', text: 'Reifendruck geprüft (vorne & hinten)' },
+  { id: 'bremsen', text: 'Bremsen funktionsfähig' },
+  { id: 'beleuchtung', text: 'Beleuchtung funktioniert' },
+  { id: 'rikscha_zustand', text: 'Rikscha äußerlich in Ordnung (keine sichtbaren Schäden)' },
+  { id: 'gurte', text: 'Fahrgast-Sicherung / Gurte geprüft' },
+  { id: 'erste_hilfe', text: 'Erste-Hilfe-Set vorhanden' },
+  { id: 'handy', text: 'Handy / Akku geladen' },
+];
+
+const CHECKLISTE_NACH = [
+  { id: 'gereinigt', text: 'Rikscha gereinigt' },
+  { id: 'km_notiert', text: 'Kilometerstand notiert' },
+  { id: 'schaden_geprueft', text: 'Schäden oder Auffälligkeiten geprüft' },
+  { id: 'abgestellt', text: 'Rikscha ordnungsgemäß abgestellt / abgeschlossen' },
+];
 
 function formatDatum(d: string) {
   if (!d) return '';
   const dt = new Date(d + 'T00:00:00');
   return dt.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function ChecklisteAbschnitt({
+  titel, items, checked, onChange,
+}: { titel: string; items: { id: string; text: string }[]; checked: string[]; onChange: (id: string) => void }) {
+  const alle = items.every(i => checked.includes(i.id));
+  return (
+    <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 12, padding: '1rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+        <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#5C4E38' }}>{titel}</h3>
+        {alle
+          ? <span style={{ fontSize: '0.78rem', color: '#065F46', fontWeight: 700 }}>✓ Alle bestätigt</span>
+          : <span style={{ fontSize: '0.78rem', color: '#B45309' }}>{checked.filter(id => items.some(i => i.id === id)).length}/{items.length}</span>
+        }
+      </div>
+      {items.map(item => (
+        <label key={item.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', cursor: 'pointer', marginBottom: '0.35rem', fontSize: '0.85rem', color: checked.includes(item.id) ? '#065F46' : '#1C1208' }}>
+          <input type="checkbox" checked={checked.includes(item.id)} onChange={() => onChange(item.id)}
+            style={{ marginTop: 2, flexShrink: 0, width: 15, height: 15, accentColor: '#2D6B1E' }} />
+          <span style={{ textDecoration: checked.includes(item.id) ? 'line-through' : 'none', opacity: checked.includes(item.id) ? 0.7 : 1 }}>{item.text}</span>
+        </label>
+      ))}
+    </div>
+  );
 }
 
 export default function FahrtenbuchEintragen() {
@@ -50,6 +92,8 @@ export default function FahrtenbuchEintragen() {
   const [schaden, setSchaden] = useState(false);
   const [schadenBeschreibung, setSchadenBeschreibung] = useState('');
   const [bemerkungen, setBemerkungen] = useState('');
+  const [checklisteVor, setChecklisteVor] = useState<string[]>([]);
+  const [checklisteNach, setChecklisteNach] = useState<string[]>([]);
 
   useEffect(() => {
     try {
@@ -63,7 +107,6 @@ export default function FahrtenbuchEintragen() {
 
   useEffect(() => {
     if (zugang !== 'ja') return;
-    // Fahrten der letzten 14 Tage laden
     const bis = new Date().toISOString().slice(0, 10);
     const vonDt = new Date(); vonDt.setDate(vonDt.getDate() - 14);
     const von = vonDt.toISOString().slice(0, 10);
@@ -79,6 +122,10 @@ export default function FahrtenbuchEintragen() {
         }
       }).catch(() => {});
   }, [zugang, pilot]);
+
+  const toggleCheck = (liste: string[], setListe: (v: string[]) => void, id: string) => {
+    setListe(liste.includes(id) ? liste.filter(x => x !== id) : [...liste, id]);
+  };
 
   const buchungWaehlen = (b: Buchung) => {
     setGewaehlt(b);
@@ -112,6 +159,9 @@ export default function FahrtenbuchEintragen() {
       schaden,
       schaden_beschreibung: schaden ? schadenBeschreibung.trim() : undefined,
       bemerkungen: bemerkungen.trim() || undefined,
+      status: 'abgeschlossen',
+      checkliste_vor: checklisteVor.length ? checklisteVor : undefined,
+      checkliste_nach: checklisteNach.length ? checklisteNach : undefined,
     };
 
     if (!eintrag.fahrzeug) { setFehler('Bitte eine Fahrt wählen.'); setSpeichert(false); return; }
@@ -143,6 +193,14 @@ export default function FahrtenbuchEintragen() {
         <button onClick={() => router.push('/fahrtenbuch')} style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 7, padding: '0.4rem 0.8rem', cursor: 'pointer', fontSize: '0.85rem' }}>← Zurück</button>
         <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#2D6B1E', margin: 0 }}>Fahrtenbuch-Eintrag</h1>
       </div>
+
+      {/* Checkliste vor Fahrt */}
+      <ChecklisteAbschnitt
+        titel="✅ Checkliste vor Fahrtbeginn"
+        items={CHECKLISTE_VOR}
+        checked={checklisteVor}
+        onChange={id => toggleCheck(checklisteVor, setChecklisteVor, id)}
+      />
 
       {/* Fahrt auswählen */}
       <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 12, padding: '1.25rem', marginBottom: '1.25rem' }}>
@@ -243,6 +301,14 @@ export default function FahrtenbuchEintragen() {
             <label style={lbl}>Bemerkungen</label>
             <textarea style={{ ...inp, minHeight: 70, resize: 'vertical' }} value={bemerkungen} onChange={e => setBemerkungen(e.target.value)} placeholder="Besonderheiten, Rückmeldungen vom Gast, …" />
           </div>
+
+          {/* Checkliste nach Fahrt */}
+          <ChecklisteAbschnitt
+            titel="✅ Checkliste nach Fahrtende"
+            items={CHECKLISTE_NACH}
+            checked={checklisteNach}
+            onChange={id => toggleCheck(checklisteNach, setChecklisteNach, id)}
+          />
 
           {fehler && (
             <div style={{ background: '#FEE2E2', color: '#DC2626', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.85rem', marginBottom: '0.75rem' }}>

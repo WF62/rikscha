@@ -18,14 +18,17 @@ export async function GET(req: NextRequest) {
   const bis = searchParams.get('bis');
   const typ = searchParams.get('typ');
 
+  const kostentraeger = searchParams.get('kostentraeger');
+
   let q = db.from('rikscha_kassenbuch')
-    .select('id, typ, betrag, datum, beschreibung, kategorie, fahrtenbuch_id, eingetragen_von, eingetragen_am')
+    .select('id, typ, betrag, datum, beschreibung, kategorie, fahrtenbuch_id, eingetragen_von, eingetragen_am, kostentraeger')
     .order('datum', { ascending: false })
     .order('eingetragen_am', { ascending: false });
 
   if (von) q = q.gte('datum', von);
   if (bis) q = q.lte('datum', bis);
   if (typ) q = q.eq('typ', typ);
+  if (kostentraeger) q = q.eq('kostentraeger', kostentraeger);
 
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
@@ -33,7 +36,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { pilot, password, typ, betrag, datum, beschreibung, kategorie } = await req.json();
+  const { pilot, password, typ, betrag, datum, beschreibung, kategorie, kostentraeger } = await req.json();
   if (!pilot || !password) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
   const rolle = await getPilotRolle(pilot, password);
   if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
@@ -42,6 +45,7 @@ export async function POST(req: NextRequest) {
   const db = createServiceClient();
   const { data, error } = await db.from('rikscha_kassenbuch').insert({
     typ, betrag: Number(betrag), datum, beschreibung, kategorie: kategorie || null,
+    kostentraeger: kostentraeger || 'selbst',
     eingetragen_von: pilot,
   }).select('id').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });

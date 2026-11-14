@@ -10,6 +10,7 @@ type Eintrag = {
   gast_name?: string; anzahl_fahrgaeste: number; km_start?: number; km_ende?: number;
   spenden: number; wetter?: string; schaden: boolean; schaden_beschreibung?: string;
   bemerkungen?: string; eingetragen_von: string; eingetragen_am: string;
+  status?: string;
 };
 
 function formatDatum(d: string) {
@@ -28,6 +29,7 @@ export default function Fahrtenbuch() {
   const [eintraege, setEintraege] = useState<Eintrag[]>([]);
   const [laedt, setLaedt] = useState(false);
   const [fahrzeuge, setFahrzeuge] = useState<string[]>([]);
+  const [autoHinweis, setAutoHinweis] = useState('');
 
   const [filterFahrzeug, setFilterFahrzeug] = useState('');
   const jetzt = new Date();
@@ -54,6 +56,20 @@ export default function Fahrtenbuch() {
     }).catch(() => {});
   }, [zugang]);
 
+  // Auto-Ergänzung beim ersten Laden (nur für Berechtigte)
+  useEffect(() => {
+    if (zugang !== 'ja' || !pilot || !pw) return;
+    fetch('/api/fahrtenbuch/auto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password: pw }),
+    }).then(r => r.json()).then((d: { erstellt?: number }) => {
+      if (d.erstellt && d.erstellt > 0) {
+        setAutoHinweis(`${d.erstellt} Fahrt${d.erstellt > 1 ? 'en' : ''} automatisch als Entwurf ergänzt.`);
+      }
+    }).catch(() => {});
+  }, [zugang]);
+
   const laden = () => {
     if (!pilot || !pw) return;
     setLaedt(true);
@@ -66,7 +82,7 @@ export default function Fahrtenbuch() {
   useEffect(() => { if (zugang === 'ja') laden(); }, [zugang, filterFahrzeug, filterVon, filterBis, nurEigen]);
 
   const csvExport = () => {
-    const header = ['Datum', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fahrgäste', 'km Start', 'km Ende', 'km', 'Spenden (€)', 'Wetter', 'Schaden', 'Bemerkungen'];
+    const header = ['Datum', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fahrgäste', 'km Start', 'km Ende', 'km', 'Spenden (€)', 'Wetter', 'Schaden', 'Bemerkungen', 'Status'];
     const rows = eintraege.map(e => [
       formatDatum(e.datum), e.fahrzeug, e.kutscher,
       { gast: 'Gastfahrt', eigenfahrt: 'Eigenfahrt', leerfahrt: 'Überführung' }[e.fahrttyp] ?? e.fahrttyp,
@@ -77,6 +93,7 @@ export default function Fahrtenbuch() {
       { sonne: 'Sonnig', bewoelkt: 'Bewölkt', regen: 'Regen', schnee: 'Schnee' }[e.wetter ?? ''] ?? '',
       e.schaden ? (e.schaden_beschreibung ?? 'Ja') : '',
       e.bemerkungen ?? '',
+      e.status === 'entwurf' ? 'Entwurf' : 'Abgeschlossen',
     ]);
     const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
@@ -84,10 +101,10 @@ export default function Fahrtenbuch() {
     a.download = `Fahrtenbuch_${filterFahrzeug || 'alle'}_${filterVon}_${filterBis}.csv`; a.click();
   };
 
-  // Statistik
   const totalKm = eintraege.reduce((s, e) => s + (e.km_start != null && e.km_ende != null ? e.km_ende - e.km_start : 0), 0);
   const totalSpenden = eintraege.reduce((s, e) => s + (e.spenden || 0), 0);
   const schadenEintraege = eintraege.filter(e => e.schaden);
+  const entwuerfe = eintraege.filter(e => e.status === 'entwurf');
 
   if (zugang === 'laden') return <div style={{ padding: '2rem', textAlign: 'center' }}>⏳</div>;
   if (zugang === 'nein') return <div style={{ padding: '2rem', color: '#dc2626' }}>Bitte als Kutscher anmelden.</div>;
@@ -103,6 +120,21 @@ export default function Fahrtenbuch() {
           <button onClick={csvExport} style={{ background: '#1D4ED8', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1rem', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' }}>⬇ CSV</button>
         </div>
       </div>
+
+      {/* Auto-Ergänzungs-Hinweis */}
+      {autoHinweis && (
+        <div style={{ background: '#EFF6FF', border: '1.5px solid #93C5FD', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: '#1D4ED8', marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>🤖 {autoHinweis} Bitte ergänze die fehlenden Angaben.</span>
+          <button onClick={() => setAutoHinweis('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1D4ED8', fontSize: '1rem' }}>✕</button>
+        </div>
+      )}
+
+      {/* Entwürfe-Hinweis */}
+      {entwuerfe.length > 0 && (
+        <div style={{ background: '#FFF7ED', border: '1.5px solid #FDBA74', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: '#9A3412', marginBottom: '0.75rem' }}>
+          ✏️ <strong>{entwuerfe.length} Entwurf{entwuerfe.length > 1 ? 'e' : ''}</strong> — automatisch aus dem Kalender ergänzt. Bitte km, Spenden und Wetter nachtragen.
+        </div>
+      )}
 
       {/* Filter */}
       <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -164,7 +196,7 @@ export default function Fahrtenbuch() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ background: '#F7F3EC', borderBottom: '2px solid #D6CCB8' }}>
-                {['Datum', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fgs.', 'km', 'Spenden', 'Wetter', 'Bemerkung'].map(h => (
+                {['', 'Datum', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fgs.', 'km', 'Spenden', 'Wetter', 'Bemerkung'].map(h => (
                   <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -172,16 +204,22 @@ export default function Fahrtenbuch() {
             <tbody>
               {eintraege.map((e, i) => {
                 const km = e.km_start != null && e.km_ende != null ? e.km_ende - e.km_start : null;
+                const istEntwurf = e.status === 'entwurf';
                 return (
-                  <tr key={e.id} style={{ background: e.schaden ? '#FEF9C3' : i % 2 === 0 ? '#fff' : '#FAFAF8', borderBottom: '1px solid #F0EBE0' }}>
-                    <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap' }}>{formatDatum(e.datum)}</td>
-                    <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600 }}>{e.fahrzeug}</td>
-                    <td style={{ padding: '0.45rem 0.6rem' }}>{e.kutscher}</td>
-                    <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap' }}>{{ gast: 'Gast', eigenfahrt: 'Eigen', leerfahrt: 'Überf.' }[e.fahrttyp] ?? e.fahrttyp}</td>
+                  <tr key={e.id} style={{ background: istEntwurf ? '#FFF7ED' : e.schaden ? '#FEF9C3' : i % 2 === 0 ? '#fff' : '#FAFAF8', borderBottom: '1px solid #F0EBE0' }}>
+                    <td style={{ padding: '0.45rem 0.4rem', textAlign: 'center' }}>
+                      {istEntwurf
+                        ? <a href={`/fahrtenbuch/eintragen?buchung_id=${e.buchung_id}`} title="Entwurf ergänzen" style={{ fontSize: '0.78rem', background: '#FDBA74', color: '#9A3412', borderRadius: 5, padding: '0.1rem 0.4rem', textDecoration: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}>✏️ Entwurf</a>
+                        : null}
+                    </td>
+                    <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', opacity: istEntwurf ? 0.7 : 1 }}>{formatDatum(e.datum)}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, opacity: istEntwurf ? 0.7 : 1 }}>{e.fahrzeug}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', opacity: istEntwurf ? 0.7 : 1 }}>{e.kutscher}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', opacity: istEntwurf ? 0.7 : 1 }}>{{ gast: 'Gast', eigenfahrt: 'Eigen', leerfahrt: 'Überf.' }[e.fahrttyp] ?? e.fahrttyp}</td>
                     <td style={{ padding: '0.45rem 0.6rem', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.gast_name ?? ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'center' }}>{e.anzahl_fahrgaeste || ''}</td>
-                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap' }}>{km != null ? `${km} km` : ''}</td>
-                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap' }}>{e.spenden > 0 ? euro(e.spenden) : ''}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: istEntwurf ? '#9CA3AF' : undefined }}>{km != null ? `${km} km` : istEntwurf ? '–' : ''}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: istEntwurf ? '#9CA3AF' : undefined }}>{e.spenden > 0 ? euro(e.spenden) : istEntwurf ? '–' : ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'center' }}>{wetterIcon(e.wetter)}</td>
                     <td style={{ padding: '0.45rem 0.6rem', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: e.schaden ? '#B45309' : undefined }}>
                       {e.schaden ? `⚠️ ${e.schaden_beschreibung ?? ''}` : e.bemerkungen ?? ''}
