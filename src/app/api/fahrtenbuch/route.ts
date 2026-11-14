@@ -141,12 +141,12 @@ export async function PUT(req: NextRequest) {
   const { error } = await db.from('rikscha_fahrtenbuch').update({ ...felder, geaendert_am: new Date().toISOString() }).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
 
-  // Kassenbuch-Einträge anlegen wenn Entwurf jetzt abgeschlossen wird und noch kein Eintrag existiert
-  if (vorher?.status === 'entwurf' && felder.status === 'abgeschlossen') {
-    const { data: bereitsVorhanden } = await db.from('rikscha_kassenbuch').select('id').eq('fahrtenbuch_id', id).limit(1);
-    if (!bereitsVorhanden?.length) {
-      await kassenbuchEintragAnlegen(db, id, felder, pilot);
-    }
+  // Kassenbuch-Einträge synchronisieren wenn Eintrag abgeschlossen ist/wird
+  const wirdAbgeschlossen = felder.status === 'abgeschlossen' || vorher?.status === 'abgeschlossen';
+  if (wirdAbgeschlossen && (felder.spenden != null || felder.ausgaben != null)) {
+    // Alte fahrtenbuch-verknüpfte Kassenbuch-Einträge löschen und neu anlegen
+    await db.from('rikscha_kassenbuch').delete().eq('fahrtenbuch_id', id);
+    await kassenbuchEintragAnlegen(db, id, felder, pilot);
   }
 
   // Schaden-Benachrichtigung wenn neu gemeldet
