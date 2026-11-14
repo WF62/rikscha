@@ -29,6 +29,7 @@ function kachelnFuer(rolle: string): Kachel[] {
 export default function SchnellStart() {
   const [wer, setWer] = useState<{ name: string; rolle: string } | null>(null);
   const [checklistenOffen, setChecklistenOffen] = useState(false);
+  const [nachbestellenAnzahl, setNachbestellenAnzahl] = useState(0);
   const { fahrzeugById, einweisungenFuer } = useStammdaten();
 
   useEffect(() => {
@@ -66,6 +67,21 @@ export default function SchnellStart() {
       .catch(() => {});
   }, [wer]);
 
+  // Prüfe Nachbestellen-Markierungen (nur für Admin/Kutscher-Admin)
+  useEffect(() => {
+    if (!wer) { setNachbestellenAnzahl(0); return; }
+    if (!['kutscher-admin', 'admin', 'gfo'].includes(wer.rolle)) return;
+    fetch('/api/utensilien', { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (!j) return;
+        const anzahl = (j.listen as { nachbestellen: string[] }[])
+          .reduce((sum, l) => sum + (l.nachbestellen?.length ?? 0), 0);
+        setNachbestellenAnzahl(anzahl);
+      })
+      .catch(() => {});
+  }, [wer]);
+
   const kachelnBase = wer ? kachelnFuer(wer.rolle) : [];
   // Checklisten-Kachel für Kutscher/Admin-Rollen
   const zeigeCL = wer && ['kutscher', 'kutscher-admin', 'pilot', 'admin', 'gfo'].includes(wer.rolle);
@@ -94,6 +110,17 @@ export default function SchnellStart() {
             <div>
               <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Saisoneinweisung noch nicht abgeschlossen</div>
               <div style={{ fontSize: '0.8rem', color: '#B45309' }}>Bitte Checklisten lesen und bestätigen, bevor du fährst →</div>
+            </div>
+          </a>
+        )}
+        {nachbestellenAnzahl > 0 && (
+          <a href="/admin/checklisten" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#FEF2F2', border: '1.5px solid #FCA5A5', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '0.75rem', textDecoration: 'none', color: '#DC2626' }}>
+            <span style={{ fontSize: '1.3rem' }}>🔴</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                {nachbestellenAnzahl} {nachbestellenAnzahl === 1 ? 'Utensil' : 'Utensilien'} zum Nachbestellen gemeldet
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#B91C1C' }}>Bitte in den Utensilienlisten prüfen und als erledigt markieren →</div>
             </div>
           </a>
         )}
