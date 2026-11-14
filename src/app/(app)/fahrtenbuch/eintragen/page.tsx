@@ -313,7 +313,15 @@ function FahrtenbuchEintragenInner() {
             )}
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Strecke / Ziel</label>
-              <input style={inp} value={strecke} onChange={e => setStrecke(e.target.value)} placeholder="z. B. Rheinufer, Stadtpark, Innenstadt …" />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.4rem' }}>
+                {['Rheinufer', 'Stadtpark', 'Innenstadt', 'Altstadt', 'Botanischer Garten', 'Schlosspark', 'Marktplatz', 'Promenade', 'Seepark'].map(s => (
+                  <button key={s} type="button" onClick={() => setStrecke(prev => prev ? prev + ', ' + s : s)}
+                    style={{ background: strecke.includes(s) ? '#2D6B1E' : '#F7F3EC', color: strecke.includes(s) ? '#fff' : '#5C4E38', border: `1px solid ${strecke.includes(s) ? '#2D6B1E' : '#D6CCB8'}`, borderRadius: 20, padding: '0.2rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <input style={inp} value={strecke} onChange={e => setStrecke(e.target.value)} placeholder="Ziel auswählen oder eigenen Text eingeben …" />
             </div>
           </div>
 
