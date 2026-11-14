@@ -96,7 +96,10 @@ function FahrtenbuchEintragenInner() {
   const [strecke, setStrecke] = useState('');
   const [checklisteVor, setChecklisteVor] = useState<string[]>([]);
   const [checklisteNach, setChecklisteNach] = useState<string[]>([]);
-  const [streckenListe, setStreckenListe] = useState(['Märtner Heide zum Rhein', 'Gutlohndorf', 'Swister Türmchen', 'Schlösserrunde']);
+  const STRECKEN_DEFAULT = ['Märtner Heide zum Rhein', 'Gutlohndorf', 'Swister Türmchen', 'Schlösserrunde'];
+  const [streckenListe, setStreckenListe] = useState<string[]>(() => {
+    try { const s = localStorage.getItem('rikscha_strecken'); return s ? JSON.parse(s) : STRECKEN_DEFAULT; } catch { return STRECKEN_DEFAULT; }
+  });
   const [neueStrecke, setNeueStrecke] = useState('');
 
   useEffect(() => {
@@ -314,17 +317,19 @@ function FahrtenbuchEintragenInner() {
               <label style={lbl}>Strecke / Ziel</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.4rem' }}>
                 {streckenListe.map(s => (
-                  <button key={s} type="button" onClick={() => setStrecke(prev => prev ? prev + ', ' + s : s)}
-                    style={{ background: strecke.includes(s) ? '#2D6B1E' : '#F7F3EC', color: strecke.includes(s) ? '#fff' : '#5C4E38', border: `1px solid ${strecke.includes(s) ? '#2D6B1E' : '#D6CCB8'}`, borderRadius: 20, padding: '0.2rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    {s}
-                  </button>
+                  <span key={s} style={{ display: 'inline-flex', alignItems: 'center', background: strecke.includes(s) ? '#2D6B1E' : '#F7F3EC', color: strecke.includes(s) ? '#fff' : '#5C4E38', border: `1px solid ${strecke.includes(s) ? '#2D6B1E' : '#D6CCB8'}`, borderRadius: 20, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                    <button type="button" onClick={() => setStrecke(prev => prev ? prev + ', ' + s : s)}
+                      style={{ background: 'none', border: 'none', padding: '0.2rem 0.4rem 0.2rem 0.6rem', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>{s}</button>
+                    <button type="button" onClick={() => { const n = streckenListe.filter(x => x !== s); setStreckenListe(n); try { localStorage.setItem('rikscha_strecken', JSON.stringify(n)); } catch {} }}
+                      style={{ background: 'none', border: 'none', padding: '0.1rem 0.5rem 0.1rem 0', cursor: 'pointer', color: 'inherit', fontSize: '0.75rem', opacity: 0.6 }}>×</button>
+                  </span>
                 ))}
                 <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
                   <input value={neueStrecke} onChange={e => setNeueStrecke(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && neueStrecke.trim()) { setStreckenListe(l => [...l, neueStrecke.trim()]); setNeueStrecke(''); } }}
+                    onKeyDown={e => { if (e.key === 'Enter' && neueStrecke.trim()) { const n = [...streckenListe, neueStrecke.trim()]; setStreckenListe(n); try { localStorage.setItem('rikscha_strecken', JSON.stringify(n)); } catch {} setNeueStrecke(''); } }}
                     placeholder="+ Neu" style={{ border: '1px dashed #D6CCB8', borderRadius: 20, padding: '0.2rem 0.6rem', fontSize: '0.78rem', width: 70, background: '#fff' }} />
                   {neueStrecke.trim() && (
-                    <button type="button" onClick={() => { setStreckenListe(l => [...l, neueStrecke.trim()]); setNeueStrecke(''); }}
+                    <button type="button" onClick={() => { const n = [...streckenListe, neueStrecke.trim()]; setStreckenListe(n); try { localStorage.setItem('rikscha_strecken', JSON.stringify(n)); } catch {} setNeueStrecke(''); }}
                       style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 20, padding: '0.2rem 0.5rem', fontSize: '0.78rem', cursor: 'pointer' }}>+</button>
                   )}
                 </div>
