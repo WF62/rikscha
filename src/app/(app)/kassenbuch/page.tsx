@@ -13,7 +13,7 @@ const KOSTENTRAEGER = [
 type Eintrag = {
   id: string; typ: 'einnahme' | 'ausgabe'; betrag: number; datum: string;
   beschreibung: string; kategorie?: string; fahrtenbuch_id?: string;
-  eingetragen_von: string; eingetragen_am: string; kostentraeger?: string;
+  eingetragen_von: string; eingetragen_am: string; kostentraeger?: string; extern?: boolean;
 };
 
 function formatDatum(d: string) {
@@ -53,6 +53,13 @@ export default function Kassenbuch() {
   const [fehler, setFehler] = useState('');
   const [erfolg, setErfolg] = useState('');
 
+  const [externeEintraege, setExterneEintraege] = useState<Eintrag[]>([]);
+  const [neExternTraeger, setNeExternTraeger] = useState<'gfo' | 'foerderverein'>('gfo');
+  const [neExternBetrag, setNeExternBetrag] = useState('');
+  const [neExternDatum, setNeExternDatum] = useState(jetzt.toISOString().slice(0, 10));
+  const [neExternBeschreibung, setNeExternBeschreibung] = useState('');
+  const [externSpeichert, setExternSpeichert] = useState(false);
+
   const [startbetrag, setStartbetrag] = useState<number | null>(null);
   const [startbetragId, setStartbetragId] = useState('');
   const [startbetragEdit, setStartbetragEdit] = useState('');
@@ -75,6 +82,22 @@ export default function Kassenbuch() {
     if (filterTyp) p.set('typ', filterTyp);
     if (filterTraeger) p.set('kostentraeger', filterTraeger);
     fetch(`/api/kassenbuch?${p}`).then(r => r.json()).then(d => { setEintraege(Array.isArray(d) ? d : []); setLaedt(false); }).catch(() => setLaedt(false));
+  };
+
+  const externeEintraegeLaden = () => {
+    if (!pilot || !pw) return;
+    const p = new URLSearchParams({ pilot, password: pw, extern: '1' });
+    fetch(`/api/kassenbuch?${p}`).then(r => r.json()).then(d => { setExterneEintraege(Array.isArray(d) ? d : []); }).catch(() => {});
+  };
+
+  const externSpeichernFn = async () => {
+    if (!neExternBetrag || !neExternBeschreibung.trim()) return;
+    setExternSpeichert(true);
+    await fetch('/api/kassenbuch', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password: pw, typ: 'ausgabe', betrag: parseFloat(neExternBetrag.replace(',', '.')), datum: neExternDatum, beschreibung: neExternBeschreibung.trim(), kostentraeger: neExternTraeger, extern: true }) });
+    setNeExternBetrag(''); setNeExternBeschreibung('');
+    setExternSpeichert(false);
+    externeEintraegeLaden();
   };
 
   const startbetragLaden = () => {
@@ -100,7 +123,7 @@ export default function Kassenbuch() {
     setStartbetragSpeichert(false);
   };
 
-  useEffect(() => { if (zugang === 'ja') { laden(); startbetragLaden(); } }, [zugang, filterVon, filterBis, filterTyp, filterTraeger]);
+  useEffect(() => { if (zugang === 'ja') { laden(); startbetragLaden(); externeEintraegeLaden(); } }, [zugang, filterVon, filterBis, filterTyp, filterTraeger]);
 
   const speichern = async () => {
     if (!neBetrag || !neBeschreibung.trim()) { setFehler('Betrag und Beschreibung sind erforderlich.'); return; }
@@ -260,6 +283,83 @@ export default function Kassenbuch() {
         <button onClick={speichern} disabled={speichert} style={{ marginTop: '0.75rem', background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.1rem', fontWeight: 700, fontSize: '0.88rem', cursor: speichert ? 'not-allowed' : 'pointer', opacity: speichert ? 0.6 : 1 }}>
           {speichert ? '⏳ Speichern…' : '✓ Speichern'}
         </button>
+      </details>
+
+      {/* Externe Beiträge */}
+      <details style={{ background: '#EDE9FE', border: '1.5px solid #C4B5FD', borderRadius: 12, padding: '1rem', marginBottom: '1.25rem' }}>
+        <summary style={{ fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', color: '#4C1D95' }}>
+          🏦 Externe Beiträge — nicht über Kasse ({externeEintraege.length})
+        </summary>
+        <p style={{ fontSize: '0.82rem', color: '#5B21B6', margin: '0.5rem 0 0.75rem' }}>
+          Beträge, die direkt von der GFO / Senioreneinrichtung oder vom Förderverein getragen werden, ohne durch die Gruppenkasse zu laufen.
+        </p>
+
+        {/* Neue externe Buchung */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <div>
+            <label style={lbl}>Kostenträger</label>
+            <select style={inp} value={neExternTraeger} onChange={e => setNeExternTraeger(e.target.value as 'gfo' | 'foerderverein')}>
+              <option value="gfo">GFO / Seniorenheim</option>
+              <option value="foerderverein">Förderverein</option>
+            </select>
+          </div>
+          <div>
+            <label style={lbl}>Betrag (€)</label>
+            <input style={inp} type="number" min={0.01} step={0.01} value={neExternBetrag} onChange={e => setNeExternBetrag(e.target.value)} placeholder="0,00" />
+          </div>
+          <div>
+            <label style={lbl}>Datum</label>
+            <input style={inp} type="date" value={neExternDatum} onChange={e => setNeExternDatum(e.target.value)} />
+          </div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={lbl}>Beschreibung *</label>
+            <input style={inp} value={neExternBeschreibung} onChange={e => setNeExternBeschreibung(e.target.value)} placeholder="z.B. Wartung Rikscha 2, Versicherung …" />
+          </div>
+        </div>
+        <button onClick={externSpeichernFn} disabled={externSpeichert || !neExternBetrag || !neExternBeschreibung.trim()}
+          style={{ background: '#5B21B6', color: '#fff', border: 'none', borderRadius: 7, padding: '0.4rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', marginBottom: '1rem', opacity: externSpeichert ? 0.6 : 1 }}>
+          {externSpeichert ? '⏳ Speichern…' : '+ Eintragen'}
+        </button>
+
+        {/* Liste */}
+        {externeEintraege.length > 0 && (() => {
+          const sumGfo = externeEintraege.filter(e => e.kostentraeger === 'gfo').reduce((s, e) => s + e.betrag, 0);
+          const sumFv = externeEintraege.filter(e => e.kostentraeger === 'foerderverein').reduce((s, e) => s + e.betrag, 0);
+          return (
+            <>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                {sumGfo > 0 && <div style={{ background: '#fff', border: '1px solid #C4B5FD', borderRadius: 8, padding: '0.4rem 0.9rem', fontSize: '0.85rem', fontWeight: 700, color: '#5B21B6' }}>GFO: {euro(sumGfo)}</div>}
+                {sumFv > 0 && <div style={{ background: '#fff', border: '1px solid #FCD34D', borderRadius: 8, padding: '0.4rem 0.9rem', fontSize: '0.85rem', fontWeight: 700, color: '#92400E' }}>Förderverein: {euro(sumFv)}</div>}
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1.5px solid #C4B5FD' }}>
+                    {['Datum', 'Kostenträger', 'Beschreibung', 'Betrag', ''].map(h => (
+                      <th key={h} style={{ padding: '0.3rem 0.5rem', textAlign: h === 'Betrag' ? 'right' : 'left', color: '#4C1D95', fontWeight: 700 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {externeEintraege.map((e, i) => (
+                    <tr key={e.id} style={{ background: i % 2 === 0 ? '#fff' : '#F5F3FF', borderBottom: '1px solid #EDE9FE' }}>
+                      <td style={{ padding: '0.3rem 0.5rem', whiteSpace: 'nowrap' }}>{formatDatum(e.datum)}</td>
+                      <td style={{ padding: '0.3rem 0.5rem' }}>
+                        <span style={{ ...kostentraegerColor(e.kostentraeger), borderRadius: 5, padding: '0.1rem 0.4rem', fontSize: '0.75rem', fontWeight: 600 }}>{kostentraegerLabel(e.kostentraeger)}</span>
+                      </td>
+                      <td style={{ padding: '0.3rem 0.5rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.beschreibung}</td>
+                      <td style={{ padding: '0.3rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#5B21B6' }}>{euro(e.betrag)}</td>
+                      <td style={{ padding: '0.3rem 0.5rem' }}>
+                        <button onClick={() => { if (confirm('Löschen?')) { fetch('/api/kassenbuch', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password: pw, id: e.id }) }).then(() => externeEintraegeLaden()); } }}
+                          style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.78rem' }}>✕</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          );
+        })()}
+        {externeEintraege.length === 0 && <p style={{ color: '#7C3AED', fontSize: '0.85rem', margin: 0 }}>Noch keine externen Beiträge erfasst.</p>}
       </details>
 
       {/* Tabelle */}

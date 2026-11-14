@@ -20,8 +20,9 @@ export async function GET(req: NextRequest) {
 
   const kostentraeger = searchParams.get('kostentraeger');
 
+  const externFilter = searchParams.get('extern');
   let q = db.from('rikscha_kassenbuch')
-    .select('id, typ, betrag, datum, beschreibung, kategorie, fahrtenbuch_id, eingetragen_von, eingetragen_am, kostentraeger')
+    .select('id, typ, betrag, datum, beschreibung, kategorie, fahrtenbuch_id, eingetragen_von, eingetragen_am, kostentraeger, extern')
     .order('datum', { ascending: false })
     .order('eingetragen_am', { ascending: false });
 
@@ -31,7 +32,8 @@ export async function GET(req: NextRequest) {
   if (typ) q = q.eq('typ', typ);
   if (kostentraeger) q = q.eq('kostentraeger', kostentraeger);
   if (kategorieFilter) q = q.eq('kategorie', kategorieFilter).limit(1);
-  else q = q.neq('kategorie', 'Startbetrag');
+  else if (externFilter === '1') q = q.eq('extern', true);
+  else q = q.eq('extern', false).neq('kategorie', 'Startbetrag');
 
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
@@ -39,7 +41,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { pilot, password, typ, betrag, datum, beschreibung, kategorie, kostentraeger } = await req.json();
+  const { pilot, password, typ, betrag, datum, beschreibung, kategorie, kostentraeger, extern } = await req.json();
   if (!pilot || !password) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
   const rolle = await getPilotRolle(pilot, password);
   if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
@@ -49,6 +51,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await db.from('rikscha_kassenbuch').insert({
     typ, betrag: Number(betrag), datum, beschreibung, kategorie: kategorie || null,
     kostentraeger: kostentraeger || 'selbst',
+    extern: extern === true,
     eingetragen_von: pilot,
   }).select('id').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
