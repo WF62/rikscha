@@ -11,6 +11,7 @@ type Checkliste = {
   punkte: Punkt[];
   version: number;
   updated_at: string;
+  nachbestellen?: string[];
 };
 
 function newId() {
@@ -85,6 +86,15 @@ export default function AdminChecklistenPage() {
     setNeuerText(prev => ({ ...prev, [id]: '' }));
   };
 
+  const clearNachbestellen = async (id: string, punktId: string) => {
+    await fetch('/api/utensilien', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ id, punkt_id: punktId, markieren: false }),
+    });
+    await laden_();
+  };
+
   const speichern = async (id: string) => {
     setSpeichert(prev => ({ ...prev, [id]: true }));
     const l = lokal[id];
@@ -113,16 +123,18 @@ export default function AdminChecklistenPage() {
     const istOffen = aktiv === liste.id;
     const hatAenderung = JSON.stringify(l.punkte) !== JSON.stringify(liste.punkte) || l.titel !== liste.titel;
     const icon = liste.typ === 'allgemein' ? '📜' : liste.typ === 'utensilien' ? '🎒' : '🚲';
+    const nbCount = (liste.nachbestellen ?? []).length;
 
     return (
-      <div key={liste.id} style={{ border: `2px solid ${istOffen ? '#93C5FD' : '#E5E7EB'}`, borderRadius: 14, marginBottom: '0.75rem', overflow: 'hidden' }}>
+      <div key={liste.id} style={{ border: `2px solid ${nbCount > 0 ? '#FCA5A5' : istOffen ? '#93C5FD' : '#E5E7EB'}`, borderRadius: 14, marginBottom: '0.75rem', overflow: 'hidden' }}>
         <button type="button" onClick={() => setAktiv(istOffen ? null : liste.id)}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1.25rem', background: '#F9FAFB', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-          <span style={{ fontSize: '1.2rem' }}>{icon}</span>
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1.25rem', background: nbCount > 0 ? '#FFF5F5' : '#F9FAFB', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+          <span style={{ fontSize: '1.2rem' }}>{nbCount > 0 ? '🔴' : icon}</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1a18' }}>{liste.titel}</div>
             <div style={{ fontSize: '0.78rem', color: '#9CA3AF', marginTop: '0.1rem' }}>
               Version {liste.version} · {liste.punkte.length} Punkte
+              {nbCount > 0 && <span style={{ color: '#DC2626', marginLeft: '0.5rem' }}>● {nbCount} nachzubestellen</span>}
               {hatAenderung && <span style={{ color: '#D97706', marginLeft: '0.5rem' }}>● ungespeicherte Änderungen</span>}
               {gespeichert[liste.id] && <span style={{ color: '#15803D', marginLeft: '0.5rem' }}>✓ gespeichert</span>}
             </div>
@@ -132,6 +144,27 @@ export default function AdminChecklistenPage() {
 
         {istOffen && (
           <div style={{ padding: '1rem 1.25rem' }}>
+            {nbCount > 0 && (
+              <div style={{ background: '#FEF2F2', border: '1.5px solid #FCA5A5', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '1rem' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#DC2626', marginBottom: '0.5rem' }}>
+                  🔴 Zum Nachbestellen / Ersetzen gemeldet:
+                </div>
+                <div style={{ display: 'grid', gap: '0.3rem' }}>
+                  {(liste.nachbestellen ?? []).map(pid => {
+                    const punkt = liste.punkte.find(p => p.id === pid);
+                    return punkt ? (
+                      <div key={pid} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.9rem' }}>
+                        <span style={{ color: '#DC2626', flex: 1 }}>• {punkt.text}</span>
+                        <button type="button" onClick={() => clearNachbestellen(liste.id, pid)}
+                          style={{ padding: '0.2rem 0.6rem', background: '#fff', border: '1px solid #FCA5A5', borderRadius: 6, color: '#DC2626', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                          ✓ erledigt
+                        </button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontWeight: 600, fontSize: '0.85rem', color: '#374151', marginBottom: '0.3rem' }}>Titel</label>
               <input type="text" value={l.titel} onChange={e => setTitel(liste.id, e.target.value)}

@@ -34,3 +34,33 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ listen });
 }
+
+/** POST: Nachbestell-Markierung für einen Punkt setzen oder aufheben.
+ *  Body: { id: string; punkt_id: string; markieren: boolean } */
+export async function POST(req: NextRequest) {
+  const { rolle } = await rolleAusAnfrage(req);
+  if (!darfFahrtenVerwalten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
+
+  const { id, punkt_id, markieren }: { id: string; punkt_id: string; markieren: boolean } = await req.json();
+  if (!id || !punkt_id) return NextResponse.json({ error: 'Fehlende Daten.' }, { status: 400 });
+
+  const db = createServiceClient();
+  const { data: current } = await db
+    .from('rikscha_checklisten')
+    .select('nachbestellen')
+    .eq('id', id)
+    .single();
+
+  const aktuell: string[] = current?.nachbestellen ?? [];
+  const neu = markieren
+    ? [...new Set([...aktuell, punkt_id])]
+    : aktuell.filter((p: string) => p !== punkt_id);
+
+  const { error } = await db
+    .from('rikscha_checklisten')
+    .update({ nachbestellen: neu })
+    .eq('id', id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, nachbestellen: neu });
+}
