@@ -332,7 +332,7 @@ export default function Kassenbuch() {
         {/* Liste nach Saison gruppiert */}
         {externeEintraege.length > 0 && (() => {
           // Saisons = Jahre, absteigend
-          const saisonen = [...new Set(externeEintraege.map(e => e.datum.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
+          const saisonen = Array.from(new Set(externeEintraege.map(e => e.datum.slice(0, 4)))).sort((a, b) => b.localeCompare(a));
           return saisonen.map(saison => {
             const eintraegeSaison = externeEintraege.filter(e => e.datum.startsWith(saison));
             const sumGfo = eintraegeSaison.filter(e => e.kostentraeger === 'gfo' && e.typ === 'ausgabe').reduce((s, e) => s + e.betrag, 0);
