@@ -24,26 +24,16 @@ async function callMeBotSignal(phone: string, apiKey: string, text: string, grou
   await fetch(url.toString()).catch(() => {});
 }
 
-async function callMeBotWhatsApp(phone: string, apiKey: string, text: string) {
-  const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(text)}&apikey=${apiKey}`;
-  await fetch(url).catch(() => {});
-}
 
-// Schaden-Benachrichtigung an Rolf (Signal bevorzugt, WhatsApp als Fallback)
+// Schaden-Benachrichtigung an Rolf per Signal
 export async function sendSchadenSignal(e: {
   kutscher: string; fahrzeug: string; datum: string; beschreibung: string;
 }) {
+  const phone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
+  const apiKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
+  if (!phone || !apiKey) return;
   const text = `⚠️ Schaden/Wartung gemeldet\nFahrzeug: ${e.fahrzeug}\nDatum: ${e.datum}\nKutscher: ${e.kutscher}\n\n${e.beschreibung}`;
-  const signalPhone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
-  const signalKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
-  if (signalPhone && signalKey) {
-    await callMeBotSignal(signalPhone, signalKey, text);
-    return;
-  }
-  // WhatsApp-Fallback
-  const waPhone = process.env.SCHADEN_WHATSAPP_PHONE ?? '';
-  const waKey = process.env.SCHADEN_WHATSAPP_APIKEY ?? '';
-  if (waPhone && waKey) await callMeBotWhatsApp(waPhone, waKey, text);
+  await callMeBotSignal(phone, apiKey, text);
 }
 
 // Ausfall-Benachrichtigung an Signal-Gruppe (alle Kutscher auf einmal)
