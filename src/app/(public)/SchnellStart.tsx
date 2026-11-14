@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import OffenHinweis from '../OffenHinweis';
 import { useStammdaten } from '@/lib/useStammdaten';
+import { authHeaders } from '@/lib/authHeaders';
 
 /**
  * Startseite: Wer schon angemeldet ist (Kutscher, Büro/GFO, Vermittlung), sieht oben
@@ -27,6 +28,7 @@ function kachelnFuer(rolle: string): Kachel[] {
 
 export default function SchnellStart() {
   const [wer, setWer] = useState<{ name: string; rolle: string } | null>(null);
+  const [checklistenOffen, setChecklistenOffen] = useState(false);
   const { fahrzeugById, einweisungenFuer } = useStammdaten();
 
   useEffect(() => {
@@ -49,7 +51,31 @@ export default function SchnellStart() {
     };
   }, []);
 
-  const kacheln = wer ? kachelnFuer(wer.rolle) : [];
+  // Prüfe ob noch offene Checklisten für diese Saison vorhanden
+  useEffect(() => {
+    if (!wer) { setChecklistenOffen(false); return; }
+    const rollen = ['kutscher', 'kutscher-admin', 'pilot', 'admin', 'gfo'];
+    if (!rollen.includes(wer.rolle)) return;
+    fetch('/api/checklisten', { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (!j) return;
+        const offen = j.listen.some((l: { bestaetigt: boolean; veraltet: boolean }) => !l.bestaetigt || l.veraltet);
+        setChecklistenOffen(offen);
+      })
+      .catch(() => {});
+  }, [wer]);
+
+  const kachelnBase = wer ? kachelnFuer(wer.rolle) : [];
+  // Checklisten-Kachel für Kutscher/Admin-Rollen
+  const zeigeCL = wer && ['kutscher', 'kutscher-admin', 'pilot', 'admin', 'gfo'].includes(wer.rolle);
+  const checklisteKachel: Kachel = {
+    href: '/checklisten',
+    icon: checklistenOffen ? '⚠️' : '📋',
+    titel: 'Saisoneinweisung',
+    sub: checklistenOffen ? 'Bitte jetzt bestätigen!' : 'Checklisten & Einweisungen',
+  };
+  const kacheln = zeigeCL ? [...kachelnBase, checklisteKachel] : kachelnBase;
   if (!wer || !kacheln.length) return null;
 
   return (
@@ -74,21 +100,27 @@ export default function SchnellStart() {
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
-          {kacheln.map((k) => (
-            <a key={k.href} href={k.href}
-              style={{
-                gridColumn: k.haupt ? '1 / -1' : undefined,
-                display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1rem', borderRadius: 12, textDecoration: 'none',
-                background: k.haupt ? '#2D6B1E' : '#fff', color: k.haupt ? '#fff' : '#1C1208',
-                border: `1.5px solid ${k.haupt ? '#2D6B1E' : '#CFE3C7'}`, boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-              }}>
-              <span style={{ fontSize: '1.6rem' }} aria-hidden>{k.icon}</span>
-              <span>
-                <span style={{ display: 'block', fontWeight: 700 }}>{k.titel}</span>
-                <span style={{ display: 'block', fontSize: '0.8rem', opacity: 0.85 }}>{k.sub}</span>
-              </span>
-            </a>
-          ))}
+          {kacheln.map((k) => {
+            const isCL = k.href === '/checklisten';
+            const clOffen = isCL && checklistenOffen;
+            return (
+              <a key={k.href} href={k.href}
+                style={{
+                  gridColumn: k.haupt ? '1 / -1' : undefined,
+                  display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1rem', borderRadius: 12, textDecoration: 'none',
+                  background: k.haupt ? '#2D6B1E' : clOffen ? '#FEF9C3' : '#fff',
+                  color: k.haupt ? '#fff' : '#1C1208',
+                  border: `1.5px solid ${k.haupt ? '#2D6B1E' : clOffen ? '#FDE047' : '#CFE3C7'}`,
+                  boxShadow: clOffen ? '0 0 0 2px #FDE04788' : '0 1px 2px rgba(0,0,0,0.06)',
+                }}>
+                <span style={{ fontSize: '1.6rem' }} aria-hidden>{k.icon}</span>
+                <span>
+                  <span style={{ display: 'block', fontWeight: 700, color: clOffen ? '#92400E' : undefined }}>{k.titel}</span>
+                  <span style={{ display: 'block', fontSize: '0.8rem', opacity: 0.85, color: clOffen ? '#B45309' : undefined }}>{k.sub}</span>
+                </span>
+              </a>
+            );
+          })}
         </div>
       </div>
     </section>
