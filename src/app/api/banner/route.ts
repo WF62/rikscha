@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { checkPilot as checkPilotAuth } from '@/lib/pilotAuth';
+import { getPilotRolle, darfWebBearbeiten } from '@/lib/pilotAuth';
 
 
 export async function GET() {
@@ -32,8 +32,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400 });
   }
 
-  if (!(await checkPilotAuth(pilot, password))) {
-    return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
+  const rolle = await getPilotRolle(pilot, password);
+  if (!darfWebBearbeiten(rolle)) {
+    return NextResponse.json({ error: 'Keine Berechtigung für Website-Änderungen.' }, { status: 403 });
   }
 
   const db = createServiceClient();

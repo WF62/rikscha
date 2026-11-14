@@ -9,5 +9,6 @@ export async function GET() {
     quelle: d.quelle,
     fahrzeuge: d.fahrzeuge.map(({ notiz: _n, ...f }) => f),
     kutscher: d.kutscher.map(({ name, reihenfolge, aktiv }) => ({ id: name, name, reihenfolge, aktiv })),
+    einweisungen: d.einweisungen,
   });
 }

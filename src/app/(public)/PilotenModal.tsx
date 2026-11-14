@@ -52,7 +52,7 @@ export default function PilotenModal() {
       if (gespeichert && gespeichertPw) {
         setPilotName(gespeichert);
         setPilotPw(gespeichertPw);
-        const rolle = localStorage.getItem('pilot_rolle') ?? 'kutscher';
+        const rolle = localStorage.getItem('pilot_rolle') ?? 'pilot';
         setPilotRolle(rolle);
         ladePiloten();
         setAnsicht('bereich');
@@ -99,12 +99,11 @@ export default function PilotenModal() {
         localStorage.setItem('pilot_name', j.pilot);
         const zugang = j.token ?? passwort; // Token statt Passwort speichern
         localStorage.setItem('pilot_pw', zugang);
-        localStorage.setItem('pilot_rolle', j.rolle ?? 'kutscher');
-        if (j.fahrzeug) localStorage.setItem('pilot_fahrzeug', j.fahrzeug); else localStorage.removeItem('pilot_fahrzeug');
+        localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw(zugang);
-        setPilotRolle(j.rolle ?? 'kutscher');
+        setPilotRolle(j.rolle ?? 'pilot');
         if (j.muss_pw_aendern) {
           setNeuesPw('');
           setNeuesPwWdh('');
@@ -177,12 +176,11 @@ export default function PilotenModal() {
       if (authRes.ok) {
         localStorage.setItem('pilot_name', j.pilot);
         localStorage.setItem('pilot_pw', '');
-        localStorage.setItem('pilot_rolle', j.rolle ?? 'kutscher');
-        if (j.fahrzeug) localStorage.setItem('pilot_fahrzeug', j.fahrzeug); else localStorage.removeItem('pilot_fahrzeug');
+        localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw('');
-        setPilotRolle(j.rolle ?? 'kutscher');
+        setPilotRolle(j.rolle ?? 'pilot');
         setErstanmeldung(false);
         setAnsicht('bereich');
       } else {

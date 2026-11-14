@@ -170,7 +170,7 @@ const plusMonate = (iso: string | undefined, monate: number) => {
 };
 
 export default function PflegeSeite() {
-  const { fahrzeuge, fahrzeugById } = useStammdaten();
+  const { fahrzeuge, fahrzeugById, einweisungenFuer } = useStammdaten();
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
   const [daten, setDaten] = useState<Daten | null>(null);
   const [ladeFehler, setLadeFehler] = useState('');
@@ -395,7 +395,9 @@ export default function PflegeSeite() {
                     <div className="flex-1 min-w-[200px]">
                       <div className="font-semibold">{tagText(a.datum)}, {zeit(a)}{a.gebucht ? <span className="ml-2 text-sm font-normal text-emerald-800">noch frei: {abschnitteText(abschnitte)} Uhr</span> : null}{a.oeffentlich && <span className="ml-2 text-xs font-normal bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">🌿 auch öffentlich buchbar</span>}</div>
                       <div className="text-sm text-gray-600">
-                        Kutscher: {a.pilot} · {a.fahrzeug
+                        Kutscher: {a.pilot}
+                        {(() => { const ew = einweisungenFuer(a.pilot); return ew.length > 0 ? <span className="ml-1 text-xs text-gray-400">({ew.map(id => fahrzeugById(id)?.name ?? id).join(', ')})</span> : null; })()}
+                        {' · '}{a.fahrzeug
                           ? <>{fz?.name ?? a.fahrzeug} (max. {plaetze} {plaetze > 1 ? 'Gäste' : 'Gast'}){rolliOk ? ' · ♿ Rollstuhl möglich' : ''}</>
                           : <>Fahrzeug egal – wird passend zu den Gästen gewählt</>}
                       </div>

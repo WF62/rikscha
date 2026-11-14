@@ -11,12 +11,20 @@ export async function ladeStammdaten(alle = false): Promise<Stammdaten> {
     let fq = sb.from('rikscha_fahrzeuge').select('*').order('reihenfolge').order('name');
     let kq = sb.from('rikscha_kutscher').select('id, name, aktiv, reihenfolge').order('reihenfolge').order('name');
     if (!alle) { fq = fq.eq('aktiv', true); kq = kq.eq('aktiv', true); }
-    const [f, k] = await Promise.all([fq, kq]);
+    const [f, k, ew] = await Promise.all([fq, kq,
+      sb.from('rikscha_kutscher_fahrzeuge').select('kutscher_name, fahrzeug_id'),
+    ]);
     if (f.error || k.error) return STANDARD_STAMMDATEN;
+    const einweisungen: Record<string, string[]> = {};
+    for (const row of (ew.data ?? [])) {
+      if (!einweisungen[row.kutscher_name]) einweisungen[row.kutscher_name] = [];
+      einweisungen[row.kutscher_name].push(row.fahrzeug_id);
+    }
     return {
       quelle: 'datenbank',
       fahrzeuge: (f.data ?? []).map(fahrzeugAusZeile),
       kutscher: (k.data ?? []).map((r) => ({ id: r.id, name: r.name, aktiv: r.aktiv, reihenfolge: r.reihenfolge })),
+      einweisungen,
     };
   } catch {
     return STANDARD_STAMMDATEN;
