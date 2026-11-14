@@ -128,6 +128,27 @@ export async function sendAusfallKutscherEmail(e: {
   ));
 }
 
+// Notfall-Signal-Gruppen-Nachricht (SOS vom Kutscher)
+export async function sendNotfallSignal(e: {
+  kutscher: string; kategorie: string; beschreibung?: string; mapsUrl?: string;
+}) {
+  const phone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
+  const apiKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
+  const groupId = process.env.SIGNAL_GROUP_ID ?? '';
+  if (!phone || !apiKey) return;
+  const kategorieLabel: Record<string, string> = {
+    rikscha_defekt: '🚲 Rikscha-Defekt',
+    personen_problem: '🏥 Personen-Problem',
+    sonstiges: '❓ Sonstiges',
+  };
+  const kat = kategorieLabel[e.kategorie] ?? e.kategorie;
+  let text = `🆘 NOTFALL – ${e.kutscher} braucht Hilfe!\n\nKategorie: ${kat}`;
+  if (e.beschreibung) text += `\n\n${e.beschreibung}`;
+  if (e.mapsUrl) text += `\n\n📍 Standort: ${e.mapsUrl}`;
+  text += `\n\nWer kann spontan helfen? Bitte direkt bei ${e.kutscher} melden.`;
+  await callMeBotSignal(phone, apiKey, text, groupId || undefined);
+}
+
 // WhatsApp-Ausfall-Nachricht an einen Kutscher
 export async function sendAusfallWhatsApp(phone: string, apiKey: string, e: {
   fahrzeug: string; beschreibung: string; gesperrt_ab?: string;
