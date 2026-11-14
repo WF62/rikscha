@@ -341,7 +341,18 @@ export default function TourenKarte() {
     const pw = localStorage.getItem('pilot_pw');
     const rolle = localStorage.getItem('pilot_rolle');
     setIstPilot(!!(name && pw && rolle && rolle !== 'angehoeriger'));
-    setCustomTouren(loadCustomTouren());
+    // DB-Touren laden (überschreiben localStorage-Touren)
+    fetch('/api/touren').then(r => r.json()).then((dbTouren: Array<{ id: string; name: string; kurzname?: string; farbe: string; beschreibung?: string; laenge?: string; dauer?: string; waypoints: [number, number][] }>) => {
+      if (Array.isArray(dbTouren) && dbTouren.length > 0) {
+        setCustomTouren(dbTouren.map(t => ({
+          id: t.id, name: t.name, kurzname: t.kurzname || t.name, farbe: t.farbe,
+          beschreibung: t.beschreibung || '', laenge: t.laenge || '', dauer: t.dauer || '',
+          defaultWaypoints: t.waypoints,
+        })));
+      } else {
+        setCustomTouren(loadCustomTouren());
+      }
+    }).catch(() => setCustomTouren(loadCustomTouren()));
     // Auf Login-Änderungen reagieren (z.B. Modal schließt nach Anmeldung)
     function onStorage() {
       const n = localStorage.getItem('pilot_name');

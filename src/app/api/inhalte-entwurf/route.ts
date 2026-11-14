@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getPilotRolle, istAdmin, zugangAusAnfrage } from '@/lib/pilotAuth';
+import { getPilotRolle, darfWebBearbeiten, zugangAusAnfrage } from '@/lib/pilotAuth';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   const verlaufKey = searchParams.get('verlauf');
 
   const rolle = await getPilotRolle(pilot, password);
-  if (!rolle || !istAdmin(rolle)) {
+  if (!rolle || !darfWebBearbeiten(rolle)) {
     return NextResponse.json({ error: 'Nur für Admins.' }, { status: 403, headers: CORS });
   }
 
@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
   const { pilot, password } = body;
 
   const rolle = await getPilotRolle(pilot, password);
-  if (!rolle || !istAdmin(rolle)) {
+  if (!rolle || !darfWebBearbeiten(rolle)) {
     return NextResponse.json({ error: 'Nur für Admins.' }, { status: 403, headers: CORS });
   }
 

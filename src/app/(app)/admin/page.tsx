@@ -5,12 +5,12 @@ import StammdatenVerwaltung from './StammdatenVerwaltung';
 import OrganisationenVerwaltung from './OrganisationenVerwaltung';
 import type { Organisation } from '@/lib/supabase';
 
-type Person = { id: string; name: string; rolle: string; aktiv: boolean; organisation_id?: string | null; fahrzeug?: string | null };
-type FzOption = { id: string; name: string };
+type Person = { id: string; name: string; rolle: string; aktiv: boolean; organisation_id?: string | null };
 type OrdnerDatei = { id: string; kategorie: string; name: string; url: string; groesse: number; typ: string };
 
 const ROLLEN = [
   { value: 'kutscher', label: 'Kutscher' },
+  { value: 'kutscher-admin', label: 'Kutscher-Admin (mit Website-Rechten)' },
   { value: 'gfo',   label: 'GFO-Mitarbeiterin' },
   { value: 'pflege', label: 'Vermittlung (Pflege, Quartier …)' },
   { value: 'angehoeriger', label: 'Angehörige/r' },
@@ -24,10 +24,9 @@ export default function AdminSeite() {
 
   const [personen, setPersonen]     = useState<Person[]>([]);
   const [laden, setLaden]           = useState(false);
-  const [form, setForm]             = useState({ name: '', passwort: '', rolle: 'kutscher', organisation_id: '' });
+  const [form, setForm]             = useState({ name: '', passwort: '', rolle: 'pilot', organisation_id: '' });
   const [orgs, setOrgs]             = useState<Organisation[]>([]);
   const [orgFehler, setOrgFehler]   = useState('');
-  const [fahrzeugListe, setFahrzeugListe] = useState<FzOption[]>([]);
   const [speichern, setSpeichern]   = useState(false);
   const [meldung, setMeldung]       = useState('');
   const [editId, setEditId]         = useState<string | null>(null);
@@ -45,8 +44,6 @@ export default function AdminSeite() {
     if (res.ok) setPersonen(await res.json());
     const o = await fetch('/api/admin/organisationen');
     if (o.ok) { setOrgs(await o.json()); setOrgFehler(''); } else setOrgFehler((await o.json().catch(() => ({}))).error ?? 'Organisationen konnten nicht geladen werden.');
-    const fz = await fetch('/api/stammdaten');
-    if (fz.ok) { const d = await fz.json(); setFahrzeugListe((d.fahrzeuge ?? []).map((f: { id: string; name: string }) => ({ id: f.id, name: f.name }))); }
     setLaden(false);
   }, []);
 
@@ -69,7 +66,7 @@ export default function AdminSeite() {
     });
     if (res.ok) {
       setMeldung(`${form.name} wurde hinzugefügt.`);
-      setForm({ name: '', passwort: '', rolle: 'kutscher', organisation_id: '' });
+      setForm({ name: '', passwort: '', rolle: 'pilot', organisation_id: '' });
       laden_();
     } else {
       const j = await res.json();
@@ -254,6 +251,7 @@ export default function AdminSeite() {
                   p.rolle === 'gfo' ? 'bg-blue-100 text-blue-700' : p.rolle === 'pflege' ? 'bg-teal-100 text-teal-700' : 'bg-green-100 text-green-700'
                 }`}>
                 <option value="kutscher">Kutscher</option>
+                <option value="kutscher-admin">Kutscher-Admin</option>
                 <option value="gfo">GFO</option>
                 <option value="angehoeriger">Angehörige/r</option>
                 <option value="pflege">Vermittlung</option>
@@ -268,17 +266,6 @@ export default function AdminSeite() {
                   className={`text-xs border rounded px-1 py-0.5 ${p.organisation_id ? '' : 'border-red-400 text-red-700'}`}>
                   <option value="">⚠ keine Organisation</option>
                   {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-                </select>
-              )}
-              {p.rolle === 'angehoeriger' && (
-                <select value={p.fahrzeug ?? ''} title="Eingewiesenes Fahrzeug"
-                  onChange={async (e) => {
-                    await fetch('/api/admin/piloten', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.id, fahrzeug: e.target.value || null }) });
-                    laden_();
-                  }}
-                  className={`text-xs border rounded px-1 py-0.5 ${p.fahrzeug ? '' : 'border-orange-400 text-orange-700'}`}>
-                  <option value="">⚠ kein Fahrzeug</option>
-                  {fahrzeugListe.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               )}
 
@@ -320,6 +307,7 @@ export default function AdminSeite() {
                   title="Rolle ändern"
                   className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold border-0 cursor-pointer appearance-none">
                   <option value="kutscher">Kutscher</option>
+                  <option value="kutscher-admin">Kutscher-Admin</option>
                   <option value="gfo">GFO</option>
                   <option value="angehoeriger">Angehörige/r</option>
                   <option value="pflege">Vermittlung</option>
@@ -375,6 +363,24 @@ export default function AdminSeite() {
 
       <OrganisationenVerwaltung liste={orgs} fehler={orgFehler} neuLaden={laden_} />
       <StammdatenVerwaltung />
+
+      <div style={{ maxWidth: 800, margin: '2rem auto 0', padding: '0 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <a href="/admin/einweisungen"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
+          🚲 Fahrzeug-Einweisungen verwalten
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer darf welches Fahrzeug nutzen?</span>
+        </a>
+        <a href="/admin/saisoncheck"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#C2410C', fontWeight: 700, fontSize: '0.95rem' }}>
+          🌸 Saisoncheck
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer ist letztes Jahr nicht gefahren?</span>
+        </a>
+        <a href="/admin/checklisten"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#1D4ED8', fontWeight: 700, fontSize: '0.95rem' }}>
+          📋 Checklisten
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Saisoneinweisung & Fahrzeugregeln</span>
+        </a>
+      </div>
     </div>
   );
 }

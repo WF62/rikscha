@@ -17,7 +17,10 @@ function lade(): Promise<Stammdaten> {
 }
 
 /** Fahrzeuge und Kutscher für Client-Seiten. Startet mit den festen Werten, lädt dann aus der Datenbank. */
-export function useStammdaten(): Stammdaten & { fahrzeugById: (id: string) => Fahrzeug | undefined } {
+export function useStammdaten(): Stammdaten & {
+  fahrzeugById: (id: string) => Fahrzeug | undefined;
+  einweisungenFuer: (name: string) => string[];
+} {
   const [daten, setDaten] = useState<Stammdaten>(cache ?? STANDARD_STAMMDATEN);
   useEffect(() => {
     let aktiv = true;
@@ -25,5 +28,9 @@ export function useStammdaten(): Stammdaten & { fahrzeugById: (id: string) => Fa
     else setDaten(cache);
     return () => { aktiv = false; };
   }, []);
-  return { ...daten, fahrzeugById: (id: string) => daten.fahrzeuge.find((f) => f.id === id) };
+  return {
+    ...daten,
+    fahrzeugById: (id: string) => daten.fahrzeuge.find((f) => f.id === id),
+    einweisungenFuer: (name: string) => daten.einweisungen?.[name] ?? [],
+  };
 }
