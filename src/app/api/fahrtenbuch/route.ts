@@ -135,7 +135,30 @@ export async function PUT(req: NextRequest) {
     if (!eintrag || eintrag.kutscher !== pilot) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 403 });
   }
 
+  // Vorherigen Status laden um zu erkennen ob Entwurf → abgeschlossen
+  const { data: vorher } = await db.from('rikscha_fahrtenbuch').select('status, spenden, ausgaben').eq('id', id).single();
+
   const { error } = await db.from('rikscha_fahrtenbuch').update({ ...felder, geaendert_am: new Date().toISOString() }).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
+
+  // Kassenbuch-Einträge anlegen wenn Entwurf jetzt abgeschlossen wird und noch kein Eintrag existiert
+  if (vorher?.status === 'entwurf' && felder.status === 'abgeschlossen') {
+    const { data: bereitsVorhanden } = await db.from('rikscha_kassenbuch').select('id').eq('fahrtenbuch_id', id).limit(1);
+    if (!bereitsVorhanden?.length) {
+      await kassenbuchEintragAnlegen(db, id, felder, pilot);
+    }
+  }
+
+  // Schaden-Benachrichtigung wenn neu gemeldet
+  if (felder.schaden && felder.schaden_beschreibung && vorher?.status === 'entwurf') {
+    const schadenDaten = {
+      kutscher: pilot, fahrzeug: felder.fahrzeug as string,
+      datum: felder.datum as string, beschreibung: felder.schaden_beschreibung as string,
+      bemerkungen: felder.bemerkungen as string | undefined,
+    };
+    sendSchadenEmail(schadenDaten).catch(() => {});
+    sendSchadenSignal(schadenDaten).catch(() => {});
+  }
+
   return NextResponse.json({ ok: true }, { headers: CORS });
 }
