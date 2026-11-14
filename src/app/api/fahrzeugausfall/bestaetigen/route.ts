@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { sendAusfallKutscherEmail, sendAusfallWhatsApp } from '@/lib/email';
+import { sendAusfallKutscherEmail, sendAusfallSignalGruppe } from '@/lib/email';
 
 // GET: Token prüfen und Bestätigungsseite-Daten liefern
 export async function GET(req: NextRequest) {
@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
     .not('email', 'is', null);
 
   const kutscherMitEmail = (kutscher ?? []).filter(k => k.email);
-  const kutscherMitWa = (kutscher ?? []).filter(k => k.whatsapp);
 
   // Betroffene Buchungen ermitteln
   const heute = new Date().toISOString().slice(0, 10);
@@ -80,21 +79,17 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // WhatsApp an Kutscher mit Nummer
-  const waApiKey = process.env.SCHADEN_WHATSAPP_APIKEY ?? '';
-  if (waApiKey) {
-    await Promise.all(kutscherMitWa.map(k =>
-      sendAusfallWhatsApp(k.whatsapp!, waApiKey, {
-        fahrzeug: ausfall.fahrzeug,
-        beschreibung: ausfall.beschreibung,
-        gesperrt_ab: gesperrt_ab || undefined,
-      })
-    ));
-  }
+  // Signal-Gruppen-Nachricht an alle Kutscher auf einmal
+  await sendAusfallSignalGruppe({
+    fahrzeug: ausfall.fahrzeug,
+    beschreibung: ausfall.beschreibung,
+    gesperrt_ab: gesperrt_ab || undefined,
+    gesperrt_bis: gesperrt_bis || undefined,
+  });
 
   return NextResponse.json({
     ok: true,
-    benachrichtigt: kutscherMitEmail.length + kutscherMitWa.length,
+    benachrichtigt: kutscherMitEmail.length,
     betroffene_buchungen: betroffeneBuchungen?.length ?? 0,
     buchungen: betroffeneBuchungen ?? [],
   });

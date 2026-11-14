@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getPilotRolle, darfFahrtenVerwalten, darfWebBearbeiten } from '@/lib/pilotAuth';
-import { sendSchadenEmail, sendSchadenWhatsApp } from '@/lib/email';
+import { sendSchadenEmail, sendSchadenSignal } from '@/lib/email';
 
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       ausfallToken,
     };
     sendSchadenEmail(schadenDaten).catch(() => {});
-    sendSchadenWhatsApp(schadenDaten).catch(() => {});
+    sendSchadenSignal(schadenDaten).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, id: data.id }, { status: 201, headers: CORS });

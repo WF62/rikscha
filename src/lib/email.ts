@@ -2,22 +2,63 @@ import { Resend } from 'resend';
 
 const FROM = 'Mertener Rikschakutscher <onboarding@resend.dev>';
 
-// WhatsApp-Benachrichtigung via CallMeBot (kostenlos, keine App nötig).
-// Einmalige Einrichtung: Rolf schickt "I allow callmebot to send me messages"
-// an +34 644 59 92 23 auf WhatsApp → erhält seinen API-Key.
-// Dann SCHADEN_WHATSAPP_PHONE (z.B. 4917612345678) und
-// SCHADEN_WHATSAPP_APIKEY in Vercel eintragen.
-export async function sendSchadenWhatsApp(e: {
+// Signal-Benachrichtigung via CallMeBot (kostenlos).
+//
+// Einmalige Einrichtung für Rolf (Einzelnachricht):
+//   Signal-Nachricht an +34 609 97 67 42 schicken: "I allow callmebot to send me messages"
+//   → API-Key kommt zurück. SCHADEN_SIGNAL_PHONE + SCHADEN_SIGNAL_APIKEY in Vercel eintragen.
+//
+// Für Gruppen-Nachrichten zusätzlich SIGNAL_GROUP_ID in Vercel:
+//   Gruppen-ID einmalig auslesen: Rolf öffnet signal-cli oder fragt CallMeBot-Support.
+//   Alternativ: im Admin-Bereich unter /api/signal/gruppen-id abrufbar (nach Einrichtung).
+//
+// WhatsApp als Fallback (falls Signal nicht eingerichtet):
+//   SCHADEN_WHATSAPP_PHONE + SCHADEN_WHATSAPP_APIKEY in Vercel eintragen.
+
+async function callMeBotSignal(phone: string, apiKey: string, text: string, groupId?: string) {
+  const url = new URL('https://api.callmebot.com/signal/send.php');
+  url.searchParams.set('phone', phone);
+  url.searchParams.set('text', text);
+  url.searchParams.set('apikey', apiKey);
+  if (groupId) url.searchParams.set('group', groupId);
+  await fetch(url.toString()).catch(() => {});
+}
+
+async function callMeBotWhatsApp(phone: string, apiKey: string, text: string) {
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(text)}&apikey=${apiKey}`;
+  await fetch(url).catch(() => {});
+}
+
+// Schaden-Benachrichtigung an Rolf (Signal bevorzugt, WhatsApp als Fallback)
+export async function sendSchadenSignal(e: {
   kutscher: string; fahrzeug: string; datum: string; beschreibung: string;
 }) {
-  const phone = process.env.SCHADEN_WHATSAPP_PHONE ?? '';
-  const apiKey = process.env.SCHADEN_WHATSAPP_APIKEY ?? '';
+  const text = `⚠️ Schaden/Wartung gemeldet\nFahrzeug: ${e.fahrzeug}\nDatum: ${e.datum}\nKutscher: ${e.kutscher}\n\n${e.beschreibung}`;
+  const signalPhone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
+  const signalKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
+  if (signalPhone && signalKey) {
+    await callMeBotSignal(signalPhone, signalKey, text);
+    return;
+  }
+  // WhatsApp-Fallback
+  const waPhone = process.env.SCHADEN_WHATSAPP_PHONE ?? '';
+  const waKey = process.env.SCHADEN_WHATSAPP_APIKEY ?? '';
+  if (waPhone && waKey) await callMeBotWhatsApp(waPhone, waKey, text);
+}
+
+// Ausfall-Benachrichtigung an Signal-Gruppe (alle Kutscher auf einmal)
+export async function sendAusfallSignalGruppe(e: {
+  fahrzeug: string; beschreibung: string; gesperrt_ab?: string; gesperrt_bis?: string;
+}) {
+  const phone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
+  const apiKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
+  const groupId = process.env.SIGNAL_GROUP_ID ?? '';
   if (!phone || !apiKey) return;
-  const text = encodeURIComponent(
-    `⚠️ Schaden/Wartung gemeldet\nFahrzeug: ${e.fahrzeug}\nDatum: ${e.datum}\nKutscher: ${e.kutscher}\n\n${e.beschreibung}`
-  );
-  await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${text}&apikey=${apiKey}`)
-    .catch(() => {});
+  const zeitraum = e.gesperrt_ab
+    ? `${e.gesperrt_ab}${e.gesperrt_bis ? ` bis ${e.gesperrt_bis}` : ''}`
+    : 'Dauer unklar';
+  const text = `🚫 Fahrzeugausfall: ${e.fahrzeug} (${zeitraum})\n\n${e.beschreibung}\n\nBitte Fahrten entsprechend planen.`;
+  await callMeBotSignal(phone, apiKey, text, groupId || undefined);
 }
 
 export async function sendSchadenEmail(e: {
