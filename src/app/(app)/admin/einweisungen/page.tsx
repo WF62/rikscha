@@ -1,18 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
 
 type Einweisung = { id: string; kutscher_name: string; fahrzeug_id: string; eingewiesen_von: string; eingewiesen_am: string };
 type Fahrzeug = { id: string; name: string };
-type Kutscher = { id: string; name: string; rolle: string };
-
-const FAHRZEUGn: Record<string, string> = {
-  flinker_flitzer: 'Flinker Flitzer',
-  flotte_lotte: 'Flotte Lotte',
-  flotte_lotte_2: 'Flotte Lotte 2',
-  hase: 'Hase',
-  jruuse_piter: 'Jruuse Piter',
-};
+type Kutscher = { id: string; name: string; aktiv: boolean; reihenfolge: number };
 
 export default function EinweisungenPage() {
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
@@ -20,11 +12,18 @@ export default function EinweisungenPage() {
   const [kutscher, setKutscher] = useState<Kutscher[]>([]);
   const [fahrzeuge, setFahrzeuge] = useState<Fahrzeug[]>([]);
   const [laden, setLaden] = useState(false);
+
+  // Einweisung hinzufügen
   const [neuerKutscher, setNeuerKutscher] = useState('');
   const [neuesFahrzeug, setNeuesFahrzeug] = useState('');
   const [eingewiesen_am, setEingewiesen_am] = useState(new Date().toISOString().slice(0, 10));
   const [speichert, setSpeichert] = useState(false);
   const [fehler, setFehler] = useState('');
+
+  // Kutscher anlegen
+  const [neuerName, setNeuerName] = useState('');
+  const [legtAn, setLegtAn] = useState(false);
+  const [anlegeFehler, setAnlegeFehler] = useState('');
 
   useEffect(() => {
     const rolle = localStorage.getItem('pilot_rolle') ?? '';
@@ -33,22 +32,19 @@ export default function EinweisungenPage() {
     laden_();
   }, []);
 
-  const laden_ = async () => {
+  const laden_ = useCallback(async () => {
     setLaden(true);
     const h = authHeaders();
     const [ewRes, kRes, fzRes] = await Promise.all([
       fetch('/api/kutscher-fahrzeuge', { headers: h }),
-      fetch('/api/piloten', { headers: h }),
+      fetch('/api/kutscher', { headers: h }),
       fetch('/api/fahrzeuge', { headers: h }),
     ]);
     if (ewRes.ok) setEinweisungen(await ewRes.json());
-    if (kRes.ok) {
-      const data = await kRes.json();
-      setKutscher((data as Kutscher[]).filter(k => ['kutscher', 'kutscher-admin', 'pilot'].includes(k.rolle)));
-    }
+    if (kRes.ok) setKutscher(await kRes.json());
     if (fzRes.ok) setFahrzeuge(await fzRes.json());
     setLaden(false);
-  };
+  }, []);
 
   const hinzufuegen = async () => {
     if (!neuerKutscher || !neuesFahrzeug) { setFehler('Bitte Kutscher und Fahrzeug wählen.'); return; }
@@ -78,32 +74,106 @@ export default function EinweisungenPage() {
     await laden_();
   };
 
+  const kutscherAnlegen = async () => {
+    if (!neuerName.trim()) { setAnlegeFehler('Name eingeben.'); return; }
+    setLegtAn(true); setAnlegeFehler('');
+    const res = await fetch('/api/kutscher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ name: neuerName.trim() }),
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setAnlegeFehler(j.error ?? 'Fehler.');
+    } else {
+      setNeuerName('');
+      setNeuerKutscher(neuerName.trim());
+      await laden_();
+    }
+    setLegtAn(false);
+  };
+
+  const aktivToggle = async (k: Kutscher) => {
+    await fetch('/api/kutscher', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ id: k.id, aktiv: !k.aktiv }),
+    });
+    await laden_();
+  };
+
   if (zugang === 'pruefen') return <p className="text-center text-gray-400 mt-16">Einen Moment …</p>;
   if (zugang === 'nein') return <div className="p-8 text-red-600">Kein Zugang.</div>;
 
-  // Kutscher gruppieren mit ihren Einweisungen
+  const aktiveKutscher = kutscher.filter(k => k.aktiv);
+  const inaktiveKutscher = kutscher.filter(k => !k.aktiv);
+
+  const fzName = (id: string) => fahrzeuge.find(f => f.id === id)?.name ?? id;
+
   const alleKutscher = kutscher.map(k => ({
     ...k,
     eingewiesen: einweisungen.filter(e => e.kutscher_name === k.name),
   }));
 
-  // Alle Fahrzeuge (aus Tabelle oder Fallback)
-  const fzListe: Fahrzeug[] = fahrzeuge.length
-    ? fahrzeuge
-    : Object.entries(FAHRZEUGn).map(([id, name]) => ({ id, name }));
-
-  const fzName = (id: string) => fzListe.find(f => f.id === id)?.name ?? FAHRZEUGn[id] ?? id;
-
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '1.5rem 1rem', fontFamily: 'sans-serif' }}>
+    <div style={{ maxWidth: 820, margin: '0 auto', padding: '1.5rem 1rem', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
         <a href="/admin" style={{ color: '#6B7280', fontSize: '0.9rem', textDecoration: 'none' }}>← Admin</a>
         <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: '#1a1a18' }}>
-          🚲 Fahrzeug-Einweisungen
+          🚲 Kutscher &amp; Fahrzeug-Einweisungen
         </h1>
       </div>
 
-      {/* Neue Einweisung */}
+      {/* ===== KUTSCHER ANLEGEN ===== */}
+      <div style={{ background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 12, padding: '1.25rem', marginBottom: '1.5rem' }}>
+        <div style={{ fontWeight: 700, color: '#1D4ED8', marginBottom: '0.9rem' }}>Neuen Kutscher anlegen</div>
+        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Vorname / Rufname</label>
+            <input value={neuerName} onChange={e => setNeuerName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && kutscherAnlegen()}
+              placeholder="z.B. Maria"
+              style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem', boxSizing: 'border-box' }} />
+          </div>
+          <button onClick={kutscherAnlegen} disabled={legtAn}
+            style={{ background: '#1D4ED8', color: '#fff', border: 'none', borderRadius: 8, padding: '0.55rem 1.1rem', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            {legtAn ? '…' : '+ Anlegen'}
+          </button>
+        </div>
+        {anlegeFehler && <div style={{ color: '#DC2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{anlegeFehler}</div>}
+
+        {/* Aktive Kutscher Liste */}
+        {aktiveKutscher.length > 0 && (
+          <div style={{ marginTop: '1rem' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6B7280', marginBottom: '0.4rem' }}>Aktive Kutscher ({aktiveKutscher.length})</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {aktiveKutscher.map(k => (
+                <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: '#D1FAE5', border: '1px solid #6EE7B7', borderRadius: 7, padding: '0.25rem 0.6rem', fontSize: '0.85rem' }}>
+                  <span style={{ fontWeight: 600 }}>{k.name}</span>
+                  <button onClick={() => aktivToggle(k)} title="Deaktivieren"
+                    style={{ background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '0.85rem', padding: '0 2px', lineHeight: 1 }}>✕</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {inaktiveKutscher.length > 0 && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6B7280', marginBottom: '0.4rem' }}>Inaktiv ({inaktiveKutscher.length})</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {inaktiveKutscher.map(k => (
+                <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: '#F3F4F6', border: '1px solid #D1D5DB', borderRadius: 7, padding: '0.25rem 0.6rem', fontSize: '0.85rem' }}>
+                  <span style={{ color: '#6B7280' }}>{k.name}</span>
+                  <button onClick={() => aktivToggle(k)} title="Wieder aktivieren"
+                    style={{ background: 'none', border: 'none', color: '#059669', cursor: 'pointer', fontSize: '0.85rem', padding: '0 2px', lineHeight: 1 }}>↩</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ===== EINWEISUNG HINZUFÜGEN ===== */}
       <div style={{ background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 12, padding: '1.25rem', marginBottom: '2rem' }}>
         <div style={{ fontWeight: 700, color: '#15803D', marginBottom: '0.9rem' }}>Neue Einweisung eintragen</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '0.6rem', alignItems: 'end' }}>
@@ -112,7 +182,7 @@ export default function EinweisungenPage() {
             <select value={neuerKutscher} onChange={e => setNeuerKutscher(e.target.value)}
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem' }}>
               <option value="">– wählen –</option>
-              {alleKutscher.map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
+              {aktiveKutscher.map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
             </select>
           </div>
           <div>
@@ -120,7 +190,7 @@ export default function EinweisungenPage() {
             <select value={neuesFahrzeug} onChange={e => setNeuesFahrzeug(e.target.value)}
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem' }}>
               <option value="">– wählen –</option>
-              {fzListe.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+              {fahrzeuge.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
             </select>
           </div>
           <div>
@@ -136,12 +206,12 @@ export default function EinweisungenPage() {
         {fehler && <div style={{ color: '#DC2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{fehler}</div>}
       </div>
 
-      {/* Übersicht pro Kutscher */}
+      {/* ===== ÜBERSICHT PRO KUTSCHER ===== */}
       {laden ? (
         <p style={{ color: '#6B7280', textAlign: 'center' }}>Laden …</p>
       ) : (
         <div style={{ display: 'grid', gap: '1rem' }}>
-          {alleKutscher.map(k => (
+          {alleKutscher.filter(k => k.aktiv).map(k => (
             <div key={k.name} style={{ background: '#fff', border: '1.5px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ background: '#F9FAFB', padding: '0.7rem 1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{k.name}</span>
@@ -170,7 +240,7 @@ export default function EinweisungenPage() {
               )}
             </div>
           ))}
-          {alleKutscher.length === 0 && (
+          {alleKutscher.filter(k => k.aktiv).length === 0 && (
             <p style={{ color: '#6B7280', textAlign: 'center' }}>Keine aktiven Kutscher gefunden.</p>
           )}
         </div>

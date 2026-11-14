@@ -59,7 +59,7 @@ export default function SchnellStart() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <div>
             <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>
-            {(wer.rolle === 'kutscher' || wer.rolle === 'pilot') && (() => {
+            {(wer.rolle === 'kutscher' || wer.rolle === 'pilot' || wer.rolle === 'kutscher-admin' || wer.rolle === 'admin') && (() => {
               const ew = einweisungenFuer(wer.name);
               return ew.length > 0
                 ? <div style={{ fontSize: '0.8rem', color: '#3B6B2E', marginTop: '0.15rem' }}>

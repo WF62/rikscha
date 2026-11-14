@@ -364,11 +364,16 @@ export default function AdminSeite() {
       <OrganisationenVerwaltung liste={orgs} fehler={orgFehler} neuLaden={laden_} />
       <StammdatenVerwaltung />
 
-      <div style={{ maxWidth: 800, margin: '2rem auto 0', padding: '0 1rem' }}>
+      <div style={{ maxWidth: 800, margin: '2rem auto 0', padding: '0 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
         <a href="/admin/einweisungen"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
           🚲 Fahrzeug-Einweisungen verwalten
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer darf welches Fahrzeug nutzen?</span>
+        </a>
+        <a href="/admin/saisoncheck"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#C2410C', fontWeight: 700, fontSize: '0.95rem' }}>
+          🌸 Saisoncheck
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer ist letztes Jahr nicht gefahren?</span>
         </a>
       </div>
     </div>
