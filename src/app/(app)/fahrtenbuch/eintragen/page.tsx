@@ -85,6 +85,7 @@ function FahrtenbuchEintragenInner() {
   const [anzahl, setAnzahl] = useState(1);
   const [kmStart, setKmStart] = useState('');
   const [kmEnde, setKmEnde] = useState('');
+  const [letzterKmStand, setLetzterKmStand] = useState<number | null>(null);
   const [spenden, setSpenden] = useState('');
   const [wetter, setWetter] = useState('');
   const [ausgaben, setAusgaben] = useState('');
@@ -134,6 +135,20 @@ function FahrtenbuchEintragenInner() {
     setGastName(b.gaeste?.[0] ?? '');
     setAnzahl(b.gaeste?.length ?? 1);
     setFehler('');
+    setKmEnde('');
+    setLetzterKmStand(null);
+    if (b.fahrzeug) {
+      const p = new URLSearchParams({ pilot, password: pw, fahrzeug: b.fahrzeug, bis: b.datum });
+      fetch(`/api/fahrtenbuch?${p}`)
+        .then(r => r.json())
+        .then((eintraege: { km_ende?: number; datum: string }[]) => {
+          const mitKm = eintraege.filter(e => e.km_ende != null).sort((a, b) => b.datum.localeCompare(a.datum));
+          if (mitKm.length > 0 && mitKm[0].km_ende != null) {
+            setLetzterKmStand(mitKm[0].km_ende);
+            setKmStart(String(mitKm[0].km_ende));
+          }
+        }).catch(() => {});
+    }
   };
 
   const speichern = async () => {
@@ -187,7 +202,8 @@ function FahrtenbuchEintragenInner() {
   const inp: React.CSSProperties = { width: '100%', border: '1.5px solid #D6CCB8', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.9rem', boxSizing: 'border-box', background: '#fff' };
   const lbl: React.CSSProperties = { display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#5C4E38', marginBottom: '0.3rem' };
 
-  const kmGefahren = kmStart && kmEnde && parseInt(kmEnde) > parseInt(kmStart) ? parseInt(kmEnde) - parseInt(kmStart) : null;
+  const startFuerBerechnung = letzterKmStand ?? (kmStart ? parseInt(kmStart) : null);
+  const kmGefahren = startFuerBerechnung != null && kmEnde && parseInt(kmEnde) > startFuerBerechnung ? parseInt(kmEnde) - startFuerBerechnung : null;
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '1.5rem 1rem' }}>
@@ -255,17 +271,23 @@ function FahrtenbuchEintragenInner() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <div>
-              <label style={lbl}>Kilometerstand Start</label>
-              <input style={inp} type="number" min={0} value={kmStart} onChange={e => setKmStart(e.target.value)} placeholder="z.B. 1250" />
-            </div>
-            <div>
-              <label style={lbl}>Kilometerstand Ende</label>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>Kilometerstand Ende (aktueller Tachostand)</label>
               <input style={inp} type="number" min={0} value={kmEnde} onChange={e => setKmEnde(e.target.value)} placeholder="z.B. 1258" />
+              {letzterKmStand != null && (
+                <div style={{ marginTop: '0.3rem', fontSize: '0.78rem', color: '#6B7280' }}>
+                  Letzter Eintrag: {letzterKmStand} km
+                  {kmGefahren !== null && <span style={{ color: '#065F46', fontWeight: 700, marginLeft: '0.5rem' }}>→ {kmGefahren} km gefahren</span>}
+                </div>
+              )}
+              {letzterKmStand == null && (
+                <div style={{ marginTop: '0.3rem', fontSize: '0.78rem', color: '#9CA3AF' }}>Erster Eintrag für dieses Fahrzeug – bitte Anfangsstand auch eingeben</div>
+              )}
             </div>
-            {kmGefahren !== null && (
-              <div style={{ gridColumn: '1 / -1', background: '#D1FAE5', color: '#065F46', borderRadius: 8, padding: '0.4rem 0.75rem', fontSize: '0.85rem', fontWeight: 600 }}>
-                🛣 Gefahrene Kilometer: {kmGefahren} km
+            {letzterKmStand == null && (
+              <div>
+                <label style={lbl}>Kilometerstand Start</label>
+                <input style={inp} type="number" min={0} value={kmStart} onChange={e => setKmStart(e.target.value)} placeholder="z.B. 1250" />
               </div>
             )}
             <div>
