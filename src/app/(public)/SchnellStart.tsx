@@ -88,6 +88,15 @@ export default function SchnellStart() {
     <section aria-label="Schnellzugang" style={{ background: '#EAF3E6', borderBottom: '1px solid #CFE3C7', padding: '1rem' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         <OffenHinweis key={wer.name} />
+        {checklistenOffen && (
+          <a href="/checklisten" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#FEF9C3', border: '1.5px solid #FDE047', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '0.75rem', textDecoration: 'none', color: '#92400E' }}>
+            <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Saisoneinweisung noch nicht abgeschlossen</div>
+              <div style={{ fontSize: '0.8rem', color: '#B45309' }}>Bitte Checklisten lesen und bestätigen, bevor du fährst →</div>
+            </div>
+          </a>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <div>
             <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>

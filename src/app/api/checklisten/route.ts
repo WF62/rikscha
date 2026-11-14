@@ -41,9 +41,12 @@ export async function GET(req: NextRequest) {
     fahrzeugFilter = (ew ?? []).map((r: { fahrzeug_id: string }) => r.fahrzeug_id);
   }
 
-  // Alle Checklisten laden
-  let q = db.from('rikscha_checklisten').select('*').order('typ').order('titel');
-  const { data: listen } = await q;
+  // Nur Saisoneinweisungs-Checklisten (kein utensilien-Typ)
+  const { data: listen } = await db
+    .from('rikscha_checklisten')
+    .select('*')
+    .in('typ', ['allgemein', 'fahrzeug'])
+    .order('typ').order('titel');
 
   // Bestätigungen für diese Saison + diesen Kutscher
   const { data: best } = await db
@@ -59,7 +62,7 @@ export async function GET(req: NextRequest) {
   const result = (listen ?? [])
     .filter((l: { typ: string; fahrzeug_id: string | null }) => {
       if (l.typ === 'allgemein') return true;
-      if (fahrzeugFilter === null) return true; // admin: alle
+      if (fahrzeugFilter === null) return true;
       return fahrzeugFilter.includes(l.fahrzeug_id ?? '');
     })
     .map((l: { id: string; version: number; [key: string]: unknown }) => {
