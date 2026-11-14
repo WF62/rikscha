@@ -96,6 +96,8 @@ function FahrtenbuchEintragenInner() {
   const [strecke, setStrecke] = useState('');
   const [checklisteVor, setChecklisteVor] = useState<string[]>([]);
   const [checklisteNach, setChecklisteNach] = useState<string[]>([]);
+  const [streckenListe, setStreckenListe] = useState(['Märtner Heide zum Rhein', 'Gutlohndorf', 'Swister Türmchen', 'Schlösserrunde']);
+  const [neueStrecke, setNeueStrecke] = useState('');
 
   useEffect(() => {
     try {
@@ -159,7 +161,7 @@ function FahrtenbuchEintragenInner() {
   const buchungWaehlen = (b: Buchung) => {
     setGewaehlt(b);
     setFahrttyp(b.eigenfahrt ? 'eigenfahrt' : 'gast');
-    setGastName(b.gaeste?.[0] ?? '');
+    setGastName(b.gaeste?.join(', ') ?? '');
     setAnzahl(b.gaeste?.length ?? 1);
     setFehler('');
     setKmEnde('');
@@ -289,9 +291,6 @@ function FahrtenbuchEintragenInner() {
 
       {gewaehlt && (
         <>
-          <div style={{ background: '#D1FAE5', border: '1.5px solid #6EE7B7', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: '0.75rem', fontSize: '0.88rem', color: '#065F46' }}>
-            📅 {formatDatum(gewaehlt.datum)} · ⏰ {gewaehlt.startzeit?.slice(0,5)}–{gewaehlt.endzeit?.slice(0,5)} · 🚲 {gewaehlt.fahrzeug}
-          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <div>
               <label style={lbl}>Fahrttyp</label>
@@ -314,12 +313,21 @@ function FahrtenbuchEintragenInner() {
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={lbl}>Strecke / Ziel</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.4rem' }}>
-                {['Rheinufer', 'Stadtpark', 'Innenstadt', 'Altstadt', 'Botanischer Garten', 'Schlosspark', 'Marktplatz', 'Promenade', 'Seepark'].map(s => (
+                {streckenListe.map(s => (
                   <button key={s} type="button" onClick={() => setStrecke(prev => prev ? prev + ', ' + s : s)}
                     style={{ background: strecke.includes(s) ? '#2D6B1E' : '#F7F3EC', color: strecke.includes(s) ? '#fff' : '#5C4E38', border: `1px solid ${strecke.includes(s) ? '#2D6B1E' : '#D6CCB8'}`, borderRadius: 20, padding: '0.2rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     {s}
                   </button>
                 ))}
+                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                  <input value={neueStrecke} onChange={e => setNeueStrecke(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && neueStrecke.trim()) { setStreckenListe(l => [...l, neueStrecke.trim()]); setNeueStrecke(''); } }}
+                    placeholder="+ Neu" style={{ border: '1px dashed #D6CCB8', borderRadius: 20, padding: '0.2rem 0.6rem', fontSize: '0.78rem', width: 70, background: '#fff' }} />
+                  {neueStrecke.trim() && (
+                    <button type="button" onClick={() => { setStreckenListe(l => [...l, neueStrecke.trim()]); setNeueStrecke(''); }}
+                      style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 20, padding: '0.2rem 0.5rem', fontSize: '0.78rem', cursor: 'pointer' }}>+</button>
+                  )}
+                </div>
               </div>
               <input style={inp} value={strecke} onChange={e => setStrecke(e.target.value)} placeholder="Ziel auswählen oder eigenen Text eingeben …" />
             </div>
