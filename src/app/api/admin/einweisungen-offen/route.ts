@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     .from('rikscha_kutscher')
     .select('name')
     .eq('aktiv', true)
-    .in('rolle', ['kutscher', 'kutscher-admin']);
+    .in('rolle', ['kutscher', 'kutscher-admin', 'admin']);
 
   if (!kutscher?.length) return NextResponse.json({ anzahl: 0, saison });
 

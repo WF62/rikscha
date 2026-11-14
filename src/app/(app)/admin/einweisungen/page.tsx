@@ -144,7 +144,7 @@ export default function EinweisungenPage() {
   if (zugang === 'pruefen') return <p className="text-center text-gray-400 mt-16">Einen Moment …</p>;
   if (zugang === 'nein') return <div className="p-8 text-red-600">Kein Zugang.</div>;
 
-  const istKutscher = (k: Kutscher) => !k.rolle || k.rolle === 'kutscher' || k.rolle === 'kutscher-admin';
+  const istKutscher = (k: Kutscher) => !k.rolle || k.rolle === 'kutscher' || k.rolle === 'kutscher-admin' || k.rolle === 'admin';
   const aktiveKutscher = kutscher.filter(k => k.aktiv && istKutscher(k));
   const inaktiveKutscher = kutscher.filter(k => !k.aktiv && istKutscher(k));
 
