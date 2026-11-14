@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
 
-type Stelle = { id: string; name: string; aktiv: boolean; organisation_id?: string | null };
+type Stelle = { id: string; name: string; aktiv: boolean; rolle?: string; organisation_id?: string | null };
 type StelleMitBuchung = Stelle & { letzteBuchung: string | null; anzahlBuchungen: number };
 
 export default function VermittlungsstellenPage() {
@@ -24,9 +24,8 @@ export default function VermittlungsstellenPage() {
     if (!kRes.ok) { setLaden(false); return; }
 
     const alle: Stelle[] = await kRes.json();
-    const pflegeStellen = alle.filter(k => k.aktiv && k.rolle === 'pflege' as unknown);
+    const pflegeStellen = alle.filter(k => k.aktiv && k.rolle === 'pflege');
 
-    // Für jede Stelle Buchungsaktivität laden
     const vor30Tagen = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const stellenMitDaten: StelleMitBuchung[] = await Promise.all(
       pflegeStellen.map(async (s) => {
@@ -103,7 +102,9 @@ export default function VermittlungsstellenPage() {
                   color: inaktiv ? '#DC2626' : '#065F46',
                   whiteSpace: 'nowrap',
                 }}>
-                  {inaktiv ? 'Kein Handlungsbedarf geprüft' : `${s.anzahlBuchungen} Buchung${s.anzahlBuchungen !== 1 ? 'en' : ''} (30 Tage)`}
+                  {inaktiv
+                    ? (s.letzteBuchung ? 'Über 30 Tage keine Buchung' : 'Keine Buchung bekannt')
+                    : `${s.anzahlBuchungen} Buchung${s.anzahlBuchungen !== 1 ? 'en' : ''} (30 Tage)`}
                 </div>
               </div>
             );
