@@ -364,50 +364,61 @@ export default function Kassenbuch() {
 
       {/* Tabelle */}
       {eintraege.length === 0 && !laedt && <p style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>Keine Einträge für diesen Zeitraum.</p>}
-      {eintraege.length > 0 && (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ background: '#F7F3EC', borderBottom: '2px solid #D6CCB8' }}>
-                {['Datum', 'Typ', 'Beschreibung', 'Kategorie', 'Kostenträger', 'Betrag', 'Von', ''].map(h => (
-                  <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: h === 'Betrag' ? 'right' : 'left', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {eintraege.map((e, i) => (
-                <tr key={e.id} style={{ background: i % 2 === 0 ? '#fff' : '#FAFAF8', borderBottom: '1px solid #F0EBE0' }}>
-                  <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap' }}>{formatDatum(e.datum)}</td>
-                  <td style={{ padding: '0.45rem 0.6rem' }}>
-                    <span style={{ background: e.typ === 'einnahme' ? '#D1FAE5' : '#FEE2E2', color: e.typ === 'einnahme' ? '#065F46' : '#991B1B', borderRadius: 5, padding: '0.1rem 0.5rem', fontSize: '0.78rem', fontWeight: 700 }}>
-                      {e.typ === 'einnahme' ? '+ Einnahme' : '− Ausgabe'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '0.45rem 0.6rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {e.beschreibung}
-                    {e.fahrtenbuch_id && <span style={{ marginLeft: '0.4rem', fontSize: '0.72rem', color: '#9CA3AF' }}>📒</span>}
-                  </td>
-                  <td style={{ padding: '0.45rem 0.6rem', color: '#5C4E38', fontSize: '0.8rem' }}>{e.kategorie ?? ''}</td>
-                  <td style={{ padding: '0.45rem 0.6rem' }}>
-                    <span style={{ ...kostentraegerColor(e.kostentraeger), borderRadius: 5, padding: '0.1rem 0.5rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                      {kostentraegerLabel(e.kostentraeger)}
-                    </span>
-                  </td>
-                  <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', fontWeight: 700, color: e.typ === 'einnahme' ? '#065F46' : '#991B1B', whiteSpace: 'nowrap' }}>
-                    {e.typ === 'einnahme' ? '+' : '−'} {euro(e.betrag)}
-                  </td>
-                  <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.78rem', color: '#9CA3AF' }}>{e.eingetragen_von}</td>
-                  <td style={{ padding: '0.45rem 0.6rem' }}>
-                    {!e.fahrtenbuch_id && (
-                      <button onClick={() => loeschen(e.id)} style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.78rem', padding: '0.1rem 0.3rem' }}>✕</button>
-                    )}
-                  </td>
+      {eintraege.length > 0 && (() => {
+        // Laufenden Saldo berechnen: von ältestem → neuestem Eintrag
+        const mitSaldo = [...eintraege].reverse().reduce<(Eintrag & { laufendSaldo: number })[]>((acc, e) => {
+          const vorher = acc.length > 0 ? acc[acc.length - 1].laufendSaldo : (startbetrag ?? 0);
+          const delta = e.typ === 'einnahme' ? e.betrag : -e.betrag;
+          return [...acc, { ...e, laufendSaldo: vorher + delta }];
+        }, []).reverse();
+        return (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#F7F3EC', borderBottom: '2px solid #D6CCB8' }}>
+                  {['Datum', 'Typ', 'Beschreibung', 'Kategorie', 'Kostenträger', 'Betrag', 'Saldo', 'Von', ''].map(h => (
+                    <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: (h === 'Betrag' || h === 'Saldo') ? 'right' : 'left', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {mitSaldo.map((e, i) => (
+                  <tr key={e.id} style={{ background: i % 2 === 0 ? '#fff' : '#FAFAF8', borderBottom: '1px solid #F0EBE0' }}>
+                    <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap' }}>{formatDatum(e.datum)}</td>
+                    <td style={{ padding: '0.45rem 0.6rem' }}>
+                      <span style={{ background: e.typ === 'einnahme' ? '#D1FAE5' : '#FEE2E2', color: e.typ === 'einnahme' ? '#065F46' : '#991B1B', borderRadius: 5, padding: '0.1rem 0.5rem', fontSize: '0.78rem', fontWeight: 700 }}>
+                        {e.typ === 'einnahme' ? '+ Einnahme' : '− Ausgabe'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.45rem 0.6rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {e.beschreibung}
+                      {e.fahrtenbuch_id && <span style={{ marginLeft: '0.4rem', fontSize: '0.72rem', color: '#9CA3AF' }}>📒</span>}
+                    </td>
+                    <td style={{ padding: '0.45rem 0.6rem', color: '#5C4E38', fontSize: '0.8rem' }}>{e.kategorie ?? ''}</td>
+                    <td style={{ padding: '0.45rem 0.6rem' }}>
+                      <span style={{ ...kostentraegerColor(e.kostentraeger), borderRadius: 5, padding: '0.1rem 0.5rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                        {kostentraegerLabel(e.kostentraeger)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', fontWeight: 700, color: e.typ === 'einnahme' ? '#065F46' : '#991B1B', whiteSpace: 'nowrap' }}>
+                      {e.typ === 'einnahme' ? '+' : '−'} {euro(e.betrag)}
+                    </td>
+                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', fontWeight: 700, color: e.laufendSaldo >= 0 ? '#1D4ED8' : '#B45309', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                      {euro(e.laufendSaldo)}
+                    </td>
+                    <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.78rem', color: '#9CA3AF' }}>{e.eingetragen_von}</td>
+                    <td style={{ padding: '0.45rem 0.6rem' }}>
+                      {!e.fahrtenbuch_id && (
+                        <button onClick={() => loeschen(e.id)} style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.78rem', padding: '0.1rem 0.3rem' }}>✕</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
     </div>
   );
 }
