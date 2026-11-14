@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import OffenHinweis from '../OffenHinweis';
+import { useStammdaten } from '@/lib/useStammdaten';
 
 /**
  * Startseite: Wer schon angemeldet ist (Kutscher, Büro/GFO, Vermittlung), sieht oben
@@ -26,6 +27,7 @@ function kachelnFuer(rolle: string): Kachel[] {
 
 export default function SchnellStart() {
   const [wer, setWer] = useState<{ name: string; rolle: string } | null>(null);
+  const { fahrzeugById, einweisungenFuer } = useStammdaten();
 
   useEffect(() => {
     const lesen = () => {
@@ -55,7 +57,17 @@ export default function SchnellStart() {
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         <OffenHinweis key={wer.name} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-          <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>
+          <div>
+            <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>
+            {(wer.rolle === 'kutscher' || wer.rolle === 'pilot') && (() => {
+              const ew = einweisungenFuer(wer.name);
+              return ew.length > 0
+                ? <div style={{ fontSize: '0.8rem', color: '#3B6B2E', marginTop: '0.15rem' }}>
+                    Deine Rikschas: {ew.map(id => fahrzeugById(id)?.name ?? id).join(' · ')}
+                  </div>
+                : null;
+            })()}
+          </div>
           <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-piloten-modal'))}
             style={{ background: 'none', border: 'none', color: '#2D6B1E', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}>
             Weitere Funktionen &amp; Abmelden
