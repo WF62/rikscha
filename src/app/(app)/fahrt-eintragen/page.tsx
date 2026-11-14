@@ -49,8 +49,8 @@ export default function FahrtEintragen() {
   const [fertig, setFertig] = useState<string | null>(null);
 
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle') ?? '';
-    const name = localStorage.getItem('pilot_name') ?? '';
+    const rolle = localStorage.getItem('kutscher_rolle') ?? '';
+    const name = localStorage.getItem('kutscher_name') ?? '';
     if (!name || !ERLAUBT.includes(rolle)) { setZugang('nein'); return; }
     setIch(name);
     const m = lesen();

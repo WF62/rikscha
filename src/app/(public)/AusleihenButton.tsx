@@ -5,7 +5,7 @@ export default function AusleihenButton({ label }: { label: string }) {
   const [rolle, setRolle] = useState<string | null>(null);
 
   useEffect(() => {
-    setRolle(localStorage.getItem('pilot_rolle'));
+    setRolle(localStorage.getItem('kutscher_rolle'));
   }, []);
 
   function handleClick(e: React.MouseEvent) {

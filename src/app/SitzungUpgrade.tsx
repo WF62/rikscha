@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 export default function SitzungUpgrade() {
   useEffect(() => {
     let name: string | null = null, pw: string | null = null;
-    try { name = localStorage.getItem('pilot_name'); pw = localStorage.getItem('pilot_pw'); } catch { return; }
+    try { name = localStorage.getItem('kutscher_name'); pw = localStorage.getItem('kutscher_pw'); } catch { return; }
     if (!name || !pw || pw.startsWith('t1.')) return;
     // Nur einmal pro Browser-Sitzung versuchen
     try { if (sessionStorage.getItem('sitzung_upgrade')) return; sessionStorage.setItem('sitzung_upgrade', '1'); } catch { return; }
@@ -18,7 +18,7 @@ export default function SitzungUpgrade() {
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
-        if (j?.token && localStorage.getItem('pilot_pw') === pw) localStorage.setItem('pilot_pw', j.token);
+        if (j?.token && localStorage.getItem('kutscher_pw') === pw) localStorage.setItem('kutscher_pw', j.token);
       })
       .catch(() => {});
   }, []);

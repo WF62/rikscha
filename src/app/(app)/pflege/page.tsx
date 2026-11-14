@@ -228,8 +228,8 @@ export default function PflegeSeite() {
   }, [gruppe.datum, gruppe.startzeit, gruppe.endzeit]);
 
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle');
-    if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
+    const rolle = localStorage.getItem('kutscher_rolle');
+    if (!localStorage.getItem('kutscher_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     setZugang('ok'); laden();
   }, [laden]);
   // Nach Antworten im Hinweis-Kasten neu laden

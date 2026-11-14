@@ -14,9 +14,9 @@ export default function Banner() {
 
   useEffect(() => {
     fetch('/api/banner').then(r => r.json()).then((d: string[]) => setTexte(d));
-    const name = localStorage.getItem('pilot_name');
-    const pw   = localStorage.getItem('pilot_pw');
-    const rolle = localStorage.getItem('pilot_rolle');
+    const name = localStorage.getItem('kutscher_name');
+    const pw   = localStorage.getItem('kutscher_pw');
+    const rolle = localStorage.getItem('kutscher_rolle');
     if (name && pw && rolle !== 'pflege') { setPilot(name); setPassword(pw); setIstPilot(true); }
   }, []);
 

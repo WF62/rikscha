@@ -26,7 +26,7 @@ export default function EinweisungenPage() {
   const [anlegeFehler, setAnlegeFehler] = useState('');
 
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle') ?? '';
+    const rolle = localStorage.getItem('kutscher_rolle') ?? '';
     if (!['kutscher-admin', 'gfo', 'admin'].includes(rolle)) { setZugang('nein'); return; }
     setZugang('ok');
     laden_();

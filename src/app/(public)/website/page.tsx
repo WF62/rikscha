@@ -654,7 +654,7 @@ export default async function WebsitePage() {
       <script dangerouslySetInnerHTML={{__html: `
         document.getElementById('piloten-link').addEventListener('click', function(e) {
           e.preventDefault();
-          var gespeichert = localStorage.getItem('pilot_name');
+          var gespeichert = localStorage.getItem('kutscher_name');
           if (gespeichert) { showPilotenBereich(gespeichert); return; }
           ladeNamen();
           var overlay = document.getElementById('pw-overlay');
@@ -672,8 +672,8 @@ export default async function WebsitePage() {
         document.getElementById('pw-btn').addEventListener('click', pwCheck);
 
         document.getElementById('pw-abmelden').addEventListener('click', function() {
-          localStorage.removeItem('pilot_name');
-          localStorage.removeItem('pilot_pw');
+          localStorage.removeItem('kutscher_name');
+          localStorage.removeItem('kutscher_pw');
           document.getElementById('piloten-bereich').style.display = 'none';
           document.body.style.overflow = '';
         });
@@ -722,9 +722,9 @@ export default async function WebsitePage() {
               body: JSON.stringify({ pilot: pilot, password: pw })
             });
             if (res.ok) {
-              localStorage.setItem('pilot_name', pilot);
+              localStorage.setItem('kutscher_name', pilot);
               var jj = await res.json().catch(function () { return {}; });
-              localStorage.setItem('pilot_pw', jj.token || pw);
+              localStorage.setItem('kutscher_pw', jj.token || pw);
               document.getElementById('pw-overlay').style.display = 'none';
               document.getElementById('pw-input').value = '';
               showPilotenBereich(pilot);

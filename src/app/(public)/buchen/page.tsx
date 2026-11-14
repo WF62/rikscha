@@ -36,8 +36,8 @@ function BuchenFormular() {
   const [istAngehoeriger, setIstAngehoeriger] = useState(false);
 
   useEffect(() => {
-    const name  = localStorage.getItem('pilot_name');
-    const rolle = localStorage.getItem('pilot_rolle');
+    const name  = localStorage.getItem('kutscher_name');
+    const rolle = localStorage.getItem('kutscher_rolle');
     if (rolle === 'angehoeriger' && name) {
       setIstAngehoeriger(true);
       setForm(f => ({ ...f, pilot: name }));

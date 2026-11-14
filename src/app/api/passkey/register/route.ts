@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const { data: ch } = await db
     .from('rikscha_passkey_challenges')
     .select('id, challenge')
-    .eq('pilot_name', pilot)
+    .eq('kutscher_name', pilot)
     .eq('typ', 'registration')
     .gt('expires_at', new Date().toISOString())
     .order('expires_at', { ascending: false })
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   const info = verification.registrationInfo;
 
   await db.from('rikscha_passkeys').upsert({
-    pilot_name: pilot,
+    kutscher_name: pilot,
     credential_id: info.credential.id,
     public_key: Buffer.from(info.credential.publicKey).toString('base64'),
     counter: info.credential.counter,

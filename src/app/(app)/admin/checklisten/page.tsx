@@ -29,7 +29,7 @@ export default function AdminChecklistenPage() {
   const [neuerText, setNeuerText] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle') ?? '';
+    const rolle = localStorage.getItem('kutscher_rolle') ?? '';
     if (!['kutscher-admin', 'gfo', 'admin'].includes(rolle)) { setZugang('nein'); return; }
     setZugang('ok');
   }, []);

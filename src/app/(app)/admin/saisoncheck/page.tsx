@@ -32,7 +32,7 @@ export default function SaisoncheckPage() {
   const [meldung, setMeldung] = useState('');
 
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle') ?? '';
+    const rolle = localStorage.getItem('kutscher_rolle') ?? '';
     if (!['gfo', 'admin'].includes(rolle)) { setZugang('nein'); return; }
     setZugang('ok');
   }, []);

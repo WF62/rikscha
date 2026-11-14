@@ -34,7 +34,7 @@ async function laden(req: NextRequest, id: string) {
   }
   // Wer darf für welche Seite sprechen?
   const darf: Record<Seite, boolean> = {
-    kutscher: !!b && ((rolle === 'pilot' && !!b.pilot && b.pilot === name) || buero),
+    kutscher: !!b && ((rolle === 'kutscher' && !!b.pilot && b.pilot === name) || buero),
     vermittlung: eigeneGaeste || buero,
   };
   return { sb, b, name, rolle, buero, darf };

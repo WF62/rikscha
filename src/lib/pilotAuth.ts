@@ -44,7 +44,7 @@ export async function rolleAusAnfrage(req: NextRequest): Promise<{ name: string;
 
 /** Kutscher (alle Stufen), GFO und Admin dürfen Fahrten und Sperren verwalten. */
 export function darfFahrtenVerwalten(rolle: string | null) {
-  return rolle === 'kutscher' || rolle === 'kutscher-admin' || rolle === 'pilot' || rolle === 'gfo' || rolle === 'admin';
+  return rolle === 'kutscher' || rolle === 'kutscher-admin' || rolle === 'gfo' || rolle === 'admin';
 }
 
 /** Nur Kutscher-Admin, GFO und Admin dürfen Website-Inhalte, Flyer und Handouts bearbeiten. */

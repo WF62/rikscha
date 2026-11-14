@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const { data: ch } = await db
     .from('rikscha_passkey_challenges')
     .select('id, challenge')
-    .eq('pilot_name', pilot)
+    .eq('kutscher_name', pilot)
     .eq('typ', 'authentication')
     .gt('expires_at', new Date().toISOString())
     .order('expires_at', { ascending: false })
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   const { data: saved } = await db
     .from('rikscha_passkeys')
     .select('id, public_key, counter, transports')
-    .eq('pilot_name', pilot)
+    .eq('kutscher_name', pilot)
     .eq('credential_id', credential.id)
     .maybeSingle();
 

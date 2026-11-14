@@ -19,7 +19,7 @@ function kachelnFuer(rolle: string): Kachel[] {
   const fahrtenbuch: Kachel = { href: '/fahrtenbuch', icon: '📒', titel: 'Fahrtenbuch', sub: 'km, Spenden & Berichte' };
   const kassenbuch: Kachel = { href: '/kassenbuch', icon: '💶', titel: 'Kassenbuch', sub: 'Einnahmen & Ausgaben' };
   const notfall: Kachel = { href: '/notfall', icon: '🆘', titel: 'Schnellmeldung', sub: 'Notfall · Verspätung · Absage' };
-  if (rolle === 'kutscher' || rolle === 'pilot') return [eintragen, kalender, touren, notfall];
+  if (rolle === 'kutscher') return [eintragen, kalender, touren, notfall];
   if (rolle === 'kutscher-admin') return [eintragen, kalender, touren, fahrtenbuch, kassenbuch, notfall];
   if (rolle === 'pflege') return [anmelden, vermitteln];
   if (rolle === 'gfo' || rolle === 'admin') return [eintragen, { ...anmelden, haupt: false }, kalender, vermitteln, fahrtenbuch, kassenbuch, notfall];
@@ -35,9 +35,9 @@ export default function SchnellStart() {
   useEffect(() => {
     const lesen = () => {
       try {
-        const name = localStorage.getItem('pilot_name') ?? '';
-        const pw = localStorage.getItem('pilot_pw') ?? '';
-        const rolle = localStorage.getItem('pilot_rolle') ?? '';
+        const name = localStorage.getItem('kutscher_name') ?? '';
+        const pw = localStorage.getItem('kutscher_pw') ?? '';
+        const rolle = localStorage.getItem('kutscher_rolle') ?? '';
         setWer(name && pw ? { name, rolle } : null);
       } catch { setWer(null); }
     };
@@ -127,7 +127,7 @@ export default function SchnellStart() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <div>
             <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>
-            {(wer.rolle === 'kutscher' || wer.rolle === 'pilot' || wer.rolle === 'kutscher-admin' || wer.rolle === 'admin') && (() => {
+            {(wer.rolle === 'kutscher' || wer.rolle === 'kutscher-admin' || wer.rolle === 'admin') && (() => {
               const ew = einweisungenFuer(wer.name);
               return ew.length > 0
                 ? <div style={{ fontSize: '0.8rem', color: '#3B6B2E', marginTop: '0.15rem' }}>

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const db = createServiceClient();
 
   let fahrzeugFilter: string[] | null = null;
-  if (rolle === 'kutscher' || rolle === 'pilot') {
+  if (rolle === 'kutscher') {
     const { data: ew } = await db
       .from('rikscha_kutscher_fahrzeuge')
       .select('fahrzeug_id')

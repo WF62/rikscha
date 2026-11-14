@@ -275,14 +275,14 @@ const FLYER_GRUPPEN: Gruppe[] = [
 
 /* ── Hauptkomponente ── */
 export default function BearbeitenPage() {
-  const [pilot, setPilot]     = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
-  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
-  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('pilot_name'));
+  const [pilot, setPilot]     = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_name') ?? '' : '');
+  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_pw') ?? '' : '');
+  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('kutscher_name'));
   const [piloten, setPiloten] = useState<{ name: string; rolle: string }[]>([]);
   const [felder, setFelder]   = useState<Inhaltsfeld[]>([]);
   const [fehler, setFehler]   = useState('');
   const [laden, setLaden]     = useState(false);
-  const [pilotRolle, setPilotRolle] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_rolle') ?? 'pilot' : 'pilot');
+  const [pilotRolle, setPilotRolle] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_rolle') ?? 'kutscher' : 'pilot');
   const istAdminUser = pilotRolle === 'gfo' || pilotRolle === 'admin';
   const [tab, setTab]         = useState<'website' | 'flyer' | 'handout' | 'banner' | 'aktuelles' | 'entwuerfe' | 'verlauf'>('website');
   type AktuellEintrag = { id: string; datum: string; titel: string; text: string; aktiv: boolean; erstellt_von: string };
@@ -398,13 +398,13 @@ export default function BearbeitenPage() {
     try {
       const r = await fetch('/api/pilot-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password }) });
       if (r.ok) {
-        localStorage.setItem('pilot_name', pilot);
+        localStorage.setItem('kutscher_name', pilot);
         const j = await r.json();
         const zugang = j.token ?? password; // Token statt Passwort speichern
-        localStorage.setItem('pilot_pw', zugang);
+        localStorage.setItem('kutscher_pw', zugang);
         setPassword(zugang);
-        const rolle = j.rolle ?? 'pilot';
-        localStorage.setItem('pilot_rolle', rolle);
+        const rolle = j.rolle ?? 'kutscher';
+        localStorage.setItem('kutscher_rolle', rolle);
         setPilotRolle(rolle);
         setEingeloggt(true);
         await ladeFelder();
@@ -415,7 +415,7 @@ export default function BearbeitenPage() {
   }
 
   function abmelden() {
-    localStorage.removeItem('pilot_name'); localStorage.removeItem('pilot_pw');
+    localStorage.removeItem('kutscher_name'); localStorage.removeItem('kutscher_pw');
     setEingeloggt(false); setFelder([]);
   }
 
