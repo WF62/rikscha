@@ -125,6 +125,33 @@ function FahrtenbuchEintragenInner() {
       }).catch(() => {});
   }, [zugang, pilot]);
 
+  // Vorhandenen Entwurf laden wenn buchung_id angegeben
+  useEffect(() => {
+    if (zugang !== 'ja' || !vorBuchungId || !pilot || !pw) return;
+    const p = new URLSearchParams({ pilot, password: pw });
+    fetch(`/api/fahrtenbuch?${p}`)
+      .then(r => r.json())
+      .then((eintraege: (FahrtenbuchEintrag & { id: string; buchung_id?: string })[]) => {
+        if (!Array.isArray(eintraege)) return;
+        const entwurf = eintraege.find(e => e.buchung_id === vorBuchungId && e.status === 'entwurf');
+        if (!entwurf) return;
+        setExistingId(entwurf.id);
+        if (entwurf.fahrttyp) setFahrttyp(entwurf.fahrttyp);
+        if (entwurf.gast_name) setGastName(entwurf.gast_name);
+        if (entwurf.anzahl_fahrgaeste) setAnzahl(entwurf.anzahl_fahrgaeste);
+        if (entwurf.km_start != null) setKmStart(String(entwurf.km_start));
+        if (entwurf.km_ende != null) setKmEnde(String(entwurf.km_ende));
+        if (entwurf.spenden) setSpenden(String(entwurf.spenden));
+        if (entwurf.wetter) setWetter(entwurf.wetter);
+        if (entwurf.ausgaben) setAusgaben(String(entwurf.ausgaben));
+        if (entwurf.ausgaben_beschreibung) setAusgabenBeschreibung(entwurf.ausgaben_beschreibung);
+        if (entwurf.schaden) setSchaden(true);
+        if (entwurf.schaden_beschreibung) setSchadenBeschreibung(entwurf.schaden_beschreibung);
+        if (entwurf.bemerkungen) setBemerkungen(entwurf.bemerkungen);
+        if (entwurf.strecke) setStrecke(entwurf.strecke);
+      }).catch(() => {});
+  }, [zugang, vorBuchungId, pilot, pw]);
+
   const toggleCheck = (liste: string[], setListe: (v: string[]) => void, id: string) => {
     setListe(liste.includes(id) ? liste.filter(x => x !== id) : [...liste, id]);
   };
@@ -183,14 +210,20 @@ function FahrtenbuchEintragenInner() {
 
     if (!eintrag.fahrzeug) { setFehler('Bitte eine Fahrt wählen.'); setSpeichert(false); return; }
 
-    const res = await fetch('/api/fahrtenbuch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eintrag) });
-    setSpeichert(false);
-    if (res.status === 409) {
-      const d = await res.json();
-      setExistingId(d.existing_id);
-      setFehler('Für diese Fahrt existiert bereits ein Eintrag.');
-      return;
+    let res: Response;
+    if (existingId) {
+      // Vorhandenen Entwurf per PUT aktualisieren
+      res = await fetch('/api/fahrtenbuch', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...eintrag, id: existingId }) });
+    } else {
+      res = await fetch('/api/fahrtenbuch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eintrag) });
+      if (res.status === 409) {
+        const d = await res.json();
+        setExistingId(d.existing_id);
+        // Nochmal als PUT versuchen
+        res = await fetch('/api/fahrtenbuch', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...eintrag, id: d.existing_id }) });
+      }
     }
+    setSpeichert(false);
     if (!res.ok) { const d = await res.json(); setFehler(d.error ?? 'Fehler.'); return; }
     setErfolg('Eintrag gespeichert!');
     setTimeout(() => router.push('/fahrtenbuch'), 1500);
