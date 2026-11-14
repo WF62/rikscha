@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 type Buchung = { id: string; datum: string; startzeit: string; endzeit: string; pilot: string; gaeste?: string[] };
@@ -8,7 +8,7 @@ function formatDatum(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-export default function FahrzeugausfallBestaetigen() {
+function FahrzeugausfallBestaetigenInner() {
   const params = useSearchParams();
   const token = params.get('token') ?? '';
   const fahrzeug = params.get('fahrzeug') ?? '';
@@ -130,4 +130,8 @@ export default function FahrzeugausfallBestaetigen() {
       </div>
     </div>
   );
+}
+
+export default function FahrzeugausfallBestaetigen() {
+  return <Suspense><FahrzeugausfallBestaetigenInner /></Suspense>;
 }
