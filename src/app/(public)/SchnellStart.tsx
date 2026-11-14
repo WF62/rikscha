@@ -20,7 +20,7 @@ function kachelnFuer(rolle: string): Kachel[] {
   if (rolle === 'kutscher' || rolle === 'pilot') return [eintragen, kalender, touren, notfall];
   if (rolle === 'kutscher-admin') return [eintragen, kalender, touren, fahrtenbuch, kassenbuch, notfall];
   if (rolle === 'pflege') return [anmelden, vermitteln];
-  if (rolle === 'gfo' || rolle === 'admin') return [eintragen, { ...anmelden, haupt: false }, kalender, vermitteln, fahrtenbuch, kassenbuch];
+  if (rolle === 'gfo' || rolle === 'admin') return [eintragen, { ...anmelden, haupt: false }, kalender, vermitteln, fahrtenbuch, kassenbuch, notfall];
   return [];
 }
 
