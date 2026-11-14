@@ -254,24 +254,38 @@ function FahrtenbuchEintragenInner() {
       />
 
       {/* Fahrt auswählen */}
-      <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 12, padding: '1.25rem', marginBottom: '1.25rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.75rem' }}>Fahrt aus Kalender wählen</h2>
-        {buchungen.length === 0 ? (
-          <p style={{ color: '#9CA3AF', fontSize: '0.85rem' }}>Keine Fahrten der letzten 14 Tage gefunden.</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: 240, overflowY: 'auto' }}>
-            {buchungen.map(b => (
-              <button key={b.id} onClick={() => buchungWaehlen(b)}
-                style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: gewaehlt?.id === b.id ? '#2D6B1E' : '#fff', color: gewaehlt?.id === b.id ? '#fff' : '#1C1208', border: `1.5px solid ${gewaehlt?.id === b.id ? '#2D6B1E' : '#D6CCB8'}`, borderRadius: 8, padding: '0.5rem 0.75rem', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
-                <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{formatDatum(b.datum)}</span>
-                <span>{b.startzeit?.slice(0, 5)}–{b.endzeit?.slice(0, 5)}</span>
-                <span style={{ background: gewaehlt?.id === b.id ? 'rgba(255,255,255,0.2)' : '#F7F3EC', borderRadius: 5, padding: '0.1rem 0.4rem', fontSize: '0.78rem' }}>{b.fahrzeug}</span>
-                {b.gaeste?.[0] && <span style={{ opacity: 0.8 }}>mit {b.gaeste[0]}</span>}
-              </button>
-            ))}
+      {!gewaehlt ? (
+        <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 12, padding: '1.25rem', marginBottom: '1.25rem' }}>
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.75rem' }}>Fahrt aus Kalender wählen</h2>
+          {buchungen.length === 0 ? (
+            <p style={{ color: '#9CA3AF', fontSize: '0.85rem' }}>Keine Fahrten der letzten 180 Tage gefunden.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: 240, overflowY: 'auto' }}>
+              {buchungen.map(b => (
+                <button key={b.id} onClick={() => buchungWaehlen(b)}
+                  style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#fff', color: '#1C1208', border: '1.5px solid #D6CCB8', borderRadius: 8, padding: '0.5rem 0.75rem', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
+                  <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{formatDatum(b.datum)}</span>
+                  <span>{b.startzeit?.slice(0, 5)}–{b.endzeit?.slice(0, 5)}</span>
+                  <span style={{ background: '#F7F3EC', borderRadius: 5, padding: '0.1rem 0.4rem', fontSize: '0.78rem' }}>{b.fahrzeug}</span>
+                  {b.gaeste?.[0] && <span style={{ opacity: 0.8 }}>mit {b.gaeste[0]}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ background: '#E8F5E2', border: '1.5px solid #86C06A', borderRadius: 12, padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+          <div style={{ fontSize: '0.88rem', color: '#1C4A0E', fontWeight: 600 }}>
+            📅 {formatDatum(gewaehlt.datum)} · ⏰ {gewaehlt.startzeit?.slice(0,5)}–{gewaehlt.endzeit?.slice(0,5)} · 🚲 {gewaehlt.fahrzeug}
+            {gewaehlt.gaeste?.[0] && <span style={{ marginLeft: '0.5rem', opacity: 0.8 }}>· 👤 {gewaehlt.gaeste[0]}</span>}
+            {letzterKmStand != null && <span style={{ marginLeft: '0.5rem', color: '#2D6B1E' }}>· km {letzterKmStand}</span>}
           </div>
-        )}
-      </div>
+          <button onClick={() => { setGewaehlt(null); setLetzterKmStand(null); setKmStart(''); setKmEnde(''); }}
+            style={{ background: 'none', border: '1px solid #86C06A', borderRadius: 6, padding: '0.2rem 0.5rem', fontSize: '0.78rem', cursor: 'pointer', color: '#2D6B1E', whiteSpace: 'nowrap' }}>
+            ändern
+          </button>
+        </div>
+      )}
 
       {gewaehlt && (
         <>
