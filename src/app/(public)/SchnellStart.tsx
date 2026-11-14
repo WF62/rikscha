@@ -31,6 +31,7 @@ export default function SchnellStart() {
   const [checklistenOffen, setChecklistenOffen] = useState(false);
   const [nachbestellenAnzahl, setNachbestellenAnzahl] = useState(0);
   const [einweisungenOffenAnzahl, setEinweisungenOffenAnzahl] = useState(0);
+  const [vermittlungOffenAnzahl, setVermittlungOffenAnzahl] = useState(0);
   const { fahrzeugById, einweisungenFuer } = useStammdaten();
 
   useEffect(() => {
@@ -75,6 +76,16 @@ export default function SchnellStart() {
     fetch('/api/admin/einweisungen-offen', { headers: authHeaders() })
       .then(r => r.ok ? r.json() : null)
       .then(j => { if (j) setEinweisungenOffenAnzahl(j.anzahl ?? 0); })
+      .catch(() => {});
+  }, [wer]);
+
+  // Prüfe Vermittlungsstellen ohne Fahrzeugzugang (nur für Admin/Kutscher-Admin)
+  useEffect(() => {
+    if (!wer) { setVermittlungOffenAnzahl(0); return; }
+    if (!['kutscher-admin', 'admin', 'gfo'].includes(wer.rolle)) return;
+    fetch('/api/admin/vermittlung-offen', { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (j) setVermittlungOffenAnzahl(j.anzahl ?? 0); })
       .catch(() => {});
   }, [wer]);
 
@@ -143,6 +154,17 @@ export default function SchnellStart() {
                 {einweisungenOffenAnzahl} {einweisungenOffenAnzahl === 1 ? 'Kutscher hat' : 'Kutscher haben'} die Saisoneinweisung noch nicht abgeschlossen
               </div>
               <div style={{ fontSize: '0.8rem', color: '#9A3412' }}>Übersicht der ausstehenden Bestätigungen →</div>
+            </div>
+          </a>
+        )}
+        {vermittlungOffenAnzahl > 0 && (
+          <a href="/admin/vermittlungsstellen" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#FDF4FF', border: '1.5px solid #E9D5FF', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '0.75rem', textDecoration: 'none', color: '#7E22CE' }}>
+            <span style={{ fontSize: '1.3rem' }}>🏠</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                {vermittlungOffenAnzahl} {vermittlungOffenAnzahl === 1 ? 'Vermittlungsstelle hat' : 'Vermittlungsstellen haben'} noch keinen Fahrzeugzugang
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#6B21A8' }}>Bitte Fahrzeugzugang eintragen →</div>
             </div>
           </a>
         )}
