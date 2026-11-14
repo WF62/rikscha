@@ -8,7 +8,7 @@ type Eintrag = {
   id: string; buchung_id?: string; fahrzeug: string; datum: string;
   startzeit?: string; endzeit?: string; kutscher: string; fahrttyp: string;
   gast_name?: string; anzahl_fahrgaeste: number; km_start?: number; km_ende?: number;
-  spenden: number; wetter?: string; schaden: boolean; schaden_beschreibung?: string;
+  spenden: number; ausgaben?: number; wetter?: string; schaden: boolean; schaden_beschreibung?: string;
   bemerkungen?: string; strecke?: string; eingetragen_von: string; eingetragen_am: string;
   status?: string;
 };
@@ -103,6 +103,7 @@ export default function Fahrtenbuch() {
 
   const totalKm = eintraege.reduce((s, e) => s + (e.km_start != null && e.km_ende != null ? e.km_ende - e.km_start : 0), 0);
   const totalSpenden = eintraege.reduce((s, e) => s + (e.spenden || 0), 0);
+  const totalAusgaben = eintraege.reduce((s, e) => s + (e.ausgaben || 0), 0);
   const schadenEintraege = eintraege.filter(e => e.schaden);
   const entwuerfe = eintraege.filter(e => e.status === 'entwurf');
 
@@ -196,7 +197,7 @@ export default function Fahrtenbuch() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ background: '#F7F3EC', borderBottom: '2px solid #D6CCB8' }}>
-                {['', 'Datum', 'Uhrzeit', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fgs.', 'km', 'Spenden', 'Wetter', 'Strecke / Bemerkung'].map(h => (
+                {['', 'Datum', 'Uhrzeit', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fgs.', 'km', 'Spenden', 'Ausgaben', 'Wetter', 'Strecke / Bemerkung'].map(h => (
                   <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -210,7 +211,9 @@ export default function Fahrtenbuch() {
                     <td style={{ padding: '0.45rem 0.4rem', textAlign: 'center' }}>
                       {istEntwurf
                         ? <a href={`/fahrtenbuch/eintragen?buchung_id=${e.buchung_id}`} title="Entwurf ergänzen" style={{ fontSize: '0.78rem', background: '#FDBA74', color: '#9A3412', borderRadius: 5, padding: '0.1rem 0.4rem', textDecoration: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}>✏️ Entwurf</a>
-                        : null}
+                        : e.buchung_id
+                          ? <a href={`/fahrtenbuch/eintragen?buchung_id=${e.buchung_id}`} title="Eintrag bearbeiten" style={{ fontSize: '0.78rem', background: '#F7F3EC', color: '#5C4E38', borderRadius: 5, padding: '0.1rem 0.4rem', textDecoration: 'none', whiteSpace: 'nowrap' }}>✏️</a>
+                          : null}
                     </td>
                     <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', opacity: istEntwurf ? 0.7 : 1 }}>{formatDatum(e.datum)}</td>
                     <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', fontSize: '0.82rem', color: '#6B7280', opacity: istEntwurf ? 0.7 : 1 }}>{e.startzeit ? `${e.startzeit.slice(0,5)}–${e.endzeit?.slice(0,5) ?? '?'}` : ''}</td>
@@ -221,6 +224,7 @@ export default function Fahrtenbuch() {
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'center' }}>{e.anzahl_fahrgaeste || ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: istEntwurf ? '#9CA3AF' : undefined }}>{km != null ? `${km} km` : istEntwurf ? '–' : ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: istEntwurf ? '#9CA3AF' : undefined }}>{e.spenden > 0 ? euro(e.spenden) : istEntwurf ? '–' : ''}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: e.ausgaben && e.ausgaben > 0 ? '#B45309' : '#9CA3AF' }}>{e.ausgaben && e.ausgaben > 0 ? euro(e.ausgaben) : ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'center' }}>{wetterIcon(e.wetter)}</td>
                     <td style={{ padding: '0.45rem 0.6rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: e.schaden ? '#B45309' : undefined }}>
                       {e.schaden ? `⚠️ ${e.schaden_beschreibung ?? ''}` : (e.strecke ? `📍 ${e.strecke}` : '') || (e.bemerkungen ?? '')}
