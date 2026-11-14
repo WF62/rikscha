@@ -380,6 +380,11 @@ export default function AdminSeite() {
           📋 Checklisten & Utensilien
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Saisoneinweisung, Fahrzeugregeln & Fahrradtaschen</span>
         </a>
+        <a href="/admin/vermittlungsstellen"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#FDF4FF', border: '1.5px solid #E9D5FF', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#7E22CE', fontWeight: 700, fontSize: '0.95rem' }}>
+          🏠 Vermittlungsstellen
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Buchungsaktivität der Vermittlungsstellen</span>
+        </a>
       </div>
     </div>
   );
