@@ -93,14 +93,27 @@ export async function POST(req: NextRequest) {
   // Kassenbuch-Einträge automatisch anlegen
   await kassenbuchEintragAnlegen(db, data.id, felder, pilot);
 
-  // Schaden-Benachrichtigung an Rolf (E-Mail + WhatsApp)
+  // Schaden-Benachrichtigung an Rolf (E-Mail + WhatsApp) + Ausfall-Eintrag anlegen
   if (felder.schaden && felder.schaden_beschreibung) {
+    const fahrzeug = felder.fahrzeug as string;
+    const beschreibung = felder.schaden_beschreibung as string;
+
+    // Ausfall-Eintrag mit Token anlegen (für Bestätigungs-Link)
+    let ausfallToken: string | undefined;
+    const { data: ausfall } = await db.from('rikscha_fahrzeugausfaelle').insert({
+      fahrzeug,
+      schaden_fahrtenbuch_id: data.id,
+      beschreibung,
+    }).select('token').single();
+    if (ausfall?.token) ausfallToken = ausfall.token;
+
     const schadenDaten = {
       kutscher: pilot,
-      fahrzeug: felder.fahrzeug as string,
+      fahrzeug,
       datum: felder.datum as string,
-      beschreibung: felder.schaden_beschreibung as string,
+      beschreibung,
       bemerkungen: felder.bemerkungen as string | undefined,
+      ausfallToken,
     };
     sendSchadenEmail(schadenDaten).catch(() => {});
     sendSchadenWhatsApp(schadenDaten).catch(() => {});
