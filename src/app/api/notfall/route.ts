@@ -14,6 +14,15 @@ export async function POST(req: NextRequest) {
   const mapsUrl = lat && lon ? `https://maps.google.com/?q=${lat},${lon}` : null;
 
   const db = createServiceClient();
+
+  // Inaktive Kutscher dürfen keine Notfall-Signale senden
+  // (admin/gfo haben keinen rikscha_kutscher-Eintrag – für sie entfällt die Prüfung)
+  if (rolle === 'kutscher' || rolle === 'kutscher-admin' || rolle === 'pilot') {
+    const { data: k } = await db.from('rikscha_kutscher').select('aktiv').eq('name', pilot).single();
+    if (k && k.aktiv === false) {
+      return NextResponse.json({ error: 'Dein Zugang ist nicht mehr aktiv.' }, { status: 403 });
+    }
+  }
   const { data, error } = await db.from('rikscha_notfaelle').insert({
     kutscher: pilot,
     fahrzeug: fahrzeug || null,
