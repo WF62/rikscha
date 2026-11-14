@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const name = text(b.name, 80);
   if (!name) return NextResponse.json({ error: 'Bitte einen Namen eintragen.' }, { status: 400 });
   const { data, error } = await createServiceClient().from('rikscha_organisationen').insert({
-    name, art: b.art === 'quartier' ? 'quartier' : 'einrichtung', standard_abholort: text(b.standard_abholort, 120),
+    name, art: text(b.art, 60) ?? 'Quartier', standard_abholort: text(b.standard_abholort, 120),
     ...kontakt(b),
   }).select().single();
   if (error) return NextResponse.json({ error: error.code === '23505' ? 'Diesen Namen gibt es schon.' : error.message }, { status: 400 });
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest) {
   if (!b.id) return NextResponse.json({ error: 'ID fehlt.' }, { status: 400 });
   const felder: Record<string, unknown> = {};
   if (b.name !== undefined) felder.name = text(b.name, 80);
-  if (b.art !== undefined) felder.art = b.art === 'quartier' ? 'quartier' : 'einrichtung';
+  if (b.art !== undefined) felder.art = text(b.art, 60);
   if (b.standard_abholort !== undefined) felder.standard_abholort = text(b.standard_abholort, 120);
   if (b.aktiv !== undefined) felder.aktiv = !!b.aktiv;
   Object.assign(felder, kontakt(b));

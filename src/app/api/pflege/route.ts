@@ -27,7 +27,7 @@ const text = (v: unknown, max: number) => {
   return t || null;
 };
 
-type Org = { id: string; name: string; art: 'einrichtung' | 'quartier'; standard_abholort: string | null; aktiv: boolean };
+type Org = { id: string; name: string; art: string; standard_abholort: string | null; aktiv: boolean };
 type Person = { id: string; name: string; rollstuhl: boolean; organisation_id: string | null; adresse: string | null; aktiv: boolean };
 type Kontext = { name: string; rolle: string; orgId: string | null; alle: boolean };
 
