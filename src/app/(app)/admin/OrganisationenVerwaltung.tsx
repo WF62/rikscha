@@ -3,8 +3,8 @@
 import type { Organisation } from '@/lib/supabase';
 import { useState } from 'react';
 
-type Entwurf = { name: string; art: 'einrichtung' | 'quartier'; standard_abholort: string; ansprechperson: string; telefon: string; email: string };
-const LEER: Entwurf = { name: '', art: 'quartier', standard_abholort: '', ansprechperson: '', telefon: '', email: '' };
+type Entwurf = { name: string; art: string; standard_abholort: string; ansprechperson: string; telefon: string; email: string };
+const LEER: Entwurf = { name: '', art: '', standard_abholort: '', ansprechperson: '', telefon: '', email: '' };
 
 async function senden(method: 'POST' | 'PATCH', body: Record<string, unknown>) {
   const r = await fetch('/api/admin/organisationen', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -42,10 +42,14 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
         if (f) setFehlerNeu(f); else { setFehlerNeu(''); zeige(`${neu.name} wurde angelegt.`); setNeu(LEER); neuLaden(); }
       }}>
         <input required maxLength={80} placeholder="Name, z. B. Quartiersbüro Merten" value={neu.name} onChange={(e) => setNeu({ ...neu, name: e.target.value })} className={`${feld} flex-1 min-w-[180px]`} />
-        <select value={neu.art} onChange={(e) => setNeu({ ...neu, art: e.target.value as Entwurf['art'] })} className={feld} aria-label="Art">
-          <option value="quartier">Quartier</option>
-          <option value="einrichtung">Einrichtung</option>
-        </select>
+        <input list="org-art-liste" placeholder="Art (z. B. Quartier)" maxLength={60} value={neu.art} onChange={(e) => setNeu({ ...neu, art: e.target.value })} className={`${feld} w-44`} aria-label="Art" />
+        <datalist id="org-art-liste">
+          <option value="Quartier" />
+          <option value="Einrichtung" />
+          <option value="Kirchengemeinde" />
+          <option value="Verein" />
+          <option value="Pflegeheim" />
+        </datalist>
         <input maxLength={120} placeholder="Standard-Abholort (optional)" value={neu.standard_abholort} onChange={(e) => setNeu({ ...neu, standard_abholort: e.target.value })} className={`${feld} flex-1 min-w-[160px]`} />
         <input maxLength={80} placeholder="Ansprechperson" value={neu.ansprechperson} onChange={(e) => setNeu({ ...neu, ansprechperson: e.target.value })} className={`${feld} flex-1 min-w-[140px]`} />
         <input maxLength={40} type="tel" autoComplete="off" placeholder="Telefon" value={neu.telefon} onChange={(e) => setNeu({ ...neu, telefon: e.target.value })} className={`${feld} w-36`} />
@@ -61,10 +65,7 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
             if (f) setFehlerEdit(f); else { setFehlerEdit(''); zeige('Gespeichert.'); setBearbeiten(null); neuLaden(); }
           }}>
             <input required maxLength={80} aria-label="Name" value={bearbeiten.name} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, name: e.target.value }); }} className={`${feld} flex-1`} />
-            <select aria-label="Art" value={bearbeiten.art} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, art: e.target.value as Entwurf['art'] }); }} className={feld}>
-              <option value="quartier">Quartier</option>
-              <option value="einrichtung">Einrichtung</option>
-            </select>
+            <input list="org-art-liste" aria-label="Art" placeholder="Art" maxLength={60} value={bearbeiten.art} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, art: e.target.value }); }} className={`${feld} w-44`} />
             <input maxLength={120} aria-label="Standard-Abholort" placeholder="Standard-Abholort" value={bearbeiten.standard_abholort} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, standard_abholort: e.target.value }); }} className={`${feld} flex-1`} />
             <input maxLength={80} aria-label="Ansprechperson" placeholder="Ansprechperson" value={bearbeiten.ansprechperson} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, ansprechperson: e.target.value }); }} className={`${feld} flex-1`} />
             <input maxLength={40} type="tel" autoComplete="off" aria-label="Telefon" placeholder="Telefon" value={bearbeiten.telefon} onChange={(e) => { setFehlerEdit(''); setBearbeiten({ ...bearbeiten, telefon: e.target.value }); }} className={`${feld} w-36`} />
@@ -76,7 +77,7 @@ export default function OrganisationenVerwaltung({ liste, fehler, neuLaden }: {
         ) : (
           <div key={o.id} className={`py-2 flex flex-wrap items-center gap-2 ${o.aktiv ? '' : 'opacity-50'}`}>
             <span className="font-medium text-sm">{o.name}</span>
-            <span className={`text-xs rounded-full px-2 ${o.art === 'quartier' ? 'bg-sky-100 text-sky-800' : 'bg-teal-100 text-teal-800'}`}>{o.art === 'quartier' ? 'Quartier' : 'Einrichtung'}</span>
+            <span className={`text-xs rounded-full px-2 ${o.art?.toLowerCase() === 'quartier' ? 'bg-sky-100 text-sky-800' : o.art?.toLowerCase() === 'einrichtung' ? 'bg-teal-100 text-teal-800' : 'bg-purple-100 text-purple-800'}`}>{o.art || '–'}</span>
             {o.standard_abholort && <span className="text-xs text-gray-500">📍 {o.standard_abholort}</span>}
             {(o.ansprechperson || o.telefon || o.email) && (
               <span className="text-xs text-gray-500">👤 {[o.ansprechperson, o.telefon, o.email].filter(Boolean).join(' · ')}</span>

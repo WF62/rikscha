@@ -259,7 +259,7 @@ export default function PflegeSeite() {
   }
 
   const org = daten?.organisationen.find((o) => o.id === orgWahl) ?? null;
-  const quartier = org?.art === 'quartier';
+  const quartier = org?.art?.toLowerCase() === 'quartier';
   const standardOrt = org?.standard_abholort ?? null;
   // GFO/Admin sehen alle Organisationen, arbeiten aber jeweils in der gewählten
   const bewohner = (daten?.bewohner ?? []).filter((b) => !daten?.alle || !orgWahl || b.organisation_id === orgWahl);
