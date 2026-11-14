@@ -389,7 +389,7 @@ export default function PilotenModal() {
   }
 
   function schliessen() {
-    if (ansicht !== 'bereich') setOffen(false);
+    setOffen(false);
   }
 
   if (!offen) return null;
@@ -410,6 +410,7 @@ export default function PilotenModal() {
       onClick={schliessen}
     >
       <div style={card} onClick={e => e.stopPropagation()}>
+        <button onClick={schliessen} style={{ position: 'absolute', top: '0.6rem', right: '0.75rem', background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#9CA3AF', lineHeight: 1 }} aria-label="Schließen">✕</button>
 
         {/* LOGIN */}
         {ansicht === 'login' && (
