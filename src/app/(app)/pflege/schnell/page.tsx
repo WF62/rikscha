@@ -87,9 +87,9 @@ function Anmeldung({ onOk }: { onOk: () => void }) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { setFehler(j.error || 'Name oder Passwort stimmt nicht.'); return; }
       if (!ERLAUBT.includes(j.rolle)) { setFehler('Dieser Zugang kann keine Fahrten anmelden.'); return; }
-      localStorage.setItem('pilot_name', j.pilot);
-      localStorage.setItem('pilot_pw', j.token ?? pw);
-      localStorage.setItem('pilot_rolle', j.rolle);
+      localStorage.setItem('kutscher_name', j.pilot);
+      localStorage.setItem('kutscher_pw', j.token ?? pw);
+      localStorage.setItem('kutscher_rolle', j.rolle);
       window.dispatchEvent(new CustomEvent('pilot-login'));
       if (j.muss_pw_aendern) { setFehler('Bitte zuerst auf der Startseite (Menü „Kutscher-Bereich“) ein eigenes Passwort festlegen. Danach geht es hier weiter.'); return; }
       onOk();
@@ -144,7 +144,7 @@ export default function SchnellAnmelden() {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setFehler(j.error ?? 'Laden hat nicht geklappt.'); return; }
     setDaten(j); setZugang('ok');
-    setWer({ name: localStorage.getItem('pilot_name') ?? '', rolle: localStorage.getItem('pilot_rolle') ?? '' });
+    setWer({ name: localStorage.getItem('kutscher_name') ?? '', rolle: localStorage.getItem('kutscher_rolle') ?? '' });
   }, []);
 
   useEffect(() => {
@@ -155,8 +155,8 @@ export default function SchnellAnmelden() {
     // Aus dem Hinweis „Bald und noch offen“: Tag und freie Fahrzeit vorauswählen
     if (/^\d{4}-\d{2}-\d{2}$/.test(q.get('datum') ?? '')) setTag(q.get('datum')!);
     if (q.get('frei')) setFreiId(q.get('frei')!);
-    const rolle = localStorage.getItem('pilot_rolle');
-    if (!localStorage.getItem('pilot_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
+    const rolle = localStorage.getItem('kutscher_rolle');
+    if (!localStorage.getItem('kutscher_name') || !ERLAUBT.includes(rolle ?? '')) { setZugang('nein'); return; }
     laden();
   }, [laden]);
 
@@ -291,7 +291,7 @@ export default function SchnellAnmelden() {
           {wer.rolle === 'gfo' ? 'GFO, sieht alle Einrichtungen' : wer.rolle === 'admin' ? 'Admin, sieht alle Einrichtungen' : `Vermittlung${orgName(daten.eigeneOrganisation) ? ` ${orgName(daten.eigeneOrganisation)}` : ''}, sieht nur die eigenen Gäste`}
         </span>
         <button type="button" onClick={() => {
-          ['pilot_name', 'pilot_pw', 'pilot_rolle'].forEach((k) => localStorage.removeItem(k));
+          ['kutscher_name', 'kutscher_pw', 'kutscher_rolle'].forEach((k) => localStorage.removeItem(k));
           window.dispatchEvent(new CustomEvent('pilot-logout'));
           setDaten(null); setGast(''); setGast2(''); setFreiId(''); setOrgId(''); setZugang('nein');
         }} className="underline font-semibold text-gray-700">Zugang wechseln</button>

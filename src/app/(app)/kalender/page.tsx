@@ -288,8 +288,8 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
   const bearbeiten = bearbeitenId === b.id;
   const [ichKutscher, setIchKutscher] = useState<string | null>(null);
   useEffect(() => {
-    const rolle = localStorage.getItem('pilot_rolle');
-    setIchKutscher(rolle === 'pilot' || rolle === 'gfo' ? localStorage.getItem('pilot_name') : null);
+    const rolle = localStorage.getItem('kutscher_rolle');
+    setIchKutscher(rolle === 'kutscher' || rolle === 'gfo' ? localStorage.getItem('kutscher_name') : null);
   }, []);
   // Hat die Fahrt schon Gäste, aber kein Fahrzeug, wird es beim Übernehmen festgelegt
   const brauchtFahrzeug = !b.fahrzeug && (b.gaeste ?? []).length > 0;

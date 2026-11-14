@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   const db = createServiceClient();
 
-  if (rolle === 'kutscher' || rolle === 'kutscher-admin' || rolle === 'pilot') {
+  if (rolle === 'kutscher' || rolle === 'kutscher-admin' ) {
     const { data: k } = await db.from('rikscha_kutscher').select('aktiv').eq('name', pilot).single();
     if (k && k.aktiv === false) {
       return NextResponse.json({ error: 'Dein Zugang ist nicht mehr aktiv.' }, { status: 403 });

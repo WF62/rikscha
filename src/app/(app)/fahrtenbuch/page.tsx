@@ -41,9 +41,9 @@ export default function Fahrtenbuch() {
 
   useEffect(() => {
     try {
-      const n = localStorage.getItem('pilot_name') ?? '';
-      const p = localStorage.getItem('pilot_pw') ?? '';
-      const r = localStorage.getItem('pilot_rolle') ?? '';
+      const n = localStorage.getItem('kutscher_name') ?? '';
+      const p = localStorage.getItem('kutscher_pw') ?? '';
+      const r = localStorage.getItem('kutscher_rolle') ?? '';
       if (n && p && ERLAUBT_ALLE.includes(r)) { setPilot(n); setPw(p); setRolle(r); setZugang('ja'); }
       else setZugang('nein');
     } catch { setZugang('nein'); }

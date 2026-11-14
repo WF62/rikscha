@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Kutscher und Pilot: nur eingewiesene Fahrzeuge zeigen
-  const nurEingewiesene = (rolle === 'kutscher' || rolle === 'pilot')
+  const nurEingewiesene = (rolle === 'kutscher')
     ? await eingewieseneIds(name) : null;
 
   const p = new URL(req.url).searchParams;

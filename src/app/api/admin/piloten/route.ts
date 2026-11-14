@@ -11,12 +11,11 @@ export async function GET(req: NextRequest) {
   if (!checkAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const db = createServiceClient();
   const { data, error } = await db
-    .from('piloten_zugang')
-    .select('*')
+    .from('rikscha_kutscher')
+    .select('id, name, rolle, aktiv, erstellt_am, organisation_id')
     .order('name');
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  // Keine Passwortfelder an den Browser
-  return NextResponse.json((data ?? []).map(({ id, name, rolle, aktiv, created_at, organisation_id }) => ({ id, name, rolle, aktiv, created_at, organisation_id: organisation_id ?? null })));
+  return NextResponse.json((data ?? []).map(({ id, name, rolle, aktiv, erstellt_am, organisation_id }: { id: string; name: string; rolle: string; aktiv: boolean; erstellt_am: string; organisation_id: string | null }) => ({ id, name, rolle, aktiv, created_at: erstellt_am, organisation_id: organisation_id ?? null })));
 }
 
 export async function POST(req: NextRequest) {
@@ -25,8 +24,8 @@ export async function POST(req: NextRequest) {
   if (!name || !passwort) return NextResponse.json({ error: 'Name und Passwort erforderlich.' }, { status: 400 });
   const db = createServiceClient();
   const { data, error } = await db
-    .from('piloten_zugang')
-    .insert({ name, ...(await passwortFelder(String(passwort))), rolle: rolle ?? 'pilot', aktiv: true, muss_pw_aendern: true, ...(organisation_id ? { organisation_id } : {}) })
+    .from('rikscha_kutscher')
+    .insert({ name, ...(await passwortFelder(String(passwort))), rolle: rolle ?? 'kutscher', aktiv: true, muss_pw_aendern: true, ...(organisation_id ? { organisation_id } : {}) })
     .select('id, name, rolle, aktiv')
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,7 +44,7 @@ export async function PATCH(req: NextRequest) {
   // Neues Passwort vom Admin: gehasht speichern, Person muss es beim nächsten Login ändern
   if (passwort) Object.assign(fields, await passwortFelder(String(passwort)), { muss_pw_aendern: true });
   const db = createServiceClient();
-  const { error } = await db.from('piloten_zugang').update(fields).eq('id', id);
+  const { error } = await db.from('rikscha_kutscher').update(fields).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
@@ -55,7 +54,7 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: 'ID fehlt.' }, { status: 400 });
   const db = createServiceClient();
-  const { error } = await db.from('piloten_zugang').delete().eq('id', id);
+  const { error } = await db.from('rikscha_kutscher').delete().eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

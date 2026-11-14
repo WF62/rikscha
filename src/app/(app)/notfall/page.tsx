@@ -36,8 +36,8 @@ export default function NotfallPage() {
 
   useEffect(() => {
     try {
-      setPilot(localStorage.getItem('pilot_name') ?? '');
-      setPw(localStorage.getItem('pilot_pw') ?? '');
+      setPilot(localStorage.getItem('kutscher_name') ?? '');
+      setPw(localStorage.getItem('kutscher_pw') ?? '');
     } catch {}
   }, []);
 

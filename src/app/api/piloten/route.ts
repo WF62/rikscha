@@ -15,7 +15,7 @@ export async function OPTIONS() {
 export async function GET(_req: NextRequest) {
   const db = createServiceClient();
   const { data, error } = await db
-    .from('piloten_zugang')
+    .from('rikscha_kutscher')
     .select('id, name, rolle')
     .eq('aktiv', true)
     .order('name');

@@ -2,9 +2,9 @@
 
 export default function AbmeldeButton() {
   function abmelden() {
-    localStorage.removeItem('pilot_name');
-    localStorage.removeItem('pilot_pw');
-    localStorage.removeItem('pilot_rolle');
+    localStorage.removeItem('kutscher_name');
+    localStorage.removeItem('kutscher_pw');
+    localStorage.removeItem('kutscher_rolle');
     window.location.href = '/';
   }
   return (

@@ -7,8 +7,8 @@
  */
 export function authHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
-  const name = localStorage.getItem('pilot_name');
-  const pw = localStorage.getItem('pilot_pw');
+  const name = localStorage.getItem('kutscher_name');
+  const pw = localStorage.getItem('kutscher_pw');
   if (!name || !pw) return {};
   return { 'x-pilot': encodeURIComponent(name), 'x-password': encodeURIComponent(pw) };
 }

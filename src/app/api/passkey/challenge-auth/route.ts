@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const { data: credentials } = await db
     .from('rikscha_passkeys')
     .select('credential_id, transports')
-    .eq('pilot_name', pilot);
+    .eq('kutscher_name', pilot);
 
   if (!credentials || credentials.length === 0) {
     return NextResponse.json({ error: 'Kein Fingerabdruck registriert.' }, { status: 404 });
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   });
 
   await db.from('rikscha_passkey_challenges').insert({
-    pilot_name: pilot,
+    kutscher_name: pilot,
     challenge: options.challenge,
     typ: 'authentication',
   });

@@ -16,10 +16,10 @@ export default function VerschiebenAnfrage({ b, onDone, meldung }: { b: Buchung;
   const [eigen, setEigen] = useState('');
   const [laeuft, setLaeuft] = useState(false);
   const [fehler, setFehler] = useState('');
-  useEffect(() => { setIch({ name: localStorage.getItem('pilot_name') ?? '', rolle: localStorage.getItem('pilot_rolle') ?? '' }); }, []);
+  useEffect(() => { setIch({ name: localStorage.getItem('kutscher_name') ?? '', rolle: localStorage.getItem('kutscher_rolle') ?? '' }); }, []);
 
   const buero = ich.rolle === 'gfo' || ich.rolle === 'admin';
-  const binKutscher = (ich.rolle === 'pilot' && !!b.pilot && b.pilot === ich.name) || buero;
+  const binKutscher = (ich.rolle === 'kutscher' && !!b.pilot && b.pilot === ich.name) || buero;
   const binVermittlung = ich.rolle === 'pflege' || buero;
   const hatGast = !!b.bewohner_id || (b.gaeste ?? []).some((g) => g && g !== 'Gast');
   const heute = new Date().toISOString().slice(0, 10);

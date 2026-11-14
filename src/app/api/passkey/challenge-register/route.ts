@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const { data: existing } = await db
     .from('rikscha_passkeys')
     .select('credential_id, transports')
-    .eq('pilot_name', pilot);
+    .eq('kutscher_name', pilot);
 
   const options = await generateRegistrationOptions({
     rpName: 'Rikscha Merten',
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   // Challenge speichern (5 min gültig)
   await db.from('rikscha_passkey_challenges').insert({
-    pilot_name: pilot,
+    kutscher_name: pilot,
     challenge: options.challenge,
     typ: 'registration',
   });

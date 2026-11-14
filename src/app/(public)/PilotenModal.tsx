@@ -47,12 +47,12 @@ export default function PilotenModal() {
 
   useEffect(() => {
     function handleOpen() {
-      const gespeichert = localStorage.getItem('pilot_name');
-      const gespeichertPw = localStorage.getItem('pilot_pw');
+      const gespeichert = localStorage.getItem('kutscher_name');
+      const gespeichertPw = localStorage.getItem('kutscher_pw');
       if (gespeichert && gespeichertPw) {
         setPilotName(gespeichert);
         setPilotPw(gespeichertPw);
-        const rolle = localStorage.getItem('pilot_rolle') ?? 'pilot';
+        const rolle = localStorage.getItem('kutscher_rolle') ?? 'kutscher';
         setPilotRolle(rolle);
         ladePiloten();
         setAnsicht('bereich');
@@ -96,14 +96,14 @@ export default function PilotenModal() {
       });
       const j = await res.json();
       if (res.ok) {
-        localStorage.setItem('pilot_name', j.pilot);
+        localStorage.setItem('kutscher_name', j.pilot);
         const zugang = j.token ?? passwort; // Token statt Passwort speichern
-        localStorage.setItem('pilot_pw', zugang);
-        localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
+        localStorage.setItem('kutscher_pw', zugang);
+        localStorage.setItem('kutscher_rolle', j.rolle ?? 'kutscher');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw(zugang);
-        setPilotRolle(j.rolle ?? 'pilot');
+        setPilotRolle(j.rolle ?? 'kutscher');
         if (j.muss_pw_aendern) {
           setNeuesPw('');
           setNeuesPwWdh('');
@@ -136,7 +136,7 @@ export default function PilotenModal() {
       const j = await res.json();
       if (res.ok) {
         const zugang = j.token ?? neuesPw;
-        localStorage.setItem('pilot_pw', zugang);
+        localStorage.setItem('kutscher_pw', zugang);
         setPilotPw(zugang);
         setErstanmeldung(false);
         setAnsicht('bereich');
@@ -174,13 +174,13 @@ export default function PilotenModal() {
       });
       const j = await authRes.json();
       if (authRes.ok) {
-        localStorage.setItem('pilot_name', j.pilot);
-        localStorage.setItem('pilot_pw', '');
-        localStorage.setItem('pilot_rolle', j.rolle ?? 'pilot');
+        localStorage.setItem('kutscher_name', j.pilot);
+        localStorage.setItem('kutscher_pw', '');
+        localStorage.setItem('kutscher_rolle', j.rolle ?? 'kutscher');
         window.dispatchEvent(new CustomEvent('pilot-login'));
         setPilotName(j.pilot);
         setPilotPw('');
-        setPilotRolle(j.rolle ?? 'pilot');
+        setPilotRolle(j.rolle ?? 'kutscher');
         setErstanmeldung(false);
         setAnsicht('bereich');
       } else {
@@ -376,9 +376,9 @@ export default function PilotenModal() {
   }
 
   function abmelden() {
-    localStorage.removeItem('pilot_name');
-    localStorage.removeItem('pilot_pw');
-    localStorage.removeItem('pilot_rolle');
+    localStorage.removeItem('kutscher_name');
+    localStorage.removeItem('kutscher_pw');
+    localStorage.removeItem('kutscher_rolle');
     window.dispatchEvent(new CustomEvent('pilot-login'));
     window.dispatchEvent(new CustomEvent('pilot-logout'));
     setPilotName('');
@@ -389,7 +389,7 @@ export default function PilotenModal() {
   }
 
   function schliessen() {
-    if (ansicht !== 'bereich') setOffen(false);
+    setOffen(false);
   }
 
   if (!offen) return null;
@@ -410,6 +410,7 @@ export default function PilotenModal() {
       onClick={schliessen}
     >
       <div style={card} onClick={e => e.stopPropagation()}>
+        <button onClick={schliessen} style={{ position: 'absolute', top: '0.6rem', right: '0.75rem', background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#9CA3AF', lineHeight: 1 }} aria-label="Schließen">✕</button>
 
         {/* LOGIN */}
         {ansicht === 'login' && (

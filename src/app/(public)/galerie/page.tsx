@@ -31,8 +31,8 @@ async function komprimieren(datei: File, maxPx = 1920, qualitaet = 0.82): Promis
 export default function GaleriePage() {
   const [fotos, setFotos]         = useState<Foto[]>([]);
   const [galLaden, setGalLaden]   = useState(true);
-  const [pilot]                    = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
-  const [password]                 = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
+  const [pilot]                    = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_name') ?? '' : '');
+  const [password]                 = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_pw') ?? '' : '');
   const [dateien, setDateien]     = useState<UploadDatei[]>([]);
   const [kategorie, setKategorie] = useState('Ausfahrten');
   const [uploading, setUploading] = useState(false);

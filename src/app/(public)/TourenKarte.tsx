@@ -337,9 +337,9 @@ export default function TourenKarte() {
   useEffect(() => {
     setMounted(true);
     // Pilotenprüfung: nur Piloten dürfen Routen bearbeiten
-    const name = localStorage.getItem('pilot_name');
-    const pw = localStorage.getItem('pilot_pw');
-    const rolle = localStorage.getItem('pilot_rolle');
+    const name = localStorage.getItem('kutscher_name');
+    const pw = localStorage.getItem('kutscher_pw');
+    const rolle = localStorage.getItem('kutscher_rolle');
     setIstPilot(!!(name && pw && rolle && rolle !== 'angehoeriger'));
     // DB-Touren laden (überschreiben localStorage-Touren)
     fetch('/api/touren').then(r => r.json()).then((dbTouren: Array<{ id: string; name: string; kurzname?: string; farbe: string; beschreibung?: string; laenge?: string; dauer?: string; waypoints: [number, number][] }>) => {
@@ -355,9 +355,9 @@ export default function TourenKarte() {
     }).catch(() => setCustomTouren(loadCustomTouren()));
     // Auf Login-Änderungen reagieren (z.B. Modal schließt nach Anmeldung)
     function onStorage() {
-      const n = localStorage.getItem('pilot_name');
-      const p = localStorage.getItem('pilot_pw');
-      const r = localStorage.getItem('pilot_rolle');
+      const n = localStorage.getItem('kutscher_name');
+      const p = localStorage.getItem('kutscher_pw');
+      const r = localStorage.getItem('kutscher_rolle');
       setIstPilot(!!(n && p && r && r !== 'angehoeriger'));
     }
     window.addEventListener('storage', onStorage);

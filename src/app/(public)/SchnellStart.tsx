@@ -19,7 +19,7 @@ function kachelnFuer(rolle: string): Kachel[] {
   const fahrtenbuch: Kachel = { href: '/fahrtenbuch', icon: '📒', titel: 'Fahrtenbuch', sub: 'km, Spenden & Berichte' };
   const kassenbuch: Kachel = { href: '/kassenbuch', icon: '💶', titel: 'Kassenbuch', sub: 'Einnahmen & Ausgaben' };
   const notfall: Kachel = { href: '/notfall', icon: '🆘', titel: 'Schnellmeldung', sub: 'Notfall · Verspätung · Absage' };
-  if (rolle === 'kutscher' || rolle === 'pilot') return [eintragen, kalender, touren, notfall];
+  if (rolle === 'kutscher') return [eintragen, kalender, touren, notfall];
   if (rolle === 'kutscher-admin') return [eintragen, kalender, touren, fahrtenbuch, kassenbuch, notfall];
   if (rolle === 'pflege') return [anmelden, vermitteln];
   if (rolle === 'gfo' || rolle === 'admin') return [eintragen, { ...anmelden, haupt: false }, kalender, vermitteln, fahrtenbuch, kassenbuch, notfall];
@@ -29,14 +29,15 @@ function kachelnFuer(rolle: string): Kachel[] {
 export default function SchnellStart() {
   const [wer, setWer] = useState<{ name: string; rolle: string } | null>(null);
   const [checklistenOffen, setChecklistenOffen] = useState(false);
+  const [nachbestellenAnzahl, setNachbestellenAnzahl] = useState(0);
   const { fahrzeugById, einweisungenFuer } = useStammdaten();
 
   useEffect(() => {
     const lesen = () => {
       try {
-        const name = localStorage.getItem('pilot_name') ?? '';
-        const pw = localStorage.getItem('pilot_pw') ?? '';
-        const rolle = localStorage.getItem('pilot_rolle') ?? '';
+        const name = localStorage.getItem('kutscher_name') ?? '';
+        const pw = localStorage.getItem('kutscher_pw') ?? '';
+        const rolle = localStorage.getItem('kutscher_rolle') ?? '';
         setWer(name && pw ? { name, rolle } : null);
       } catch { setWer(null); }
     };
@@ -66,6 +67,21 @@ export default function SchnellStart() {
       .catch(() => {});
   }, [wer]);
 
+  // Prüfe Nachbestellen-Markierungen (nur für Admin/Kutscher-Admin)
+  useEffect(() => {
+    if (!wer) { setNachbestellenAnzahl(0); return; }
+    if (!['kutscher-admin', 'admin', 'gfo'].includes(wer.rolle)) return;
+    fetch('/api/utensilien', { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (!j) return;
+        const anzahl = (j.listen as { nachbestellen: string[] }[])
+          .reduce((sum, l) => sum + (l.nachbestellen?.length ?? 0), 0);
+        setNachbestellenAnzahl(anzahl);
+      })
+      .catch(() => {});
+  }, [wer]);
+
   const kachelnBase = wer ? kachelnFuer(wer.rolle) : [];
   // Checklisten-Kachel für Kutscher/Admin-Rollen
   const zeigeCL = wer && ['kutscher', 'kutscher-admin', 'pilot', 'admin', 'gfo'].includes(wer.rolle);
@@ -75,17 +91,43 @@ export default function SchnellStart() {
     titel: 'Saisoneinweisung',
     sub: checklistenOffen ? 'Bitte jetzt bestätigen!' : 'Checklisten & Einweisungen',
   };
-  const kacheln = zeigeCL ? [...kachelnBase, checklisteKachel] : kachelnBase;
+  const utensilienKachel: Kachel = {
+    href: '/utensilien',
+    icon: '🎒',
+    titel: 'Utensilienliste',
+    sub: 'Was ist in der Fahrradtasche?',
+  };
+  const kacheln = zeigeCL ? [...kachelnBase, checklisteKachel, utensilienKachel] : kachelnBase;
   if (!wer || !kacheln.length) return null;
 
   return (
     <section aria-label="Schnellzugang" style={{ background: '#EAF3E6', borderBottom: '1px solid #CFE3C7', padding: '1rem' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         <OffenHinweis key={wer.name} />
+        {checklistenOffen && (
+          <a href="/checklisten" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#FEF9C3', border: '1.5px solid #FDE047', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '0.75rem', textDecoration: 'none', color: '#92400E' }}>
+            <span style={{ fontSize: '1.3rem' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Saisoneinweisung noch nicht abgeschlossen</div>
+              <div style={{ fontSize: '0.8rem', color: '#B45309' }}>Bitte Checklisten lesen und bestätigen, bevor du fährst →</div>
+            </div>
+          </a>
+        )}
+        {nachbestellenAnzahl > 0 && (
+          <a href="/admin/checklisten" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#FEF2F2', border: '1.5px solid #FCA5A5', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '0.75rem', textDecoration: 'none', color: '#DC2626' }}>
+            <span style={{ fontSize: '1.3rem' }}>🔴</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                {nachbestellenAnzahl} {nachbestellenAnzahl === 1 ? 'Utensil' : 'Utensilien'} zum Nachbestellen gemeldet
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#B91C1C' }}>Bitte in den Utensilienlisten prüfen und als erledigt markieren →</div>
+            </div>
+          </a>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <div>
             <div style={{ fontWeight: 700, color: '#2D6B1E', fontSize: '1.05rem' }}>Hallo {wer.name}! Was möchtest du tun?</div>
-            {(wer.rolle === 'kutscher' || wer.rolle === 'pilot' || wer.rolle === 'kutscher-admin' || wer.rolle === 'admin') && (() => {
+            {(wer.rolle === 'kutscher' || wer.rolle === 'kutscher-admin' || wer.rolle === 'admin') && (() => {
               const ew = einweisungenFuer(wer.name);
               return ew.length > 0
                 ? <div style={{ fontSize: '0.8rem', color: '#3B6B2E', marginTop: '0.15rem' }}>

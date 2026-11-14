@@ -33,9 +33,9 @@ function datumLabel(iso: string) {
 }
 
 export default function DokumentePage() {
-  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_name') ?? '' : '');
-  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pilot_pw') ?? '' : '');
-  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('pilot_name'));
+  const [pilot, setPilot]       = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_name') ?? '' : '');
+  const [password, setPassword] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('kutscher_pw') ?? '' : '');
+  const [eingeloggt, setEingeloggt] = useState(() => typeof window !== 'undefined' && !!localStorage.getItem('kutscher_name'));
   const [loginFehler, setLoginFehler] = useState('');
   const [dateien, setDateien]   = useState<Datei[]>([]);
   const [laden, setLaden]       = useState(false);
@@ -59,10 +59,10 @@ export default function DokumentePage() {
         body: JSON.stringify({ pilot, password }),
       });
       if (!res.ok) { setLoginFehler('Name oder Passwort falsch.'); setLaden(false); return; }
-      localStorage.setItem('pilot_name', pilot);
+      localStorage.setItem('kutscher_name', pilot);
       const j = await res.json().catch(() => ({}));
       const zugang = j.token ?? password; // Token statt Passwort speichern
-      localStorage.setItem('pilot_pw', zugang);
+      localStorage.setItem('kutscher_pw', zugang);
       setPassword(zugang);
       setEingeloggt(true);
       await ladeDateien();
