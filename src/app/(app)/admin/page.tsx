@@ -370,6 +370,11 @@ export default function AdminSeite() {
           🚲 Fahrzeug-Einweisungen verwalten
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer darf welches Fahrzeug nutzen?</span>
         </a>
+        <a href="/admin/vermittlungsstellen"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#FDF4FF', border: '1.5px solid #E9D5FF', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#7E22CE', fontWeight: 700, fontSize: '0.95rem' }}>
+          🏠 Vermittlungsstellen
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Fahrzeugzugänge für Seniorenheime & Co.</span>
+        </a>
         <a href="/admin/saisoncheck"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#C2410C', fontWeight: 700, fontSize: '0.95rem' }}>
           🌸 Saisoncheck

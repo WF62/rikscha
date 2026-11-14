@@ -147,7 +147,6 @@ export default function EinweisungenPage() {
   const istKutscher = (k: Kutscher) => !k.rolle || k.rolle === 'kutscher' || k.rolle === 'kutscher-admin';
   const aktiveKutscher = kutscher.filter(k => k.aktiv && istKutscher(k));
   const inaktiveKutscher = kutscher.filter(k => !k.aktiv && istKutscher(k));
-  const vermittlungsstellen = kutscher.filter(k => k.rolle === 'pflege');
 
   const fzName = (id: string) => fahrzeuge.find(f => f.id === id)?.name ?? id;
 
@@ -224,11 +223,6 @@ export default function EinweisungenPage() {
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem' }}>
               <option value="">– wählen –</option>
               {aktiveKutscher.map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
-              {vermittlungsstellen.filter(k => k.aktiv).length > 0 && (
-                <optgroup label="Vermittlungsstellen">
-                  {vermittlungsstellen.filter(k => k.aktiv).map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
-                </optgroup>
-              )}
             </select>
           </div>
           <div>
@@ -256,29 +250,14 @@ export default function EinweisungenPage() {
       {laden ? (
         <p style={{ color: '#6B7280', textAlign: 'center' }}>Laden …</p>
       ) : (
-        <>
-          <div style={{ display: 'grid', gap: '1rem' }}>
-            {alleKutscher.filter(k => k.aktiv && istKutscher(k)).map(k => (
-              <EinweisungsKarte key={k.name} k={k} fzName={fzName} entfernen={entfernen} />
-            ))}
-            {alleKutscher.filter(k => k.aktiv && istKutscher(k)).length === 0 && (
-              <p style={{ color: '#6B7280', textAlign: 'center' }}>Keine aktiven Kutscher gefunden.</p>
-            )}
-          </div>
-
-          {vermittlungsstellen.length > 0 && (
-            <div style={{ marginTop: '2rem' }}>
-              <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#374151', marginBottom: '0.75rem' }}>
-                🏠 Vermittlungsstellen
-              </h2>
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                {alleKutscher.filter(k => k.rolle === 'pflege').map(k => (
-                  <EinweisungsKarte key={k.name} k={k} fzName={fzName} entfernen={entfernen} />
-                ))}
-              </div>
-            </div>
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          {alleKutscher.filter(k => k.aktiv && istKutscher(k)).map(k => (
+            <EinweisungsKarte key={k.name} k={k} fzName={fzName} entfernen={entfernen} />
+          ))}
+          {alleKutscher.filter(k => k.aktiv && istKutscher(k)).length === 0 && (
+            <p style={{ color: '#6B7280', textAlign: 'center' }}>Keine aktiven Kutscher gefunden.</p>
           )}
-        </>
+        </div>
       )}
     </div>
   );
