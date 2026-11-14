@@ -15,6 +15,7 @@ type Utensilienliste = {
 export default function UtensilienPage() {
   const [listen, setListen] = useState<Utensilienliste[]>([]);
   const [laden, setLaden] = useState(true);
+  const [fehler, setFehler] = useState('');
   const [aktiv, setAktiv] = useState<string | null>(null);
   const [abgehakt, setAbgehakt] = useState<Record<string, Set<string>>>({});
   const [sending, setSending] = useState<Record<string, boolean>>({});
@@ -22,11 +23,11 @@ export default function UtensilienPage() {
   const ladeUtensilien = useCallback(async () => {
     setLaden(true);
     const res = await fetch('/api/utensilien', { headers: authHeaders() });
-    if (res.ok) {
-      const j = await res.json();
-      setListen(j.listen);
-      if (j.listen.length === 1) setAktiv(j.listen[0].id);
-    }
+    if (res.status === 401) { setFehler('nicht-angemeldet'); setLaden(false); return; }
+    if (!res.ok) { setFehler('fehler'); setLaden(false); return; }
+    const j = await res.json();
+    setListen(j.listen);
+    if (j.listen.length === 1) setAktiv(j.listen[0].id);
     setLaden(false);
   }, []);
 
@@ -63,11 +64,22 @@ export default function UtensilienPage() {
 
   if (laden) return <div style={{ padding: '3rem', textAlign: 'center', color: '#6B7280' }}>Laden …</div>;
 
+  if (fehler === 'nicht-angemeldet') {
+    return (
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '2rem 1rem', fontFamily: 'sans-serif' }}>
+        <a href="/" style={{ color: '#6B7280', fontSize: '0.9rem', textDecoration: 'none' }}>← Start</a>
+        <div style={{ marginTop: '2rem', background: '#FEF9C3', border: '1.5px solid #FDE047', borderRadius: 10, padding: '1rem', color: '#92400E' }}>
+          Bitte zuerst anmelden, um die Utensilienliste zu sehen.
+        </div>
+      </div>
+    );
+  }
+
   if (!listen.length) {
     return (
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '2rem 1rem', fontFamily: 'sans-serif' }}>
         <a href="/" style={{ color: '#6B7280', fontSize: '0.9rem', textDecoration: 'none' }}>← Start</a>
-        <p style={{ marginTop: '2rem', color: '#6B7280' }}>Keine Utensilienlisten für deine Rikschas gefunden.</p>
+        <p style={{ marginTop: '2rem', color: '#6B7280' }}>Keine Utensilienlisten für deine Rikschas gefunden. Bitte im Admin-Bereich Fahrzeug-Einweisungen eintragen.</p>
       </div>
     );
   }
