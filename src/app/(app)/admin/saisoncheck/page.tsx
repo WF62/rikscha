@@ -26,7 +26,7 @@ export default function SaisoncheckPage() {
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
   const [ergebnis, setErgebnis] = useState<Ergebnis | null>(null);
   const [laden, setLaden] = useState(false);
-  const [saison, setSaison] = useState(new Date().getFullYear() - 1);
+  const [saison, setSaison] = useState(new Date().getFullYear());
   const [ausgewaehlt, setAusgewaehlt] = useState<Set<string>>(new Set());
   const [setzt, setSetzt] = useState(false);
   const [meldung, setMeldung] = useState('');
@@ -97,7 +97,7 @@ export default function SaisoncheckPage() {
           <label style={{ fontSize: '0.85rem', color: '#6B7280' }}>Saison:</label>
           <select value={saison} onChange={e => setSaison(Number(e.target.value))}
             style={{ border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.35rem 0.6rem', fontSize: '0.9rem' }}>
-            {Array.from({ length: 5 }, (_, i) => aktuellesJahr - 1 - i).map(j => (
+            {Array.from({ length: 5 }, (_, i) => aktuellesJahr - i).map(j => (
               <option key={j} value={j}>Ostern {j} – Ostern {j + 1}</option>
             ))}
           </select>
