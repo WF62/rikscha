@@ -141,7 +141,7 @@ export default function SchnellStart() {
             Weitere Funktionen &amp; Abmelden
           </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 140px), 1fr))', gap: '0.6rem' }}>
           {kacheln.map((k) => {
             const isCL = k.href === '/checklisten';
             const clOffen = isCL && checklistenOffen;
@@ -149,16 +149,17 @@ export default function SchnellStart() {
               <a key={k.href} href={k.href}
                 style={{
                   gridColumn: k.haupt ? '1 / -1' : undefined,
-                  display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.9rem 1rem', borderRadius: 12, textDecoration: 'none',
+                  display: 'flex', alignItems: 'center', gap: '0.6rem', padding: k.haupt ? '0.9rem 1rem' : '0.7rem 0.75rem', borderRadius: 12, textDecoration: 'none',
                   background: k.haupt ? '#2D6B1E' : clOffen ? '#FEF9C3' : '#fff',
                   color: k.haupt ? '#fff' : '#1C1208',
                   border: `1.5px solid ${k.haupt ? '#2D6B1E' : clOffen ? '#FDE047' : '#CFE3C7'}`,
                   boxShadow: clOffen ? '0 0 0 2px #FDE04788' : '0 1px 2px rgba(0,0,0,0.06)',
+                  minWidth: 0,
                 }}>
-                <span style={{ fontSize: '1.6rem' }} aria-hidden>{k.icon}</span>
-                <span>
-                  <span style={{ display: 'block', fontWeight: 700, color: clOffen ? '#92400E' : undefined }}>{k.titel}</span>
-                  <span style={{ display: 'block', fontSize: '0.8rem', opacity: 0.85, color: clOffen ? '#B45309' : undefined }}>{k.sub}</span>
+                <span style={{ fontSize: k.haupt ? '1.6rem' : '1.4rem', flexShrink: 0 }} aria-hidden>{k.icon}</span>
+                <span style={{ minWidth: 0, overflow: 'hidden' }}>
+                  <span style={{ display: 'block', fontWeight: 700, fontSize: k.haupt ? '1rem' : '0.88rem', color: clOffen ? '#92400E' : undefined, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.titel}</span>
+                  <span style={{ display: 'block', fontSize: '0.75rem', opacity: 0.85, color: clOffen ? '#B45309' : undefined, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.sub}</span>
                 </span>
               </a>
             );
