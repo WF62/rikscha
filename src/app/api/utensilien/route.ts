@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const aktuell: string[] = current?.nachbestellen ?? [];
   const neu = markieren
-    ? [...new Set([...aktuell, punkt_id])]
+    ? Array.from(new Set([...aktuell, punkt_id]))
     : aktuell.filter((p: string) => p !== punkt_id);
 
   const { error } = await db
