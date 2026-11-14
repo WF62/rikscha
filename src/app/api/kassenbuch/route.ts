@@ -25,10 +25,13 @@ export async function GET(req: NextRequest) {
     .order('datum', { ascending: false })
     .order('eingetragen_am', { ascending: false });
 
-  if (von) q = q.gte('datum', von);
-  if (bis) q = q.lte('datum', bis);
+  const kategorieFilter = searchParams.get('kategorie');
+  if (von && !kategorieFilter) q = q.gte('datum', von);
+  if (bis && !kategorieFilter) q = q.lte('datum', bis);
   if (typ) q = q.eq('typ', typ);
   if (kostentraeger) q = q.eq('kostentraeger', kostentraeger);
+  if (kategorieFilter) q = q.eq('kategorie', kategorieFilter).limit(1);
+  else q = q.neq('kategorie', 'Startbetrag');
 
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });

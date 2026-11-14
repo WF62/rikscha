@@ -53,6 +53,11 @@ export default function Kassenbuch() {
   const [fehler, setFehler] = useState('');
   const [erfolg, setErfolg] = useState('');
 
+  const [startbetrag, setStartbetrag] = useState<number | null>(null);
+  const [startbetragId, setStartbetragId] = useState('');
+  const [startbetragEdit, setStartbetragEdit] = useState('');
+  const [startbetragSpeichert, setStartbetragSpeichert] = useState(false);
+
   useEffect(() => {
     try {
       const n = localStorage.getItem('kutscher_name') ?? '';
@@ -72,7 +77,30 @@ export default function Kassenbuch() {
     fetch(`/api/kassenbuch?${p}`).then(r => r.json()).then(d => { setEintraege(Array.isArray(d) ? d : []); setLaedt(false); }).catch(() => setLaedt(false));
   };
 
-  useEffect(() => { if (zugang === 'ja') laden(); }, [zugang, filterVon, filterBis, filterTyp, filterTraeger]);
+  const startbetragLaden = () => {
+    if (!pilot || !pw) return;
+    const p = new URLSearchParams({ pilot, password: pw, kategorie: 'Startbetrag' });
+    fetch(`/api/kassenbuch?${p}`).then(r => r.json()).then((d: Eintrag[]) => {
+      const sb = Array.isArray(d) ? d[0] : null;
+      if (sb) { setStartbetrag(sb.betrag); setStartbetragId(sb.id); setStartbetragEdit(String(sb.betrag)); }
+      else { setStartbetrag(null); setStartbetragId(''); setStartbetragEdit(''); }
+    }).catch(() => {});
+  };
+
+  const startbetragSpeichernFn = async () => {
+    const betrag = parseFloat(startbetragEdit.replace(',', '.'));
+    if (isNaN(betrag) || betrag < 0) return;
+    setStartbetragSpeichert(true);
+    if (startbetragId) {
+      await fetch('/api/kassenbuch', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password: pw, id: startbetragId }) });
+    }
+    const res = await fetch('/api/kassenbuch', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilot, password: pw, typ: 'einnahme', betrag, datum: filterVon, beschreibung: 'Startbetrag / Anfangssaldo', kategorie: 'Startbetrag', kostentraeger: 'selbst' }) });
+    if (res.ok) { setStartbetrag(betrag); startbetragLaden(); }
+    setStartbetragSpeichert(false);
+  };
+
+  useEffect(() => { if (zugang === 'ja') { laden(); startbetragLaden(); } }, [zugang, filterVon, filterBis, filterTyp, filterTraeger]);
 
   const speichern = async () => {
     if (!neBetrag || !neBeschreibung.trim()) { setFehler('Betrag und Beschreibung sind erforderlich.'); return; }
@@ -111,9 +139,9 @@ export default function Kassenbuch() {
   if (zugang === 'laden') return <div style={{ padding: '2rem', textAlign: 'center' }}>⏳</div>;
   if (zugang === 'nein') return <div style={{ padding: '2rem', color: '#dc2626' }}>Zugang nur für Kutscher-Admin und Admin.</div>;
 
-  const einnahmen = eintraege.filter(e => e.typ === 'einnahme').reduce((s, e) => s + e.betrag, 0);
+  const einnahmen = eintraege.filter(e => e.typ === 'einnahme' && e.kategorie !== 'Startbetrag').reduce((s, e) => s + e.betrag, 0);
   const ausgaben = eintraege.filter(e => e.typ === 'ausgabe').reduce((s, e) => s + e.betrag, 0);
-  const saldo = einnahmen - ausgaben;
+  const saldo = (startbetrag ?? 0) + einnahmen - ausgaben;
 
   // Aufschlüsselung nach Kostenträger
   const ausgabenNachTraeger = {
@@ -148,6 +176,18 @@ export default function Kassenbuch() {
           {KOSTENTRAEGER.map(k => <option key={k.wert} value={k.wert}>{k.label}</option>)}
         </select>
         {laedt && <span style={{ fontSize: '0.82rem', color: '#9CA3AF' }}>⏳</span>}
+      </div>
+
+      {/* Startbetrag */}
+      <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 10, padding: '0.65rem 1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>💰 Startbetrag:</span>
+        <input type="number" min={0} step={0.01} value={startbetragEdit} onChange={e => setStartbetragEdit(e.target.value)}
+          placeholder="0,00" style={{ border: '1.5px solid #D6CCB8', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem', width: 110, background: '#fff' }} />
+        <button onClick={startbetragSpeichernFn} disabled={startbetragSpeichert}
+          style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 7, padding: '0.3rem 0.8rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+          {startbetragSpeichert ? '…' : 'Speichern'}
+        </button>
+        {startbetrag != null && <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>Aktuell: {euro(startbetrag)}</span>}
       </div>
 
       {/* Saldo-Kacheln */}
