@@ -363,6 +363,14 @@ export default function AdminSeite() {
 
       <OrganisationenVerwaltung liste={orgs} fehler={orgFehler} neuLaden={laden_} />
       <StammdatenVerwaltung />
+
+      <div style={{ maxWidth: 800, margin: '2rem auto 0', padding: '0 1rem' }}>
+        <a href="/admin/einweisungen"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
+          🚲 Fahrzeug-Einweisungen verwalten
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer darf welches Fahrzeug nutzen?</span>
+        </a>
+      </div>
     </div>
   );
 }
