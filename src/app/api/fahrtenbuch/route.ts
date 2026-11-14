@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getPilotRolle, darfFahrtenVerwalten, darfWebBearbeiten } from '@/lib/pilotAuth';
-import { sendSchadenEmail } from '@/lib/email';
+import { sendSchadenEmail, sendSchadenWhatsApp } from '@/lib/email';
 
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 
@@ -93,15 +93,17 @@ export async function POST(req: NextRequest) {
   // Kassenbuch-Einträge automatisch anlegen
   await kassenbuchEintragAnlegen(db, data.id, felder, pilot);
 
-  // Schaden-E-Mail an Rolf
+  // Schaden-Benachrichtigung an Rolf (E-Mail + WhatsApp)
   if (felder.schaden && felder.schaden_beschreibung) {
-    sendSchadenEmail({
+    const schadenDaten = {
       kutscher: pilot,
       fahrzeug: felder.fahrzeug as string,
       datum: felder.datum as string,
       beschreibung: felder.schaden_beschreibung as string,
       bemerkungen: felder.bemerkungen as string | undefined,
-    }).catch(() => {});
+    };
+    sendSchadenEmail(schadenDaten).catch(() => {});
+    sendSchadenWhatsApp(schadenDaten).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, id: data.id }, { status: 201, headers: CORS });

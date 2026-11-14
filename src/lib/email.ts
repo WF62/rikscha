@@ -2,6 +2,24 @@ import { Resend } from 'resend';
 
 const FROM = 'Mertener Rikschakutscher <onboarding@resend.dev>';
 
+// WhatsApp-Benachrichtigung via CallMeBot (kostenlos, keine App nötig).
+// Einmalige Einrichtung: Rolf schickt "I allow callmebot to send me messages"
+// an +34 644 59 92 23 auf WhatsApp → erhält seinen API-Key.
+// Dann SCHADEN_WHATSAPP_PHONE (z.B. 4917612345678) und
+// SCHADEN_WHATSAPP_APIKEY in Vercel eintragen.
+export async function sendSchadenWhatsApp(e: {
+  kutscher: string; fahrzeug: string; datum: string; beschreibung: string;
+}) {
+  const phone = process.env.SCHADEN_WHATSAPP_PHONE ?? '';
+  const apiKey = process.env.SCHADEN_WHATSAPP_APIKEY ?? '';
+  if (!phone || !apiKey) return;
+  const text = encodeURIComponent(
+    `⚠️ Schaden/Wartung gemeldet\nFahrzeug: ${e.fahrzeug}\nDatum: ${e.datum}\nKutscher: ${e.kutscher}\n\n${e.beschreibung}`
+  );
+  await fetch(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${text}&apikey=${apiKey}`)
+    .catch(() => {});
+}
+
 export async function sendSchadenEmail(e: {
   kutscher: string; fahrzeug: string; datum: string;
   beschreibung: string; bemerkungen?: string;
