@@ -30,6 +30,7 @@ export default function SchnellStart() {
   const [wer, setWer] = useState<{ name: string; rolle: string } | null>(null);
   const [checklistenOffen, setChecklistenOffen] = useState(false);
   const [nachbestellenAnzahl, setNachbestellenAnzahl] = useState(0);
+  const [einweisungenOffenAnzahl, setEinweisungenOffenAnzahl] = useState(0);
   const { fahrzeugById, einweisungenFuer } = useStammdaten();
 
   useEffect(() => {
@@ -64,6 +65,16 @@ export default function SchnellStart() {
         const offen = j.listen.some((l: { bestaetigt: boolean; veraltet: boolean }) => !l.bestaetigt || l.veraltet);
         setChecklistenOffen(offen);
       })
+      .catch(() => {});
+  }, [wer]);
+
+  // Prüfe offene Einweisungen (nur für Admin/Kutscher-Admin)
+  useEffect(() => {
+    if (!wer) { setEinweisungenOffenAnzahl(0); return; }
+    if (!['kutscher-admin', 'admin', 'gfo'].includes(wer.rolle)) return;
+    fetch('/api/admin/einweisungen-offen', { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (j) setEinweisungenOffenAnzahl(j.anzahl ?? 0); })
       .catch(() => {});
   }, [wer]);
 
@@ -121,6 +132,17 @@ export default function SchnellStart() {
                 {nachbestellenAnzahl} {nachbestellenAnzahl === 1 ? 'Utensil' : 'Utensilien'} zum Nachbestellen gemeldet
               </div>
               <div style={{ fontSize: '0.8rem', color: '#B91C1C' }}>Bitte in den Utensilienlisten prüfen und als erledigt markieren →</div>
+            </div>
+          </a>
+        )}
+        {einweisungenOffenAnzahl > 0 && (
+          <a href="/admin/einweisungen" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '0.75rem', textDecoration: 'none', color: '#C2410C' }}>
+            <span style={{ fontSize: '1.3rem' }}>📋</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                {einweisungenOffenAnzahl} {einweisungenOffenAnzahl === 1 ? 'Kutscher hat' : 'Kutscher haben'} die Saisoneinweisung noch nicht abgeschlossen
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#9A3412' }}>Übersicht der ausstehenden Bestätigungen →</div>
             </div>
           </a>
         )}
