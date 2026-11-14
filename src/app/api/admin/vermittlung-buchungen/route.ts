@@ -26,30 +26,28 @@ export async function GET(req: NextRequest) {
   const ids = (bewohner ?? []).map((b: { id: string }) => b.id);
   if (ids.length === 0) return NextResponse.json({ letzteBuchung: null, anzahl: 0 });
 
-  let query = db
+  // Letzte Buchung insgesamt (ohne Datumsfilter)
+  const { data: letzteData } = await db
     .from('rikscha_buchungen')
-    .select('datum', { count: 'exact' })
+    .select('datum')
     .eq('storniert', false)
     .in('bewohner_id', ids)
     .order('datum', { ascending: false })
     .limit(1);
 
-  if (seit) query = query.gte('datum', seit);
+  const letzteBuchung = letzteData?.[0]?.datum ?? null;
 
-  const { data, count } = await query;
-  const letzteBuchung = data?.[0]?.datum ?? null;
-
-  // Wenn wir die letzte Buchung insgesamt wollen (nicht nur seit X), nochmal ohne Filter
-  if (seit && !letzteBuchung) {
-    const { data: alleData } = await db
+  // Anzahl in den letzten 30 Tagen
+  let anzahl = 0;
+  if (seit) {
+    const { count } = await db
       .from('rikscha_buchungen')
-      .select('datum')
+      .select('id', { count: 'exact', head: true })
       .eq('storniert', false)
-      .in('bewohner_id', ids)
-      .order('datum', { ascending: false })
-      .limit(1);
-    return NextResponse.json({ letzteBuchung: alleData?.[0]?.datum ?? null, anzahl: count ?? 0 });
+      .gte('datum', seit)
+      .in('bewohner_id', ids);
+    anzahl = count ?? 0;
   }
 
-  return NextResponse.json({ letzteBuchung, anzahl: count ?? 0 });
+  return NextResponse.json({ letzteBuchung, anzahl });
 }
