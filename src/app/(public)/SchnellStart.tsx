@@ -75,7 +75,13 @@ export default function SchnellStart() {
     titel: 'Saisoneinweisung',
     sub: checklistenOffen ? 'Bitte jetzt bestätigen!' : 'Checklisten & Einweisungen',
   };
-  const kacheln = zeigeCL ? [...kachelnBase, checklisteKachel] : kachelnBase;
+  const utensilienKachel: Kachel = {
+    href: '/utensilien',
+    icon: '🎒',
+    titel: 'Utensilienliste',
+    sub: 'Was ist in der Fahrradtasche?',
+  };
+  const kacheln = zeigeCL ? [...kachelnBase, checklisteKachel, utensilienKachel] : kachelnBase;
   if (!wer || !kacheln.length) return null;
 
   return (

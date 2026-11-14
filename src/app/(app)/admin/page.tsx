@@ -377,8 +377,8 @@ export default function AdminSeite() {
         </a>
         <a href="/admin/checklisten"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#1D4ED8', fontWeight: 700, fontSize: '0.95rem' }}>
-          📋 Checklisten
-          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Saisoneinweisung & Fahrzeugregeln</span>
+          📋 Checklisten & Utensilien
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Saisoneinweisung, Fahrzeugregeln & Fahrradtaschen</span>
         </a>
       </div>
     </div>
