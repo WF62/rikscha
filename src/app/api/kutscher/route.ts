@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
   const { data, error } = await createServiceClient()
     .from('rikscha_kutscher')
-    .select('id, name, aktiv, reihenfolge')
+    .select('id, name, aktiv, reihenfolge, rolle, organisation_id')
     .order('reihenfolge').order('name');
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data ?? []);

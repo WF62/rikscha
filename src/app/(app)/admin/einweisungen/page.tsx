@@ -4,7 +4,46 @@ import { authHeaders } from '@/lib/authHeaders';
 
 type Einweisung = { id: string; kutscher_name: string; fahrzeug_id: string; eingewiesen_von: string; eingewiesen_am: string };
 type Fahrzeug = { id: string; name: string };
-type Kutscher = { id: string; name: string; aktiv: boolean; reihenfolge: number };
+type Kutscher = { id: string; name: string; aktiv: boolean; reihenfolge: number; rolle?: string; organisation_id?: string | null };
+
+type KutscherMitEinweisungen = Kutscher & { eingewiesen: Einweisung[] };
+
+function EinweisungsKarte({ k, fzName, entfernen }: {
+  k: KutscherMitEinweisungen;
+  fzName: (id: string) => string;
+  entfernen: (id: string) => void;
+}) {
+  return (
+    <div style={{ background: '#fff', border: '1.5px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ background: '#F9FAFB', padding: '0.7rem 1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{k.name}</span>
+        {!k.aktiv && <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>inaktiv</span>}
+        {k.eingewiesen.length === 0 ? (
+          <span style={{ fontSize: '0.8rem', background: '#FEE2E2', color: '#DC2626', borderRadius: 5, padding: '0.15rem 0.5rem' }}>
+            Keine Einweisungen
+          </span>
+        ) : (
+          <span style={{ fontSize: '0.8rem', background: '#D1FAE5', color: '#065F46', borderRadius: 5, padding: '0.15rem 0.5rem' }}>
+            {k.eingewiesen.length} Fahrzeug{k.eingewiesen.length > 1 ? 'e' : ''}
+          </span>
+        )}
+      </div>
+      {k.eingewiesen.length > 0 && (
+        <div style={{ padding: '0.6rem 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {k.eingewiesen.map(e => (
+            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem' }}>
+              <span style={{ fontWeight: 600 }}>{fzName(e.fahrzeug_id)}</span>
+              {e.eingewiesen_am && <span style={{ color: '#6B7280' }}>seit {new Date(e.eingewiesen_am).toLocaleDateString('de-DE')}</span>}
+              <button onClick={() => entfernen(e.id)}
+                style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}
+                title="Einweisung entfernen">×</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EinweisungenPage() {
   const [zugang, setZugang] = useState<'pruefen' | 'ok' | 'nein'>('pruefen');
@@ -105,8 +144,10 @@ export default function EinweisungenPage() {
   if (zugang === 'pruefen') return <p className="text-center text-gray-400 mt-16">Einen Moment …</p>;
   if (zugang === 'nein') return <div className="p-8 text-red-600">Kein Zugang.</div>;
 
-  const aktiveKutscher = kutscher.filter(k => k.aktiv);
-  const inaktiveKutscher = kutscher.filter(k => !k.aktiv);
+  const istKutscher = (k: Kutscher) => !k.rolle || k.rolle === 'kutscher' || k.rolle === 'kutscher-admin';
+  const aktiveKutscher = kutscher.filter(k => k.aktiv && istKutscher(k));
+  const inaktiveKutscher = kutscher.filter(k => !k.aktiv && istKutscher(k));
+  const vermittlungsstellen = kutscher.filter(k => k.rolle === 'pflege');
 
   const fzName = (id: string) => fahrzeuge.find(f => f.id === id)?.name ?? id;
 
@@ -183,6 +224,11 @@ export default function EinweisungenPage() {
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem' }}>
               <option value="">– wählen –</option>
               {aktiveKutscher.map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
+              {vermittlungsstellen.filter(k => k.aktiv).length > 0 && (
+                <optgroup label="Vermittlungsstellen">
+                  {vermittlungsstellen.filter(k => k.aktiv).map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
+                </optgroup>
+              )}
             </select>
           </div>
           <div>
@@ -210,40 +256,29 @@ export default function EinweisungenPage() {
       {laden ? (
         <p style={{ color: '#6B7280', textAlign: 'center' }}>Laden …</p>
       ) : (
-        <div style={{ display: 'grid', gap: '1rem' }}>
-          {alleKutscher.filter(k => k.aktiv).map(k => (
-            <div key={k.name} style={{ background: '#fff', border: '1.5px solid #E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ background: '#F9FAFB', padding: '0.7rem 1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{k.name}</span>
-                {k.eingewiesen.length === 0 ? (
-                  <span style={{ fontSize: '0.8rem', background: '#FEE2E2', color: '#DC2626', borderRadius: 5, padding: '0.15rem 0.5rem' }}>
-                    Keine Einweisungen
-                  </span>
-                ) : (
-                  <span style={{ fontSize: '0.8rem', background: '#D1FAE5', color: '#065F46', borderRadius: 5, padding: '0.15rem 0.5rem' }}>
-                    {k.eingewiesen.length} Fahrzeug{k.eingewiesen.length > 1 ? 'e' : ''}
-                  </span>
-                )}
+        <>
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {alleKutscher.filter(k => k.aktiv && istKutscher(k)).map(k => (
+              <EinweisungsKarte key={k.name} k={k} fzName={fzName} entfernen={entfernen} />
+            ))}
+            {alleKutscher.filter(k => k.aktiv && istKutscher(k)).length === 0 && (
+              <p style={{ color: '#6B7280', textAlign: 'center' }}>Keine aktiven Kutscher gefunden.</p>
+            )}
+          </div>
+
+          {vermittlungsstellen.length > 0 && (
+            <div style={{ marginTop: '2rem' }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#374151', marginBottom: '0.75rem' }}>
+                🏠 Vermittlungsstellen
+              </h2>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {alleKutscher.filter(k => k.rolle === 'pflege').map(k => (
+                  <EinweisungsKarte key={k.name} k={k} fzName={fzName} entfernen={entfernen} />
+                ))}
               </div>
-              {k.eingewiesen.length > 0 && (
-                <div style={{ padding: '0.6rem 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {k.eingewiesen.map(e => (
-                    <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem' }}>
-                      <span style={{ fontWeight: 600 }}>{fzName(e.fahrzeug_id)}</span>
-                      {e.eingewiesen_am && <span style={{ color: '#6B7280' }}>seit {new Date(e.eingewiesen_am).toLocaleDateString('de-DE')}</span>}
-                      <button onClick={() => entfernen(e.id)}
-                        style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}
-                        title="Einweisung entfernen">×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          ))}
-          {alleKutscher.filter(k => k.aktiv).length === 0 && (
-            <p style={{ color: '#6B7280', textAlign: 'center' }}>Keine aktiven Kutscher gefunden.</p>
           )}
-        </div>
+        </>
       )}
     </div>
   );
