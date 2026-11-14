@@ -25,15 +25,16 @@ async function callMeBotSignal(phone: string, apiKey: string, text: string, grou
 }
 
 
-// Schaden-Benachrichtigung an Rolf per Signal
+// Schaden-Benachrichtigung an Rolf (+ Admin) per Signal
 export async function sendSchadenSignal(e: {
   kutscher: string; fahrzeug: string; datum: string; beschreibung: string;
 }) {
-  const phone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
-  const apiKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
-  if (!phone || !apiKey) return;
   const text = `⚠️ Schaden/Wartung gemeldet\nFahrzeug: ${e.fahrzeug}\nDatum: ${e.datum}\nKutscher: ${e.kutscher}\n\n${e.beschreibung}`;
-  await callMeBotSignal(phone, apiKey, text);
+  const empfaenger = [
+    { phone: process.env.SCHADEN_SIGNAL_PHONE ?? '', apiKey: process.env.SCHADEN_SIGNAL_APIKEY ?? '' },
+    { phone: process.env.ADMIN_SIGNAL_PHONE ?? '', apiKey: process.env.ADMIN_SIGNAL_APIKEY ?? '' },
+  ].filter(e => e.phone && e.apiKey);
+  await Promise.all(empfaenger.map(e => callMeBotSignal(e.phone, e.apiKey, text)));
 }
 
 // Ausfall-Benachrichtigung an Signal-Gruppe (alle Kutscher auf einmal)
@@ -56,8 +57,12 @@ export async function sendSchadenEmail(e: {
   beschreibung: string; bemerkungen?: string; ausfallToken?: string;
 }) {
   const resend = getResend();
-  const to = process.env.SCHADEN_EMAIL ?? process.env.NOTIFY_EMAIL ?? '';
-  if (!resend || !to) return;
+  const empfaenger = [
+    process.env.SCHADEN_EMAIL ?? process.env.NOTIFY_EMAIL ?? '',
+    process.env.ADMIN_EMAIL ?? '',
+  ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
+  if (!resend || !empfaenger.length) return;
+  const to = empfaenger;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://rikscha-kutscher.de';
   const bestaetigenUrl = e.ausfallToken ? `${baseUrl}/api/fahrzeugausfall/bestaetigen?token=${e.ausfallToken}` : null;
   await resend.emails.send({
