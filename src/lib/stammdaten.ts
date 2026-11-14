@@ -18,7 +18,10 @@ export type Fahrzeug = {
 
 export type Kutscher = { id: string; name: string; aktiv: boolean; reihenfolge: number };
 
-export type Stammdaten = { fahrzeuge: Fahrzeug[]; kutscher: Kutscher[]; quelle: 'datenbank' | 'standard' };
+/** Map kutscherName → Liste freigegebener Fahrzeug-IDs. Leer = keine Einschränkung eingetragen. */
+export type Einweisungen = Record<string, string[]>;
+
+export type Stammdaten = { fahrzeuge: Fahrzeug[]; kutscher: Kutscher[]; einweisungen: Einweisungen; quelle: 'datenbank' | 'standard' };
 
 /** Feste Werte aus dem Code – gelten, solange die Tabellen noch nicht angelegt sind. */
 export const STANDARD_STAMMDATEN: Stammdaten = {
@@ -28,6 +31,7 @@ export const STANDARD_STAMMDATEN: Stammdaten = {
     farbeHex: f.farbeHex, bgHex: f.bgHex, verfuegbarAb: null, aktiv: true, reihenfolge: (i + 1) * 10, notiz: null,
   })),
   kutscher: PILOTEN.map((name, i) => ({ id: name, name, aktiv: true, reihenfolge: (i + 1) * 10 })),
+  einweisungen: {},
 };
 
 /** Datenbankzeile → Fahrzeug */

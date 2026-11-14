@@ -439,7 +439,7 @@ function BuchungDetailKarte({ b, storniereId, bearbeitenId, onStornieren, onBear
 }
 
 export default function KalenderSeite() {
-  const { fahrzeuge, kutscher, fahrzeugById } = useStammdaten();
+  const { fahrzeuge, kutscher, fahrzeugById, einweisungenFuer } = useStammdaten();
   const [datum, setDatum]   = useState(new Date());
   const [ansicht, setAnsicht] = useState<Ansicht>('monat');
   const [buchungen, setBuchungen] = useState<Buchung[]>([]);
@@ -598,16 +598,24 @@ export default function KalenderSeite() {
       </div>
       <div className="flex flex-wrap gap-2 mb-2 text-xs">
         <span className="text-xs font-semibold text-gray-500 self-center">Kutscher:</span>
-        {kutscher.map(({ name }) => (
-          <button key={name} onClick={() => setFilterPilot(p => p === name ? '' : name)}
-            onDoubleClick={() => schnellBuchen({ pilot: name })} title="Klick=Filter | Doppelklick=Termin"
-            style={{ backgroundColor: PILOT_FARBE.bgHex }}
-            className={`flex items-center gap-1 px-2 py-1 rounded border-2 font-semibold ${
-              filterPilot === name ? 'scale-105 shadow ring-2 ring-gray-600 border-gray-700' : 'border-gray-400 opacity-90 hover:opacity-100'
-            } ${PILOT_FARBE.textClass}`}>
-            <span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />P: {name}
-          </button>
-        ))}
+        {kutscher.map(({ name }) => {
+          const ew = einweisungenFuer(name);
+          return (
+            <button key={name} onClick={() => setFilterPilot(p => p === name ? '' : name)}
+              onDoubleClick={() => schnellBuchen({ pilot: name })} title="Klick=Filter | Doppelklick=Termin"
+              style={{ backgroundColor: PILOT_FARBE.bgHex }}
+              className={`flex flex-col items-start gap-0.5 px-2 py-1 rounded border-2 font-semibold ${
+                filterPilot === name ? 'scale-105 shadow ring-2 ring-gray-600 border-gray-700' : 'border-gray-400 opacity-90 hover:opacity-100'
+              } ${PILOT_FARBE.textClass}`}>
+              <span className="flex items-center gap-1"><span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />P: {name}</span>
+              {ew.length > 0 && (
+                <span className="flex flex-wrap gap-1">
+                  {ew.map(id => <span key={id} style={{ background: fahrzeugById(id)?.bgHex ?? '#e5e7eb', color: fahrzeugById(id)?.farbeHex ?? '#6b7280', border: `1px solid ${fahrzeugById(id)?.farbeHex ?? '#9ca3af'}` }} className="text-[10px] font-normal rounded px-1 py-0">{fahrzeugById(id)?.name ?? id}</span>)}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
       <div className="flex flex-wrap gap-2 mb-4 text-xs border-t-2 border-dashed border-gray-300 pt-2 mt-1">
         <span className="text-xs font-semibold text-gray-500 self-center">Gast:</span>
