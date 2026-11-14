@@ -58,16 +58,9 @@ export async function hashPasswort(pw: string) {
   return bcrypt.hash(pw, 10);
 }
 
-/** Hat die Tabelle schon die Spalte passwort_hash? (Migration gelaufen) */
-export async function hatHashSpalte(): Promise<boolean> {
-  const { error } = await createServiceClient().from('piloten_zugang').select('passwort_hash').limit(1);
-  return !error;
-}
-
-/** Felder zum Speichern eines neuen Passworts – gehasht, sobald die Spalte existiert. */
+/** Felder zum Speichern eines neuen Passworts. */
 export async function passwortFelder(pw: string): Promise<Record<string, string | null>> {
-  if (await hatHashSpalte()) return { passwort_hash: await hashPasswort(pw), passwort: null };
-  return { passwort: pw };
+  return { passwort_hash: await hashPasswort(pw), passwort: null };
 }
 
 /** Prüft Passwort ODER Token für eine Datenbankzeile. */
@@ -92,7 +85,7 @@ export async function anmelden(name: string, eingabe: string): Promise<Anmeldung
   }
 
   const { data } = await createServiceClient()
-    .from('piloten_zugang').select('*').eq('name', name).eq('aktiv', true);
+    .from('rikscha_kutscher').select('*').eq('name', name).eq('aktiv', true);
   for (const z of (data ?? []) as Zeile[]) {
     if (await passt(z, eingabe)) {
       return {
@@ -111,7 +104,7 @@ export async function anmelden(name: string, eingabe: string): Promise<Anmeldung
 /** Für das Ändern des eigenen Passworts: die passende Zeile (Passwort oder Token geprüft). */
 export async function zeileFuer(name: string, eingabe: string): Promise<{ id: string } | null> {
   const { data } = await createServiceClient()
-    .from('piloten_zugang').select('*').eq('name', name).eq('aktiv', true);
+    .from('rikscha_kutscher').select('*').eq('name', name).eq('aktiv', true);
   for (const z of (data ?? []) as Zeile[]) if (await passt(z, eingabe)) return { id: z.id };
   return null;
 }

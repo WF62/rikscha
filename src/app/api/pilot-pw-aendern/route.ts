@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const db = createServiceClient();
   const { error: updateError } = await db
-    .from('piloten_zugang')
+    .from('rikscha_kutscher')
     .update({ ...(await passwortFelder(String(neuesPasswort))), muss_pw_aendern: false })
     .eq('id', zeile.id);
 
