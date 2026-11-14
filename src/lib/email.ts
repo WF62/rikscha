@@ -37,6 +37,26 @@ export async function sendSchadenSignal(e: {
   await Promise.all(empfaenger.map(e => callMeBotSignal(e.phone, e.apiKey, text)));
 }
 
+// Verspätungsmeldung an Signal-Gruppe
+export async function sendVerspaetungSignal(e: { kutscher: string; minuten: number; notiz?: string }) {
+  const phone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
+  const apiKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
+  const groupId = process.env.SIGNAL_GROUP_ID ?? '';
+  if (!phone || !apiKey) return;
+  const text = `⏰ Verspätung – ${e.kutscher} kommt ca. ${e.minuten} Minuten später.${e.notiz ? `\n${e.notiz}` : ''}`;
+  await callMeBotSignal(phone, apiKey, text, groupId || undefined);
+}
+
+// Kurzfristige Absage an Signal-Gruppe
+export async function sendAbsageSignal(e: { kutscher: string; grund?: string }) {
+  const phone = process.env.SCHADEN_SIGNAL_PHONE ?? '';
+  const apiKey = process.env.SCHADEN_SIGNAL_APIKEY ?? '';
+  const groupId = process.env.SIGNAL_GROUP_ID ?? '';
+  if (!phone || !apiKey) return;
+  const text = `❌ Absage – ${e.kutscher} kann heute nicht fahren.${e.grund ? `\nGrund: ${e.grund}` : ''}`;
+  await callMeBotSignal(phone, apiKey, text, groupId || undefined);
+}
+
 // Ausfall-Benachrichtigung an Signal-Gruppe (alle Kutscher auf einmal)
 export async function sendAusfallSignalGruppe(e: {
   fahrzeug: string; beschreibung: string; gesperrt_ab?: string; gesperrt_bis?: string;
