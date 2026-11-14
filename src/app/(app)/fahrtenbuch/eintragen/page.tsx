@@ -15,7 +15,7 @@ type FahrtenbuchEintrag = {
   gast_name?: string; anzahl_fahrgaeste: number; km_start?: number; km_ende?: number;
   spenden: number; ausgaben?: number; ausgaben_beschreibung?: string;
   wetter: string; schaden: boolean; schaden_beschreibung?: string; bemerkungen?: string;
-  status?: string; checkliste_vor?: string[]; checkliste_nach?: string[];
+  strecke?: string; status?: string; checkliste_vor?: string[]; checkliste_nach?: string[];
 };
 
 const CHECKLISTE_VOR = [
@@ -92,6 +92,7 @@ function FahrtenbuchEintragenInner() {
   const [schaden, setSchaden] = useState(false);
   const [schadenBeschreibung, setSchadenBeschreibung] = useState('');
   const [bemerkungen, setBemerkungen] = useState('');
+  const [strecke, setStrecke] = useState('');
   const [checklisteVor, setChecklisteVor] = useState<string[]>([]);
   const [checklisteNach, setChecklisteNach] = useState<string[]>([]);
 
@@ -108,7 +109,7 @@ function FahrtenbuchEintragenInner() {
   useEffect(() => {
     if (zugang !== 'ja') return;
     const bis = new Date().toISOString().slice(0, 10);
-    const vonDt = new Date(); vonDt.setDate(vonDt.getDate() - 14);
+    const vonDt = new Date(); vonDt.setDate(vonDt.getDate() - 180);
     const von = vonDt.toISOString().slice(0, 10);
     fetch(`/api/buchungen?von=${von}&bis=${bis}&pilot=${encodeURIComponent(pilot)}`)
       .then(r => r.json())
@@ -159,6 +160,7 @@ function FahrtenbuchEintragenInner() {
       schaden,
       schaden_beschreibung: schaden ? schadenBeschreibung.trim() : undefined,
       bemerkungen: bemerkungen.trim() || undefined,
+      strecke: strecke.trim() || undefined,
       status: 'abgeschlossen',
       checkliste_vor: checklisteVor.length ? checklisteVor : undefined,
       checkliste_nach: checklisteNach.length ? checklisteNach : undefined,
@@ -224,6 +226,9 @@ function FahrtenbuchEintragenInner() {
 
       {gewaehlt && (
         <>
+          <div style={{ background: '#D1FAE5', border: '1.5px solid #6EE7B7', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: '0.75rem', fontSize: '0.88rem', color: '#065F46' }}>
+            📅 {formatDatum(gewaehlt.datum)} · ⏰ {gewaehlt.startzeit?.slice(0,5)}–{gewaehlt.endzeit?.slice(0,5)} · 🚲 {gewaehlt.fahrzeug}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <div>
               <label style={lbl}>Fahrttyp</label>
@@ -243,6 +248,10 @@ function FahrtenbuchEintragenInner() {
                 <input style={inp} value={gastName} onChange={e => setGastName(e.target.value)} placeholder="Name des Gastes" />
               </div>
             )}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={lbl}>Strecke / Ziel</label>
+              <input style={inp} value={strecke} onChange={e => setStrecke(e.target.value)} placeholder="z. B. Rheinufer, Stadtpark, Innenstadt …" />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>

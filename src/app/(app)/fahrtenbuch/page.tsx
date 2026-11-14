@@ -9,7 +9,7 @@ type Eintrag = {
   startzeit?: string; endzeit?: string; kutscher: string; fahrttyp: string;
   gast_name?: string; anzahl_fahrgaeste: number; km_start?: number; km_ende?: number;
   spenden: number; wetter?: string; schaden: boolean; schaden_beschreibung?: string;
-  bemerkungen?: string; eingetragen_von: string; eingetragen_am: string;
+  bemerkungen?: string; strecke?: string; eingetragen_von: string; eingetragen_am: string;
   status?: string;
 };
 
@@ -196,7 +196,7 @@ export default function Fahrtenbuch() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ background: '#F7F3EC', borderBottom: '2px solid #D6CCB8' }}>
-                {['', 'Datum', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fgs.', 'km', 'Spenden', 'Wetter', 'Bemerkung'].map(h => (
+                {['', 'Datum', 'Uhrzeit', 'Fahrzeug', 'Kutscher', 'Typ', 'Gast', 'Fgs.', 'km', 'Spenden', 'Wetter', 'Strecke / Bemerkung'].map(h => (
                   <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -213,6 +213,7 @@ export default function Fahrtenbuch() {
                         : null}
                     </td>
                     <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', opacity: istEntwurf ? 0.7 : 1 }}>{formatDatum(e.datum)}</td>
+                    <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', fontSize: '0.82rem', color: '#6B7280', opacity: istEntwurf ? 0.7 : 1 }}>{e.startzeit ? `${e.startzeit.slice(0,5)}–${e.endzeit?.slice(0,5) ?? '?'}` : ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, opacity: istEntwurf ? 0.7 : 1 }}>{e.fahrzeug}</td>
                     <td style={{ padding: '0.45rem 0.6rem', opacity: istEntwurf ? 0.7 : 1 }}>{e.kutscher}</td>
                     <td style={{ padding: '0.45rem 0.6rem', whiteSpace: 'nowrap', opacity: istEntwurf ? 0.7 : 1 }}>{{ gast: 'Gast', eigenfahrt: 'Eigen', leerfahrt: 'Überf.' }[e.fahrttyp] ?? e.fahrttyp}</td>
@@ -221,8 +222,8 @@ export default function Fahrtenbuch() {
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: istEntwurf ? '#9CA3AF' : undefined }}>{km != null ? `${km} km` : istEntwurf ? '–' : ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'right', whiteSpace: 'nowrap', color: istEntwurf ? '#9CA3AF' : undefined }}>{e.spenden > 0 ? euro(e.spenden) : istEntwurf ? '–' : ''}</td>
                     <td style={{ padding: '0.45rem 0.6rem', textAlign: 'center' }}>{wetterIcon(e.wetter)}</td>
-                    <td style={{ padding: '0.45rem 0.6rem', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: e.schaden ? '#B45309' : undefined }}>
-                      {e.schaden ? `⚠️ ${e.schaden_beschreibung ?? ''}` : e.bemerkungen ?? ''}
+                    <td style={{ padding: '0.45rem 0.6rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: e.schaden ? '#B45309' : undefined }}>
+                      {e.schaden ? `⚠️ ${e.schaden_beschreibung ?? ''}` : (e.strecke ? `📍 ${e.strecke}` : '') || (e.bemerkungen ?? '')}
                     </td>
                   </tr>
                 );

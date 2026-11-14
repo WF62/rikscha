@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const nurEigen = searchParams.get('eigen') === '1';
 
   let q = db.from('rikscha_fahrtenbuch')
-    .select('id, buchung_id, fahrzeug, datum, startzeit, endzeit, kutscher, fahrttyp, gast_name, anzahl_fahrgaeste, km_start, km_ende, spenden, ausgaben, ausgaben_beschreibung, wetter, schaden, schaden_beschreibung, bemerkungen, eingetragen_von, eingetragen_am, status')
+    .select('id, buchung_id, fahrzeug, datum, startzeit, endzeit, kutscher, fahrttyp, gast_name, anzahl_fahrgaeste, km_start, km_ende, spenden, ausgaben, ausgaben_beschreibung, wetter, schaden, schaden_beschreibung, bemerkungen, strecke, eingetragen_von, eingetragen_am, status')
     .order('datum', { ascending: false })
     .order('startzeit', { ascending: false });
 
