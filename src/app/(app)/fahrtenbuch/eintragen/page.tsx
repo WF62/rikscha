@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const ERLAUBT = ['kutscher', 'kutscher-admin', 'pilot', 'gfo', 'admin'];
@@ -65,7 +65,7 @@ function ChecklisteAbschnitt({
   );
 }
 
-export default function FahrtenbuchEintragen() {
+function FahrtenbuchEintragenInner() {
   const router = useRouter();
   const params = useSearchParams();
   const vorBuchungId = params.get('buchung_id');
@@ -325,4 +325,8 @@ export default function FahrtenbuchEintragen() {
       )}
     </div>
   );
+}
+
+export default function FahrtenbuchEintragen() {
+  return <Suspense><FahrtenbuchEintragenInner /></Suspense>;
 }
