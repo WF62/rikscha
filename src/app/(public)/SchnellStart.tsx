@@ -79,7 +79,7 @@ export default function SchnellStart() {
       .catch(() => {});
   }, [wer]);
 
-  // Prüfe Vermittlungsstellen ohne Fahrzeugzugang (nur für Admin/Kutscher-Admin)
+  // Prüfe Vermittlungsstellen ohne Buchung im letzten Monat (nur für Admin/Kutscher-Admin)
   useEffect(() => {
     if (!wer) { setVermittlungOffenAnzahl(0); return; }
     if (!['kutscher-admin', 'admin', 'gfo'].includes(wer.rolle)) return;
@@ -162,9 +162,9 @@ export default function SchnellStart() {
             <span style={{ fontSize: '1.3rem' }}>🏠</span>
             <div>
               <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                {vermittlungOffenAnzahl} {vermittlungOffenAnzahl === 1 ? 'Vermittlungsstelle hat' : 'Vermittlungsstellen haben'} noch keinen Fahrzeugzugang
+                {vermittlungOffenAnzahl} {vermittlungOffenAnzahl === 1 ? 'Vermittlungsstelle hat' : 'Vermittlungsstellen haben'} seit über einem Monat keine Fahrt gebucht
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#6B21A8' }}>Bitte Fahrzeugzugang eintragen →</div>
+              <div style={{ fontSize: '0.8rem', color: '#6B21A8' }}>Übersicht der Buchungsaktivität →</div>
             </div>
           </a>
         )}
