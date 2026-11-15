@@ -610,7 +610,9 @@ export default function KalenderSeite() {
               <span className="flex items-center gap-1"><span style={{ backgroundColor: PILOT_FARBE.dotHex }} className="w-2 h-2 rounded-full" />P: {name}</span>
               {ew.length > 0 && (
                 <span className="flex flex-wrap gap-1">
-                  {ew.map(id => <span key={id} style={{ background: fahrzeugById(id)?.bgHex ?? '#e5e7eb', color: fahrzeugById(id)?.farbeHex ?? '#6b7280', border: `1px solid ${fahrzeugById(id)?.farbeHex ?? '#9ca3af'}` }} className="text-[10px] font-normal rounded px-1 py-0">{fahrzeugById(id)?.name ?? id}</span>)}
+                  {ew.length >= fahrzeuge.length
+                    ? <span className="text-[10px] font-normal rounded px-1 py-0 bg-gray-100 text-gray-600 border border-gray-300">Alle</span>
+                    : ew.map(id => <span key={id} style={{ background: fahrzeugById(id)?.bgHex ?? '#e5e7eb', color: fahrzeugById(id)?.farbeHex ?? '#6b7280', border: `1px solid ${fahrzeugById(id)?.farbeHex ?? '#9ca3af'}` }} className="text-[10px] font-normal rounded px-1 py-0">{fahrzeugById(id)?.name ?? id}</span>)}
                 </span>
               )}
             </button>
