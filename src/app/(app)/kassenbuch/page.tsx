@@ -33,6 +33,7 @@ export default function Kassenbuch() {
   const [zugang, setZugang] = useState<'laden' | 'nein' | 'ja'>('laden');
   const [pilot, setPilot] = useState('');
   const [pw, setPw] = useState('');
+  const [rolle, setRolle] = useState('');
   const [eintraege, setEintraege] = useState<Eintrag[]>([]);
   const [laedt, setLaedt] = useState(false);
 
@@ -71,7 +72,7 @@ export default function Kassenbuch() {
       const n = localStorage.getItem('kutscher_name') ?? '';
       const p = localStorage.getItem('kutscher_pw') ?? '';
       const r = localStorage.getItem('kutscher_rolle') ?? '';
-      if (n && p && ERLAUBT.includes(r)) { setPilot(n); setPw(p); setZugang('ja'); }
+      if (n && p && ERLAUBT.includes(r)) { setPilot(n); setPw(p); setRolle(r); setZugang('ja'); }
       else setZugang('nein');
     } catch { setZugang('nein'); }
   }, []);
@@ -163,6 +164,8 @@ export default function Kassenbuch() {
   if (zugang === 'laden') return <div style={{ padding: '2rem', textAlign: 'center' }}>⏳</div>;
   if (zugang === 'nein') return <div style={{ padding: '2rem', color: '#dc2626' }}>Zugang nur für angemeldete Kutscher.</div>;
 
+  const nurLesen = rolle === 'kutscher';
+
   const einnahmen = eintraege.filter(e => e.typ === 'einnahme' && e.kategorie !== 'Startbetrag').reduce((s, e) => s + e.betrag, 0);
   const ausgaben = eintraege.filter(e => e.typ === 'ausgabe').reduce((s, e) => s + e.betrag, 0);
   const saldo = (startbetrag ?? 0) + einnahmen - ausgaben;
@@ -203,7 +206,7 @@ export default function Kassenbuch() {
       </div>
 
       {/* Startbetrag */}
-      <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 10, padding: '0.65rem 1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+      {!nurLesen && <div style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 10, padding: '0.65rem 1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#5C4E38', whiteSpace: 'nowrap' }}>💰 Startbetrag:</span>
         <input type="number" min={0} step={0.01} value={startbetragEdit} onChange={e => setStartbetragEdit(e.target.value)}
           placeholder="0,00" style={{ border: '1.5px solid #D6CCB8', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem', width: 110, background: '#fff' }} />
@@ -212,7 +215,7 @@ export default function Kassenbuch() {
           {startbetragSpeichert ? '…' : 'Speichern'}
         </button>
         {startbetrag != null && <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>Aktuell: {euro(startbetrag)}</span>}
-      </div>
+      </div>}
 
       {/* Saldo-Kacheln */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -243,7 +246,7 @@ export default function Kassenbuch() {
       </div>
 
       {/* Neuer Eintrag */}
-      <details style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 12, padding: '1rem', marginBottom: '1.25rem' }}>
+      {!nurLesen && <details style={{ background: '#F7F3EC', border: '1.5px solid #D6CCB8', borderRadius: 12, padding: '1rem', marginBottom: '1.25rem' }}>
         <summary style={{ fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>+ Manuellen Eintrag hinzufügen</summary>
         <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.6rem' }}>
           <div>
@@ -284,7 +287,7 @@ export default function Kassenbuch() {
         <button onClick={speichern} disabled={speichert} style={{ marginTop: '0.75rem', background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.1rem', fontWeight: 700, fontSize: '0.88rem', cursor: speichert ? 'not-allowed' : 'pointer', opacity: speichert ? 0.6 : 1 }}>
           {speichert ? '⏳ Speichern…' : '✓ Speichern'}
         </button>
-      </details>
+      </details>}
 
       {/* Tabelle */}
       {eintraege.length === 0 && !laedt && <p style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>Keine Einträge für diesen Zeitraum.</p>}
@@ -332,7 +335,7 @@ export default function Kassenbuch() {
                     </td>
                     <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.78rem', color: '#9CA3AF' }}>{e.eingetragen_von}</td>
                     <td style={{ padding: '0.45rem 0.6rem' }}>
-                      {!e.fahrtenbuch_id && (
+                      {!nurLesen && !e.fahrtenbuch_id && (
                         <button onClick={() => loeschen(e.id)} style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.78rem', padding: '0.1rem 0.3rem' }}>✕</button>
                       )}
                     </td>
@@ -345,7 +348,7 @@ export default function Kassenbuch() {
       })()}
 
       {/* Externe Beiträge */}
-      <details style={{ background: '#EDE9FE', border: '1.5px solid #C4B5FD', borderRadius: 12, padding: '1rem', marginTop: '1.5rem' }}>
+      {!nurLesen && <details style={{ background: '#EDE9FE', border: '1.5px solid #C4B5FD', borderRadius: 12, padding: '1rem', marginTop: '1.5rem' }}>
         <summary style={{ fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', color: '#4C1D95' }}>
           🏦 Externe Beiträge — nicht über Kasse ({externeEintraege.length})
         </summary>
@@ -438,7 +441,7 @@ export default function Kassenbuch() {
           });
         })()}
         {externeEintraege.length === 0 && <p style={{ color: '#7C3AED', fontSize: '0.85rem', margin: 0 }}>Noch keine externen Beiträge erfasst.</p>}
-      </details>
+      </details>}
     </div>
   );
 }
