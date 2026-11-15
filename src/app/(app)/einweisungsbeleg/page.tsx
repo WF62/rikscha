@@ -197,31 +197,42 @@ function Beleg() {
         logging: false,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      const imgData = canvas.toDataURL('image/jpeg', 0.75);
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pdfW = pdf.internal.pageSize.getWidth();
       const pdfH = (canvas.height / canvas.width) * pdfW;
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
 
       const blob = pdf.output('blob');
-      const file = new File([blob], 'einweisungsbeleg.pdf', { type: 'application/pdf' });
 
-      const form = new FormData();
-      form.append('id', id);
-      form.append('kutscher', kutscher);
-      form.append('fahrzeug', fahrzeug);
-      form.append('einweisungstyp', einweisungstyp);
-      form.append('file', file);
-      form.append('telefon', telefon);
-      form.append('email', kEmail);
-      form.append('whatsapp', signal);
-      form.append('adresse', adresse);
-      form.append('kontakt_zustimmung', String(zustimmung));
+      // Schritt 1: Signed Upload URLs holen (kein PDF durch Vercel)
+      const urlRes = await fetch('/api/einweisungsbeleg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getUploadUrl', kutscher }),
+      });
+      if (!urlRes.ok) throw new Error('Upload-URL konnte nicht erstellt werden.');
+      const { signedUrl, signedUrlAdmin, publicUrl } = await urlRes.json();
 
-      const res = await fetch('/api/einweisungsbeleg', { method: 'POST', body: form });
+      // Schritt 2: PDF direkt zu Supabase hochladen
+      const [up1, up2] = await Promise.all([
+        fetch(signedUrl, { method: 'PUT', body: blob, headers: { 'Content-Type': 'application/pdf' } }),
+        signedUrlAdmin ? fetch(signedUrlAdmin, { method: 'PUT', body: blob, headers: { 'Content-Type': 'application/pdf' } }) : Promise.resolve(null),
+      ]);
+      if (!up1.ok) throw new Error(`Upload fehlgeschlagen (${up1.status})`);
+
+      // Schritt 3: Metadaten speichern
+      const res = await fetch('/api/einweisungsbeleg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, kutscher, fahrzeug, einweisungstyp, publicUrl, telefon, email: kEmail, whatsapp: signal, adresse, kontakt_zustimmung: zustimmung }),
+      });
+      if (!res.ok) {
+        let msg = `Fehler ${res.status}`;
+        try { const j = await res.json(); msg = j.error ?? msg; } catch { /* ignore */ }
+        throw new Error(msg);
+      }
       const j = await res.json();
-
-      if (!res.ok) throw new Error(j.error ?? 'Upload fehlgeschlagen.');
 
       setVorhandeneUrl(j.url);
       setStatus('ok');

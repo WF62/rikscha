@@ -42,41 +42,34 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(data ?? {}, { headers: CORS });
 }
 
-// POST: PDF-Blob empfangen, in Storage ablegen, URL in DB speichern, Kontaktdaten aktualisieren
+// POST: Signed Upload URL ausstellen ODER Metadaten nach direktem Upload speichern
 export async function POST(req: NextRequest) {
-  const form = await req.formData();
-  const id = form.get('id') as string;
-  const kutscher = form.get('kutscher') as string;
-  const fahrzeug = (form.get('fahrzeug') as string | null) ?? '';
-  const einweisungstyp = (form.get('einweisungstyp') as string | null) ?? 'voll';
-  const file = form.get('file') as File | null;
+  const body = await req.json();
+  const db = createServiceClient();
 
-  if (!id || !kutscher || !file) {
-    return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400 });
+  // Schritt 1: Signed Upload URL anfordern
+  if (body.action === 'getUploadUrl') {
+    const { kutscher } = body;
+    if (!kutscher) return NextResponse.json({ error: 'Kutscher fehlt.' }, { status: 400 });
+    const datum = new Date().toISOString().slice(0, 10);
+    const dateiname = `${kutscher.replace(/[^a-zA-Z0-9äöüÄÖÜß\- ]/g, '_')}_${datum}.pdf`;
+    const pfadKutscher = `einweisungen/${kutscher}/${dateiname}`;
+    const pfadAdmin = `einweisungen/admin/${dateiname}`;
+    const [s1, s2] = await Promise.all([
+      db.storage.from('piloten-dateien').createSignedUploadUrl(pfadKutscher),
+      db.storage.from('piloten-dateien').createSignedUploadUrl(pfadAdmin),
+    ]);
+    if (s1.error) return NextResponse.json({ error: s1.error.message }, { status: 500, headers: CORS });
+    const { data: { publicUrl } } = db.storage.from('piloten-dateien').getPublicUrl(pfadKutscher);
+    return NextResponse.json({ signedUrl: s1.data.signedUrl, signedUrlAdmin: s2.data?.signedUrl, publicUrl }, { headers: CORS });
   }
 
-  const telefon = (form.get('telefon') as string | null) ?? null;
-  const email = (form.get('email') as string | null) ?? null;
-  const whatsapp = (form.get('whatsapp') as string | null) ?? null;
-  const adresse = (form.get('adresse') as string | null) ?? null;
-  const kontakt_zustimmung = form.get('kontakt_zustimmung') === 'true';
+  // Schritt 2: Metadaten speichern nach erfolgtem Upload
+  const { id, kutscher, fahrzeug = '', einweisungstyp = 'voll', publicUrl, telefon = null, email = null, whatsapp = null, adresse = null, kontakt_zustimmung = false } = body;
 
-  const db = createServiceClient();
-  const datum = new Date().toISOString().slice(0, 10);
-  const dateiname = `${kutscher.replace(/[^a-zA-Z0-9äöüÄÖÜß\- ]/g, '_')}_${datum}.pdf`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const pfadKutscher = `einweisungen/${kutscher}/${dateiname}`;
-  const pfadAdmin = `einweisungen/admin/${dateiname}`;
-
-  const [r1, r2] = await Promise.all([
-    db.storage.from('piloten-dateien').upload(pfadKutscher, buffer, { contentType: 'application/pdf', upsert: true }),
-    db.storage.from('piloten-dateien').upload(pfadAdmin, buffer, { contentType: 'application/pdf', upsert: true }),
-  ]);
-
-  if (r1.error) return NextResponse.json({ error: r1.error.message }, { status: 500, headers: CORS });
-
-  const { data: { publicUrl } } = db.storage.from('piloten-dateien').getPublicUrl(pfadKutscher);
+  if (!id || !kutscher || !publicUrl) {
+    return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400 });
+  }
 
   // Kontaktdaten in rikscha_kutscher speichern
   const kontaktPatch: Record<string, unknown> = {};
@@ -101,5 +94,5 @@ export async function POST(req: NextRequest) {
     sendeBestaetigung({ an: email, name: kutscher, fahrzeug, belegUrl: publicUrl, einweisungstyp }).catch(() => {});
   }
 
-  return NextResponse.json({ ok: true, url: publicUrl, adminPfad: r2.error ? null : pfadAdmin }, { headers: CORS });
+  return NextResponse.json({ ok: true, url: publicUrl }, { headers: CORS });
 }
