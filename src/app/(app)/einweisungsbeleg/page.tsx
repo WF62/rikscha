@@ -119,13 +119,14 @@ function Beleg() {
   const [meldung, setMeldung] = useState('');
   const [geladen, setGeladen] = useState(false);
 
-  // Einweisungsthemen (aus DB)
+  // Einweisungsthemen (aus DB, gemeinsame + fahrzeugspezifische)
   const [themen, setThemen] = useState<{ id: number; gruppe: string; punkte: string[] }[]>([]);
   useEffect(() => {
-    fetch('/api/einweisungsthemen').then(r => r.json()).then(d => {
+    const params = fahrzeug ? `?fahrzeug=${encodeURIComponent(fahrzeug)}` : '';
+    fetch(`/api/einweisungsthemen${params}`).then(r => r.json()).then(d => {
       if (Array.isArray(d)) setThemen(d);
     });
-  }, []);
+  }, [fahrzeug]);
   const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
   const toggleThema = (key: string) => setThemenChecked(prev => ({ ...prev, [key]: !prev[key] }));
 
