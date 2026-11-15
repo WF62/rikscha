@@ -3,13 +3,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { rolleAusAnfrage, darfWebBearbeiten } from '@/lib/pilotAuth';
 
+function istAdminPasswort(req: NextRequest): boolean {
+  const pw = req.headers.get('x-admin-password');
+  return !!pw && !!process.env.ADMIN_PASSWORD && pw === process.env.ADMIN_PASSWORD;
+}
+
 // GET: Alle Kutscher (auch inaktive)
 export async function GET(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
-  if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
+  if (!darfWebBearbeiten(rolle) && !istAdminPasswort(req)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
   const { data, error } = await createServiceClient()
     .from('rikscha_kutscher')
-    .select('id, name, aktiv, reihenfolge, rolle, organisation_id')
+    .select('id, name, aktiv, reihenfolge, rolle, organisation_id, telefon, email, whatsapp, adresse, kontakt_zustimmung')
     .order('reihenfolge').order('name');
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data ?? []);
@@ -36,7 +41,7 @@ export async function POST(req: NextRequest) {
 // PATCH: Name, aktiv oder reihenfolge ändern
 export async function PATCH(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
-  if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
+  if (!darfWebBearbeiten(rolle) && !istAdminPasswort(req)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
   const { id, name, aktiv, reihenfolge, telefon, email, whatsapp, adresse, kontakt_zustimmung } = await req.json();
   if (!id) return NextResponse.json({ error: 'ID fehlt.' }, { status: 400 });
   const patch: Record<string, unknown> = {};

@@ -14,8 +14,7 @@ export default function KutscherKontaktePage() {
 
   const headers = () => ({
     'Content-Type': 'application/json',
-    'x-kutscher-name': localStorage.getItem('kutscher_name') ?? '',
-    'x-kutscher-pw': localStorage.getItem('kutscher_pw') ?? '',
+    'x-admin-password': localStorage.getItem('admin_auth_token') ?? '',
   });
 
   useEffect(() => {
