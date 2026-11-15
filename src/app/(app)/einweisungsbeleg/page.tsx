@@ -165,6 +165,9 @@ function Beleg() {
       'Rikscha durch zusätzliche Person sichern (wenn möglich)',
     ]},
     { gruppe: 'Fahren', punkte: [
+      'Gemeinsame Fahrpraxis durchgeführt: Kutscher hat die Rikscha selbst gefahren',
+      'Kurvenfahren und Rangiermanöver auf Tauglichkeit geübt',
+      'Mit Gästen nicht schneller als 15 km/h fahren',
       'Manöver nur im Schritttempo und leicht gezogener Bremse',
       'Sprechkontakt mit Passagier halten',
       'Anfahrten am Hang vermeiden; wenn nötig schräg gegen die Steigung',
