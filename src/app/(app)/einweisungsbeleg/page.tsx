@@ -126,7 +126,8 @@ function Beleg() {
   // Folgeeinweisung: nur fahrzeugspezifische (fahrzeug_typ gesetzt)
   const [themen, setThemen] = useState<{ id: number; gruppe: string; punkte: string[]; fahrzeug_typ?: string | null }[]>([]);
   useEffect(() => {
-    const p = fahrzeug ? `?fahrzeug=${encodeURIComponent(fahrzeug)}` : '';
+    const fahrzeugKey = fahrzeug ? fahrzeug.toLowerCase().replace(/\s+/g, '_') : '';
+    const p = fahrzeugKey ? `?fahrzeug=${encodeURIComponent(fahrzeugKey)}` : '';
     fetch(`/api/einweisungsthemen${p}`).then(r => r.json()).then(d => {
       if (!Array.isArray(d)) return;
       if (isFolge) {
