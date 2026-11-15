@@ -191,17 +191,17 @@ function Beleg() {
       const { jsPDF } = jsPDFModule;
 
       const canvas = await html2canvas(belegRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pdfW = pdf.internal.pageSize.getWidth();
       const pdfH = (canvas.height / canvas.width) * pdfW;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
 
       const blob = pdf.output('blob');
       const file = new File([blob], 'einweisungsbeleg.pdf', { type: 'application/pdf' });
