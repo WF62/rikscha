@@ -214,7 +214,6 @@ export default function Kassenbuch() {
           style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 7, padding: '0.3rem 0.8rem', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
           {startbetragSpeichert ? '…' : 'Speichern'}
         </button>
-        {startbetrag != null && <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>Aktuell: {euro(startbetrag)}</span>}
       </div>}
 
       {/* Saldo-Kacheln */}
