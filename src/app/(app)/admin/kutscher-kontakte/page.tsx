@@ -26,9 +26,19 @@ export default function KutscherKontaktePage() {
 
   const zeig = (msg: string) => { setMeldung(msg); setTimeout(() => setMeldung(''), 3000); };
 
+  const normalisiereNummer = (nr: string) => {
+    const s = nr.trim();
+    if (s.startsWith('0')) return '+49' + s.slice(1);
+    return s;
+  };
+
   const aendern = (id: string, field: keyof Kutscher, wert: string | boolean) => {
     setBearbeitet(prev => ({ ...prev, [id]: { ...prev[id], [field]: wert } }));
     setKutscher(prev => prev.map(k => k.id === id ? { ...k, [field]: wert } : k));
+  };
+
+  const aufBlur = (id: string, field: 'telefon' | 'whatsapp', wert: string) => {
+    if (wert) aendern(id, field, normalisiereNummer(wert));
   };
 
   const speichern = async (k: Kutscher) => {
@@ -94,10 +104,10 @@ export default function KutscherKontaktePage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.6rem' }}>
             {([
-              { label: 'Telefon', field: 'telefon' as keyof Kutscher, type: 'tel', placeholder: '+49 …' },
-              { label: 'E-Mail', field: 'email' as keyof Kutscher, type: 'email', placeholder: 'name@beispiel.de' },
-              { label: 'Signal', field: 'whatsapp' as keyof Kutscher, type: 'tel', placeholder: '+49 …' },
-              { label: 'Adresse', field: 'adresse' as keyof Kutscher, type: 'text', placeholder: 'Straße, PLZ Ort' },
+              { label: 'Telefon', field: 'telefon' as keyof Kutscher, type: 'tel', placeholder: '+49 …', normalize: true },
+              { label: 'E-Mail', field: 'email' as keyof Kutscher, type: 'email', placeholder: 'name@beispiel.de', normalize: false },
+              { label: 'Signal', field: 'whatsapp' as keyof Kutscher, type: 'tel', placeholder: '+49 …', normalize: true },
+              { label: 'Adresse', field: 'adresse' as keyof Kutscher, type: 'text', placeholder: 'Straße, PLZ Ort', normalize: false },
             ]).map(f => (
               <div key={f.field}>
                 <div style={{ fontSize: '0.72rem', color: '#6B7280', fontWeight: 600, marginBottom: '0.2rem' }}>{f.label}</div>
@@ -105,6 +115,7 @@ export default function KutscherKontaktePage() {
                   type={f.type}
                   value={(k[f.field] as string) ?? ''}
                   onChange={e => aendern(k.id, f.field, e.target.value)}
+                  onBlur={f.normalize ? e => aufBlur(k.id, f.field as 'telefon' | 'whatsapp', e.target.value) : undefined}
                   placeholder={f.placeholder}
                   style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #D1D5DB', borderRadius: 6, padding: '0.35rem 0.5rem', fontSize: '0.88rem' }}
                 />
