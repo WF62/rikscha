@@ -438,8 +438,25 @@ function Beleg() {
             />
           </div>
 
+          {/* Speichern-Button am Ende des Formulars */}
+          {!fertig && (
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <button onClick={speichernAlsPdf} disabled={status === 'generiere'}
+                style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 10, padding: '0.9rem 2.5rem', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer', width: '100%', maxWidth: 420, boxShadow: '0 2px 8px rgba(45,107,30,0.25)' }}>
+                {status === 'generiere' ? '⏳ PDF wird erstellt …' : '✅ Einweisung abschließen & als PDF speichern'}
+              </button>
+            </div>
+          )}
+          {fertig && (
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <span style={{ background: '#D1FAE5', color: '#065F46', borderRadius: 8, padding: '0.7rem 2rem', fontSize: '1rem', fontWeight: 700 }}>
+                ✓ Beleg wurde gespeichert
+              </span>
+            </div>
+          )}
+
           {/* Fußzeile */}
-          <div style={{ marginTop: '1.5rem', paddingTop: '0.75rem', borderTop: '1px solid #E5E7EB', fontSize: '0.72rem', color: '#9CA3AF', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.3rem' }}>
+          <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #E5E7EB', fontSize: '0.72rem', color: '#9CA3AF', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.3rem' }}>
             <span>Einweisungsbeleg – Mertener Rikschakutscher</span>
             <span>Abgelegt im Kutscher-Ordner und Admin-Ordner.</span>
           </div>
