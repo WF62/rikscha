@@ -246,7 +246,7 @@ export default function EinweisungenPage() {
       <div style={{ background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 12, padding: '1.25rem', marginBottom: '2rem' }}>
         <div style={{ fontWeight: 700, color: '#15803D', marginBottom: '0.9rem' }}>Neue Einweisung eintragen</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 140px' }}>
+          <div style={{ flex: '1 1 180px', minWidth: 0 }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Kutscher</label>
             <select value={neuerKutscher} onChange={e => setNeuerKutscher(e.target.value)}
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem' }}>
@@ -254,7 +254,7 @@ export default function EinweisungenPage() {
               {aktiveKutscher.map(k => <option key={k.name} value={k.name}>{k.name}</option>)}
             </select>
           </div>
-          <div style={{ flex: '1 1 140px' }}>
+          <div style={{ flex: '1 1 180px', minWidth: 0 }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Fahrzeug</label>
             <select value={neuesFahrzeug} onChange={e => setNeuesFahrzeug(e.target.value)}
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem' }}>
@@ -262,12 +262,12 @@ export default function EinweisungenPage() {
               {fahrzeuge.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
             </select>
           </div>
-          <div style={{ flex: '1 1 130px' }}>
+          <div style={{ flex: '1 1 160px', minWidth: 0 }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Eingewiesen am</label>
             <input type="date" value={eingewiesen_am} onChange={e => setEingewiesen_am(e.target.value)}
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem', boxSizing: 'border-box' }} />
           </div>
-          <div style={{ flex: '1 1 200px' }}>
+          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Art</label>
             <div style={{ display: 'flex', border: '1.5px solid #D1D5DB', borderRadius: 7, overflow: 'hidden' }}>
               <button onClick={() => setEinweisungstyp('voll')}
