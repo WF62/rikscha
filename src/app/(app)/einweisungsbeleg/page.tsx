@@ -119,6 +119,38 @@ function Beleg() {
   const [meldung, setMeldung] = useState('');
   const [geladen, setGeladen] = useState(false);
 
+  // Einweisungsthemen
+  const THEMEN = [
+    { gruppe: 'Schwerpunkte & Allgemeines', punkte: [
+      'Vorstellung und Übergabe des Fahrzeugs',
+      'Sicherheitscheck vor Fahrtantritt (Bremsen, Beleuchtung, Reifendruck)',
+      'An- und Abmeldung in der App',
+      'Zuständigkeiten und Ansprechpartner',
+    ]},
+    { gruppe: 'Allgemeine Regeln', punkte: [
+      'Fahrregeln im Straßenverkehr (StVO)',
+      'Helm- und Ausrüstungspflicht',
+      'Umgang mit Gästen (ältere und pflegebedürftige Menschen)',
+      'Datenschutz und Schweigepflicht',
+      'Versicherungsschutz und Haftung',
+    ]},
+    { gruppe: 'Technik', punkte: [
+      'Schaltung, Pedalunterstützung und Bremssystem',
+      'Beleuchtung und Elektronik (Akku, Display)',
+      'Reifenwechsel und einfache Wartung',
+      'Fahrzeug sichern, abstellen und laden',
+    ]},
+    { gruppe: 'Verhalten bei Unregelmäßigkeiten', punkte: [
+      'Verhalten bei Panne oder technischem Defekt',
+      'Meldung von Schäden in der App (Fahrtenbuch)',
+      'Verhalten bei Sturz oder Unfall mit Gast',
+      'Notfallkontakte und Erste Hilfe',
+      'Abbruch einer Fahrt und Rückmeldung',
+    ]},
+  ];
+  const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
+  const toggleThema = (key: string) => setThemenChecked(prev => ({ ...prev, [key]: !prev[key] }));
+
   // Kontaktdaten
   const [telefon, setTelefon] = useState('');
   const [kEmail, setKEmail] = useState('');
@@ -291,6 +323,36 @@ function Beleg() {
               ))}
             </tbody>
           </table>
+
+          {/* Einweisungsthemen */}
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '2px solid #E5E7EB', paddingBottom: '0.4rem' }}>
+              Besprochene Einweisungsthemen
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {THEMEN.map(gruppe => (
+                <div key={gruppe.gruppe}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#2D6B1E', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{gruppe.gruppe}</div>
+                  {gruppe.punkte.map(punkt => {
+                    const key = gruppe.gruppe + '|' + punkt;
+                    const checked = !!themenChecked[key];
+                    return (
+                      <label key={punkt} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.3rem', cursor: fertig ? 'default' : 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => !fertig && toggleThema(key)}
+                          disabled={fertig}
+                          style={{ marginTop: '0.1rem', width: 13, height: 13, flexShrink: 0, accentColor: '#2D6B1E' }}
+                        />
+                        <span style={{ fontSize: '0.8rem', color: checked ? '#14532D' : '#374151', lineHeight: 1.4, fontWeight: checked ? 600 : 400 }}>{punkt}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Bestätigungstext */}
           <div style={{ background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 8, padding: '0.9rem 1.1rem', marginBottom: '2rem', fontSize: '0.87rem', color: '#14532D', lineHeight: 1.6 }}>
