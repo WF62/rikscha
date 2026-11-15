@@ -3,12 +3,17 @@ import { useState, useEffect, useCallback } from 'react';
 
 const KEY = 'admin_auth_token';
 
+function istKutscherAdmin() {
+  const rolle = localStorage.getItem('kutscher_rolle') ?? '';
+  return ['kutscher-admin', 'gfo', 'admin'].includes(rolle);
+}
+
 export function useAdminAuth() {
   const [eingeloggt, setEingeloggt] = useState<boolean | null>(null); // null = noch prüfen
 
   useEffect(() => {
     const token = localStorage.getItem(KEY);
-    setEingeloggt(!!token);
+    setEingeloggt(!!token || istKutscherAdmin());
   }, []);
 
   const login = useCallback(async (pw: string): Promise<string | null> => {
