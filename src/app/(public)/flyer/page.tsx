@@ -27,10 +27,10 @@ const SCHLUSSEL = [
 ];
 
 const DEFAULT: Record<string, string> = {
-  flyer_fahrten_text:   'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
+  flyer_fahrten_text:   'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Kutscher bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
   flyer_lotte_text:     'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung. Ideal für Seniorengruppen und Familienausflüge.',
   flyer_flitzer_text:   'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.',
-  flyer_piter_text:     'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
+  flyer_piter_text:     'Kutscher und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
   flyer_foto_fahrt1:    '',
   flyer_foto_fahrt2:    '',
   flyer_foto_lotte:     '',
@@ -44,8 +44,8 @@ const DEFAULT: Record<string, string> = {
   flyer_v3_card1_text:  'Rund zehn engagierte Freiwillige aus Bornheim-Merten — unterschiedlichen Alters und aus ganz verschiedenen Berufen. Was sie verbindet: die Freude daran, anderen Menschen einen besonderen Moment zu schenken.',
   flyer_v3_card2_titel: 'Mitmachen?',
   flyer_v3_card2_text:  'Fahrradbegeistert & hilfsbereit? Wir freuen uns über jede Verstärkung! 📞 02227 9328383',
-  flyer_v4_meta:        '11 ehrenamtliche Piloten · kostenlose Rikschafahrten',
-  flyer_v4_badge:       '11 Piloten',
+  flyer_v4_meta:        '11 ehrenamtliche Kutscher · kostenlose Rikschafahrten',
+  flyer_v4_badge:       '11 Kutscher',
   flyer_gutschein_hinweis: 'Telefonisch einlösen · Alle Fahrten kostenlos · GFO Bornheim-Merten',
   flyer_r1_label:       'Rikscha · max. 2 Gäste',
   flyer_r1_h3:          'Flotte Lotte',

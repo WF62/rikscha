@@ -25,7 +25,7 @@ const DEFAULT: Record<string, string> = {
   handout_foto_vorne:   '',
   handout_lotte_kurz:   'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ideal für Seniorengruppen und Familienausflüge.',
   handout_flitzer_kurz: 'Liegetandem für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten!',
-  handout_piter_kurz:   'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Nähe und Gespräche auf Augenhöhe.',
+  handout_piter_kurz:   'Kutscher und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Nähe und Gespräche auf Augenhöhe.',
   handout_foto_lotte:   '',
   handout_foto_flitzer: '',
   handout_foto_piter:   '',

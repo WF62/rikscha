@@ -13,10 +13,10 @@ const SCHLUSSEL = [
 ];
 
 const DEFAULT: Record<string, string> = {
-  flyer_fahrten_text:  'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
+  flyer_fahrten_text:  'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Kutscher bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
   flyer_lotte_text:    'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung.',
   flyer_flitzer_text:  'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben.',
-  flyer_piter_text:    'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Sicherheit, Nähe und Gespräche auf Augenhöhe.',
+  flyer_piter_text:    'Kutscher und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Sicherheit, Nähe und Gespräche auf Augenhöhe.',
   flyer_foto_fahrt1:   '',
   flyer_foto_fahrt2:   '',
   flyer_foto_lotte:    '',
@@ -430,7 +430,7 @@ export default async function Flyer2Page() {
         {/* Rückseite Streifen 3: Einladung + Aktion Mensch */}
         <div className="strip strip-inner-b">
           <div className="inner-b-h">Kommen Sie mit auf Tour!</div>
-          <div className="inner-b-sub">Elf ehrenamtliche Piloten freuen sich auf Ihre Anfrage.<br/>Ob alleine oder mit Begleitung — alle sind willkommen.</div>
+          <div className="inner-b-sub">Elf ehrenamtliche Kutscher freuen sich auf Ihre Anfrage.<br/>Ob alleine oder mit Begleitung — alle sind willkommen.</div>
           <div>
             <span className="inner-b-chip">📞 02227 9328383</span>
             <span className="inner-b-chip">🌐 rikscha-kutscher.de</span>

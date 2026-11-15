@@ -15,10 +15,10 @@ const SCHLUSSEL = [
 ];
 
 const DEFAULT: Record<string, string> = {
-  flyer_fahrten_text:    'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Piloten bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
+  flyer_fahrten_text:    'Ob Seniorenausflug, Familienbesuch oder besonderer Anlass — unsere ehrenamtlichen Kutscher bringen Sie sicher und stilvoll ans Ziel. Alle Fahrten sind kostenlos und für jeden zugänglich.',
   flyer_lotte_text:      'Die klassische Rikscha — geräumig, komfortabel, mit Rundumblick. Ob zur Kirche, zum Rhein oder durch die Mertener Heide: Flotte Lotte ermöglicht entspanntes Mitfahren mit großer Wirkung. Ideal für Seniorengruppen und Familienausflüge.',
   flyer_flitzer_text:    'Ideal für sehbehinderte oder körperlich eingeschränkte Menschen — wer mag, kann sogar mittreten! Nah am Boden, nah am Leben — eine völlig neue Perspektive.',
-  flyer_piter_text:      'Pilot und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
+  flyer_piter_text:      'Kutscher und Gast fahren Seite an Seite — besonders für Menschen mit Demenz. Das Nebeneinander schafft Sicherheit, Nähe und Gespräche auf Augenhöhe.',
   flyer_foto_fahrt1:     '',
   flyer_foto_fahrt2:     '',
   flyer_foto_lotte:      '',
