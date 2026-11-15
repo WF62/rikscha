@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import StammdatenVerwaltung from './StammdatenVerwaltung';
 import OrganisationenVerwaltung from './OrganisationenVerwaltung';
+import { useAdminAuth } from '@/components/AdminGuard';
 import type { Organisation } from '@/lib/supabase';
 
 type Person = { id: string; name: string; rolle: string; aktiv: boolean; organisation_id?: string | null };
@@ -18,9 +19,8 @@ const ROLLEN = [
 const ORDNER_KAT = ['Polizeiliches Führungszeugnis', 'Einweisungsprotokoll', 'Ehrenamtsvertrag', 'Sonstiges'] as const;
 
 export default function AdminSeite() {
-  const [eingeloggt, setEingeloggt] = useState(false);
-  const [adminPw, setAdminPw]       = useState('');
-  const [loginFehler, setLoginFehler] = useState('');
+  const { getToken } = useAdminAuth();
+  const adminPw = getToken();
 
   const [personen, setPersonen]     = useState<Person[]>([]);
   const [laden, setLaden]           = useState(false);
@@ -46,16 +46,6 @@ export default function AdminSeite() {
     if (o.ok) { setOrgs(await o.json()); setOrgFehler(''); } else setOrgFehler((await o.json().catch(() => ({}))).error ?? 'Organisationen konnten nicht geladen werden.');
     setLaden(false);
   }, []);
-
-  const adminLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch('/api/admin/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: adminPw }),
-    });
-    if (res.ok) { setEingeloggt(true); laden_(); }
-    else setLoginFehler(res.status === 429 ? 'Zu viele falsche Versuche. Bitte 15 Minuten warten.' : 'Falsches Passwort.');
-  };
 
   const hinzufügen = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,25 +144,6 @@ export default function AdminSeite() {
       body: JSON.stringify({ id, pilot: process.env.NEXT_PUBLIC_ADMIN_NAME ?? 'Admin', password: adminPw }) });
     setOrdnerDateien(d => d.filter(x => x.id !== id));
   };
-
-  if (!eingeloggt) {
-    return (
-      <div className="max-w-sm mx-auto mt-16">
-        <h2 className="text-2xl font-bold text-rikscha-green mb-6">Admin-Bereich</h2>
-        <form onSubmit={adminLogin} className="bg-white rounded-xl shadow p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-semibold mb-1">Admin-Passwort</label>
-            <input type="password" value={adminPw} onChange={(e) => setAdminPw(e.target.value)}
-              autoFocus required className="w-full border rounded px-3 py-2" placeholder="••••••••" />
-          </div>
-          {loginFehler && <p className="text-red-600 text-sm">{loginFehler}</p>}
-          <button type="submit" className="w-full bg-rikscha-green text-white rounded px-4 py-2 font-semibold">
-            Anmelden
-          </button>
-        </form>
-      </div>
-    );
-  }
 
   const aktive   = personen.filter((p) => p.aktiv);
   const inaktive = personen.filter((p) => !p.aktiv);
