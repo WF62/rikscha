@@ -32,6 +32,7 @@ function EinweisungsKarte({ k, fzName, entfernen }: {
         <div style={{ padding: '0.6rem 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           {k.eingewiesen.map(e => {
             const params = new URLSearchParams({
+              id: e.id,
               kutscher: k.name,
               fahrzeug: fzName(e.fahrzeug_id),
               datum: e.eingewiesen_am ?? '',
