@@ -13,9 +13,11 @@ export default function EinweisungsthemenAdmin() {
 
   const headers = () => ({
     'Content-Type': 'application/json',
-    'x-kutscher-name': localStorage.getItem('kutscher_name') ?? '',
-    'x-kutscher-pw': localStorage.getItem('kutscher_pw') ?? '',
+    'x-admin-password': localStorage.getItem('admin_auth_token') ?? '',
   });
+
+  const fahrzeugLabel = (key: string) =>
+    key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
   const laden_ = () => {
     setLaden(true);
@@ -132,7 +134,7 @@ export default function EinweisungsthemenAdmin() {
 
       {/* Filter */}
       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        {[{ key: 'alle', label: 'Alle' }, { key: 'gemeinsam', label: '🌐 Gemeinsam (alle Fahrzeuge)' }, ...FAHRZEUGE.map(f => ({ key: f, label: f.replace(/_/g, ' ') }))].map(o => (
+        {[{ key: 'alle', label: 'Alle' }, { key: 'gemeinsam', label: '🌐 Gemeinsam (alle Fahrzeuge)' }, ...FAHRZEUGE.map(f => ({ key: f, label: fahrzeugLabel(f) }))].map(o => (
           <button key={o.key} onClick={() => setFilter(o.key)}
             style={{ background: filter === o.key ? '#2D6B1E' : '#F3F4F6', color: filter === o.key ? '#fff' : '#374151', border: 'none', borderRadius: 20, padding: '0.3rem 0.9rem', cursor: 'pointer', fontWeight: filter === o.key ? 700 : 400, fontSize: '0.85rem' }}>
             {o.label}
@@ -166,7 +168,7 @@ export default function EinweisungsthemenAdmin() {
             <select value={t.fahrzeug_typ ?? ''} onChange={e => setFahrzeugTyp(t.id, e.target.value || null)}
               style={{ fontSize: '0.82rem', border: '1px solid #D1D5DB', borderRadius: 6, padding: '0.35rem 0.5rem', background: t.fahrzeug_typ ? '#FEF9C3' : '#F0FDF4', color: '#374151' }}>
               <option value="">🌐 Alle Fahrzeuge</option>
-              {FAHRZEUGE.map(f => <option key={f} value={f}>{f.replace(/_/g, ' ')}</option>)}
+              {FAHRZEUGE.map(f => <option key={f} value={f}>{fahrzeugLabel(f)}</option>)}
             </select>
             <button onClick={() => speichern(t)} style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 6, padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.85rem' }}>Speichern</button>
             <button onClick={() => loeschen(t.id)} style={{ background: '#FEE2E2', color: '#991B1B', border: 'none', borderRadius: 6, padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.85rem' }}>Löschen</button>

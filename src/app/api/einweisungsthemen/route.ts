@@ -5,6 +5,11 @@ import { rolleAusAnfrage, darfWebBearbeiten } from '@/lib/pilotAuth';
 
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 
+function istAdminPasswort(req: NextRequest): boolean {
+  const pw = req.headers.get('x-admin-password');
+  return !!pw && !!process.env.ADMIN_PASSWORD && pw === process.env.ADMIN_PASSWORD;
+}
+
 // GET ?fahrzeug=flotte_lotte  → gemeinsame (NULL) + fahrzeugspezifische Themen
 // GET ?admin=1               → alle Themen mit fahrzeug_typ (für Admin-Editor)
 export async function GET(req: NextRequest) {
@@ -41,7 +46,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
-  if (!darfWebBearbeiten(rolle))
+  if (!darfWebBearbeiten(rolle) && !istAdminPasswort(req))
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
 
   const body = await req.json();
@@ -59,7 +64,7 @@ export async function PUT(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
-  if (!darfWebBearbeiten(rolle))
+  if (!darfWebBearbeiten(rolle) && !istAdminPasswort(req))
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
 
   const { gruppe, punkte, reihenfolge, fahrzeug_typ } = await req.json();
@@ -77,7 +82,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
-  if (!darfWebBearbeiten(rolle))
+  if (!darfWebBearbeiten(rolle) && !istAdminPasswort(req))
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
 
   const { id } = await req.json();
