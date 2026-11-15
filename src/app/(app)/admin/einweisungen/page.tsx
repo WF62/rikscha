@@ -179,11 +179,15 @@ export default function EinweisungenPage() {
 
   return (
     <div style={{ maxWidth: 820, margin: '0 auto', padding: '1.5rem 1rem', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <a href="/admin" style={{ color: '#6B7280', fontSize: '0.9rem', textDecoration: 'none' }}>← Admin</a>
-        <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: '#1a1a18' }}>
+        <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: '#1a1a18', flex: 1 }}>
           🚲 Kutscher &amp; Fahrzeug-Einweisungen
         </h1>
+        <a href="/admin/belege"
+          style={{ background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 8, color: '#1D4ED8', fontSize: '0.85rem', padding: '0.4rem 0.9rem', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
+          📋 Belegeübersicht
+        </a>
       </div>
 
       {/* ===== KUTSCHER ANLEGEN ===== */}
