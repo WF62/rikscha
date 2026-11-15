@@ -18,14 +18,14 @@ export async function GET(req: NextRequest) {
 
   if (id) {
     const { data, error } = await db.from('rikscha_kutscher_fahrzeuge')
-      .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, beleg_url')
+      .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, beleg_url, einweisungstyp')
       .eq('id', id).single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
     return NextResponse.json(data, { headers: CORS });
   }
 
   let q = db.from('rikscha_kutscher_fahrzeuge')
-    .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, beleg_url')
+    .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, beleg_url, einweisungstyp')
     .order('kutscher_name').order('fahrzeug_id');
   if (kutscher) q = q.eq('kutscher_name', kutscher);
   const { data, error } = await q;
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const { rolle, name: adminName } = await rolleAusAnfrage(req);
   if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
 
-  const { kutscher_name, fahrzeug_id, eingewiesen_am } = await req.json();
+  const { kutscher_name, fahrzeug_id, eingewiesen_am, einweisungstyp } = await req.json();
   if (!kutscher_name || !fahrzeug_id) return NextResponse.json({ error: 'Fehlende Felder.' }, { status: 400 });
 
   const db = createServiceClient();
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     kutscher_name, fahrzeug_id,
     eingewiesen_von: adminName,
     eingewiesen_am: eingewiesen_am || new Date().toISOString().slice(0, 10),
+    einweisungstyp: einweisungstyp === 'folge' ? 'folge' : 'voll',
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
   return NextResponse.json({ ok: true }, { status: 201, headers: CORS });

@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
 
-type Einweisung = { id: string; kutscher_name: string; fahrzeug_id: string; eingewiesen_von: string; eingewiesen_am: string; beleg_url?: string };
+type Einweisung = { id: string; kutscher_name: string; fahrzeug_id: string; eingewiesen_von: string; eingewiesen_am: string; beleg_url?: string; einweisungstyp?: string };
 type Fahrzeug = { id: string; name: string };
 type Kutscher = { id: string; name: string; aktiv: boolean; reihenfolge: number; rolle?: string; organisation_id?: string | null };
 
@@ -37,10 +37,12 @@ function EinweisungsKarte({ k, fzName, entfernen }: {
               fahrzeug: fzName(e.fahrzeug_id),
               datum: e.eingewiesen_am ?? '',
               von: e.eingewiesen_von ?? '',
+              typ: e.einweisungstyp ?? 'voll',
             });
             return (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem' }}>
                 <span style={{ fontWeight: 600 }}>{fzName(e.fahrzeug_id)}</span>
+                {e.einweisungstyp === 'folge' && <span style={{ fontSize: '0.72rem', background: '#FEF3C7', color: '#B45309', borderRadius: 4, padding: '0.1rem 0.4rem', fontWeight: 600 }}>Folge</span>}
                 {e.eingewiesen_am && <span style={{ color: '#6B7280' }}>seit {new Date(e.eingewiesen_am).toLocaleDateString('de-DE')}</span>}
                 {e.beleg_url ? (
                   <a href={e.beleg_url} target="_blank" rel="noopener noreferrer"
@@ -78,6 +80,7 @@ export default function EinweisungenPage() {
   const [neuerKutscher, setNeuerKutscher] = useState('');
   const [neuesFahrzeug, setNeuesFahrzeug] = useState('');
   const [eingewiesen_am, setEingewiesen_am] = useState(new Date().toISOString().slice(0, 10));
+  const [einweisungstyp, setEinweisungstyp] = useState<'voll' | 'folge'>('voll');
   const [speichert, setSpeichert] = useState(false);
   const [fehler, setFehler] = useState('');
 
@@ -113,7 +116,7 @@ export default function EinweisungenPage() {
     const res = await fetch('/api/kutscher-fahrzeuge', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ kutscher_name: neuerKutscher, fahrzeug_id: neuesFahrzeug, eingewiesen_am }),
+      body: JSON.stringify({ kutscher_name: neuerKutscher, fahrzeug_id: neuesFahrzeug, eingewiesen_am, einweisungstyp }),
     });
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
@@ -242,7 +245,7 @@ export default function EinweisungenPage() {
       {/* ===== EINWEISUNG HINZUFÜGEN ===== */}
       <div style={{ background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 12, padding: '1.25rem', marginBottom: '2rem' }}>
         <div style={{ fontWeight: 700, color: '#15803D', marginBottom: '0.9rem' }}>Neue Einweisung eintragen</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '0.6rem', alignItems: 'end' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '0.6rem', alignItems: 'end' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Kutscher</label>
             <select value={neuerKutscher} onChange={e => setNeuerKutscher(e.target.value)}
@@ -263,6 +266,19 @@ export default function EinweisungenPage() {
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Eingewiesen am</label>
             <input type="date" value={eingewiesen_am} onChange={e => setEingewiesen_am(e.target.value)}
               style={{ width: '100%', border: '1.5px solid #D1D5DB', borderRadius: 7, padding: '0.5rem 0.6rem', fontSize: '0.9rem', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.3rem' }}>Art</label>
+            <div style={{ display: 'flex', border: '1.5px solid #D1D5DB', borderRadius: 7, overflow: 'hidden' }}>
+              <button onClick={() => setEinweisungstyp('voll')}
+                style={{ flex: 1, padding: '0.5rem 0.6rem', border: 'none', cursor: 'pointer', fontWeight: einweisungstyp === 'voll' ? 700 : 400, background: einweisungstyp === 'voll' ? '#2D6B1E' : '#fff', color: einweisungstyp === 'voll' ? '#fff' : '#374151', fontSize: '0.82rem' }}>
+                Volleinweisung
+              </button>
+              <button onClick={() => setEinweisungstyp('folge')}
+                style={{ flex: 1, padding: '0.5rem 0.6rem', border: 'none', borderLeft: '1px solid #D1D5DB', cursor: 'pointer', fontWeight: einweisungstyp === 'folge' ? 700 : 400, background: einweisungstyp === 'folge' ? '#B45309' : '#fff', color: einweisungstyp === 'folge' ? '#fff' : '#374151', fontSize: '0.82rem' }}>
+                Folgeeinweisung
+              </button>
+            </div>
           </div>
           <button onClick={hinzufuegen} disabled={speichert}
             style={{ background: '#2D6B1E', color: '#fff', border: 'none', borderRadius: 8, padding: '0.55rem 1.1rem', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>

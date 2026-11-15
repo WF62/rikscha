@@ -110,6 +110,8 @@ function Beleg() {
   const fahrzeug = params.get('fahrzeug') ?? '';
   const datum = params.get('datum') ?? '';
   const eingewiesen_von = params.get('von') ?? '';
+  const einweisungstyp = params.get('typ') ?? 'voll';
+  const isFolge = einweisungstyp === 'folge';
 
   const belegRef = useRef<HTMLDivElement>(null);
   const [sigK, setSigK] = useState('');
@@ -119,14 +121,22 @@ function Beleg() {
   const [meldung, setMeldung] = useState('');
   const [geladen, setGeladen] = useState(false);
 
-  // Einweisungsthemen (aus DB, gemeinsame + fahrzeugspezifische)
-  const [themen, setThemen] = useState<{ id: number; gruppe: string; punkte: string[] }[]>([]);
+  // Einweisungsthemen (aus DB)
+  // Volleinweisung: gemeinsame + fahrzeugspezifische
+  // Folgeeinweisung: nur fahrzeugspezifische (fahrzeug_typ gesetzt)
+  const [themen, setThemen] = useState<{ id: number; gruppe: string; punkte: string[]; fahrzeug_typ?: string | null }[]>([]);
   useEffect(() => {
-    const params = fahrzeug ? `?fahrzeug=${encodeURIComponent(fahrzeug)}` : '';
-    fetch(`/api/einweisungsthemen${params}`).then(r => r.json()).then(d => {
-      if (Array.isArray(d)) setThemen(d);
+    const p = fahrzeug ? `?fahrzeug=${encodeURIComponent(fahrzeug)}` : '';
+    fetch(`/api/einweisungsthemen${p}`).then(r => r.json()).then(d => {
+      if (!Array.isArray(d)) return;
+      if (isFolge) {
+        // Nur Themen die explizit für dieses Fahrzeug sind
+        setThemen(d.filter((t: { fahrzeug_typ?: string | null }) => t.fahrzeug_typ !== null && t.fahrzeug_typ !== undefined));
+      } else {
+        setThemen(d);
+      }
     });
-  }, [fahrzeug]);
+  }, [fahrzeug, isFolge]);
   const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
   const toggleThema = (key: string) => setThemenChecked(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -278,7 +288,14 @@ function Beleg() {
           <div style={{ borderBottom: '3px solid #2D6B1E', paddingBottom: '1rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
               <div style={{ fontSize: '0.78rem', color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Mertener Rikschakutscher</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a1a18', lineHeight: 1.2, marginTop: '0.2rem' }}>Einweisungsbeleg</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a1a18', lineHeight: 1.2, marginTop: '0.2rem' }}>
+                {isFolge ? 'Folgeeinweisung' : 'Einweisungsbeleg'}
+              </div>
+              {isFolge && (
+                <div style={{ marginTop: '0.4rem', fontSize: '0.78rem', color: '#B45309', background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 5, padding: '0.3rem 0.6rem', maxWidth: 320 }}>
+                  Ergänzende Einweisung – fahrzeugspezifische Themen für <strong>{fahrzeug}</strong>. Die allgemeine Einweisung liegt bereits vor.
+                </div>
+              )}
             </div>
             <div style={{ textAlign: 'right', fontSize: '0.78rem', color: '#6B7280' }}>
               <div>Ausgestellt am</div>
@@ -306,8 +323,13 @@ function Beleg() {
           {/* Einweisungsthemen */}
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '2px solid #E5E7EB', paddingBottom: '0.4rem' }}>
-              Besprochene Einweisungsthemen
+              {isFolge ? 'Fahrzeugspezifische Einweisungsthemen' : 'Besprochene Einweisungsthemen'}
             </div>
+            {isFolge && themen.length === 0 && (
+              <div style={{ fontSize: '0.85rem', color: '#B45309', background: '#FEF3C7', borderRadius: 6, padding: '0.75rem 1rem' }}>
+                Für dieses Fahrzeug sind noch keine spezifischen Themen hinterlegt. Der allgemeine Einweisungsbeleg gilt.
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {themen.map(gruppe => (
                 <div key={gruppe.gruppe}>
