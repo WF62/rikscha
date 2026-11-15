@@ -209,6 +209,8 @@ function Beleg() {
       const form = new FormData();
       form.append('id', id);
       form.append('kutscher', kutscher);
+      form.append('fahrzeug', fahrzeug);
+      form.append('einweisungstyp', einweisungstyp);
       form.append('file', file);
       form.append('telefon', telefon);
       form.append('email', kEmail);
