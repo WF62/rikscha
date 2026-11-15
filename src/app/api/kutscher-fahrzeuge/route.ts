@@ -8,7 +8,7 @@ const CORS = { 'Access-Control-Allow-Origin': '*' };
 // GET: Alle Einweisungen oder gefiltert nach kutscher_name oder id
 export async function GET(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
-  if (!['kutscher', 'kutscher-admin', 'gfo', 'admin', 'pflege'].includes(rolle))
+  if (!['kutscher', 'kutscher-admin', 'gfo', 'admin', 'pflege'].includes(rolle ?? ''))
     return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
 
   const db = createServiceClient();
