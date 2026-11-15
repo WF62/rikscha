@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authHeaders } from '@/lib/authHeaders';
 
-type Einweisung = { id: string; kutscher_name: string; fahrzeug_id: string; eingewiesen_von: string; eingewiesen_am: string };
+type Einweisung = { id: string; kutscher_name: string; fahrzeug_id: string; eingewiesen_von: string; eingewiesen_am: string; beleg_url?: string };
 type Fahrzeug = { id: string; name: string };
 type Kutscher = { id: string; name: string; aktiv: boolean; reihenfolge: number; rolle?: string; organisation_id?: string | null };
 
@@ -42,11 +42,19 @@ function EinweisungsKarte({ k, fzName, entfernen }: {
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem' }}>
                 <span style={{ fontWeight: 600 }}>{fzName(e.fahrzeug_id)}</span>
                 {e.eingewiesen_am && <span style={{ color: '#6B7280' }}>seit {new Date(e.eingewiesen_am).toLocaleDateString('de-DE')}</span>}
-                <a href={`/einweisungsbeleg?${params.toString()}`} target="_blank" rel="noopener noreferrer"
-                  style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 5, color: '#1D4ED8', fontSize: '0.78rem', padding: '0.1rem 0.4rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
-                  title="Einweisungsbeleg drucken / als PDF speichern">
-                  🖨️ Beleg
-                </a>
+                {e.beleg_url ? (
+                  <a href={e.beleg_url} target="_blank" rel="noopener noreferrer"
+                    style={{ background: '#D1FAE5', border: '1px solid #6EE7B7', borderRadius: 5, color: '#065F46', fontSize: '0.78rem', padding: '0.1rem 0.4rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                    title="Gespeicherten Beleg öffnen">
+                    ✓ Beleg
+                  </a>
+                ) : (
+                  <a href={`/einweisungsbeleg?${params.toString()}`} target="_blank" rel="noopener noreferrer"
+                    style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 5, color: '#1D4ED8', fontSize: '0.78rem', padding: '0.1rem 0.4rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                    title="Einweisungsbeleg ausfüllen und speichern">
+                    🖊️ Beleg
+                  </a>
+                )}
                 <button onClick={() => entfernen(e.id)}
                   style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}
                   title="Einweisung entfernen">×</button>

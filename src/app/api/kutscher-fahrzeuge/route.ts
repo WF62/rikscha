@@ -18,14 +18,14 @@ export async function GET(req: NextRequest) {
 
   if (id) {
     const { data, error } = await db.from('rikscha_kutscher_fahrzeuge')
-      .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, unterschrift_kutscher, unterschrift_einweiser, unterschrieben_am')
+      .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, beleg_url')
       .eq('id', id).single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
     return NextResponse.json(data, { headers: CORS });
   }
 
   let q = db.from('rikscha_kutscher_fahrzeuge')
-    .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, unterschrift_kutscher, unterschrift_einweiser, unterschrieben_am')
+    .select('id, kutscher_name, fahrzeug_id, eingewiesen_von, eingewiesen_am, beleg_url')
     .order('kutscher_name').order('fahrzeug_id');
   if (kutscher) q = q.eq('kutscher_name', kutscher);
   const { data, error } = await q;
@@ -49,21 +49,6 @@ export async function POST(req: NextRequest) {
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
   return NextResponse.json({ ok: true }, { status: 201, headers: CORS });
-}
-
-// PATCH: Unterschriften speichern (kein Admin-Login nötig, aber ID muss bekannt sein)
-export async function PATCH(req: NextRequest) {
-  const { id, unterschrift_kutscher, unterschrift_einweiser } = await req.json();
-  if (!id) return NextResponse.json({ error: 'Fehlende ID.' }, { status: 400 });
-
-  const db = createServiceClient();
-  const felder: Record<string, unknown> = { unterschrieben_am: new Date().toISOString() };
-  if (unterschrift_kutscher !== undefined) felder.unterschrift_kutscher = unterschrift_kutscher;
-  if (unterschrift_einweiser !== undefined) felder.unterschrift_einweiser = unterschrift_einweiser;
-
-  const { error } = await db.from('rikscha_kutscher_fahrzeuge').update(felder).eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS });
-  return NextResponse.json({ ok: true }, { headers: CORS });
 }
 
 // DELETE: Einweisung entfernen
