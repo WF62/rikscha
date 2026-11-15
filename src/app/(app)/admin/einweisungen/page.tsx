@@ -30,15 +30,28 @@ function EinweisungsKarte({ k, fzName, entfernen }: {
       </div>
       {k.eingewiesen.length > 0 && (
         <div style={{ padding: '0.6rem 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {k.eingewiesen.map(e => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem' }}>
-              <span style={{ fontWeight: 600 }}>{fzName(e.fahrzeug_id)}</span>
-              {e.eingewiesen_am && <span style={{ color: '#6B7280' }}>seit {new Date(e.eingewiesen_am).toLocaleDateString('de-DE')}</span>}
-              <button onClick={() => entfernen(e.id)}
-                style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}
-                title="Einweisung entfernen">×</button>
-            </div>
-          ))}
+          {k.eingewiesen.map(e => {
+            const params = new URLSearchParams({
+              kutscher: k.name,
+              fahrzeug: fzName(e.fahrzeug_id),
+              datum: e.eingewiesen_am ?? '',
+              von: e.eingewiesen_von ?? '',
+            });
+            return (
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '0.3rem 0.6rem', fontSize: '0.88rem' }}>
+                <span style={{ fontWeight: 600 }}>{fzName(e.fahrzeug_id)}</span>
+                {e.eingewiesen_am && <span style={{ color: '#6B7280' }}>seit {new Date(e.eingewiesen_am).toLocaleDateString('de-DE')}</span>}
+                <a href={`/einweisungsbeleg?${params.toString()}`} target="_blank" rel="noopener noreferrer"
+                  style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 5, color: '#1D4ED8', fontSize: '0.78rem', padding: '0.1rem 0.4rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                  title="Einweisungsbeleg drucken / als PDF speichern">
+                  🖨️ Beleg
+                </a>
+                <button onClick={() => entfernen(e.id)}
+                  style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}
+                  title="Einweisung entfernen">×</button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
