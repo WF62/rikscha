@@ -129,11 +129,6 @@ function Beleg() {
       'Schäden an Dritt-Sachen/-Personen über Einrichtungs-Haftpflichtversicherung',
       'Kutscher und Passagier über Unfallversicherung der Einrichtung versichert',
     ]},
-    { gruppe: 'Formales / Voraussetzungen', punkte: [
-      'Erweitertes polizeiliches Führungszeugnis vorgelegt',
-      'Ehrenamtlicher Arbeitsvertrag unterzeichnet',
-      'Erste-Hilfe-Schulung: Bedarf besprochen, ggf. Termin vereinbart',
-    ]},
     { gruppe: 'Grundsätzliche Voraussetzung', punkte: [
       'Keine Helmpflicht',
       'Rikscha ist dem normalen Fahrrad gleichgestellt (Waldwege etc.)',
@@ -201,6 +196,11 @@ function Beleg() {
       'Wie Kutscher Fahrten annehmen und anbieten können (App / Kalender)',
       'Fahrten von Bewohnern immer über das Seniorenzentrum mitplanen',
       'Kontaktdatentabelle für Kutscher untereinander (Signal – keine Gästenamen wegen Datenschutz!)',
+    ]},
+    { gruppe: 'Formales / Voraussetzungen', punkte: [
+      'Erweitertes polizeiliches Führungszeugnis vorgelegt',
+      'Ehrenamtlicher Arbeitsvertrag unterzeichnet',
+      'Erste-Hilfe-Schulung: Bedarf besprochen, ggf. Termin vereinbart',
     ]},
   ];
   const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
