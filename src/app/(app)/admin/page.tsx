@@ -370,6 +370,11 @@ export default function AdminSeite() {
           🚲 Fahrzeug-Einweisungen verwalten
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Wer darf welches Fahrzeug nutzen?</span>
         </a>
+        <a href="/admin/einweisungsthemen"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
+          📋 Einweisungsthemen bearbeiten
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Vorlage für den Einweisungsbeleg</span>
+        </a>
         <a href="/admin/belege"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#EFF6FF', border: '1.5px solid #BFDBFE', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#1D4ED8', fontWeight: 700, fontSize: '0.95rem' }}>
           📋 Einweisungsbelege

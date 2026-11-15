@@ -119,93 +119,13 @@ function Beleg() {
   const [meldung, setMeldung] = useState('');
   const [geladen, setGeladen] = useState(false);
 
-  // Einweisungsthemen
-  const THEMEN = [
-    { gruppe: 'Was heißt Kutscher sein?', punkte: [
-      'Rechte und Pflichten erläutert',
-      'Umgang mit Bewohnerinnen und Bewohnern',
-    ]},
-    { gruppe: 'Versicherung', punkte: [
-      'Schäden an Dritt-Sachen/-Personen über Einrichtungs-Haftpflichtversicherung',
-      'Kutscher und Passagier über Unfallversicherung der Einrichtung versichert',
-    ]},
-    { gruppe: 'Grundsätzliche Voraussetzung', punkte: [
-      'Keine Helmpflicht',
-      'Rikscha ist dem normalen Fahrrad gleichgestellt (Waldwege etc.)',
-    ]},
-    { gruppe: 'Grundsätzliche Regeln', punkte: [
-      'Fahren nur von eingewiesenen Kutschern erlaubt',
-      'Handbremse immer bedienen wenn die Rikscha steht',
-      'Immer mit Licht fahren',
-      'Defekte an der Rikscha sofort melden',
-      'Stets im 1. Gang anfahren und Fahrt beenden',
-      'Keine Pflicht an bestimmter Anzahl von Fahrten',
-      'Fahrgast ist jederzeit angeschnallt',
-      'Immer mit Passagieren sprechen (erklären, was man macht)',
-      'Rikscha wird nicht ausgeliehen',
-      'Fotos nur mit Zustimmung der betroffenen Person',
-      'Fahrten sind unentgeltlich, Trinkgeld geht in die Rikscha-Kasse',
-    ]},
-    { gruppe: 'Technik / Komponenten der Rikscha', punkte: [
-      'E-Motor: Funktion, Unterstützungsstufen, Akkuanzeige',
-      'Bremsen: Handbremse und Feststellbremse erklären und ausprobieren',
-      'Licht: Ein- und Ausschalten, immer Pflicht',
-      'Gangschaltung: Gänge erklären, immer im 1. Gang starten und enden',
-      'Sonderstütze: Verwendung beim Ein-/Ausstieg und Parken',
-      'Stauraum, Dach, Design der Rikscha erklären',
-      'Dach Auf- und Abbau erklären',
-      'Decke montieren und richtig versorgen',
-    ]},
-    { gruppe: 'Ein/Ausstieg', punkte: [
-      'Stets ohne Einstiegsklappe, ggf. Hocker benutzen',
-      'Ab Rollator an Ellbogen stützen (Arme des Kutschers unterhalb des Passagierarms)',
-      'Ab Rollstuhl: besondere Vorsicht – immer mit Hilfe von Pflegepersonal',
-      'Jederzeit kann Pflegefachperson beigezogen werden (empfohlen)',
-      'Vor Einstieg Gurte nach vorne ziehen',
-      'Rikscha durch zusätzliche Person sichern (wenn möglich)',
-    ]},
-    { gruppe: 'Fahren', punkte: [
-      'Gemeinsame Fahrpraxis durchgeführt: Kutscher hat die Rikscha selbst gefahren',
-      'Kurvenfahren und Rangiermanöver auf Tauglichkeit geübt',
-      'Mit Gästen nicht schneller als 15 km/h fahren',
-      'Manöver nur im Schritttempo und leicht gezogener Bremse',
-      'Sprechkontakt mit Passagier halten',
-      'Anfahrten am Hang vermeiden; wenn nötig schräg gegen die Steigung',
-      'Je höher die PS, desto besser unterstützt der E-Motor',
-      'Immer beide Hände am Lenker',
-      'Vorausschauend fahren: früh runterschalten, früh bremsen, Elektrounterstützung rechtzeitig einschalten',
-    ]},
-    { gruppe: 'Pausen unterwegs', punkte: [
-      'Sichern mit Feststellbremse',
-      'Abschließen, evtl. mit größerem Schloss',
-      'Schlüssel abziehen',
-    ]},
-    { gruppe: 'Vor Gebrauch', punkte: [
-      'Kleiner Rundgang, allgemeine Sichtkontrolle der Rikscha',
-      'Kleine Probefahrt, Luftdruck im Reifen kontrollieren',
-      'Witterungsbedingte Kleidung bereitstellen',
-      'Evtl. Wasserflasche mitnehmen',
-      'Akkustand kontrollieren',
-    ]},
-    { gruppe: 'Nach Gebrauch', punkte: [
-      'Reinigen',
-      'Abschließen',
-      'Stromspeisung einstecken',
-      'Decke versorgen (wenn nass: über den Sattel hängen)',
-      'Defekte melden',
-      'Schlüssel abgeben',
-    ]},
-    { gruppe: 'Buchungssystem', punkte: [
-      'Wie Kutscher Fahrten annehmen und anbieten können (App / Kalender)',
-      'Fahrten von Bewohnern immer über das Seniorenzentrum mitplanen',
-      'Kontaktdatentabelle für Kutscher untereinander (Signal – keine Gästenamen wegen Datenschutz!)',
-    ]},
-    { gruppe: 'Formales / Voraussetzungen', punkte: [
-      'Erweitertes polizeiliches Führungszeugnis vorgelegt',
-      'Ehrenamtlicher Arbeitsvertrag unterzeichnet',
-      'Erste-Hilfe-Schulung: Bedarf besprochen, ggf. Termin vereinbart',
-    ]},
-  ];
+  // Einweisungsthemen (aus DB)
+  const [themen, setThemen] = useState<{ id: number; gruppe: string; punkte: string[] }[]>([]);
+  useEffect(() => {
+    fetch('/api/einweisungsthemen').then(r => r.json()).then(d => {
+      if (Array.isArray(d)) setThemen(d);
+    });
+  }, []);
   const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
   const toggleThema = (key: string) => setThemenChecked(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -388,7 +308,7 @@ function Beleg() {
               Besprochene Einweisungsthemen
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              {THEMEN.map(gruppe => (
+              {themen.map(gruppe => (
                 <div key={gruppe.gruppe}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#2D6B1E', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{gruppe.gruppe}</div>
                   {gruppe.punkte.map(punkt => {
