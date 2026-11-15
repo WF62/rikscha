@@ -119,26 +119,38 @@ function Beleg() {
   const [meldung, setMeldung] = useState('');
   const [geladen, setGeladen] = useState(false);
 
+  // Kontaktdaten
+  const [telefon, setTelefon] = useState('');
+  const [kEmail, setKEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [adresse, setAdresse] = useState('');
+  const [zustimmung, setZustimmung] = useState(false);
+
   const datumFormatiert = datum
     ? new Date(datum + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
     : '';
 
-  // Vorhandenen Beleg laden
+  // Vorhandenen Beleg + Kontaktdaten laden
   useEffect(() => {
-    if (!id) { setGeladen(true); return; }
-    fetch(`/api/kutscher-fahrzeuge?id=${encodeURIComponent(id)}`, {
-      headers: {
-        'x-pilot': localStorage.getItem('kutscher_name') ?? '',
-        'x-password': localStorage.getItem('kutscher_pw') ?? '',
+    if (!id && !kutscher) { setGeladen(true); return; }
+    const h = {
+      'x-pilot': localStorage.getItem('kutscher_name') ?? '',
+      'x-password': localStorage.getItem('kutscher_pw') ?? '',
+    };
+    Promise.all([
+      id ? fetch(`/api/kutscher-fahrzeuge?id=${encodeURIComponent(id)}`, { headers: h }).then(r => r.ok ? r.json() : null) : Promise.resolve(null),
+      kutscher ? fetch(`/api/einweisungsbeleg?kutscher=${encodeURIComponent(kutscher)}`).then(r => r.ok ? r.json() : null) : Promise.resolve(null),
+    ]).then(([belegDaten, kontaktDaten]) => {
+      if (belegDaten?.beleg_url) setVorhandeneUrl(belegDaten.beleg_url);
+      if (kontaktDaten) {
+        if (kontaktDaten.telefon) setTelefon(kontaktDaten.telefon);
+        if (kontaktDaten.email) setKEmail(kontaktDaten.email);
+        if (kontaktDaten.whatsapp) setWhatsapp(kontaktDaten.whatsapp);
+        if (kontaktDaten.adresse) setAdresse(kontaktDaten.adresse);
+        if (kontaktDaten.kontakt_zustimmung) setZustimmung(true);
       }
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(j => {
-        if (j?.beleg_url) setVorhandeneUrl(j.beleg_url);
-      })
-      .catch(() => {})
-      .finally(() => setGeladen(true));
-  }, [id]);
+    }).catch(() => {}).finally(() => setGeladen(true));
+  }, [id, kutscher]);
 
   const speichernAlsPdf = useCallback(async () => {
     if (!belegRef.current) return;
@@ -176,6 +188,11 @@ function Beleg() {
       form.append('id', id);
       form.append('kutscher', kutscher);
       form.append('file', file);
+      form.append('telefon', telefon);
+      form.append('email', kEmail);
+      form.append('whatsapp', whatsapp);
+      form.append('adresse', adresse);
+      form.append('kontakt_zustimmung', String(zustimmung));
 
       const res = await fetch('/api/einweisungsbeleg', { method: 'POST', body: form });
       const j = await res.json();
@@ -189,7 +206,7 @@ function Beleg() {
       setStatus('fehler');
       setMeldung(err instanceof Error ? err.message : 'Unbekannter Fehler.');
     }
-  }, [belegRef, sigK, sigE, id, kutscher]);
+  }, [belegRef, sigK, sigE, id, kutscher, telefon, kEmail, whatsapp, adresse, zustimmung]);
 
   const fertig = status === 'ok' || !!vorhandeneUrl;
 
@@ -280,6 +297,65 @@ function Beleg() {
             Hiermit wird bestätigt, dass die oben genannte Person in der sicheren Handhabung und
             Bedienung des Rikscha-Fahrzeugs <strong>{fahrzeug}</strong> eingewiesen wurde und
             Fahrten selbstständig durchführen darf.
+          </div>
+
+          {/* Kontaktdaten */}
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Kontaktdaten des Kutschers
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              {([
+                { label: 'Telefon', value: telefon, setter: setTelefon, type: 'tel', placeholder: '+49 …' },
+                { label: 'E-Mail', value: kEmail, setter: setKEmail, type: 'email', placeholder: 'name@beispiel.de' },
+                { label: 'WhatsApp', value: whatsapp, setter: setWhatsapp, type: 'tel', placeholder: '+49 …' },
+              ] as { label: string; value: string; setter: (v: string) => void; type: string; placeholder: string }[]).map(f => (
+                <div key={f.label}>
+                  <div style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 600, marginBottom: '0.2rem' }}>{f.label}</div>
+                  {fertig ? (
+                    <div style={{ fontSize: '0.9rem', color: '#1a1a18', padding: '0.4rem 0.5rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6 }}>{f.value || '–'}</div>
+                  ) : (
+                    <input
+                      type={f.type}
+                      value={f.value}
+                      onChange={e => f.setter(e.target.value)}
+                      placeholder={f.placeholder}
+                      style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #D1D5DB', borderRadius: 6, padding: '0.4rem 0.6rem', fontSize: '0.9rem' }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 600, marginBottom: '0.2rem' }}>Adresse</div>
+              {fertig ? (
+                <div style={{ fontSize: '0.9rem', color: '#1a1a18', padding: '0.4rem 0.5rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6 }}>{adresse || '–'}</div>
+              ) : (
+                <input
+                  type="text"
+                  value={adresse}
+                  onChange={e => setAdresse(e.target.value)}
+                  placeholder="Straße, PLZ Ort"
+                  style={{ width: '100%', boxSizing: 'border-box', border: '1.5px solid #D1D5DB', borderRadius: 6, padding: '0.4rem 0.6rem', fontSize: '0.9rem' }}
+                />
+              )}
+            </div>
+            <div style={{ marginTop: '0.9rem', background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 8, padding: '0.75rem 1rem' }}>
+              <label style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', cursor: fertig ? 'default' : 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={zustimmung}
+                  onChange={e => !fertig && setZustimmung(e.target.checked)}
+                  disabled={fertig}
+                  style={{ marginTop: '0.1rem', width: 16, height: 16, flexShrink: 0 }}
+                />
+                <span style={{ fontSize: '0.82rem', color: '#92400E', lineHeight: 1.5 }}>
+                  Ich stimme ausdrücklich zu, dass meine oben angegebenen Kontaktdaten im Rahmen der
+                  Rikscha-App gespeichert und für vereinsinterne Kommunikation genutzt werden dürfen.
+                  Diese Einwilligung kann jederzeit widerrufen werden.
+                </span>
+              </label>
+            </div>
           </div>
 
           {/* Unterschriften */}
