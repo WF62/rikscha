@@ -266,7 +266,7 @@ function Beleg() {
           {/* Kopfzeile */}
           <div style={{ borderBottom: '3px solid #2D6B1E', paddingBottom: '1rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
-              <div style={{ fontSize: '0.78rem', color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Mertener Rikschakutscher e.V.</div>
+              <div style={{ fontSize: '0.78rem', color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Mertener Rikschakutscher</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a1a18', lineHeight: 1.2, marginTop: '0.2rem' }}>Einweisungsbeleg</div>
             </div>
             <div style={{ textAlign: 'right', fontSize: '0.78rem', color: '#6B7280' }}>
@@ -376,7 +376,7 @@ function Beleg() {
 
           {/* Fußzeile */}
           <div style={{ marginTop: '1.5rem', paddingTop: '0.75rem', borderTop: '1px solid #E5E7EB', fontSize: '0.72rem', color: '#9CA3AF', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.3rem' }}>
-            <span>Einweisungsbeleg – Mertener Rikschakutscher e.V.</span>
+            <span>Einweisungsbeleg – Mertener Rikschakutscher</span>
             <span>Abgelegt im Kutscher-Ordner und Admin-Ordner.</span>
           </div>
         </div>
