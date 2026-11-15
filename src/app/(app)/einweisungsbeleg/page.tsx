@@ -122,7 +122,7 @@ function Beleg() {
   // Kontaktdaten
   const [telefon, setTelefon] = useState('');
   const [kEmail, setKEmail] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
+  const [signal, setSignal] = useState('');
   const [adresse, setAdresse] = useState('');
   const [zustimmung, setZustimmung] = useState(false);
 
@@ -145,7 +145,7 @@ function Beleg() {
       if (kontaktDaten) {
         if (kontaktDaten.telefon) setTelefon(kontaktDaten.telefon);
         if (kontaktDaten.email) setKEmail(kontaktDaten.email);
-        if (kontaktDaten.whatsapp) setWhatsapp(kontaktDaten.whatsapp);
+        if (kontaktDaten.whatsapp) setSignal(kontaktDaten.whatsapp);
         if (kontaktDaten.adresse) setAdresse(kontaktDaten.adresse);
         if (kontaktDaten.kontakt_zustimmung) setZustimmung(true);
       }
@@ -190,7 +190,7 @@ function Beleg() {
       form.append('file', file);
       form.append('telefon', telefon);
       form.append('email', kEmail);
-      form.append('whatsapp', whatsapp);
+      form.append('whatsapp', signal);
       form.append('adresse', adresse);
       form.append('kontakt_zustimmung', String(zustimmung));
 
@@ -206,7 +206,7 @@ function Beleg() {
       setStatus('fehler');
       setMeldung(err instanceof Error ? err.message : 'Unbekannter Fehler.');
     }
-  }, [belegRef, sigK, sigE, id, kutscher, telefon, kEmail, whatsapp, adresse, zustimmung]);
+  }, [belegRef, sigK, sigE, id, kutscher, telefon, kEmail, signal, adresse, zustimmung]);
 
   const fertig = status === 'ok' || !!vorhandeneUrl;
 
@@ -308,7 +308,7 @@ function Beleg() {
               {([
                 { label: 'Telefon', value: telefon, setter: setTelefon, type: 'tel', placeholder: '+49 …' },
                 { label: 'E-Mail', value: kEmail, setter: setKEmail, type: 'email', placeholder: 'name@beispiel.de' },
-                { label: 'WhatsApp', value: whatsapp, setter: setWhatsapp, type: 'tel', placeholder: '+49 …' },
+                { label: 'Signal', value: signal, setter: setSignal, type: 'tel', placeholder: '+49 …' },
               ] as { label: string; value: string; setter: (v: string) => void; type: string; placeholder: string }[]).map(f => (
                 <div key={f.label}>
                   <div style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 600, marginBottom: '0.2rem' }}>{f.label}</div>
