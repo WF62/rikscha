@@ -151,6 +151,47 @@ function Beleg() {
       'Dach Auf- und Abbau erklären',
       'Decke montieren und richtig versorgen',
     ]},
+    { gruppe: 'Ein/Ausstieg', punkte: [
+      'Stets ohne Einstiegsklappe, ggf. Hocker benutzen',
+      'Ab Rollator an Ellbogen stützen (Arme des Kutschers unterhalb des Passagierarms)',
+      'Ab Rollstuhl: besondere Vorsicht – immer mit Hilfe von Pflegepersonal',
+      'Jederzeit kann Pflegefachperson beigezogen werden (empfohlen)',
+      'Vor Einstieg Gurte nach vorne ziehen',
+      'Rikscha durch zusätzliche Person sichern (wenn möglich)',
+    ]},
+    { gruppe: 'Fahren', punkte: [
+      'Manöver nur im Schritttempo und leicht gezogener Bremse',
+      'Sprechkontakt mit Passagier halten',
+      'Anfahrten am Hang vermeiden; wenn nötig schräg gegen die Steigung',
+      'Je höher die PS, desto besser unterstützt der E-Motor',
+      'Immer beide Hände am Lenker',
+      'Vorausschauend fahren: früh runterschalten, früh bremsen, Elektrounterstützung rechtzeitig einschalten',
+    ]},
+    { gruppe: 'Pausen unterwegs', punkte: [
+      'Sichern mit Feststellbremse',
+      'Abschließen, evtl. mit größerem Schloss',
+      'Schlüssel abziehen',
+    ]},
+    { gruppe: 'Vor Gebrauch', punkte: [
+      'Kleiner Rundgang, allgemeine Sichtkontrolle der Rikscha',
+      'Kleine Probefahrt, Luftdruck im Reifen kontrollieren',
+      'Witterungsbedingte Kleidung bereitstellen',
+      'Evtl. Wasserflasche mitnehmen',
+      'Akkustand kontrollieren',
+    ]},
+    { gruppe: 'Nach Gebrauch', punkte: [
+      'Reinigen',
+      'Abschließen',
+      'Stromspeisung einstecken',
+      'Decke versorgen (wenn nass: über den Sattel hängen)',
+      'Defekte melden',
+      'Schlüssel abgeben',
+    ]},
+    { gruppe: 'Buchungssystem', punkte: [
+      'Wie Kutscher Fahrten annehmen und anbieten können (App / Kalender)',
+      'Fahrten von Bewohnern immer über das Seniorenzentrum mitplanen',
+      'Kontaktdatentabelle für Kutscher untereinander (Signal – keine Gästenamen wegen Datenschutz!)',
+    ]},
   ];
   const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
   const toggleThema = (key: string) => setThemenChecked(prev => ({ ...prev, [key]: !prev[key] }));
