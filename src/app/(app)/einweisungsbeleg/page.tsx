@@ -147,7 +147,12 @@ function Beleg() {
       'Fahrten sind unentgeltlich, Trinkgeld geht in die Rikscha-Kasse',
     ]},
     { gruppe: 'Technik / Komponenten der Rikscha', punkte: [
-      'Komponenten erklären (E-Motor, Stauraum, Design)',
+      'E-Motor: Funktion, Unterstützungsstufen, Akkuanzeige',
+      'Bremsen: Handbremse und Feststellbremse erklären und ausprobieren',
+      'Licht: Ein- und Ausschalten, immer Pflicht',
+      'Gangschaltung: Gänge erklären, immer im 1. Gang starten und enden',
+      'Sonderstütze: Verwendung beim Ein-/Ausstieg und Parken',
+      'Stauraum, Dach, Design der Rikscha erklären',
       'Dach Auf- und Abbau erklären',
       'Decke montieren und richtig versorgen',
     ]},
