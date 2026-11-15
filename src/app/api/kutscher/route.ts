@@ -37,12 +37,17 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const { rolle } = await rolleAusAnfrage(req);
   if (!darfWebBearbeiten(rolle)) return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 });
-  const { id, name, aktiv, reihenfolge } = await req.json();
+  const { id, name, aktiv, reihenfolge, telefon, email, whatsapp, adresse, kontakt_zustimmung } = await req.json();
   if (!id) return NextResponse.json({ error: 'ID fehlt.' }, { status: 400 });
   const patch: Record<string, unknown> = {};
   if (name !== undefined) patch.name = name.trim();
   if (aktiv !== undefined) patch.aktiv = aktiv;
   if (reihenfolge !== undefined) patch.reihenfolge = reihenfolge;
+  if (telefon !== undefined) patch.telefon = telefon || null;
+  if (email !== undefined) patch.email = email || null;
+  if (whatsapp !== undefined) patch.whatsapp = whatsapp || null;
+  if (adresse !== undefined) patch.adresse = adresse || null;
+  if (kontakt_zustimmung !== undefined) patch.kontakt_zustimmung = kontakt_zustimmung;
   if (!Object.keys(patch).length) return NextResponse.json({ error: 'Nichts zu ändern.' }, { status: 400 });
   const { error } = await createServiceClient().from('rikscha_kutscher').update(patch).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -365,6 +365,10 @@ export default function AdminSeite() {
       <StammdatenVerwaltung />
 
       <div style={{ maxWidth: 800, margin: '2rem auto 0', padding: '0 1rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <a href="/admin/kutscher-kontakte"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
+          📋 Kutscher-Kontaktdaten
+        </a>
         <a href="/admin/einweisungen"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
           🚲 Fahrzeug-Einweisungen verwalten
