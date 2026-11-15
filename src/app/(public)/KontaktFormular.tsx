@@ -68,7 +68,7 @@ export default function KontaktFormular() {
           <option value="gruppe">Gruppenfahrt mit allen Rikschas</option>
           <option value="tipp">Jemanden für eine Fahrt vorschlagen</option>
           <option value="taufe">Zur Rikscha-Taufe 2027 einladen</option>
-          <option value="pilot">Als Pilot mitmachen</option>
+          <option value="pilot">Als Kutscher mitmachen</option>
           <option value="angehoeriger">Rikscha selbst steuern — für Angehörige</option>
           <option value="frage">Allgemeine Frage</option>
         </select>

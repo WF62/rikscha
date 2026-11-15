@@ -41,7 +41,7 @@ const DEFAULTS: Record<string, string> = {
   schritt_3_titel:   'Polizeiliches Führungszeugnis',
   schritt_3_text:    'Für den Umgang mit Fahrgästen ist ein polizeiliches Führungszeugnis erforderlich.',
   schritt_4_titel:   'Ehrenamtlicher Vertrag mit der GFO',
-  schritt_4_text:    'Als Pilot schließt du einen ehrenamtlichen Vertrag mit der GFO ab.',
+  schritt_4_text:    'Als Kutscher schließt du einen ehrenamtlichen Vertrag mit der GFO ab.',
   zukunft_h2:        'Was wir noch vorhaben',
   zukunft_intro:     'Wir haben viel vor — und mit eurer Unterstützung wird noch mehr möglich.',
   zukunft_1_titel:   'Mehr Fahrzeuge',
@@ -55,7 +55,7 @@ const DEFAULTS: Record<string, string> = {
   spenden_h2:        'Unsere Fahrten sind kostenlos —\naus Freude am Fahren.',
   spenden_text:      'Wer möchte, kann mit einer Spende dazu beitragen, dass unsere Rikschas gepflegt und gewartet werden. Jeder Betrag hilft!',
   kontakt_h2:        'Fahrt anfragen oder Fragen stellen',
-  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Pilot — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
+  kontakt_text:      'Ob Einzelfahrt, Gruppenausflug oder Interesse als neuer Kutscher — wir melden uns schnell bei euch. Oder ruf uns direkt an: 02227 9328383 — gerne auch auf den Anrufbeantworter sprechen, wir rufen zurück.',
 };
 
 async function ladeInhalte(): Promise<Record<string, string>> {
@@ -427,7 +427,7 @@ export default async function WebsitePage() {
       {/* Mitmachen */}
       <section className="ausbildung-section" id="ausbildung">
         <div className="container">
-          <div className="eyebrow">Pilot werden</div>
+          <div className="eyebrow">Kutscher werden</div>
           <h2>{t.mitmachen_h2}</h2>
           <p>{t.mitmachen_intro}</p>
           <div className="steps">
@@ -554,7 +554,7 @@ export default async function WebsitePage() {
               <select>
                 <option value="fahrt">Fahrt anfragen</option>
                 <option value="gruppe">Gruppenfahrt mit allen Rikschas</option>
-                <option value="pilot">Als Pilot mitmachen</option>
+                <option value="pilot">Als Kutscher mitmachen</option>
                 <option value="frage">Allgemeine Frage</option>
               </select>
             </div>
