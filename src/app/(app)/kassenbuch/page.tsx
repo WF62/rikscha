@@ -348,7 +348,7 @@ export default function Kassenbuch() {
       })()}
 
       {/* Externe Beiträge */}
-      {!nurLesen && <details style={{ background: '#EDE9FE', border: '1.5px solid #C4B5FD', borderRadius: 12, padding: '1rem', marginTop: '1.5rem' }}>
+      <details style={{ background: '#EDE9FE', border: '1.5px solid #C4B5FD', borderRadius: 12, padding: '1rem', marginTop: '1.5rem' }}>
         <summary style={{ fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', color: '#4C1D95' }}>
           🏦 Externe Beiträge — nicht über Kasse ({externeEintraege.length})
         </summary>
@@ -357,7 +357,7 @@ export default function Kassenbuch() {
         </p>
 
         {/* Neue externe Buchung */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        {!nurLesen && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <div>
             <label style={lbl}>Typ</label>
             <select style={inp} value={neExternTyp} onChange={e => setNeExternTyp(e.target.value as 'ausgabe' | 'einnahme')}>
@@ -384,11 +384,11 @@ export default function Kassenbuch() {
             <label style={lbl}>Beschreibung *</label>
             <input style={inp} value={neExternBeschreibung} onChange={e => setNeExternBeschreibung(e.target.value)} placeholder="z.B. Wartung Rikscha 2, Versicherung …" />
           </div>
-        </div>
-        <button onClick={externSpeichernFn} disabled={externSpeichert || !neExternBetrag || !neExternBeschreibung.trim()}
+        </div>}
+        {!nurLesen && <button onClick={externSpeichernFn} disabled={externSpeichert || !neExternBetrag || !neExternBeschreibung.trim()}
           style={{ background: '#5B21B6', color: '#fff', border: 'none', borderRadius: 7, padding: '0.4rem 1rem', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', marginBottom: '1rem', opacity: externSpeichert ? 0.6 : 1 }}>
           {externSpeichert ? '⏳ Speichern…' : '+ Eintragen'}
-        </button>
+        </button>}
 
         {/* Liste nach Saison gruppiert */}
         {externeEintraege.length > 0 && (() => {
@@ -429,8 +429,8 @@ export default function Kassenbuch() {
                         <td style={{ padding: '0.3rem 0.5rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.beschreibung}</td>
                         <td style={{ padding: '0.3rem 0.5rem', textAlign: 'right', fontWeight: 700, color: e.typ === 'einnahme' ? '#065F46' : '#5B21B6' }}>{euro(e.betrag)}</td>
                         <td style={{ padding: '0.3rem 0.5rem' }}>
-                          <button onClick={() => { if (confirm('Löschen?')) { fetch('/api/kassenbuch', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password: pw, id: e.id }) }).then(() => externeEintraegeLaden()); } }}
-                            style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.78rem' }}>✕</button>
+                          {!nurLesen && <button onClick={() => { if (confirm('Löschen?')) { fetch('/api/kassenbuch', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pilot, password: pw, id: e.id }) }).then(() => externeEintraegeLaden()); } }}
+                            style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '0.78rem' }}>✕</button>}
                         </td>
                       </tr>
                     ))}
@@ -441,7 +441,7 @@ export default function Kassenbuch() {
           });
         })()}
         {externeEintraege.length === 0 && <p style={{ color: '#7C3AED', fontSize: '0.85rem', margin: 0 }}>Noch keine externen Beiträge erfasst.</p>}
-      </details>}
+      </details>
     </div>
   );
 }
