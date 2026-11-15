@@ -129,6 +129,11 @@ function Beleg() {
       'Schäden an Dritt-Sachen/-Personen über Einrichtungs-Haftpflichtversicherung',
       'Kutscher und Passagier über Unfallversicherung der Einrichtung versichert',
     ]},
+    { gruppe: 'Formales / Voraussetzungen', punkte: [
+      'Erweitertes polizeiliches Führungszeugnis vorgelegt',
+      'Ehrenamtlicher Arbeitsvertrag unterzeichnet',
+      'Erste-Hilfe-Schulung: Bedarf besprochen, ggf. Termin vereinbart',
+    ]},
     { gruppe: 'Grundsätzliche Voraussetzung', punkte: [
       'Keine Helmpflicht',
       'Rikscha ist dem normalen Fahrrad gleichgestellt (Waldwege etc.)',
