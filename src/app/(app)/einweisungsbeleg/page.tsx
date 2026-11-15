@@ -146,6 +146,7 @@ function Beleg() {
   const [kEmail, setKEmail] = useState('');
   const [signal, setSignal] = useState('');
   const [adresse, setAdresse] = useState('');
+  const [kontaktBearbeitbar, setKontaktBearbeitbar] = useState(false);
   const [zustimmung, setZustimmung] = useState(false);
 
   const datumFormatiert = datum
@@ -170,6 +171,11 @@ function Beleg() {
         if (kontaktDaten.whatsapp) setSignal(kontaktDaten.whatsapp);
         if (kontaktDaten.adresse) setAdresse(kontaktDaten.adresse);
         if (kontaktDaten.kontakt_zustimmung) setZustimmung(true);
+        // Wenn bereits Daten vorhanden, schreibgeschützt anzeigen
+        const hatDaten = !!(kontaktDaten.telefon || kontaktDaten.email || kontaktDaten.adresse);
+        setKontaktBearbeitbar(!hatDaten);
+      } else {
+        setKontaktBearbeitbar(true); // Neu – Felder direkt editierbar
       }
     }).catch(() => {}).finally(() => setGeladen(true));
   }, [id, kutscher]);
@@ -378,8 +384,16 @@ function Beleg() {
 
           {/* Kontaktdaten */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Kontaktdaten des Kutschers
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Kontaktdaten des Kutschers
+              </div>
+              {!fertig && !kontaktBearbeitbar && (
+                <button onClick={() => setKontaktBearbeitbar(true)}
+                  style={{ background: 'none', border: 'none', color: '#2D6B1E', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+                  Bearbeiten
+                </button>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
               {([
@@ -389,7 +403,7 @@ function Beleg() {
               ] as { label: string; value: string; setter: (v: string) => void; type: string; placeholder: string }[]).map(f => (
                 <div key={f.label}>
                   <div style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 600, marginBottom: '0.2rem' }}>{f.label}</div>
-                  {fertig ? (
+                  {(fertig || !kontaktBearbeitbar) ? (
                     <div style={{ fontSize: '0.9rem', color: '#1a1a18', padding: '0.4rem 0.5rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6 }}>{f.value || '–'}</div>
                   ) : (
                     <input
@@ -405,7 +419,7 @@ function Beleg() {
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 600, marginBottom: '0.2rem' }}>Adresse</div>
-              {fertig ? (
+              {(fertig || !kontaktBearbeitbar) ? (
                 <div style={{ fontSize: '0.9rem', color: '#1a1a18', padding: '0.4rem 0.5rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 6 }}>{adresse || '–'}</div>
               ) : (
                 <input
