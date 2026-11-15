@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-const ERLAUBT = ['kutscher-admin', 'gfo', 'admin'];
+const ERLAUBT = ['kutscher', 'kutscher-admin', 'gfo', 'admin'];
 const KATEGORIEN_EINNAHME = ['Spende', 'Förderung', 'Mitgliedsbeitrag', 'Sonstiges'];
 const KATEGORIEN_AUSGABE = ['Fahrtkosten', 'Wartung/Reparatur', 'Material', 'Versicherung', 'Verwaltung', 'Sonstiges'];
 const KOSTENTRAEGER = [
@@ -161,7 +161,7 @@ export default function Kassenbuch() {
   };
 
   if (zugang === 'laden') return <div style={{ padding: '2rem', textAlign: 'center' }}>⏳</div>;
-  if (zugang === 'nein') return <div style={{ padding: '2rem', color: '#dc2626' }}>Zugang nur für Kutscher-Admin und Admin.</div>;
+  if (zugang === 'nein') return <div style={{ padding: '2rem', color: '#dc2626' }}>Zugang nur für angemeldete Kutscher.</div>;
 
   const einnahmen = eintraege.filter(e => e.typ === 'einnahme' && e.kategorie !== 'Startbetrag').reduce((s, e) => s + e.betrag, 0);
   const ausgaben = eintraege.filter(e => e.typ === 'ausgabe').reduce((s, e) => s + e.betrag, 0);
