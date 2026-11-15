@@ -5,7 +5,7 @@ const ERLAUBT = ['kutscher', 'kutscher-admin', 'gfo', 'admin'];
 const KATEGORIEN_EINNAHME = ['Spende', 'Förderung', 'Mitgliedsbeitrag', 'Sonstiges'];
 const KATEGORIEN_AUSGABE = ['Fahrtkosten', 'Wartung/Reparatur', 'Material', 'Versicherung', 'Verwaltung', 'Sonstiges'];
 const KOSTENTRAEGER = [
-  { wert: 'selbst', label: 'Gruppe selbst' },
+  { wert: 'selbst', label: 'Gruppe selbst (Kasse)' },
   { wert: 'gfo', label: 'GFO / Seniorenheim' },
   { wert: 'foerderverein', label: 'Förderverein' },
 ];
@@ -21,7 +21,7 @@ function formatDatum(d: string) {
 }
 function euro(n: number) { return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
 function kostentraegerLabel(k?: string) {
-  return { selbst: 'Gruppe', gfo: 'GFO', foerderverein: 'Förderverein' }[k ?? 'selbst'] ?? 'Gruppe';
+  return { selbst: 'Gruppe (Kasse)', gfo: 'GFO', foerderverein: 'Förderverein' }[k ?? 'selbst'] ?? 'Gruppe (Kasse)';
 }
 function kostentraegerColor(k?: string): React.CSSProperties {
   if (k === 'gfo') return { background: '#EDE9FE', color: '#5B21B6' };
