@@ -121,31 +121,35 @@ function Beleg() {
 
   // Einweisungsthemen
   const THEMEN = [
-    { gruppe: 'Schwerpunkte & Allgemeines', punkte: [
-      'Vorstellung und Übergabe des Fahrzeugs',
-      'Sicherheitscheck vor Fahrtantritt (Bremsen, Beleuchtung, Reifendruck)',
-      'An- und Abmeldung in der App',
-      'Zuständigkeiten und Ansprechpartner',
+    { gruppe: 'Was heißt Kutscher sein?', punkte: [
+      'Rechte und Pflichten erläutert',
+      'Umgang mit Bewohnerinnen und Bewohnern',
     ]},
-    { gruppe: 'Allgemeine Regeln', punkte: [
-      'Fahrregeln im Straßenverkehr (StVO)',
-      'Helm- und Ausrüstungspflicht',
-      'Umgang mit Gästen (ältere und pflegebedürftige Menschen)',
-      'Datenschutz und Schweigepflicht',
-      'Versicherungsschutz und Haftung',
+    { gruppe: 'Versicherung', punkte: [
+      'Schäden an Dritt-Sachen/-Personen über Einrichtungs-Haftpflichtversicherung',
+      'Kutscher und Passagier über Unfallversicherung der Einrichtung versichert',
     ]},
-    { gruppe: 'Technik', punkte: [
-      'Schaltung, Pedalunterstützung und Bremssystem',
-      'Beleuchtung und Elektronik (Akku, Display)',
-      'Reifenwechsel und einfache Wartung',
-      'Fahrzeug sichern, abstellen und laden',
+    { gruppe: 'Grundsätzliche Voraussetzung', punkte: [
+      'Keine Helmpflicht',
+      'Rikscha ist dem normalen Fahrrad gleichgestellt (Waldwege etc.)',
     ]},
-    { gruppe: 'Verhalten bei Unregelmäßigkeiten', punkte: [
-      'Verhalten bei Panne oder technischem Defekt',
-      'Meldung von Schäden in der App (Fahrtenbuch)',
-      'Verhalten bei Sturz oder Unfall mit Gast',
-      'Notfallkontakte und Erste Hilfe',
-      'Abbruch einer Fahrt und Rückmeldung',
+    { gruppe: 'Grundsätzliche Regeln', punkte: [
+      'Fahren nur von eingewiesenen Kutschern erlaubt',
+      'Handbremse immer bedienen wenn die Rikscha steht',
+      'Immer mit Licht fahren',
+      'Defekte an der Rikscha sofort melden',
+      'Stets im 1. Gang anfahren und Fahrt beenden',
+      'Keine Pflicht an bestimmter Anzahl von Fahrten',
+      'Fahrgast ist jederzeit angeschnallt',
+      'Immer mit Passagieren sprechen (erklären, was man macht)',
+      'Rikscha wird nicht ausgeliehen',
+      'Fotos nur mit Zustimmung der betroffenen Person',
+      'Fahrten sind unentgeltlich, Trinkgeld geht in die Rikscha-Kasse',
+    ]},
+    { gruppe: 'Technik / Komponenten der Rikscha', punkte: [
+      'Komponenten erklären (E-Motor, Stauraum, Design)',
+      'Dach Auf- und Abbau erklären',
+      'Decke montieren und richtig versorgen',
     ]},
   ];
   const [themenChecked, setThemenChecked] = useState<Record<string, boolean>>({});
