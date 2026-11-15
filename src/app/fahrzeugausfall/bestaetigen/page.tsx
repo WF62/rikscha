@@ -90,7 +90,7 @@ function FahrzeugausfallBestaetigenInner() {
             </div>
 
             <p style={{ fontSize: '0.9rem', color: '#374151', marginBottom: '1rem' }}>
-              Wenn du den Ausfall bestätigst, werden alle aktiven Kutscher automatisch per E-Mail und WhatsApp informiert.
+              Wenn du den Ausfall bestätigst, werden alle aktiven Kutscher automatisch per E-Mail und Signal informiert.
             </p>
 
             <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
