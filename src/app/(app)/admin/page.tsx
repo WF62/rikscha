@@ -355,6 +355,11 @@ export default function AdminSeite() {
           📋 Einweisungsbelege
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Unterschrieben / Offen</span>
         </a>
+        <a href="/admin/patenschaften"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#15803D', fontWeight: 700, fontSize: '0.95rem' }}>
+          🤝 Patenschaften
+          <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#6B7280' }}>Paten verwalten &amp; Fahrzeugkosten eintragen</span>
+        </a>
         <a href="/admin/saisoncheck"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 10, padding: '0.75rem 1.25rem', textDecoration: 'none', color: '#C2410C', fontWeight: 700, fontSize: '0.95rem' }}>
           🌸 Saisoncheck

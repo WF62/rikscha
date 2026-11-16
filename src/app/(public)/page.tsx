@@ -590,6 +590,7 @@ export default async function WebsitePage() {
           <li><a href="#ausbildung">Mitmachen</a></li>
           <li><a href="#foerderer">Förderer</a></li>
           <li><a href="#spenden">Spenden</a></li>
+          <li><a href="/patenschaft">Patenschaft</a></li>
           <li><a href="/galerie">Galerie</a></li>
           <li><a href="/sponsoren">Förderer</a></li>
           <li><a href="/buchen" className="nav-btn">Fahrt buchen</a></li>
@@ -1229,6 +1230,36 @@ export default async function WebsitePage() {
             </div>
           </div>
           <QrSpenden/>
+        </div>
+      </section>
+
+      <hr className="section-rule"/>
+
+      {/* Patenschaft-Teaser */}
+      <section style={{background:'var(--green-soft)',padding:'3rem 0'}} id="patenschaft">
+        <div className="container">
+          <div className="eyebrow">Patenschaft</div>
+          <h2 style={{textWrap:'balance'}}>Jede Rikscha braucht einen Paten.</h2>
+          <p>
+            Unsere Rikschas rollen dank vieler Hände — und dank Menschen, die Verantwortung übernehmen.
+            Wer eine Patenschaft übernimmt, sorgt dafür, dass wir die Geräte in Schuss halten und
+            langfristig den Fuhrpark erneuern können.
+          </p>
+          <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',margin:'1.5rem 0',fontVariantNumeric:'tabular-nums'}}>
+            <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',minWidth:120,textAlign:'center'}}>
+              <div style={{fontSize:'1.6rem',fontWeight:800,color:'var(--green)',fontFamily:'var(--serif)'}}>5</div>
+              <div style={{fontSize:'0.8rem',color:'var(--mid)',marginTop:'0.2rem'}}>Rikschas</div>
+            </div>
+            <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',minWidth:140,textAlign:'center'}}>
+              <div style={{fontSize:'1.6rem',fontWeight:800,color:'var(--green)',fontFamily:'var(--serif)'}}>ab 1.425 €</div>
+              <div style={{fontSize:'0.8rem',color:'var(--mid)',marginTop:'0.2rem'}}>pro Fahrzeug / Jahr</div>
+            </div>
+            <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:'1rem 1.25rem',minWidth:130,textAlign:'center'}}>
+              <div style={{fontSize:'1.6rem',fontWeight:800,color:'var(--green)',fontFamily:'var(--serif)'}}>15–20 T€</div>
+              <div style={{fontSize:'0.8rem',color:'var(--mid)',marginTop:'0.2rem'}}>Neuanschaffung</div>
+            </div>
+          </div>
+          <a href="/patenschaft" className="btn-primary" style={{display:'inline-block'}}>Pate werden →</a>
         </div>
       </section>
 
