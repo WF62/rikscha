@@ -5,14 +5,14 @@ import { usePathname } from 'next/navigation';
 export default function ZurueckLeiste() {
   const pfad = usePathname();
   if (pfad?.startsWith('/kalender')) return null;
-  const zurueck = () => {
-    // Zurück zur vorigen Seite der App – sonst zur Startseite (z. B. wenn die Seite in einem neuen Tab geöffnet wurde)
-    if (window.history.length > 1) window.history.back();
-    else window.location.href = '/';
-  };
+
+  // Ziel: eine Ebene höher, mindestens /admin
+  const teile = (pfad ?? '').split('/').filter(Boolean);
+  const ziel = teile.length > 1 ? '/' + teile.slice(0, -1).join('/') : '/admin';
+
   return (
     <nav aria-label="Navigation" className="print:hidden bg-rikscha-green text-white flex items-center gap-4 px-4 py-2 mb-4 text-sm">
-      <button onClick={zurueck} className="font-semibold hover:underline">← Zurück</button>
+      <a href={ziel} className="font-semibold hover:underline">← Zurück</a>
       <span className="opacity-40">|</span>
       <a href="/" className="hover:underline">🏠 Website</a>
       <a href="/kalender" className="hover:underline">📅 Kalender</a>
